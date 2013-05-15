@@ -1,0 +1,47 @@
+---
+layout: default
+title: "Books"
+description: " % description % "
+group: navigation
+---
+{% include JB/setup %}
+
+
+<div class="subnav">
+  <ul class="nav nav-pills">
+    {% assign pages_list = site.pages %}
+    {% assign group = 'cat' %}
+    {% include JB/pages_list %}
+  </ul>
+</div>
+
+<div class="row row-fluid">
+<div class="subnav span3">
+  <ul class="nav nav-pills nav-stacked">
+	  {% assign tags_list = site.tags %}  
+	  {% include JB/tags_list %}
+  </ul>
+</div>
+
+
+<div class="span9">
+<hr/>
+{% for book in site.posts | limit: 17 %}
+	<div class="row">
+	<img src="{{ BASE_PATH }}/{{ book.book_path }}{{ book.cover }}" class="span2" style="max-height: 300px;" />
+	<div class="span10">
+		{% for author in book.creator %}
+	        <span class="badge badge-success pull-right">{{ author }}</span>
+	    {% endfor %}
+	    <h2><a href="{{ BASE_PATH }}{{ book.url }}">
+	    {{ book.title }}
+	    </a></h2>
+	    <p>{{ book.perface }}</p>
+	</div>
+	<hr>
+	</div>
+	<hr />
+{% endfor %}
+
+</div>
+</div>

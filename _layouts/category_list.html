@@ -1,0 +1,37 @@
+---
+layout: default
+---
+{% include JB/setup %}
+
+
+<div class="subnav">
+  <ul class="nav nav-pills">
+    {% assign pages_list = site.pages %}
+    {% assign group = 'cat' %}
+    {% include JB/pages_list %}
+  </ul>
+</div>
+
+
+{% for category in site.categories %}
+  {% if category[0] == page.cat %}
+  {% for book in category[1] %}
+<hr />
+    <div class="row">
+    <img src="{{ BASE_PATH }}/{{ book.book_path }}{{ book.cover }}" class="span2" style="max-height: 300px;" />
+    <div class="span10">
+      {% for author in book.creator %}
+            <span class="badge badge-success pull-right">{{ author }}</span>
+        {% endfor %}
+        <h2><a href="{{ BASE_PATH }}{{ book.url }}">
+        {{ book.title }}
+        </a></h2>
+        <p>{{ book.perface }}</p>
+    </div>
+    </div>
+  {% endfor %}
+<hr />
+  {% endif %}
+{% endfor %}
+
+

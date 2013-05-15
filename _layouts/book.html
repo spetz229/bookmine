@@ -1,0 +1,64 @@
+---
+layout: default
+---
+{% include JB/setup %}
+
+<div class="sidebar-nav span3 pull-right">
+    <div class="well" style="width:200px; padding: 8px 0;">
+        <ul class="nav nav-list">
+            <li class="nav-header">Table of content:</li>
+                <li><a href="#">Capter 1</a></li>
+                <li><a href="#">Capter 2</a></li>
+                <li><a href="#">Capter 3</a></li>
+                <li><a href="#">Capter 4</a></li>
+                <li><a href="#">Capter 5</a></li>
+                <li><a href="#">Capter 6</a></li>
+                <li><a href="#">Capter 7</a></li>
+                <li><a href="#">Capter 8</a></li>
+                <li><a href="#">Capter 9</a></li>
+                <li><a href="#">Capter 10</a></li>
+                <li><a href="#">Capter 11</a></li>
+        </ul>
+    </div>
+</div>
+
+
+
+<div class="container span7">
+
+    <a href="#"><span class="badge badge-info pull-right">edit</span></a>
+
+	<div class="page-header">
+	  <h1>{{ page.title }} {% if page.tagline %} <small>{{ page.tagline }}</small>{% endif %}</h1>
+	</div>
+
+    <h3> {{ page.creator | join: ', ' }} </h3>
+
+    <hr>
+    <h1><a href="{{BASE_PATH}}/{{page.book_path}}{{page.manifest[0]}}" style="color: #2e8b57"> -> Start reading</a> </h1>
+    <hr>
+
+    <img src="{{ BASE_PATH }}/{{ page.book_path }}{{ page.cover }}" />
+
+    <p> publisher: {{ page.publisher }}</p>
+    <p> subject: {{ page.subject }}</p>
+
+    <h3> Description </h3>
+
+    {{ page.perface }}
+
+
+    <div class="row-fluid">
+      <div class="span12">
+        {{ content }}
+      </div>
+
+    </div>
+
+    <hr>
+    {% include JB/comments %}
+
+</div> <!-- /container -->
+
+
+
