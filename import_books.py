@@ -225,6 +225,7 @@ description: " description "
 group: cat
 cat: %s
 ---
+{% include JB/setup %}
 	""" % (full_name, full_name.lower())
 	with open(path, 'w') as f:
 		f.write(s)
