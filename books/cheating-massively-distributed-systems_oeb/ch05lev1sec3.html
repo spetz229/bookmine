@@ -1,0 +1,44 @@
+---
+layout: page
+title: "Exploiting Online Games: Cheating Massively Distributed Systems"
+prev: ch05lev1sec2.html
+next: ch05lev1sec4.html
+book_path: books/cheating-massively-distributed-systems_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<a name="toppage" class="pcalibre calibre1"></a><table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody"><tr valign="top" class="calibre2"><td class="calibre3"><a name="MainContent" class="pcalibre calibre1"></a><table width="95%" class="sfbody"><tr class="calibre2"><td class="pcalibre1 v"><!--Copyright (c) 2002 Safari Tech Books Online--><table width="100%" border="0" cellspacing="0" cellpadding="2" class="calibre4"><tr class="calibre2"><td valign="middle" class="v1 pcalibre1" height="5"><img src="pixel.gif" alt="" border="0" class="calibre5"/></td></tr><tr class="calibre2"><td valign="middle" class="v1 pcalibre1"><table cellpadding="0" cellspacing="0" border="0" width="100%" class="calibre4"><tr class="calibre2"><td class="calibre6"><span class="calibre7"> </span>
+                   
+                  <span class="calibre7">   </span>
+             <span class="calibre7"> </span></td></tr></table></td><td class="calibre8"/><td valign="middle" class="v2 pcalibre1"> 
+           
+          <span class="calibre7"><a target="_self" href="ch05lev1sec2.html" title="Previous section" class="pcalibre calibre1"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre16"/></a></span>
+				
+				 
+				
+				<span class="calibre7"><a target="_self" href="ch05lev1sec4.html" title="Next section" class="pcalibre calibre1"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre16"/></a></span></td></tr></table><div id="section" class="calibre15"><table width="100%" border="0" cellspacing="0" cellpadding="0" class="calibre4"><tr class="calibre2"><td valign="top" class="calibre8">Security Game Programming Networking Programming Greg Hoglund Gary McGraw Addison Wesley Professional Exploiting Online Games: Cheating Massively Distributed Systems<a name="ch05lev1sec3" class="pcalibre calibre1"></a>
+<h3 id="title-IDAUC51K" class="docSection1Title">Altering the User Interface</h3>
+<p class="docText">The user interface to most online games involves menus, colors, list boxes, enumerated values, scripts, icons, graphics, animations, and so on—all of which respond to commands that you can give directly through the GUI or maybe through scripting or specially crafted network packets. For example, chat messages are directly displayed in the user interface in WoW. But chat messages can also be sent using a crafted network packet or script macro.</p>
+<p class="docText"><a name="iddle1217" class="pcalibre calibre1"></a><a name="iddle1218" class="pcalibre calibre1"></a><a name="iddle1219" class="pcalibre calibre1"></a><a name="iddle1222" class="pcalibre calibre1"></a><a name="iddle1258" class="pcalibre calibre1"></a><a name="iddle1296" class="pcalibre calibre1"></a><a name="iddle1545" class="pcalibre calibre1"></a><a name="iddle1546" class="pcalibre calibre1"></a><a name="iddle1595" class="pcalibre calibre1"></a><a name="iddle1799" class="pcalibre calibre1"></a>Imagine that the chat window shows server messages in red and player messages in white. You, as a normal user, can't change the color of any of your chat messages. That is, they always show up in white. However, if you were to put a sniffer on the network and analyze the chat messages the server sends, you may notice escape codes that change the font color to red. You can't insert these escape codes using the in-game chat interface, but if you craft your own packets, you can insert the escape codes in question yourself.</p>
+<p class="docText">This technique allows you to send a chat message to someone and have it appear to be a server message. Social engineering, anyone? This is just one example of how restrictions arbitrarily enforced by the client can result in possibly false expectations and perceptions on the part of unknowing users.</p>
+<p class="docText">In WoW, for example, index numbers are used for various looting rules, which can be set by a party leader. You can't specify an out-of-range looting rule with the user interface, but you can if you use a script like this:</p>
+<div class="docText1"><pre class="calibre43">/script SetLootMethod("Master","YourCharacterNameHere","7");</pre></div><br class="calibre15"/>
+<p class="docText">Invoking this technique has interesting side effects. When other players attempt to leave the party, doing so initiates a user interface event for a value that is out of range. In the GUI, the illegal parameter <tt class="calibre38">"7"</tt> is related to color values, with the particular color value <tt class="calibre38">"7"</tt> being out of range. This causes an error, and the user interface will therefore not let the player leave the party—the character is trapped, so to speak. Of course, this is only a problem with the user interface. Only a player who doesn't know about this problem would be trapped for long. A more savvy trapped player (say, one who has read this book) could use a little script to get out of the trap:</p>
+<div class="docText1"><pre class="calibre43">/script LeaveParty( );</pre></div><br class="calibre15"/>
+<p class="docText">This technique and others like it underscore the kinds of opportunities afforded by the multiple ways to do one thing in online game GUIs. Your mileage may vary.</p>
+<a href="10061538.html" class="pcalibre calibre1"><img src="pixel.gif" alt="" border="0" class="calibre23"/></a><ul class="calibre18"></ul></td></tr></table><table width="100%" border="0" cellspacing="0" cellpadding="2" class="calibre4"><tr class="calibre2"><td valign="middle" class="v1 pcalibre1" height="5"><img src="pixel.gif" alt="" border="0" class="calibre5"/></td></tr><tr class="calibre2"><td valign="middle" class="v1 pcalibre1"><table cellpadding="0" cellspacing="0" border="0" width="100%" class="calibre4"><tr class="calibre2"><td class="calibre6"><span class="calibre7"> </span>
+                   
+                  <span class="calibre7">   </span>
+             <span class="calibre7"> </span></td></tr></table></td><td class="calibre8"/><td valign="middle" class="v2 pcalibre1"> 
+           
+          <span class="calibre7"><a target="_self" href="ch05lev1sec2.html" title="Previous section" class="pcalibre calibre1"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre16"/></a></span>
+				
+				 
+				
+				<span class="calibre7"><a target="_self" href="ch05lev1sec4.html" title="Next section" class="pcalibre calibre1"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre16"/></a></span></td></tr></table><table width="100%" border="0" cellspacing="0" cellpadding="2" class="calibre4"><tr class="calibre2"><td valign="top" class="calibre14"><span class="calibre7"></span></td></tr></table></div><!--IP User 2--></td></tr></table></td><td class="calibre3">
+                         
+                      </td></tr><tr class="calibre2"><td colspan="3" valign="bottom" class="calibre3"><br class="calibre15"/><p class="v5 pcalibre1"></p><br class="calibre15"/></td></tr></table></div>
+
+{% endraw %}
+

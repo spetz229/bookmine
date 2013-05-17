@@ -1,0 +1,110 @@
+---
+layout: page
+title: "Exploiting Online Games: Cheating Massively Distributed Systems"
+prev: ch09lev1sec2.html
+next: ch09lev1sec4.html
+book_path: books/cheating-massively-distributed-systems_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<a name="toppage" class="pcalibre calibre1"></a><table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody"><tr valign="top" class="calibre2"><td class="calibre3"><a name="MainContent" class="pcalibre calibre1"></a><table width="95%" class="sfbody"><tr class="calibre2"><td class="pcalibre1 v"><!--Copyright (c) 2002 Safari Tech Books Online--><table width="100%" border="0" cellspacing="0" cellpadding="2" class="calibre4"><tr class="calibre2"><td valign="middle" class="v1 pcalibre1" height="5"><img src="pixel.gif" alt="" border="0" class="calibre5"/></td></tr><tr class="calibre2"><td valign="middle" class="v1 pcalibre1"><table cellpadding="0" cellspacing="0" border="0" width="100%" class="calibre4"><tr class="calibre2"><td class="calibre6"><span class="calibre7"> </span>
+                   
+                  <span class="calibre7">   </span>
+             <span class="calibre7"> </span></td></tr></table></td><td class="calibre8"/><td valign="middle" class="v2 pcalibre1"> 
+           
+          <span class="calibre7"><a target="_self" href="ch09lev1sec2.html" title="Previous section" class="pcalibre calibre1"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre16"/></a></span>
+				
+				 
+				
+				<span class="calibre7"><a target="_self" href="ch09lev1sec4.html" title="Next section" class="pcalibre calibre1"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre16"/></a></span></td></tr></table><div id="section" class="calibre15"><table width="100%" border="0" cellspacing="0" cellpadding="0" class="calibre4"><tr class="calibre2"><td valign="top" class="calibre8"><a href="11061538.html" class="pcalibre calibre1"><img src="pixel.gif" alt="" border="0" class="calibre23"/></a>Security Game Programming Networking Programming Greg Hoglund Gary McGraw Addison Wesley Professional Exploiting Online Games: Cheating Massively Distributed Systems<a name="ch09lev1sec3" class="pcalibre calibre1"></a>
+<h3 id="title-IDA0XFKL" class="docSection1Title">Emulation Servers (Private Servers)</h3>
+<p class="docText">Earlier in the book, we introduced the idea of rolling your own game server. At the time, we indicated that when it comes to WoW, a lot of work has already been done in this area. We also made it clear that this kind of activity is frowned upon by Blizzard Entertainment, the makers of WoW. Just so you know, not all game developers take the same hard-nosed stance as Blizzard, and many games have active communities of modders with support by the game developers. Writing a game server is a fascinating programming exercise. In effect, you get to be a microcosmic god over your own little universe, and who doesn't like that?</p>
+<p class="docText">We need to add an important disclaimer here—even though we cover emulation servers written for WoW in this section, please remember that if you write your own or attempt to redistribute a modded version of the servers we present here, you might find yourself on the sharp end of a lawsuit. Consider yourself forewarned. There is an excellent history of various WoW emulation projects that someone has compiled at &lt;<a class="pcalibre6 pcalibre5 calibre1" target="_blank" href="http://www.gotwow.ic.cz/">http://www.gotwow.ic.cz/</a>&gt;.</p>
+<p class="docText">To tell you the truth, we debated whether or not to put this material in the book. In the end, our honest assessment of the material we're sharing is that it doesn't directly violate any copyrights or disable any copyright mechanisms in the stand-alone game. What it does do is enable you to play the game without having an active online account with Blizzard.</p>
+<p class="docText">We believe that because of fair use protections, if you buy a legitimate copy of a game at the store, you can use the material any way you want, including but not limited to running the game with a private server on your remote tropical island that has no Internet access. Others believe differently.</p>
+<p class="docText">OK, enough of that.</p>
+<a name="ch09lev2sec8" class="pcalibre calibre1"></a>
+<h4 id="title-IDAYYFKL" class="docSection2Title">Protocol Emulation</h4>
+<p class="docText"><a name="iddle1448" class="pcalibre calibre1"></a><a name="iddle1739" class="pcalibre calibre1"></a><a name="iddle1904" class="pcalibre calibre1"></a>To emulate a server, you must first be able to communicate directly with the client program. This requires reverse engineering the network protocol, messages, and any encryption or obfuscation the protocol uses.</p>
+<p class="docText">Here is a partial table of message types for WoW that we obtained from a popular emulation server's source code. This type of data is very expensive to reverse engineer, but others have done all the heavy lifting.</p>
+<div class="docText1"><pre class="calibre43">public enum OP
+      {
+        MSG_NULL_ACTION,                          // = 0x0
+        CMSG_BOOTME,                              // = 0x1
+        CMSG_DBLOOKUP,                            // = 0x2
+        SMSG_DBLOOKUP,                            // = 0x3
+        CMSG_QUERY_OBJECT_POSITION,               // = 0x4
+        SMSG_QUERY_OBJECT_POSITION,               // = 0x5
+        CMSG_QUERY_OBJECT_ROTATION,               // = 0x6
+        SMSG_QUERY_OBJECT_ROTATION,               // = 0x7
+</pre></div><br class="calibre15"/>
+<p class="docText">We snipped a large number of messages to save room. . . .</p>
+<div class="docText1"><pre class="calibre43">        SMSG_SET_FORCED_REACTIONS,                //  =  0x029D
+        SMSG_SPELL_FAILED_OTHER,                  //  =  0x029E
+        SMSG_GAMEOBJECT_RESET_STATE,              //  =  0x029F
+        CMSG_REPAIR_ITEM,                         //  =  0x02A0
+        SMSG_CHAT_PLAYER_NOT_FOUND,               //  =  0x02A1
+        MSG_TALENT_WIPE_CONFIRM,                  //  =  0x02A2
+        SMSG_SUMMON_REQUEST,                      //  =  0x02A3
+        CMSG_SUMMON_RESPONSE,                     //  =  0x02A4
+        MSG_MOVE_TOGGLE_GRAVITY_CHEAT,            //  =  0x02A5
+        SMSG_MONSTER_MOVE_TRANSPORT,              //  =  0x02A6
+        SMSG_PET_BROKEN,                          //  =  0x02A7
+        MSG_MOVE_FEATHER_FALL,                    //  =  0x02A8
+        MSG_MOVE_WATER_WALK,                      //  =  0x02A9
+        CMSG_SERVER_BROADCAST,                    //  =  0x02AA
+        CMSG_SELF_RES,                            //  =  0x02AB
+        SMSG_FEIGN_DEATH_RESISTED,                //  =  0x02AC
+        CMSG_RUN_SCRIPT,                          //  =  0x02AD
+        SMSG_SCRIPT_MESSAGE,                      //  =  0x02AE
+        NUM_MSG_TYPES                             //  =  0x02AF
+};
+</pre></div><br class="calibre15"/>
+<p class="docText">Of course, the structure doesn't contain all possible messages, and in fact additional tables of response codes, items, object IDs, and so on exist. <a name="iddle1391" class="pcalibre calibre1"></a><a name="iddle1440" class="pcalibre calibre1"></a><a name="iddle1441" class="pcalibre calibre1"></a><a name="iddle1444" class="pcalibre calibre1"></a><a name="iddle1447" class="pcalibre calibre1"></a><a name="iddle1553" class="pcalibre calibre1"></a><a name="iddle1684" class="pcalibre calibre1"></a><a name="iddle1732" class="pcalibre calibre1"></a><a name="iddle1735" class="pcalibre calibre1"></a><a name="iddle1738" class="pcalibre calibre1"></a><a name="iddle1750" class="pcalibre calibre1"></a>In other words, there's literally a ton of data to reverse engineer if you want to build a complete emulation server. That's why emulation servers are so expensive to build.</p>
+<a name="ch09lev3sec3" class="pcalibre calibre1"></a>
+<h5 id="title-IDA13FKL" class="docSection3Title">Exercise: Hooking the Packet Engine</h5>
+<p class="docText">A single function in the <tt class="calibre38">WoW.exe</tt> client binary handles all packets. The prototype for this function is shown below.</p>
+<div class="docText1"><pre class="calibre43">NetClient__ProcessMessage(
+       int NetClient,
+       int dummy,
+       unsigned long l,
+       DWORD *CDataStore)
+</pre></div><br class="calibre15"/>
+<p class="docText">You can use the techniques shown in <a class="pcalibre6 pcalibre5 calibre1" href="ch06.html#ch06">Chapter 6</a> to locate this function dynamically. You can place a detour hook or breakpoint hook on this function using either an injected DLL or an external debugger (as also described in <a class="pcalibre6 pcalibre5 calibre1" href="ch06.html#ch06">Chapter 6</a>). Once your hook is in place, you can sniff packet traffic to begin reverse engineering what you will need to emulate in your private server. Of course, this is academic for WoW since game hackers have already done this and you can just reuse what they have done. But when you begin reverse engineering a new game, you can implement this same strategy.</p>
+<a name="ch09lev3sec4" class="pcalibre calibre1"></a>
+<h5 id="title-IDAD5FKL" class="docSection3Title">Decrypting Warcraft Packets</h5>
+<a name="ch09note01" class="pcalibre calibre1"></a><div class="docNote"><p class="docNoteTitle">Note</p>
+<p class="docText"><span class="docEmphasis">A section of this chapter was removed before publication. Readers interested in this subject can learn everything they need to know about decrypting WoW packets by downloading the MaNGOS project and reading the source code.</span></p>
+</div><br class="calibre15"/>
+<p class="docText">The game you reverse engineer will likely have an encryption system for the network communication. Encryption might be too strong a word here; maybe it would better be called an obfuscation system. Because the game client program must decrypt the packets, you will have everything you need to decrypt them yourself. You simply have to reverse engineer what the client program is doing and reimplement that yourself.</p>
+<p class="docText">Reverse engineering whatever encryption a game uses can certainly take some time, and we don't mean to trivialize it. This kind of activity is a required step in the process of building an emulation server.</p>
+<p class="docText">To start writing or customizing an emulation server, try downloading MaNGOS or WoWEmu source code and compiling it. We describe how to <a name="iddle1445" class="pcalibre calibre1"></a><a name="iddle1736" class="pcalibre calibre1"></a>download MaNGOS in the related text box. As of this writing, MaNGOS reports to be compatible with a fairly recent version of WoW. This exercise can prepare you to craft your own emulation servers for new games that are being released.</p>
+<a name="ch09sb01" class="pcalibre calibre1"></a><p class="calibre28"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre4"><tr class="calibre2"><td class="calibre8">
+<h2 class="docSidebarTitle">Downloading MaNGOS</h2>
+<p class="docText">To download MaNGOS, you need to obtain the source code control program known as Subversion. We suggest you use the program TortoiseSVN, which supports Subversion &lt;<a class="pcalibre6 pcalibre5 calibre1" target="_blank" href="http://tortoisesvn.tigris.org">http://tortoisesvn.tigris.org</a>&gt;. As of this writing, all you need to do to get the latest version of MaNGOS is to configure Tortoise to perform a CVS Checkout from the URL &lt;<a class="pcalibre6 pcalibre5 calibre1" target="_blank" href="https://mangos.svn.sourceforge.net/svnroot/mangos/trunk">https://mangos.svn.sourceforge.net/svnroot/mangos/trunk</a>&gt;. MaNGOS comes with a Microsoft Visual Studio solution file and can be compiled with the Visual Studio compiler.</p>
+<p class="docText">MaNGOS must be compiled and configured. It requires MySQL 5.0 to be installed. It also requires a database to be initialized that will represent the game universe. This database is delivered in a separate file. We have tried Azzum'sRepack, which weighs in at about 200MB of compressed data. Several other tools were also required, including Navicat, XAMPP, MaNGOS DB Handler, and nnCron. This sounds like a large pile, and it is. However, the general consensus among game hackers is that it's worth it. A detailed setup and installation guide is available at &lt;<a class="pcalibre6 pcalibre5 calibre1" target="_blank" href="http://forum.ragezone.com/world-warcraft">http://forum.ragezone.com/world-warcraft</a>&gt;.</p>
+</td></tr></table></p><br class="calibre15"/>
+<a name="ch09lev2sec9" class="pcalibre calibre1"></a>
+<h4 id="title-IDAUBGKL" class="docSection2Title">Steps Required to Get into the World</h4>
+<p class="docText">A number of steps are required to get an emulation world up and get your character into it. The first step is to build the server, of course.</p>
+<p class="docText">Once the emulation server is built, the second step in getting it to work is to have it authenticate a user login. The client program will require a valid login before it will even attempt to render the game world. The client program might establish a session key and then provide a username and password pair to be authenticated. You can simply respond with a success message, or you can write some form of database or flat file of usernames and passwords and actually check.</p>
+<p class="docText">After authentication, present the user with a list of servers to log into (at least for WoW). Because many games can't actually create a single world for millions of players, the game is split over many servers. In the case of WoW, each server is distinct and separate, and players must have unique characters <a name="iddle1647" class="pcalibre calibre1"></a><a name="iddle1744" class="pcalibre calibre1"></a>for each server. This list of realms must be delivered to the client, and the user will select one.</p>
+<p class="docText">Next, build a character list. The user may have specific characters on each realm. At this point, the emulation server will likely need to give the user a way to create and/or delete characters as well. The client program will handle most of the details of character creation, but the server might be called upon to make dice rolls, deliver stats, and so on. For example, when the user tries to select a character name, the server will need to check that there isn't a name conflict with an existing character.</p>
+<p class="docText">Finally, given a working active character, the user should be able to log into the world. The character will have a coordinate position associated with it, which will be used to tell the client where to begin rendering the world. The client program handles all the rendering, so the server just needs to keep track of where all the objects are located.</p>
+<p class="docText">There are certainly plenty of hoops to jump through before you get to the fun part of actually interacting with the game world. But these steps are necessary in order to get the plumbing working for the game. Once you tackle these steps, you shouldn't need to come back and rework them unless the game company changes something fairly significant in the architecture of its game.</p>
+<a href="11061538.html" class="pcalibre calibre1"><img src="pixel.gif" alt="" border="0" class="calibre23"/></a><ul class="calibre18"></ul></td></tr></table><table width="100%" border="0" cellspacing="0" cellpadding="2" class="calibre4"><tr class="calibre2"><td valign="middle" class="v1 pcalibre1" height="5"><img src="pixel.gif" alt="" border="0" class="calibre5"/></td></tr><tr class="calibre2"><td valign="middle" class="v1 pcalibre1"><table cellpadding="0" cellspacing="0" border="0" width="100%" class="calibre4"><tr class="calibre2"><td class="calibre6"><span class="calibre7"> </span>
+                   
+                  <span class="calibre7">   </span>
+             <span class="calibre7"> </span></td></tr></table></td><td class="calibre8"/><td valign="middle" class="v2 pcalibre1"> 
+           
+          <span class="calibre7"><a target="_self" href="ch09lev1sec2.html" title="Previous section" class="pcalibre calibre1"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre16"/></a></span>
+				
+				 
+				
+				<span class="calibre7"><a target="_self" href="ch09lev1sec4.html" title="Next section" class="pcalibre calibre1"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre16"/></a></span></td></tr></table><table width="100%" border="0" cellspacing="0" cellpadding="2" class="calibre4"><tr class="calibre2"><td valign="top" class="calibre14"><span class="calibre7"></span></td></tr></table></div><!--IP User 2--></td></tr></table></td><td class="calibre3">
+                         
+                      </td></tr><tr class="calibre2"><td colspan="3" valign="bottom" class="calibre3"><br class="calibre15"/><p class="v5 pcalibre1"></p><br class="calibre15"/></td></tr></table></div>
+
+{% endraw %}
+

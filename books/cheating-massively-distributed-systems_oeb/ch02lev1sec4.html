@@ -1,0 +1,127 @@
+---
+layout: page
+title: "Exploiting Online Games: Cheating Massively Distributed Systems"
+prev: ch02lev1sec3.html
+next: ch02lev1sec5.html
+book_path: books/cheating-massively-distributed-systems_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<a name="toppage" class="pcalibre calibre1"></a><table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody"><tr valign="top" class="calibre2"><td class="calibre3"><a name="MainContent" class="pcalibre calibre1"></a><table width="95%" class="sfbody"><tr class="calibre2"><td class="pcalibre1 v"><!--Copyright (c) 2002 Safari Tech Books Online--><table width="100%" border="0" cellspacing="0" cellpadding="2" class="calibre4"><tr class="calibre2"><td valign="middle" class="v1 pcalibre1" height="5"><img src="pixel.gif" alt="" border="0" class="calibre5"/></td></tr><tr class="calibre2"><td valign="middle" class="v1 pcalibre1"><table cellpadding="0" cellspacing="0" border="0" width="100%" class="calibre4"><tr class="calibre2"><td class="calibre6"><span class="calibre7"> </span>
+                   
+                  <span class="calibre7">   </span>
+             <span class="calibre7"> </span></td></tr></table></td><td class="calibre8"/><td valign="middle" class="v2 pcalibre1"><a href="10061538.html" class="pcalibre calibre1"><img src="btn_next_.gif" alt="Next" border="0" class="calibre23"/></a> 
+           
+          <span class="calibre7"><a target="_self" href="ch02lev1sec3.html" title="Previous section" class="pcalibre calibre1"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre16"/></a></span>
+				
+				 
+				
+				<span class="calibre7"><a target="_self" href="ch02lev1sec5.html" title="Next section" class="pcalibre calibre1"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre16"/></a></span></td></tr></table><div id="section" class="calibre15"><table width="100%" border="0" cellspacing="0" cellpadding="0" class="calibre4"><tr class="calibre2"><td valign="top" class="calibre8">Security Game Programming Networking Programming Greg Hoglund Gary McGraw Addison Wesley Professional Exploiting Online Games: Cheating Massively Distributed Systems<a name="ch02lev1sec4" class="pcalibre calibre1"></a>
+<h3 id="title-IDAQJVFG" class="docSection1Title">The Bot Parade</h3>
+<p class="docText">Since bots are such pervasive cheaters' tools, it is worth spending some time pondering a few examples. Three large-scale categories of bots are combat macro bots (used to cheat in MMORPG games), aimbots (a particular type of combat macro bot used commonly in FPS games), and poker bots.</p>
+<a name="ch02lev2sec7" class="pcalibre calibre1"></a>
+<h4 id="title-IDA1JVFG" class="docSection2Title">Combat Macro Bots</h4>
+<p class="docText">Many games, especially MMORPGs, have simple scripting languages that can be used to interact with the game. These languages allow a number of basic activities to be strung together into a macro. Sometimes games don't <a name="iddle1590" class="pcalibre calibre1"></a><a name="iddle1676" class="pcalibre calibre1"></a><a name="iddle1720" class="pcalibre calibre1"></a><a name="iddle2124" class="pcalibre calibre1"></a>include a scripting language off the shelf, but third-party programs that run with the game provide scripting capability.</p>
+<p class="docText">Scripts are very useful for automating simple tasks. Here is an example of a macro that works with WoW.<sup class="docFootnote"><a class="pcalibre6 pcalibre5 calibre1" href="#ch02fn12">[12]</a></sup> Web sites filled with macros like this one are easy to find on the Internet.</p><blockquote class="calibre24"><p class="docFootnote1"><sup class="calibre31"><a name="ch02fn12" class="pcalibre calibre1">[12]</a></sup> The WoW macro is from &lt;<a class="pcalibre6 pcalibre5 calibre1" target="_blank" href="http://ui.worldofwar.net/listmacros.php?type=2">http://ui.worldofwar.net/listmacros.php?type=2</a>&gt;.</p></blockquote>
+<a name="ch02sb01" class="pcalibre calibre1"></a><p class="calibre28"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre4"><tr class="calibre2"><td class="calibre8">
+<p class="calibre28"><table cellspacing="0" frame="void" rules="none" cellpadding="5" class="calibre4"><colgroup span="2" class="calibre40"><col width="200" class="calibre41"/><col width="300" class="calibre41"/></colgroup><thead class="calibre42"/><tr class="calibre2"><td class="docTableCell" valign="top"><p class="docText"><span class="calibre11">Macro</span></p></td><td class="docTableCell" valign="top"> </td></tr><tr class="calibre2"><td class="docTableCell" valign="top"><p class="docText"><span class="calibre11">TargetFreeEnemy</span></p></td><td class="docTableCell" valign="top"><p class="docText"><span class="calibre11">Last Updated: June 22nd, 2006</span></p></td></tr></table></p><br class="calibre15"/>
+<p class="docText">Updated since last WoW Patch</p>
+<p class="docText">This macro cycles through all enemies around you and stops when it hits an untapped enemy (non-faction, i.e., non-horde and non-alliance). Very useful while grinding undead currently! (Stops after cycling through 30 enemies as to not hang your computer when none are available.) (This macro assumes you're Alliance, if you're not, replace <tt class="calibre38">"Horde"</tt> with <tt class="calibre38">"Alliance"</tt> to make it work for you as well.)</p>
+<div class="docText1"><pre class="calibre43">Code Start:
+/script TargetNearestEnemy(); local i = 1;
+if(UnitExists('target')) then while(UnitExists('target') and
+(UnitFactionGroup('target') == 'Horde' or
+UnitIsTapped('target')) and i &lt; 30) do TargetNearestEnemy();
+i = i+1; end;end;
+Code End:
+</pre></div><br class="calibre15"/>
+</td></tr></table></p><br class="calibre15"/>
+<p class="docText">Here is another example. This macro works with Star Wars Galaxies.<sup class="docFootnote"><a class="pcalibre6 pcalibre5 calibre1" href="#ch02fn13">[13]</a></sup></p><blockquote class="calibre24"><p class="docFootnote1"><sup class="calibre31"><a name="ch02fn13" class="pcalibre calibre1">[13]</a></sup> The Star Wars Galaxies macro is from &lt;<a class="pcalibre6 pcalibre5 calibre1" target="_blank" href="http://rpgexpert.com/2789.html">http://rpgexpert.com/2789.html</a>&gt;.</p></blockquote>
+<a name="ch02sb02" class="pcalibre calibre1"></a><p class="calibre28"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre4"><tr class="calibre2"><td class="calibre8">
+<p class="docText">Date Added: August 2, 2004</p>
+<p class="docText">Ok, this is an AFK combat macro designed for the in-game macro system. If you want to take it a step further, you can run a HAM Checker macro (checks your HAM and heals you when needed) with AC Tool.</p>
+<p class="docText">To run this macro, set up a droid running a patrol pattern in a square pattern around a spawn. Angle your camera in so it faces the spawn (and go watch tv or sleep.</p>
+<p class="docText">The macro is:</p>
+<div class="docText1"><pre class="calibre43">/ui action targetGroup0;
+/follow;
+/ui action cycleTargetOutward;
+(if you're a Brawler, insert /follow here)
+/attack;
+(insert specials here)
+/pause XXX;
+(amount of time to kill it)
+/follow;
+/pause 2;
+/loot;
+/harvest hide;
+/macro AFKCombat;
+</pre></div><br class="calibre15"/>
+</td></tr></table></p><br class="calibre15"/>
+<p class="docText"><a name="iddle1028" class="pcalibre calibre1"></a><a name="iddle1058" class="pcalibre calibre1"></a><a name="iddle1162" class="pcalibre calibre1"></a><a name="iddle1654" class="pcalibre calibre1"></a><a name="iddle1668" class="pcalibre calibre1"></a><a name="iddle1675" class="pcalibre calibre1"></a>This macro is slightly more interesting than the first example because it works unattended. In fact, its simple description makes this clear. Some gamers draw a big distinction between attended use of macros and unattended use. They believe that unattended use is cheating.</p>
+<p class="docText">Some games go so far as to outlaw the use of macros (see <a class="pcalibre6 pcalibre5 calibre1" href="ch04.html#ch04">Chapter 4</a> for more on legal moves to prevent cheating). The game Asheron's Call includes the following legalese:</p>
+<blockquote class="calibre24">
+<p class="docText">Use of unauthorized third-party software or macros with the Software may be prohibited in the sole discretion of Turbine. Specifically, you may not use third-party software which allows your character to gain experience points or items by engaging in combat without being at the keyboard, ready to respond to Turbine staff on demand (this activity is commonly called a "Combat Macro"). Logging off as soon as an admin appears (visible or invisible) or when an admin tries to speak with you will be taken into consideration in determining the use of Combat Macros.<sup class="docFootnote"><a class="pcalibre6 pcalibre5 calibre1" href="#ch02fn14">[14]</a></sup></p>
+<blockquote class="calibre24"><p class="docFootnote1"><sup class="calibre31"><a name="ch02fn14" class="pcalibre calibre1">[14]</a></sup> You can find more on the Asheron's Call legalese at &lt;<a class="pcalibre6 pcalibre5 calibre1" target="_blank" href="http://turbine.fuzeqna.com/asheronscall/consumer/kbdetail.asp?kbid=305">http://turbine.fuzeqna.com/asheronscall/consumer/kbdetail.asp?kbid=305</a>&gt;.</p></blockquote></blockquote>
+<p class="docText">One of the most well-known and widely used macro systems in gaming is Lin2Rich &lt;<a class="pcalibre6 pcalibre5 calibre1" target="_blank" href="http://lin2rich.com/">http://lin2rich.com/</a>&gt;. Lin2Rich is actually an advanced bot environment. It works alongside your client (i.e., you use it in tandem with the regular game client), sending packets directly to the game server according to the way it is configured. Lin2Rich can be configured to send a set of commands to the server when a certain event happens. For example, if you click certain buttons at particular times or begin to rest at a particular time and place, you can program the cheating client to send particular commands to the game. Because of the way it works, detecting Lin2Rich by monitoring player behavior is difficult.</p>
+<a name="ch02lev2sec8" class="pcalibre calibre1"></a>
+<h4 id="title-IDAC0VFG" class="docSection2Title">Aimbots</h4>
+<p class="docText"><a name="iddle1016" class="pcalibre calibre1"></a><a name="iddle1120" class="pcalibre calibre1"></a><a name="iddle1121" class="pcalibre calibre1"></a><a name="iddle1164" class="pcalibre calibre1"></a><a name="iddle1170" class="pcalibre calibre1"></a><a name="iddle1174" class="pcalibre calibre1"></a><a name="iddle1178" class="pcalibre calibre1"></a><a name="iddle2196" class="pcalibre calibre1"></a><a name="iddle2332" class="pcalibre calibre1"></a>Aimbots are bots used in FPS games. The idea is simple: Aim better than your opponent and win. Superhuman aim achieved through programming is generally considered cheating (though some FPS games have built-in aimbots that can be used).</p>
+<p class="docText">Aimbots come in a variety of flavors. Some only aim. Some aim and shoot. Some move, aim, and shoot. The first aimbots were created for Quake and Counter-Strike. An interesting FAQ about Unreal Tournament and cheats can be found at &lt;<a class="pcalibre6 pcalibre5 calibre1" target="_blank" href="http://www.digdilem.org/ut/aimbot.php">http://www.digdilem.org/ut/aimbot.php</a>&gt;.</p>
+<a name="ch02sb03" class="pcalibre calibre1"></a><p class="calibre28"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre4"><tr class="calibre2"><td class="calibre8"><a name="ch02sb03__supertitle" class="pcalibre calibre1"></a>
+<h2 class="docSidebarTitle">Black Hat Corner: ZelliusBot Readme File</h2>
+<p class="docText">========ZelliusBot UT2004 Edition ver 1.0===========</p>
+<a name="ch02sb03div01lev1sec1" class="pcalibre calibre1"></a>
+<h2 class="docSidebarTitle">—About—</h2>
+<p class="docText">My leet aimbot with lots of useful features :D Works on UT2004 Demo &amp; UT2004 retail ver. 3186. My bots feature base is aimed towards ease of tracking down crybabies and huge-ego clanmembers :)</p>
+<a name="ch02sb03div01lev1sec2" class="pcalibre calibre1"></a>
+<h2 class="docSidebarTitle">—Installation—</h2>
+<a name="ch02pro01" class="pcalibre calibre1"></a>
+<table border="0" class="docText2"><tr class="calibre2"><td width="25" valign="top" class="calibre8"><div class="docText1"><b class="calibre11">1. </b></div></td><td class="calibre8"><div class="docText1">Copy ZelliusBot.u &amp; Zelliusbot.ini to your UT's 'System' folder<br class="calibre15"/><br class="calibre15"/></div></td></tr><tr class="calibre2"><td width="25" valign="top" class="calibre8"><div class="docText1"><b class="calibre11">2. </b></div></td><td class="calibre8"><div class="docText1">Open up your UT2004.ini, navigate to the [XInterface.ExtendedConsole] and edit the ServerInfoMenu so its value is: ZelliusBot.ZelliusServerInfo. It should look like ServerInfoMenu=ZelliusBot.ZelliusServerInfo. If Serverinfo line aint already there, just add it.<br class="calibre15"/><br class="calibre15"/></div></td></tr><tr class="calibre2"><td width="25" valign="top" class="calibre8"><div class="docText1"><b class="calibre11">3. </b></div></td><td class="calibre8"><div class="docText1">Open up your User.ini and bind 'serverinfo' to a key of your choice. e.g., z=serverinfo<br class="calibre15"/><br class="calibre15"/></div></td></tr><tr class="calibre2"><td width="25" valign="top" class="calibre8"><div class="docText1"><b class="calibre11">4. </b></div></td><td class="calibre8"><div class="docText1">Wait until you've joined a game and press your serverinfo key, if all goes well the Zelliusbot status should appear on your HUD.<br class="calibre15"/><br class="calibre15"/></div></td></tr></table>
+<a name="ch02sb03div01lev1sec3" class="pcalibre calibre1"></a>
+<h2 class="docSidebarTitle">—Usage—</h2>
+<p class="docText">Use your number row keys to toggle various commands. You can change your selected toggling keys by editing your ut2004.ini statements like AutoTauntKey.</p>
+<p class="docText">You can get the various number codes for each key by setting bShowKeyNumbers to True, joining a game and taking note of the numbers that are displayed when you press a certain key.</p>
+<a name="ch02sb03div01lev1sec4" class="pcalibre calibre1"></a>
+<h2 class="docSidebarTitle">—Notes—</h2>
+<p class="docText">This bot will not aim while in UT2004 vehicles</p>
+<p class="docText">Compile in the UT2003 development environment.</p>
+<p class="docText"><a name="iddle1013" class="pcalibre calibre1"></a><a name="iddle1014" class="pcalibre calibre1"></a><a name="iddle1019" class="pcalibre calibre1"></a><a name="iddle1160" class="pcalibre calibre1"></a><a name="iddle1169" class="pcalibre calibre1"></a><a name="iddle1351" class="pcalibre calibre1"></a><a name="iddle1359" class="pcalibre calibre1"></a><a name="iddle2065" class="pcalibre calibre1"></a><a name="iddle2114" class="pcalibre calibre1"></a><a name="iddle2329" class="pcalibre calibre1"></a>Experiment in game or read the uscript to figure out how everything works.</p>
+<p class="docText">If you encounter a 'shooting at wall' problem when an enemy comes into sight increase your FireDelayTime.</p>
+<p class="docText">Unload the bot when the match is ended, if you still get a invalid game file error on map change type 'reconnect' in the console.</p>
+<a name="ch02sb03div01lev1sec5" class="pcalibre calibre1"></a>
+<h2 class="docSidebarTitle">—Thanks—</h2>
+<p class="docText">Thanks go to tenbucks, moonwolf, play2win, lamer, spunky and many others for lots of testing and feedback.</p>
+<p class="docText">Thanks go to [ELF]HelioS for his help with ping code, HUD and his textures (from helios ut bot).</p>
+<p class="docText">Thanks go to DrSiN[Epic] for leaving multiple gaping holes in UT2004.</p>
+<p class="docText">I hope you have lots of fun!</p>
+<p class="docText">~Zellius</p>
+</td></tr></table></p><br class="calibre15"/>
+<p class="docText">One popular aimbot called ZelliusBot works by reprogramming initialization files in Unreal Tournament. The Black Hat Corner includes some text from the readme file that comes with ZelliusBot.</p>
+<p class="docText">In most cases, aimbots come packaged with other features such as the ability to travel through walls. One early aimbot for Counter-Strike was XQZ. XQZ combined several capabilities into an easy-to-use package. It was eventually released to the public. XQZ at first replaced and then later hooked the OpenGL DLL. XQZ included features that allowed users to use it stealthily during LAN parties without detection. Counter-Strike is still filled with spinoffs from XQZ.</p>
+<p class="docText">In its first instantiations, the XQZ aimbot was invoked when a button on the keyboard or mouse was pressed. Pressing the button resulted in the aimbot controlling the aiming crosshairs.</p>
+<p class="docText">Care must be taken when developing and using aimbots to ensure that their superhuman potential does not become a giveaway. For example, using an aimbot that perfectly tracks a strangely moving adversary, shooting it over and over in the exact same spot, is called slaving. Decoupling the aim and shoot features is sometimes necessary. As we mentioned earlier, more advanced aimbots can add statistical noise to their actions.</p>
+<a name="ch02lev2sec9" class="pcalibre calibre1"></a>
+<h4 id="title-IDA3DWFG" class="docSection2Title">Poker Bots</h4>
+<p class="docText"><a name="iddle1167" class="pcalibre calibre1"></a><a name="iddle1177" class="pcalibre calibre1"></a><a name="iddle1270" class="pcalibre calibre1"></a><a name="iddle1274" class="pcalibre calibre1"></a><a name="iddle1380" class="pcalibre calibre1"></a><a name="iddle1662" class="pcalibre calibre1"></a><a name="iddle1865" class="pcalibre calibre1"></a><a name="iddle2299" class="pcalibre calibre1"></a>Now that online poker has topped $1 billion in revenue, it's not surprising that much activity has been invested in creating automated bots to play poker. Fortunately, poker is a reasonably hard game that can't easily be automated. However, poker bots do exist, and they are improving rapidly.</p>
+<p class="docText">Of course, if poker bots get too good, they will undermine the game itself. Nobody wants to lose consistently to a bot! Especially when money is involved.</p>
+<p class="docText">Rumors abound of a new generation of sophisticated poker bots that can beat newbies with some regularity. Some even say that above-average players can be beaten as well. Of course, just as in other kinds of gaming, the game companies want to discourage the use of bots. They make use of player monitoring and look for suspicious patterns of play, sometimes adapting their games to defeat bots.</p>
+<p class="docText">Still, some people are making their living by selling poker bots commercially. A number of programs are available at the WinHoldEm Web site &lt;<a class="pcalibre6 pcalibre5 calibre1" target="_blank" href="http://www.winholdem.net/">http://www.winholdem.net/</a>&gt;, ranging from a $25 standard package of hand analysis software to a $200 version that includes bot play capability.</p>
+<p class="docText">Once again we find ourselves in the midst of a classic arms race. Simple bots pop up, antibot measures out them, the bots improve, and so on. Of course, most online casinos don't allow bots, but enforcing that rule is difficult.</p>
+<p class="docText">The entire online poker phenomenon is confusing to many security professionals. The biggest problem is collusion between players. Cheating by discussing hands in an out-of-band conversation is very difficult to detect. Banning this activity is easy from a legal perspective, but enforcing the ban may not be possible.</p>
+<p class="docText">Some believe the inability to control poker bots and out-of-band communication will be the demise of online poker. We'll just have to wait and see.</p>
+<ul class="calibre18"></ul></td></tr></table><table width="100%" border="0" cellspacing="0" cellpadding="2" class="calibre4"><tr class="calibre2"><td valign="middle" class="v1 pcalibre1" height="5"><img src="pixel.gif" alt="" border="0" class="calibre5"/></td></tr><tr class="calibre2"><td valign="middle" class="v1 pcalibre1"><table cellpadding="0" cellspacing="0" border="0" width="100%" class="calibre4"><tr class="calibre2"><td class="calibre6"><span class="calibre7"> </span>
+                   
+                  <span class="calibre7">   </span>
+             <span class="calibre7"> </span></td></tr></table></td><td class="calibre8"/><td valign="middle" class="v2 pcalibre1"><a href="10061538.html" class="pcalibre calibre1"><img src="btn_next_.gif" alt="Next" border="0" class="calibre23"/></a> 
+           
+          <span class="calibre7"><a target="_self" href="ch02lev1sec3.html" title="Previous section" class="pcalibre calibre1"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre16"/></a></span>
+				
+				 
+				
+				<span class="calibre7"><a target="_self" href="ch02lev1sec5.html" title="Next section" class="pcalibre calibre1"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre16"/></a></span></td></tr></table><table width="100%" border="0" cellspacing="0" cellpadding="2" class="calibre4"><tr class="calibre2"><td valign="top" class="calibre14"><span class="calibre7"></span></td></tr></table></div><!--IP User 2--></td></tr></table></td><td class="calibre3">
+                         
+                      </td></tr><tr class="calibre2"><td colspan="3" valign="bottom" class="calibre3"><br class="calibre15"/><p class="v5 pcalibre1"></p><br class="calibre15"/></td></tr></table></div>
+
+{% endraw %}
+

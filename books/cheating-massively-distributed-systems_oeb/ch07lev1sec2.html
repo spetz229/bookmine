@@ -1,0 +1,555 @@
+---
+layout: page
+title: "Exploiting Online Games: Cheating Massively Distributed Systems"
+prev: ch07lev1sec1.html
+next: ch07lev1sec3.html
+book_path: books/cheating-massively-distributed-systems_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<a name="toppage" class="pcalibre calibre1"></a><table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody"><tr valign="top" class="calibre2"><td class="calibre3"><a name="MainContent" class="pcalibre calibre1"></a><table width="95%" class="sfbody"><tr class="calibre2"><td class="pcalibre1 v"><!--Copyright (c) 2002 Safari Tech Books Online--><table width="100%" border="0" cellspacing="0" cellpadding="2" class="calibre4"><tr class="calibre2"><td valign="middle" class="v1 pcalibre1" height="5"><img src="pixel.gif" alt="" border="0" class="calibre5"/></td></tr><tr class="calibre2"><td valign="middle" class="v1 pcalibre1"><table cellpadding="0" cellspacing="0" border="0" width="100%" class="calibre4"><tr class="calibre2"><td class="calibre6"><span class="calibre7"> </span>
+                   
+                  <span class="calibre7">   </span>
+             <span class="calibre7"> </span></td></tr></table></td><td class="calibre8"/><td valign="middle" class="v2 pcalibre1"> 
+           
+          <span class="calibre7"><a target="_self" href="ch07lev1sec1.html" title="Previous section" class="pcalibre calibre1"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre16"/></a></span>
+				
+				 
+				
+				<span class="calibre7"><a target="_self" href="ch07lev1sec3.html" title="Next section" class="pcalibre calibre1"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre16"/></a></span></td></tr></table><div id="section" class="calibre15"><table width="100%" border="0" cellspacing="0" cellpadding="0" class="calibre4"><tr class="calibre2"><td valign="top" class="calibre8">Security Game Programming Networking Programming Greg Hoglund Gary McGraw Addison Wesley Professional Exploiting Online Games: Cheating Massively Distributed Systems<a name="ch07lev1sec2" class="pcalibre calibre1"></a>
+<h3 id="title-IDAP1ADP" class="docSection1Title">Bot as Debugger</h3>
+<p class="docText">Savvy readers will have already discerned the relationship between bots and debuggers, especially if you paid close attention in <a class="pcalibre6 pcalibre5 calibre1" href="ch06.html#ch06">Chapter 6</a>. It turns out that bots can be written as debuggers to great effect. In this section, we show how to attach to a running game client and interject just the right sorts of events in order to create a bot.</p>
+<p class="docText">Implementing a bot as a program debugger is a convenient way to invasively manipulate the target program. In addition, having a good debugger around is very helpful when you're trying to understand and manipulate any game client. Fortunately, Windows-SDK-compliant debuggers all share a common basic architecture. In this section, we <a name="iddle1148" class="pcalibre calibre1"></a><a name="iddle1388" class="pcalibre calibre1"></a>introduce some basic debugging techniques and show how they apply to game hacking using a program called Wowzer.</p>
+<p class="docText">Please be aware that some game clients can detect whether they are being debugged. Misuse of the techniques presented here may cause you to be banned from the game. Once again, don't come whining to us if you get caught using these ideas and bad things happen!</p>
+<a name="ch07lev2sec8" class="pcalibre calibre1"></a>
+<h4 id="title-IDA12ADP" class="docSection2Title">A Basic Debugging Loop</h4>
+<p class="docText">Here's the main debugging loop for a standard debugger. The code is a console application (i.e., it has no user interface). It prints debug data to <tt class="calibre38">stdout</tt> as it runs.</p>
+<div class="docText1"><pre class="calibre43">int _tmain(int argc, _TCHAR* argv[])
+{
+       HANDLE hProcess;
+       DEBUG_EVENT dbg_evt;
+       int aPID;
+
+       if(argc != 2)
+       {
+         printf("wrong number of parameters\nusage %s
+&lt;pid&gt;\n",argv[0]);
+         return 0;
+       }
+</pre></div><br class="calibre15"/>
+<p class="docText">In the code, the program checks its arguments. In this example, the debugger will connect to (or attach to) an already-running process. This is usually the right approach to take when working on a game hack. During start-up, a game may check to see whether it's being launched from a debugger. Obviously that will be disallowed. Attaching to the target program by using these techniques will get you around that common check. (Note that this kind of "Am I being debugged?" check can be run from more than one location, not only at game start-up!) Attaching like this also lets the program get started, for you to log in and so on, before any hacking begins.</p>
+<div class="docText1"><pre class="calibre43">       // load the ptr to fDebugSetProcessKillOnExit
+       fDebugSetProcessKillOnExit = (DEBUGSETPROCESSKILLONEXIT)
+              GetProcAddress( GetModuleHandle("kernel32.dll"),
+              "DebugSetProcessKillOnExit" );
+       if(!fDebugSetProcessKillOnExit)
+       {
+         printf("[!] failed to get fDebugSetProcessKillOnExit
+function!\n");
+       }
+
+       aPID = atoi(argv[1]);
+</pre></div><br class="calibre15"/>
+<p class="docText">The code above loads a pointer to a special utility function that allows us to detach from the running process without killing it. See below for a more detailed description of this feature—it's optional, but highly desired.</p>
+<div class="docText1"><pre class="calibre43">       hProcess = OpenProcess(PROCESS_ALL_ACCESS |
+               PROCESS_VM_OPERATION,
+               0,
+               aPID);
+</pre></div><br class="calibre15"/>
+<p class="docText">Here, we open the target process. In this case, the process must already be running. You can attach to the game once you have already logged into the world and are ready to begin botting or sniffing data.</p>
+<div class="docText1"><pre class="calibre43">       if(hProcess == NULL)
+       {
+         printf("[!] OpenProcess Failed !\n");
+         return 0;
+       }
+
+       SetDebugPrivilege(hProcess);
+
+       // Alright -- time to start debugging
+       if(!DebugActiveProcess(aPID))
+       {
+         printf("[!] DebugActiveProcess failed !\n");
+         return 0;
+       }
+</pre></div><br class="calibre15"/>
+<p class="docText">The call above begins the debugging process. If the process doesn't belong to you, you need to enable the debugging privilege. The main loop of the debug event handler is shown below.</p>
+<div class="docText1"><pre class="calibre43">       // don't kill the process on thread exit, XP and above
+       if(fDebugSetProcessKillOnExit)
+              fDebugSetProcessKillOnExit(FALSE);
+       while(1)
+       {
+</pre></div><br class="calibre15"/>
+<p class="docText">Next we wait for a debug event. Debug events occur for many reasons, including thread creation and destruction. They also happen when DLLs are loaded. Debug events may also be spawned for debugger-specific reasons, such as when a breakpoint is hit or when a single step occurs. As you can see, there is a timeout option for <tt class="calibre38">WaitForDebugEvent</tt>. In this case, we specify <tt class="calibre38">INFINITE</tt>, which means wait forever until an event occurs. This function call blocks until an event occurs.</p>
+<div class="docText1"><pre class="calibre43">         if(WaitForDebugEvent(&amp;dbg_evt, INFINITE))
+         {
+           printf("debug event detected...\n");
+</pre></div><br class="calibre15"/>
+<p class="docText">At this point we're ready to check the debug event code. If the event code is an exception, we check to see whether it's a breakpoint or a single step. A breakpoint is usually in response to an interrupt 3. A single step is in response to an interrupt 1. However, it's important to know that some breakpoint types can result in an interrupt 1 and (even though they are breakpoints) cause the single-step message to be sent. We check for one exception type called an access violation—this is sent whenever invalid memory is read or written.</p>
+<div class="docText1"><pre class="calibre43">           if(EXIT_THREAD_DEBUG_EVENT == dbg_evt.dwDebugEventCode)
+           {
+             printf("[!] Target thread id %d
+has finished executing. \n",
+                     dbg_evt.dwThreadId);
+           }
+             if( dbg_evt.dwDebugEventCode == EXCEPTION_DEBUG_EVENT)
+             {
+               switch (dbg_evt.u.Exception.ExceptionRecord.
+                       ExceptionCode)
+               {
+                 case EXCEPTION_ACCESS_VIOLATION:
+                 break;
+                 case EXCEPTION_BREAKPOINT:
+                 printf("breakpoint hit\n");
+                 break;
+                 case EXCEPTION_SINGLE_STEP:
+                 break;
+                 default:
+                 break;
+               }
+             }
+</pre></div><br class="calibre15"/>
+<p class="docText">For fun, we also check for debug strings. This is a special event code used when debug trace messages are printed. Debug strings are only supposed to be used in development, but they are often left behind in production builds. These strings can sometimes contain valuable data about the game—including function name and purpose.</p>
+<div class="docText1"><pre class="calibre43">          if(dbg_evt.dwDebugEventCode ==
+                 OUTPUT_DEBUG_STRING_EVENT)
+          {
+            OUTPUT_DEBUG_STRING_INFO *inf =
+                   &amp;(dbg_evt.u.DebugString);
+            LPSTR remote_address =
+                   inf-&gt;lpDebugStringData;
+            char _local[4096];
+            printf("got debug string len %d\n",
+                   inf-&gt;nDebugStringLength);
+
+            memset(_local, NULL, sizeof(_local));
+
+            if(inf-&gt;nDebugStringLength &lt;
+                   sizeof(_local)-1)
+            {
+              unsigned long num_read;
+              ReadProcessMemory(
+                     hProcess,
+                     (LPCVOID)remote_address,
+                      _local,
+                      inf-&gt;nDebugStringLength, &amp;num_read);
+
+              printf("string: %s\n", _local);
+            }
+          }
+
+          printf("continuing...\n");
+          if(!ContinueDebugEvent(
+                 aPID,
+                 dbg_evt.dwThreadId,
+                 DBG_CONTINUE))
+           {
+            return 0;
+           }
+        }
+       }
+
+       return 0;
+}
+</pre></div><br class="calibre15"/>
+<p class="docText"><a name="iddle11499" class="pcalibre calibre1"></a><a name="iddle1149" class="pcalibre calibre1"></a><a name="iddle1153" class="pcalibre calibre1"></a><a name="iddle1155" class="pcalibre calibre1"></a><a name="iddle1156" class="pcalibre calibre1"></a><a name="iddle1892" class="pcalibre calibre1"></a><a name="iddle2055" class="pcalibre calibre1"></a><a name="iddle2056" class="pcalibre calibre1"></a>What we have now is a basic debugging loop. Use this along with a bot to attach to the target process. This is the basis for breakpoint-based sampling, setting and getting thread contexts, hijacking threads, and so on. Now we turn to some important details you should be aware of.</p>
+<a name="ch07lev2sec9" class="pcalibre calibre1"></a>
+<h4 id="title-IDAZCBDP" class="docSection2Title"><tt class="calibre38">SetProcessKillOnExit</tt></h4>
+<p class="docText">Before Windows XP joined us in Windows-land, if you connected to a program to debug it, you could not disconnect the debugger without also killing the target program. After Windows XP debuted, Microsoft added a new SDK function to let you disconnect a debugger without also killing the process.</p>
+<p class="docText">A problem remains, however. The function isn't exported in a way that you can use directly in your programs. Instead, you have to load the function dynamically by using <tt class="calibre38">GetProcAddress()</tt>.</p>
+<p class="docText">The following code shows how to import an undocumented function dynamically. With this trick, you can get a pointer to any arbitrary function exported from a DLL. You will need to know (or to guess) the types of the arguments passed to the call. (Almost all DLL exports are exported as <tt class="calibre38">__stdcall</tt>.)</p>
+<div class="docText1"><pre class="calibre43">typedef
+BOOL(__stdcall *DEBUGSETPROCESSKILLONEXIT)
+(
+  BOOL KillOnExit
+);
+DEBUGSETPROCESSKILLONEXIT fDebugSetProcessKillOnExit;
+</pre></div><br class="calibre15"/>
+<a name="ch07lev2sec10" class="pcalibre calibre1"></a>
+<h4 id="title-IDAXDBDP" class="docSection2Title"><tt class="calibre38">SetDebugPrivilege</tt></h4>
+<p class="docText">Windows has security features that govern what a logged-on user can do. One of the rights that can be granted or restricted is the right to debug other processes on the system (processes not started by yourself, that is). For a game hack, you probably launched the game client yourself and don't need to invoke this privilege. But, for the sake of completeness, a good debugger should enable the debug privilege so it can be used on system processes and those of other users.</p>
+<p class="docText">The following code enables the debug privilege in Windows.</p>
+<div class="docText1"><pre class="calibre43">bool SetDebugPrivilege( HANDLE hProcess )
+{
+       LUID luid ;
+       TOKEN_PRIVILEGES privs ;
+       HANDLE hToken = NULL ;
+       DWORD dwBufLen = 0 ;
+       char buf[1024] ;
+
+       ZeroMemory( &amp;luid,sizeof(luid) ) ;
+
+       if(! LookupPrivilegeValue( NULL, SE_DEBUG_NAME, &amp;luid ))
+         return false ;
+
+       privs.PrivilegeCount = 1 ;
+       privs.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED ;
+       memcpy( &amp;privs.Privileges[0].Luid,
+               &amp;luid,
+               sizeof(privs.Privileges[0].Luid ) ) ;
+
+      
+       if( ! OpenProcessToken( hProcess,
+              TOKEN_ALL_ACCESS,&amp;hToken))
+         return false ;
+
+       if( !AdjustTokenPrivileges(
+              hToken,
+              FALSE,
+              &amp;privs,
+              sizeof(buf),
+              (PTOKEN_PRIVILEGES)buf,
+              &amp;dwBufLen ) )
+         return false ;
+
+       return true ;
+}
+</pre></div><br class="calibre15"/>
+<p class="docText"><a name="iddle1146" class="pcalibre calibre1"></a><a name="iddle1150" class="pcalibre calibre1"></a><a name="iddle1151" class="pcalibre calibre1"></a><a name="iddle1209" class="pcalibre calibre1"></a><a name="iddle1210" class="pcalibre calibre1"></a><a name="iddle1212" class="pcalibre calibre1"></a><a name="iddle1604" class="pcalibre calibre1"></a><a name="iddle1624" class="pcalibre calibre1"></a>The debug privilege might not be required for attaching to your game, but the technique is useful if you intend to connect to a service that has already been launched or to a component that starts when the computer boots. Some games may have components like this you might wish to explore.</p>
+<a name="ch07lev2sec11" class="pcalibre calibre1"></a>
+<h4 id="title-IDA2GBDP" class="docSection2Title">Breakpoints</h4>
+<p class="docText">Breakpoints are an essential debugging trick. They allow you to cause a program to stop whatever it is doing and pause at a defined location. You can use breakpoints to gain control over the execution of a program, to redirect control flow, to sample data, or to modify select data at a specific <a name="iddle1093" class="pcalibre calibre1"></a><a name="iddle1498" class="pcalibre calibre1"></a>time. Breakpoints are like wrenches for the code mechanic—common and extremely useful.</p>
+<p class="docText">There are two fundamental kinds of breakpoints. <span class="docEmphasis">In-memory</span> breakpoints, the first kind, require a breakpoint instruction to be written over the code. <span class="docEmphasis">Memory</span> breakpoints or <span class="docEmphasis">hardware</span> breakpoints, the second kind, use the debug registers of the Intel chip. Let's take a closer look.</p>
+<p class="docText">Here we illustrate the placement of an in-memory breakpoint. This requires us to overwrite the code with a breakpoint instruction. This instruction is only 1 byte long (by design, for ease of use). The <tt class="calibre38">CC</tt> byte, if executed, produces an interrupt 3, which is intercepted by the Windows kernel and filtered down in the form of a breakpoint event. Of course, you could hook interrupt 3 directly, but this requires a kernel driver (see our book <span class="docEmphasis">Exploiting Software</span> for more on that technique).</p>
+<div class="docText1"><pre class="calibre43">    void CreateBreakpoint()
+    {
+           char a_bpx = '\xCC';
+</pre></div><br class="calibre15"/>
+<p class="docText">We define the breakpoint instruction as byte <tt class="calibre38">CC</tt>. Next, we query the target memory to make sure it's valid. We'll write this <tt class="calibre38">CC</tt> into the target memory, so we need to make sure the memory actually exists.</p>
+<div class="docText1"><pre class="calibre43">           MEMORY_BASIC_INFORMATION mbi;
+           VirtualQueryEx(
+                  hProcess,
+                  (void *)(g_start_breakpoint),
+                  &amp;mbi,
+                  sizeof(MEMORY_BASIC_INFORMATION));
+           if(VirtualProtectEx(
+                  hProcess,
+                  mbi.BaseAddress,
+                  mbi.RegionSize,
+                  PAGE_EXECUTE_READWRITE,
+                  &amp;mbi.Protect ))
+           {
+</pre></div><br class="calibre15"/>
+<p class="docText">Our plan to write a <tt class="calibre38">CC</tt> will overwrite any byte that already exists at that location. Since real code bytes already exist there, we may need to restore the original byte later if we ever wish to remove the breakpoint. To do this, we read the original byte and store it away for later reincarnation.</p>
+<div class="docText1"><pre class="calibre43">           // now read the original byte
+           if(!ReadProcessMemory(
+                  hProcess,
+                  (void *)(g_start_breakpoint),
+                  &amp;(g_start_orig_byte),
+                  1,
+                  NULL))
+         {
+           MessageBox(
+                  NULL,
+                  "[!] Failed to read process memory ! \n",
+                  "oops",
+                  MB_OK);
+           return;
+         }
+</pre></div><br class="calibre15"/>
+<p class="docText">Now we write the breakpoint over the memory.</p>
+<div class="docText1"><pre class="calibre43">         if(!WriteProcessMemory(
+                hProcess,
+                (void *)(g_start_breakpoint),
+                &amp;a_bpx,
+                1,
+                NULL))
+         {
+           char _c[255];
+           sprintf(_c, "[!] Failed to write process memory, error
+%d ! \n", GetLastError());
+           MessageBox(NULL, _c, "oops", MB_OK);
+
+           return;
+         }
+       }
+}
+</pre></div><br class="calibre15"/>
+<p class="docText">At this point, we've set the breakpoint. If this code ever executes, the embedded breakpoint will cause our breakpoint event to fire. Of course, to remove the breakpoint, we simply perform the opposite of what we just did and write the stored original byte back where it goes.</p>
+<div class="docText1"><pre class="calibre43">void RemoveBreakpoint()
+{
+       MEMORY_BASIC_INFORMATION mbi;
+       VirtualQueryEx(
+              hProcess,
+              (void *)(g_start_breakpoint),
+              &amp;mbi,
+              sizeof(MEMORY_BASIC_INFORMATION));
+
+       if(VirtualProtectEx(
+              hProcess,
+              mbi.BaseAddress,
+              mbi.RegionSize,
+              PAGE_EXECUTE_READWRITE,
+              &amp;mbi.Protect ))
+       {
+         if(!WriteProcessMemory(
+                hProcess,
+                (void *)(g_start_breakpoint),
+                &amp;g_start_orig_byte,
+                1,
+                NULL))
+         {
+           char _c[255];
+           sprintf( _c,
+                  "[!] Failed to write process memory, error
+%d ! \n",
+                  GetLastError());
+           MessageBox(NULL, _c, "oops", MB_OK);
+           return;
+         }
+       }
+}
+</pre></div><br class="calibre15"/>
+<p class="docText">When the breakpoint is hit, you can do several things. You can alter the control flow to run other code. You can take a memory sample. Or you can overwrite some memory, such as an argument to a function. Regardless of what you do, however, if you intend to allow execution to continue from the current location, you will need to remove the breakpoint. If you don't, it will simply keep firing, and you'll be stuck.</p>
+<div class="docText1"><pre class="calibre43">if(dbg_evt.dwDebugEventCode == EXCEPTION_DEBUG_EVENT)
+{
+</pre></div><br class="calibre15"/>
+<p class="docText">Now perform a switch on the exception code:</p>
+<div class="docText1"><pre class="calibre43">switch (dbg_evt.u.Exception.ExceptionRecord.ExceptionCode)
+{
+case EXCEPTION_ACCESS_VIOLATION:
+       break;
+</pre></div><br class="calibre15"/>
+<p class="docText">The following exception code is used for <tt class="calibre38">CC</tt> breakpoints placed into code.</p>
+<div class="docText1"><pre class="calibre43">case EXCEPTION_BREAKPOINT:
+       if(g_initial_break)
+       {
+         g_initial_break = FALSE;
+         printf( "initial breakpoint, debugging started...\n");
+         if(g_start_breakpoint) CreateBreakpoint();
+       }
+       else if(g_start_breakpoint)
+       {
+</pre></div><br class="calibre15"/>
+<p class="docText">When we hit a breakpoint, we need to remove the <tt class="calibre38">CC</tt> byte and replace it with whatever byte was originally present in the code. Furthermore, we need to rewind the instruction pointer by one so that the original instruction can execute now that the <tt class="calibre38">CC</tt> is out of the way.</p>
+<div class="docText1"><pre class="calibre43">         printf("user supplied breakpoint hit, removing...\n");
+         // breakpoint fired, now remove it
+         // roll back the EIP and correct the opcode
+
+         CONTEXT ctx;
+
+         HANDLE hThread =
+                fOpenThread(
+                THREAD_ALL_ACCESS,
+                FALSE,
+                dbg_evt.dwThreadId );
+
+         if(hThread == NULL)
+         {
+           printf("[!] OpenThread failed ! \n");
+           return 0; }
+</pre></div><br class="calibre15"/>
+<p class="docText">We use the context of the thread to rewind the EIP (instruction pointer) by one.</p>
+<div class="docText1"><pre class="calibre43">         // rewind one instruction
+         ctx.ContextFlags = CONTEXT_FULL;
+         if(!GetThreadContext(hThread, &amp;ctx))
+         {
+           printf("[!] GetThreadContext failed ! \n");
+           return 0;
+         }
+
+         ctx.Eip--;
+         ctx.ContextFlags = CONTEXT_FULL;
+         if(!SetThreadContext(hThread, &amp;ctx))
+         {
+           printf("[!] SetThreadContext failed ! \n");
+           return 0;
+         }
+
+         RemoveBreakpoint();
+         g_start_breakpoint=0;
+
+       }
+break;
+case EXCEPTION_SINGLE_STEP:
+       break;
+default:
+       break;
+}
+</pre></div><br class="calibre15"/>
+<p class="docText"><a name="iddle1154" class="pcalibre calibre1"></a>And there you have it, setting a breakpoint in memory and removing it once it has fired.</p>
+<a name="ch07lev2sec12" class="pcalibre calibre1"></a>
+<h4 id="title-IDAZMBDP" class="docSection2Title">Snagging Samples from Context</h4>
+<p class="docText">The following example shows how to read the EAX register from the <tt class="calibre38">CONTEXT</tt> structure that the debugger collects. You can sample any register and then use the sampled value as a pointer, reading further information from memory. You can also sample dynamically allocated structures, grab a pointer to a structure at runtime, or just update a running count or value.</p>
+<div class="docText1"><pre class="calibre43">void take_sample(CONTEXT ctx)
+{
+       DWORD reg;
+       struct hit *h = new struct hit;
+       SYSTEMTIME thetime;
+       GetSystemTime( &amp;thetime);
+       char addr[32];
+
+       // build report item
+       reg = ctx.Eax;
+       h-&gt;mReport += "EAX: ";
+       _snprintf(addr, 30, "v:0x%lx/%d", ctx.Eax, ctx.Eax);
+       h-&gt;mReport += addr;
+       if(can_read( (void *)reg ))
+       {
+         SIZE_T lpRead;
+         char string[32];
+         string[31]=NULL;
+
+
+         // read the target memory
+         if(ReadProcessMemory(
+                hProcess,
+                (void *)reg,
+                string,
+                30,
+                &amp;lpRead))
+         {
+
+           h-&gt;mReport += " -&gt; ";
+           h-&gt;mReport += string;
+           h-&gt;mReport += "\r\n";
+         }
+         else
+           h-&gt;mReport += "\r\n";
+       }
+       else
+         h-&gt;mReport += "\r\n";
+</pre></div><br class="calibre15"/>
+<p class="docText">Here we store samples in a list. You can organize and use samples in many ways; this is just one example.</p>
+<div class="docText1"><pre class="calibre43">gHitList.push_back(h);
+
+char _c[255];
+_snprintf(
+       _c,
+       250,
+       "Time: %d:%d:%d:%d",
+       (thetime.wHour - 7),
+       thetime.wMinute,
+       thetime.wSecond,
+       thetime.wMilliseconds);
+LV_ITEM lvi;
+lvi.mask = LVIF_TEXT | LVIF_PARAM;
+lvi.iSubItem = 0;
+lvi.iItem = 0;
+lvi.pszText = _c;
+lvi.lParam = (LPARAM)h;
+</pre></div><br class="calibre15"/>
+<p class="docText">The code here fills a list-view GUI component with the sample information.</p>
+<div class="docText1"><pre class="calibre43">      ListView_InsertItem(ghWndSplitter, &amp;lvi);
+}
+</pre></div><br class="calibre15"/>
+<p class="docText">Next we show how to set the breakpoint and handle the single-step functionality.</p>
+<div class="docText1"><pre class="calibre43">if(dbg_evt.dwDebugEventCode == EXCEPTION_DEBUG_EVENT)
+{
+       switch (dbg_evt.u.Exception.ExceptionRecord.ExceptionCode)
+       {
+         case EXCEPTION_ACCESS_VIOLATION:
+         MessageBox(
+                NULL,
+                "[!] Target experienced an ACCESS_VIOLATION ! \n",
+                "hehehe",
+                MB_OK);
+         break;
+         case EXCEPTION_BREAKPOINT:
+         {
+           CONTEXT ctx;
+
+           HANDLE hThread =
+           fOpenThread(
+                  THREAD_ALL_ACCESS,
+                  FALSE,
+                  dbg_evt.dwThreadId);
+
+           if(hThread == NULL)
+           {
+             MessageBox(
+                    NULL,
+                    "[!] OpenThread failed ! \n",
+                    "oops",
+                    MB_OK);
+             return;
+           }
+           // rewind one instruction
+           ctx.ContextFlags = CONTEXT_FULL;
+           if(!GetThreadContext(hThread, &amp;ctx))
+           {
+             MessageBox(
+                    NULL,
+                    "[!] GetThreadContext failed ! \n",
+                    "oops",
+                    MB_OK);
+             return;
+           }
+
+           if(ctx.Eip == g_bp_address+1)
+           {
+             ctx.Eip--;
+             ctx.ContextFlags = CONTEXT_FULL;
+             if(!SetThreadContext(hThread, &amp;ctx))
+             {
+               MessageBox(
+                      NULL,
+                      "[!] SetThreadContext failed ! \n",
+                      "oops",
+                      MB_OK);
+               return;
+             }
+          
+             RemoveBreakpoint();
+
+             take_sample(ctx);
+</pre></div><br class="calibre15"/>
+<p class="docText">After the breakpoint has fired and we have taken a sample, we probably want to put back the breakpoint so we can sample again the next time this location executes. We do this by setting single step and replacing the <tt class="calibre38">CC</tt> once the next instruction finishes executing.</p>
+<div class="docText1"><pre class="calibre43">             // we are going to run the instruction,
+             // and then put the breakpoint back.
+             SetSingleStep(dbg_evt.dwThreadId);
+           }
+           CloseHandle(hThread);
+         }
+         break;
+         case EXCEPTION_SINGLE_STEP:
+         {
+           // put the breakpoint back, single step
+           // is no longer active
+           SetBreakpoint();
+         }
+         break;
+         default:
+         break;
+       }// end switch
+}
+</pre></div><br class="calibre15"/>
+<p class="docText"><a name="iddle1147" class="pcalibre calibre1"></a><a name="iddle1157" class="pcalibre calibre1"></a><a name="iddle1211" class="pcalibre calibre1"></a><a name="iddle2064" class="pcalibre calibre1"></a>Now you know a general way to use a breakpoint to take samples. Using this technique, you could, for example, set a breakpoint on a function in the game where one of the arguments to the function is something you're interested in. A function might process the list of NPCs, for example, and then by using this breakpoint sample method, you could siphon a pointer to the linked list of all NPCs. Let's look at this more closely in the next subsection.</p>
+<a name="ch07lev2sec13" class="pcalibre calibre1"></a>
+<h4 id="title-IDAPQBDP" class="docSection2Title">Siphoning with Breakpoint Samples</h4>
+<p class="docText">Breakpoints can also be used to set up memory pointers. Later, you can use these pointers for siphoning information out of the running program. Our example again targets WoW to get the pointer to the all-important PC structure.</p>
+<div class="docText1"><pre class="calibre43">DWORD g_npc_breakpoint_location = NPC_BREAKPOINT_LOCATION;
+DWORD g_pcbase_breakpoint_location = 0x45D492;
+</pre></div><br class="calibre15"/>
+<p class="docText">Setting up the one-shot sample breakpoint can be accomplished as follows:</p>
+<div class="docText1"><pre class="calibre43">// this is a one-shot sampler that grabs the PC_BASE structure
+m_pcbase_sampler = CreateBreakpoint(g_pcbase_breakpoint_location);
+AddBreakpoint(m_pcbase_sampler);
+</pre></div><br class="calibre15"/>
+<p class="docText">The associated handler is shown here:</p>
+<div class="docText1"><pre class="calibre43">DWORD WowzerEngine::OnBreakpoint(Breakpoint *theBreakpoint)
+{
+       if(theBreakpoint == m_pcbase_sampler)
+       {
+         // read EAX for the PC-BASE
+         DWORD pc_base = theBreakpoint-&gt;m_context.Eax - 0x08;
+         logprintf("SNAGGED PC BASE!  0x%08X", pc_base);
+         m_player_character-&gt;m_baseaddress = pc_base;
+       }
+</pre></div><br class="calibre15"/>
+<p class="docText"><a name="iddle1200" class="pcalibre calibre1"></a><a name="iddle2325" class="pcalibre calibre1"></a><a name="iddle2331" class="pcalibre calibre1"></a>We can see in the handler that when the breakpoint fires, EAX has the pointer to the PC structure we were looking for.</p>
+<p class="docText">Now you're armed with a set of basic debugger tricks allowing you to attach a bot to a running game client. This is a very common and powerful game hacking technique that's important to master.</p>
+<a href="10061538.html" class="pcalibre calibre1"><img src="pixel.gif" alt="" border="0" class="calibre23"/></a><ul class="calibre18"></ul></td></tr></table><table width="100%" border="0" cellspacing="0" cellpadding="2" class="calibre4"><tr class="calibre2"><td valign="middle" class="v1 pcalibre1" height="5"><img src="pixel.gif" alt="" border="0" class="calibre5"/></td></tr><tr class="calibre2"><td valign="middle" class="v1 pcalibre1"><table cellpadding="0" cellspacing="0" border="0" width="100%" class="calibre4"><tr class="calibre2"><td class="calibre6"><span class="calibre7"> </span>
+                   
+                  <span class="calibre7">   </span>
+             <span class="calibre7"> </span></td></tr></table></td><td class="calibre8"/><td valign="middle" class="v2 pcalibre1"> 
+           
+          <span class="calibre7"><a target="_self" href="ch07lev1sec1.html" title="Previous section" class="pcalibre calibre1"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre16"/></a></span>
+				
+				 
+				
+				<span class="calibre7"><a target="_self" href="ch07lev1sec3.html" title="Next section" class="pcalibre calibre1"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre16"/></a></span></td></tr></table><table width="100%" border="0" cellspacing="0" cellpadding="2" class="calibre4"><tr class="calibre2"><td valign="top" class="calibre14"><span class="calibre7"></span></td></tr></table></div><!--IP User 2--></td></tr></table></td><td class="calibre3">
+                         
+                      </td></tr><tr class="calibre2"><td colspan="3" valign="bottom" class="calibre3"><br class="calibre15"/><p class="v5 pcalibre1"></p><br class="calibre15"/></td></tr></table></div>
+
+{% endraw %}
+

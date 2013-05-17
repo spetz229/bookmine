@@ -1,0 +1,47 @@
+---
+layout: page
+title: "Exploiting Online Games: Cheating Massively Distributed Systems"
+prev: ch09lev1sec4.html
+next: ch10lev1sec1.html
+book_path: books/cheating-massively-distributed-systems_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<a name="toppage" class="pcalibre calibre1"></a><table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody"><tr valign="top" class="calibre2"><td class="calibre3"><a name="MainContent" class="pcalibre calibre1"></a><table width="95%" class="sfbody"><tr class="calibre2"><td class="pcalibre1 v"><!--Copyright (c) 2002 Safari Tech Books Online--><table width="100%" border="0" cellspacing="0" cellpadding="2" class="calibre4"><tr class="calibre2"><td valign="middle" class="v1 pcalibre1" height="5"><img src="pixel.gif" alt="" border="0" class="calibre5"/></td></tr><tr class="calibre2"><td valign="middle" class="v1 pcalibre1"><table cellpadding="0" cellspacing="0" border="0" width="100%" class="calibre4"><tr class="calibre2"><td class="calibre6"><span class="calibre7"> </span>
+                   
+                  <span class="calibre7">   </span>
+             <span class="calibre7"> </span></td></tr></table></td><td class="calibre8"/><td valign="middle" class="v2 pcalibre1"> 
+           
+          <span class="calibre7"><a target="_self" href="ch09lev1sec4.html" title="Previous section" class="pcalibre calibre1"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre16"/></a></span>
+				
+				 
+				
+				<span class="calibre7"><a target="_self" href="ch10lev1sec1.html" title="Next section" class="pcalibre calibre1"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre16"/></a></span></td></tr></table><div id="section" class="calibre15"><table width="100%" border="0" cellspacing="0" cellpadding="0" class="calibre4"><tr class="calibre2"><td valign="top" class="calibre8">Security Game Programming Networking Programming Greg Hoglund Gary McGraw Addison Wesley Professional Exploiting Online Games: Cheating Massively Distributed Systems<a name="ch10" class="pcalibre calibre1"></a>
+<h2 id="title-IDAVAGKL" class="docPrefaceTitle">10. Software Security Über Alles</h2>
+<a name="ch10img01" class="pcalibre calibre1"></a><p class="calibre28"><center class="calibre29">
+<h5 class="docFigureTitle"></h5>
+</center></p><p class="docText">
+<img border="0" alt="" src="fig10-00.jpg" class="calibre121"/></p>
+<br class="calibre15"/>
+<p class="docText"><a name="iddle2071" class="pcalibre calibre1"></a>What exactly are we trying to accomplish with this book anyway? Our primary goal is to understand the security implications of massively distributed software systems that have millions of users. We think MMORPGs—one small sliver of massively distributed systems—are a harbinger of things to come in the rest of the software world. In other words, online games are the systems of the future, today. They are widely used by so many people simultaneously that state is pushed around like sand on a beach. As many security engineers know, securing a distributed system is hard . . . and building a secure distributed system is even harder. In many ways, MMORPGs push the limits of security engineering. By understanding what works and what doesn't in MMORPG security, we can learn important lessons for the future.</p>
+<p class="docText">Online game companies have to be surprised (in a good way) by their own success. Who would have guessed that more than 8 million people would subscribe to WoW?! But with this success comes a rather large burden—securing a system that millions of people, some of whom aren't trustworthy, use.</p>
+<p class="docText">Just as with users of other software, most users of WoW and other MMORPGs remain blithely unaware of the security issues exploding <a name="iddle2041" class="pcalibre calibre1"></a><a name="iddle2183" class="pcalibre calibre1"></a>around them. Most gamers probably know nothing of how game developers monitor their PCs in the name of security. Few gamers are aware of cheating (in all its many guises), rendering the game unfair for people who play by the rules.</p>
+<p class="docText">Why have so many turned a blind eye to security issues? It's simple—most people are optimists, believing (for no apparent reason) that the games they use are secure. No false or misleading claims are made about security on the part of game companies trying to appear to be secure (in fact, they cleverly remain mum on the issue if possible); that's just what people naturally believe. Things go very badly for software producers when people suddenly realize the true state of security in the software they count on. Just ask Microsoft, which has spent tens of millions of dollars turning around its poor security reputation (by doing the right kinds of things, we should add)!</p>
+<p class="docText">As we describe throughout the book, the biggest security risk in online gaming comes when state is pushed to the client. Whenever client-side state is manipulated or otherwise made available in client software, it leaves much room for monkey business. Often, monkey business can turn into real business with the help of middleman companies, including those we describe in <a class="pcalibre6 pcalibre5 calibre1" href="ch03.html#ch03">Chapter 3</a>.</p>
+<p class="docText">This chapter is about fixing the problem. First, we make some suggestions to game developers about how to build more secure games. Then we wrap things up with a discussion of what gamers should find out about the games they play.</p>
+<a href="11061538.html" class="pcalibre calibre1"><img src="pixel.gif" alt="" border="0" class="calibre23"/></a><ul class="calibre18"></ul></td></tr></table><table width="100%" border="0" cellspacing="0" cellpadding="2" class="calibre4"><tr class="calibre2"><td valign="middle" class="v1 pcalibre1" height="5"><img src="pixel.gif" alt="" border="0" class="calibre5"/></td></tr><tr class="calibre2"><td valign="middle" class="v1 pcalibre1"><table cellpadding="0" cellspacing="0" border="0" width="100%" class="calibre4"><tr class="calibre2"><td class="calibre6"><span class="calibre7"> </span>
+                   
+                  <span class="calibre7">   </span>
+             <span class="calibre7"> </span></td></tr></table></td><td class="calibre8"/><td valign="middle" class="v2 pcalibre1"> 
+           
+          <span class="calibre7"><a target="_self" href="ch09lev1sec4.html" title="Previous section" class="pcalibre calibre1"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre16"/></a></span>
+				
+				 
+				
+				<span class="calibre7"><a target="_self" href="ch10lev1sec1.html" title="Next section" class="pcalibre calibre1"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre16"/></a></span></td></tr></table><table width="100%" border="0" cellspacing="0" cellpadding="2" class="calibre4"><tr class="calibre2"><td valign="top" class="calibre14"><span class="calibre7"></span></td></tr></table></div><!--IP User 2--></td></tr></table></td><td class="calibre3">
+                         
+                      </td></tr><tr class="calibre2"><td colspan="3" valign="bottom" class="calibre3"><br class="calibre15"/><p class="v5 pcalibre1"></p><br class="calibre15"/></td></tr></table></div>
+
+{% endraw %}
+
