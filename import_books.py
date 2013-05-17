@@ -225,8 +225,8 @@ description: " description "
 group: cat
 cat: %s
 ---
-{% include JB/setup %}
-	""" % (full_name, full_name.lower())
+""" % (full_name, full_name.lower())
+	s = s + "{%  include JB/setup %}\n"
 	with open(path, 'w') as f:
 		f.write(s)
 	return
@@ -320,7 +320,8 @@ def process_meta(book_path):
 
 
 def process_book(src_path, book_name, is_pdf, export_paths):
-	book_name = book_name.replace('.', '_')
+	book_name = book_name.replace('.', '-').replace(' ', '-').lower()
+	book_name = book_name.replace('---', '-').replace('--', '-')
 	book_path = os.path.join("books/", book_name + '_oeb/')
 	if os.path.exists(book_path):
 		print("exists: %s" % book_name)
