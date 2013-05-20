@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: menu
 title: Hello World!
 tagline: Supporting tagline
 
@@ -8,21 +8,12 @@ tagline: Supporting tagline
 
 {% assign index = true %}
 
+<div class="container">
+
+<hr/>
+
 <!-- start pagination -->
 <div id="post-pagination" class="pagination">
-  {% if paginator.previous_page %}
-    <p class="previous">
-      {% if paginator.previous_page == 1 %}
-        <a href="{{ BASE_PATH }}/">Previous</a>
-      {% else %}
-        <a href="{{ BASE_PATH }}/page{{ paginator.previous_page }}">Previous</a>
-      {% endif %}
-    </p>
-  {% else %}
-    <p class="previous disabled">
-      <span>Previous</span>
-    </p>
-  {% endif %}
 
   <ul class="pages">
     <li class="page">
@@ -44,42 +35,31 @@ tagline: Supporting tagline
     {% endfor %}
   </ul>
 
-  {% if paginator.next_page %}
-    <p class="next">
-      <a href="{{ BASE_PATH }}/page{{ paginator.next_page }}">Next</a>
-    </p>
-  {% else %}
-    <p class="next disabled">
-      <span>Next</span>
-    </p>
-  {% endif %}
 </div>
 <!-- end of pagination -->
+<hr />
 
-<table class="table table-striped">
-<thead>
-<tr>
-    <th class="span4">Caption</th>
-    <th class="span1">Author</th>
-    <th class="span1">Date</th>
-    <th class="span3">Status</th>
-</tr>
-</thead>
-<tbody>
-{% for row in paginator.posts %}
-    <tr>
-        <td>{{ row.title }}</td>
-        <td>{{ row.creator | join: ', ' }}</td>
-        <td>{{ row.date | date: "%Y"}}</td>
-        <td>
-            <a href="{{ BASE_PATH }}{{ row.url }}">read now...</a>
-<!--             {% for ff in row.formats %}
-            <span class="label {{ ff[1] }}">{{ ff[0] }}</span>
-            {% endfor %}
-            <span class="label">...</span>
- -->        </td>
-    </tr>
+{% for book in paginator.posts %}
+  <div class="media">
+    <img src="{{ BASE_PATH }}/{{ book.book_path }}{{ book.cover }}"
+         class="media-object pull-left"
+         style="max-height: 300px;" />
+    <div class="media-body">
+      {% for author in book.creator %}
+        <span class="badge badge-success pull-right">{{ author }}</span>
+      {% endfor %}
+      <h2 class="media-heading"><a href="{{ BASE_PATH }}{{ book.url }}">
+      {{ book.title }}
+      </a></h2>
+      <p>{{ book.perface }}</p>
+    </div>
+  </div>
+  <hr />
 {% endfor %}
 
-</tbody>
-</table>
+
+
+<div class="well"><a href="#">GO TO THE TOP -></a></div> 
+
+</div>
+

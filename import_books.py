@@ -17,6 +17,9 @@ update_meta_script = "/Applications/calibre.app/Contents/MacOS/fetch-ebook-metad
 
 
 fb2_formats = {
+'none':                    "Прочее",
+'mystery':                 "Детективный роман",
+'romance_fantasy':         "Фэнтезийный роман",
 'sf_history':              "Альтернативная история",
 'sf_action':               "Боевая Фантастика",
 'sf_epic':                 "Эпическая Фантастика",
@@ -66,7 +69,7 @@ fb2_formats = {
 'adv_maritime':            "Морские Приключения",
 'adv_geo':                 "Путешествия и География",
 'adv_animal':              "Природа и Животные",
-'adventure':               "Приключения: Прочее",
+'adventure':               "Приключения",
 'child_adv':               "Детские Приключения",
 'children':                "Детское",
 'child_tale':              "Сказки",
@@ -76,7 +79,7 @@ fb2_formats = {
 'child_det':               "Детские Остросюжетные",
 'child_adv':               "Детские Приключения",
 'child_education':         "Детская Образовательная литература",
-'children':                "Детское: Прочее",
+'children':                "Детское",
 'poetry':                  "Поэзия",
 'dramaturgy':              "Драматургия",
 'humor_verse':             "Юмористические Стихи",
@@ -86,7 +89,7 @@ fb2_formats = {
 'antique_russian':         "Древнерусская Литература",
 'antique_east':            "Древневосточная Литература",
 'antique_myths':           "Мифы. Легенды. Эпос",
-'antique':                 "Старинная Литература: Прочее",
+'antique':                 "Старинная Литература",
 'sci_history':             "История",
 'sci_psychology':          "Психология",
 'sci_culture':             "Культурология",
@@ -102,7 +105,7 @@ fb2_formats = {
 'sci_chem':                "Химия",
 'sci_biology':             "Биология",
 'sci_tech':                "Технические",
-'science':                 "Научно-образовательная: Прочее",
+'science':                 "Научно-образовательная",
 'adv_animal':              "Природа и Животные",
 'comp_www':                "Интернет",
 'comp_programming':        "Программирование",
@@ -110,28 +113,28 @@ fb2_formats = {
 'comp_soft':               "Программы",
 'comp_db':                 "Базы Данных",
 'comp_osnet':              "ОС и Сети",
-'computers':               "Компьютеры: Прочее",
+'computers':               "Компьютеры",
 'ref_encyc':               "Энциклопедии",
 'ref_dict':                "Словари",
 'ref_ref':                 "Справочники",
 'ref_guide':               "Руководства",
-'reference':               "Справочная Литература: Прочее",
+'reference':               "Справочная Литература",
 'nonf_biography':          "Биографии и Мемуары",
 'nonf_publicism':          "Публицистика",
 'nonf_criticism':          "Критика",
-'nonfiction':              "Документальное: Прочее",
+'nonfiction':              "Документальное",
 'design':                  "Искусство, Дизайн",
 'adv_animal':              "Природа и Животные",
 'religion':                "Религия",
 'religion_rel':            "Религия",
 'religion_esoterics':      "Эзотерика",
 'religion_self':           "Самосовершенствование",
-'religion':                "Религия и духовность: Прочее",
+'religion':                "Религия и духовность",
 'sci_religion':            "Религиоведение",
 'humor_anecdote':          "Анекдоты",
 'humor_prose':             "Юмористическая Проза",
 'humor_verse':             "Юмористические Стихи",
-'humor':                   "Юмор: Прочее",
+'humor':                   "Юмор",
 'home_cooking':            "Кулинария",
 'home_pets':               "Домашние Животные",
 'home_crafts':             "Хобби, Ремесла",
@@ -141,7 +144,7 @@ fb2_formats = {
 'home_diy':                "Сделай Сам",
 'home_sport':              "Спорт",
 'home_sex':                "Эротика, Секс",
-'home':                    "Дом и Семья: Прочее"
+'home':                    "Дом и Семья"
 }
 
 def find_sentence(data, idx):
@@ -215,7 +218,7 @@ cat_count = [
 	'Java ']
 
 def check_cat(full_name):
-	path = "./category/%s.html" % full_name.lower()
+	path = "./categories/%s.html" % full_name.lower()
 	if os.path.exists(path):
 		return
 	s = """---
@@ -223,12 +226,31 @@ layout: category_list
 title: "%s"
 description: " description "
 group: cat
-cat: %s
+category_id: %s
 ---
 """ % (full_name, full_name.lower())
 	s = s + "{%  include JB/setup %}\n"
 	with open(path, 'w') as f:
 		f.write(s)
+	return
+
+
+def make_tags():
+	for tag,tit in fb2_formats.items():
+		path = "./tags/%s.html" % tag
+		if os.path.exists(path):
+			continue
+		s = """---
+layout: tag_list
+title: "%s"
+description: " description "
+group: tag_list
+tag_id: %s
+---
+""" % (tit, tag)
+		s = s + "{%  include JB/setup %}\n"
+		with open(path, 'w') as f:
+			f.write(s)
 	return
 
 def get_category(metrics):
@@ -318,9 +340,11 @@ def process_meta(book_path):
 		del(meta['description'])
 	return meta, content
 
+def mega_replace(ss):
+	return ''.join([(x if x.isalpha() else '-') for x in ss])
 
 def process_book(src_path, book_name, is_pdf, export_paths):
-	book_name = book_name.replace('.', '-').replace(' ', '-').lower()
+	book_name = mega_replace(book_name.lower())
 	book_name = book_name.replace('---', '-').replace('--', '-')
 	book_path = os.path.join("books/", book_name + '_oeb/')
 	if os.path.exists(book_path):
@@ -453,8 +477,11 @@ def main():
 			os.mkdir("./books/")
 		if not os.path.exists("./_posts/"):
 			os.mkdir("./_posts/")
-		if not os.path.exists("./category/"):
-			os.mkdir("./category/")
+		if not os.path.exists("./categories/"):
+			os.mkdir("./categories/")
+		if not os.path.exists("./tags/"):
+			os.mkdir("./tags/")
+		make_tags()
 		# if ex in good_formats:
 		# 	export_paths = export_another_formats(name, path)
 		# else:
