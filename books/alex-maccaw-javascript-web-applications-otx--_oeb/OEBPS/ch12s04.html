@@ -1,0 +1,83 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch12s03.html
+next: OEBPS/ch12s05.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Controllers"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect112_d1e12473" class="calibre1"></a>Controllers</h1></div></div></div><p class="calibre3"><a id="I_indexterm12_d1e12477" class="calibre1"></a><a id="I_indexterm12_d1e12482" class="calibre1"></a>Backbone controllers connect the application’s state to the
+    URL’s hash fragment, providing shareable, bookmarkable URLs. Essentially,
+    controllers consist of a bunch of routes and the functions that will be
+    invoked when those routes are navigated to.</p><p class="calibre3">Routes <a id="I_indexterm12_d1e12490" class="calibre1"></a>are a hash—the key consisting of paths, parameters, and
+    splats—and the value is set to the function associated with the
+    route:</p><pre class="screen">routes: {                            // Matches:
+  "help":                 "help",    //  #help
+  "search/:query":        "search",  //  #search/kiwis
+  "search/:query/p:page": "search"   //  #search/kiwis/p7
+  "file/*path":           "file"     //  #file/any/path.txt
+}</pre><p class="calibre3">You can see in the example above that parameters start with a
+    <code class="literal">:</code> and then the name of the parameter.
+    Any parameters in a route will be passed to its action when the route is
+    invoked. Splats,<a id="I_indexterm12_d1e12501" class="calibre1"></a> specified by a <code class="literal">*</code>, are
+    basically a wildcard,<a id="I_indexterm12_d1e12508" class="calibre1"></a> matching anything. As with parameters, splats will be
+    passed matched values onto their route’s action.</p><p class="calibre3">Routes are parsed in the reverse order they’re specified in the
+    hash. In other words, your most general “catch all” routes should be
+    located at the end of the <code class="literal">routes</code>
+    hash.</p><p class="calibre3">Per usual, controllers are created by extending <code class="literal">Backbone.Controllers</code>, passing in an object
+    containing instance properties:</p><pre class="screen">var PageController = Backbone.Controller.extend({
+  routes: {
+    "":                     "index",
+    "help":                 "help",    // #help
+    "search/:query":        "search",  // #search/kiwis
+    "search/:query/p:page": "search"   // #search/kiwis/p7
+  },
+
+  index: function(){ /* ... */ },
+
+  help: function() {
+    // ...
+  },
+
+  search: function(query, page) {
+    // ...
+  }
+});</pre><p class="calibre3">In the example above, when the user navigates to
+    <span class="calibre1"><em class="calibre4">http://example.com#search/coconut</em></span>, whether manually
+    or by pushing the back button, the <code class="literal">search()</code> function <a id="I_indexterm12_d1e12532" class="calibre1"></a><a id="I_indexterm12_d1e12535" class="calibre1"></a>will be invoked with the <code class="literal">query</code> variable pointing to <code class="literal">"coconut"</code>.</p><p class="calibre3">If you want to make your application compliant with the <a class="ulink" href="http://code.google.com/web/ajaxcrawling/index.html">Ajax Crawling
+    specification</a> and indexable by search engines (as discussed in
+    <a class="ulink" href="ch04.html" title="Chapter 4. Controllers and State">Chapter 4</a>), you need to prefix all your routes
+    with <code class="literal">!/</code>, as in the following
+    example:</p><pre class="screen">var PageController = Backbone.Controller.extend({
+  routes: {
+    "!/page/:title": "page", // #!/page/foo-title
+  }
+  // ...
+}):</pre><p class="calibre3">You’ll also need to make changes server side, as described by the
+    specification.</p><p class="calibre3">If you need more route functionality, such as making sure certain
+    parameters are integers, you can pass a regex directly to <code class="literal">route()</code>:</p><pre class="screen">var PageController = Backbone.Controller.extend({
+  initialize: function(){
+    this.route(/pages\/(\d+)/, 'id', function(pageId){
+      // ...
+    });
+  }
+}):</pre><p class="calibre3">So, routes tie up changes to the URL’s fragment with controllers,
+    but how about setting the fragment in the first place? Rather than setting
+    <code class="literal">window.location.hash</code> manually, Backbone
+    provides a shortcut—<code class="literal">saveLocation(fragment)</code>:</p><pre class="screen">Backbone.history.saveLocation("/page/" + this.model.id);</pre><p class="calibre3">When <code class="literal">saveLocation()</code><a id="I_indexterm12_d1e12583" class="calibre1"></a> is called and the URL’s fragment is updated, none of the
+    controller’s routes will be invoked. This means you can safely call
+    <code class="literal">saveLocation()</code> in a view’s <code class="literal">initialize()</code> function, for example, without any
+    controller intervention.</p><p class="calibre3">Internally, Backbone will listen to the
+    <span class="calibre1"><em class="calibre4">onhashchange</em></span> event <a id="I_indexterm12_d1e12598" class="calibre1"></a><a id="I_indexterm12_d1e12601" class="calibre1"></a>in browsers that support it, or implement a workaround using
+    iframes and timers. However, you’ll need to initiate Backbone’s history
+    support by calling the following:</p><pre class="screen">Backbone.history.start();</pre><p class="calibre3">You should only start Backbone’s history once the page has loaded
+    and all of your views, models, and collections are available. As it
+    stands, Backbone doesn’t support the new HTML5 <code class="literal">pushState()</code> and <code class="literal">replaceState()</code> history API.<a id="I_indexterm12_d1e12617" class="calibre1"></a><a id="I_indexterm12_d1e12620" class="calibre1"></a> This is because <code class="literal">pushState()</code> and <code class="literal">replaceState()</code> currently need special handling
+    on the server side and aren’t yet supported by Internet Explorer. Backbone
+    may add support once those issues have been addressed. For now, all
+    routing is done by the URL’s hash fragment.</p></div></div>
+
+{% endraw %}
+

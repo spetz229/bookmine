@@ -1,0 +1,99 @@
+---
+layout: page
+title: "Unknown"
+prev: c1164.htm
+next: x1428.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="c1164.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 3. Understanding SQL</td><td width="10%" valign="bottom" class="calibre5"><a href="x1428.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="INTRODUCTIONTORELATIONALDATABASES" class="calibre8">Introduction to Relational Databases</a></h1><p class="calibre9">PostgreSQL is a sophisticated <span><i class="EMPHASIS">object-relational database management system</i></span> (ORDBMS).
+    An ORDBMS is an extension of the
+    more traditional <span><i class="EMPHASIS">relational database management systems</i></span> (RDBMS).
+    An RDBMS enables users to store related
+    pieces of data in two-dimensional data structures called
+    <span><i class="EMPHASIS">tables</i></span>. This data may consist of many defined
+    <span><i class="EMPHASIS">types</i></span>, such as integers, floating-point numbers,
+    character strings, and timestamps. Data inserted in the table can be
+    categorized using a grid-like system of vertical
+    columns, and horizontal rows.
+    The relational model was built on a strong premise of conceptual
+    simplicity, which is arguably both its most prominent strength and
+    weakness.</p><p class="calibre9">The object-relational aspect of PostgreSQL adds numerous enhancements to
+    the straight relational data model. These include support for
+    <span><i class="EMPHASIS">arrays</i></span> (multiple values in a single column),
+    <span><i class="EMPHASIS">inheritance</i></span> (child-parent relationships between
+    tables), and <span><i class="EMPHASIS">functions</i></span> (programmatic methods
+    invoked by SQL statements). For the advanced developer, PostgreSQL even
+    supports extensibility of its data types and procedural languages.</p><p class="calibre9">Due to this object-relational concept, tables are sometimes called
+    classes, while rows and columns can be referred to as object-instances
+    and object-attributes, respectively. We will use this terminology
+    interchangeably in this book. Other SQL data structures, such as indices
+    and views, can be referred to as database objects.  </p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>Take care to observe that <span><i class="EMPHASIS">object-relational</i></span> is not synonymous with
+      <span><i class="EMPHASIS">object-oriented</i></span>, a term pertaining to many modern programming languages. While PostgreSQL supports
+      several objective improvements to the relational model, it is still accurate to refer to PostgreSQL as a relational
+      database management system (RDBMS).</p></blockquote></div><div class="NAVHEADER"><h2 class="SECT"><a name="UNDERSTANDINGDATABASES" class="calibre8">Understanding Databases</a></h2><p class="calibre9">While PostgreSQL is commonly considered an RDBMS, or a
+      "database," it may not be commonly understood what is meant
+      specifically by the word <span><i class="EMPHASIS">database</i></span>. A database
+      within PostgreSQL is an object-relational implementation of what is
+      formally called a <span><i class="EMPHASIS">schema</i></span> in SQL99.</p><p class="calibre9">Put simply, a database is a stored set of data that is
+      logically interrelated. Typically, this data can be accessed in a
+      multiuser environment. This is the case with PostgreSQL, though there
+      are well-defined rights and restrictions enforced with that
+      access.</p><p class="calibre9">It may not be commonly understood that PostgreSQL can
+      have <span><i class="EMPHASIS">several</i></span> databases concurrently
+      available, each with their own owner, and each with their own unique
+      tables, views, indices, sequences, and functions.</p><p class="calibre9">In order to create a table, function, or any other database
+      object, you must connect to a specific database via a PostgreSQL
+      <span><i class="EMPHASIS">client</i></span>. Once connected, you can create an object,
+      which is then <span><i class="EMPHASIS">owned</i></span> by the connected database,
+      and therefore is inaccessible from any other database (though a
+      client may have several connections open to different
+      databases).</p><p class="calibre9">By keeping fundamental data objects segregated into their own
+      databases in this fashion, you run a smaller risk of running into a
+      naming collision by choosing a table name already chosen for another
+      purpose (e.g., if two users each wanted to have a table called
+      <tt class="REPLACEABLE">products</tt> for two separate applications). This is because neither
+      database has any knowledge of the other database's components, and
+      will not attempt to make any kind of logical relationship between
+      them. Furthermore, as the same rule applies to object-relational data
+      objects, users may even create functions and language definitions
+      within their database that are inaccessible to other users connected
+      to other databases running within PostgreSQL.</p><p class="calibre9">By default, PostgreSQL installs only one functional database, which is called
+      <tt class="REPLACEABLE">template1</tt> to represent the
+      template nature of the database. Any database created after <tt class="REPLACEABLE">template1</tt> is essentially a clone, inheriting any of its
+      database objects, including table structure, functions, languages, etc. It is not uncommon to create a default database for
+      new PostgreSQL users with the same name as their PostgreSQL username, as PostgreSQL will attempt to connect to a database
+      with the same name as the connecting user if a database name is not specified.</p></div><div class="NAVHEADER"><h2 class="SECT"><a name="UNDERSTANDINGTABLES" class="calibre8">Understanding Tables</a></h2><p class="calibre9">Tables are quite possibly the most important aspect of SQL to
+      understand inside and out, as all of your data will reside within
+      them. In order to be able to correctly plan and design your SQL data
+      structures, and any programmatic routines toward accessing and
+      applying that data, a thorough understanding of tables is an absolute
+      pre-requisite.</p><p class="calibre9">        A table is composed of <span><i class="EMPHASIS">columns</i></span> and <span><i class="EMPHASIS">rows</i></span>, and their intersections are <span><i class="EMPHASIS">fields</i></span>. If you have ever used spreadsheet software before (such as Excel), these two terms are visually represented in the same manner, and the fields within a table are equivalent to the cells within a spreadsheet.  From a general perspective, columns within a table describe the name and type of data that will be found (and can be entered) by row for that column's fields.  Rows within a table represent <span><i class="EMPHASIS">records</i></span> composed of fields that are described from left to right by their corresponding column's name and type. Each field in a row is implicitly correlated with each other field in that row. In this sense, columns can be thought of as descriptors for the discrete, sequential elements of a row, and each row can be thought of as a stored record matching that description.
+      </p><p class="calibre9"><a href="x1277.htm#ANEXAMPLESQLTABLE">Table 3-1</a> illustrates a simple table called <tt class="REPLACEABLE">books</tt>, used by
+      our imaginary bookstore, <span><i class="EMPHASIS">Book Town</i></span>. We will frequently refer to this table in later examples. Each of its stored records describes a book by a numeric identifier, title, author identifier, and subject
+      identifier. These characteristics, from left to right, are described by its columns (<tt class="REPLACEABLE">id</tt>,
+      <tt class="REPLACEABLE">title</tt>, <tt class="REPLACEABLE">author_id</tt>, and
+      <tt class="REPLACEABLE">subject_id</tt>).</p><div class="NAVHEADER"><a name="ANEXAMPLESQLTABLE"></a><p class="calibre9"><b class="calibre10">Table 3-1. An example SQL table</b></p><table border="1" width="100%" class="calibre"><thead class="calibre11"><tr class="calibre12"><th width="6" valign="TOP" class="calibre13"><p class="calibre9"><tt class="REPLACEABLE">id</tt></p></th><th width="12" valign="TOP" class="calibre13"><p class="calibre9"><tt class="REPLACEABLE">title</tt></p></th><th width="6" valign="TOP" class="calibre13"><p class="calibre9"><tt class="REPLACEABLE">author_id</tt></p></th><th width="4" valign="TOP" class="calibre13"><p class="calibre9"><tt class="REPLACEABLE">subject_id</tt></p></th></tr></thead><tbody class="calibre14"><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9">7808</p></td><td width="12" valign="TOP" class="calibre15"><p class="calibre9">The Shining</p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9">4156</p></td><td width="4" valign="TOP" class="calibre15"><p class="calibre9">9</p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9">156</p></td><td width="12" valign="TOP" class="calibre15"><p class="calibre9">The Tell-Tale Heart</p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9">15</p></td><td width="4" valign="TOP" class="calibre15"><p class="calibre9">9</p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9">4513</p></td><td width="12" valign="TOP" class="calibre15"><p class="calibre9">Dune</p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9">1866</p></td><td width="4" valign="TOP" class="calibre15"><p class="calibre9">15</p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9">4267</p></td><td width="12" valign="TOP" class="calibre15"><p class="calibre9">2001: A Space Odyssey</p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9">2001</p></td><td width="4" valign="TOP" class="calibre15"><p class="calibre9">15</p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9">1608</p></td><td width="12" valign="TOP" class="calibre15"><p class="calibre9">The Cat in the Hat</p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9">1809</p></td><td width="4" valign="TOP" class="calibre15"><p class="calibre9">2</p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9">1590</p></td><td width="12" valign="TOP" class="calibre15"><p class="calibre9">Bartholomew and the Oobleck</p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9">1809</p></td><td width="4" valign="TOP" class="calibre15"><p class="calibre9">2</p></td></tr></tbody></table></div><p class="calibre9">As you can see, this describes a table with four columns, in a fixed, left-to-right order, currently populated by six
+      rows (also known as tuples, or records). It is essential to understand that in a relational database, while a table has a
+      fixed column order, rows themselves are inherently unordered. You will see later, as the SQL's query structure is explained
+      in <a href="c4890.htm">Chapter 4</a>, that there are ways within SQL to order selected rows. However, the rows in the database
+      itself are not automatically ordered in any consistently predictable way. When order is meaningful for a SQL query, you must carefully consider and explicitly order records.</p><p class="calibre9">Every table must have at least one column, but tables may at times contain no rows, because each vertical
+      column corresponds to a relatively fixed <span><i class="EMPHASIS">attribute</i></span> of the data represented in that table (such as the
+      <tt class="REPLACEABLE">title</tt> column in the previous example's <tt class="REPLACEABLE">books</tt> table).
+      Without a column, a row's contents would be ambiguous; without a row, a table is merely lacking recorded
+      data. As of PostgreSQL 7.1, there is a maximum of 1600 columns to a table, and an unlimited number of rows (i.e., you are limited
+      only by hardware limitations, such as disk space).</p><p class="calibre9">In <a href="x1277.htm#ANEXAMPLESQLTABLE">Table 3-1</a>, the column names fairly clearly indicate the significance of each column. The
+      decision of how to name columns is fairly arbitrary, though, and care must be taken in planning table names and conventions
+      to avoid ambiguity.</p><p class="calibre9">Though it may not be immediately obvious, each of the columns of a table have an associated <span><i class="EMPHASIS">data type</i></span>.
+      While a column's data type helps to further describe the sort of information it contains, it
+      <span><i class="EMPHASIS">constrains</i></span> the kind of data that may be inserted into the column. For example, the
+      <tt class="REPLACEABLE">author_id</tt> column is of type <tt class="REPLACEABLE">integer</tt>; this signifies that
+      any insertion attempts not consisting of pure a integer (e.g., <tt class="REPLACEABLE">110a</tt>) will fail. These types are described in more detail
+      in <a href="x2632.htm">the Section called <i class="EMPHASIS">Data Types</i></a>."</p><p class="calibre9">This section introduced the general concepts of how data is logically arranged in a relational database and within
+      tables. The next section explains why statements are the basis for <span><i class="EMPHASIS">all interactions</i></span>
+      with the database.</p></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="c1164.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x1428.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Understanding SQL</td><td width="34%" valign="top" class="calibre4"><a href="c1164.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">SQL Statements</td></tr></table></div></div>
+
+{% endraw %}
+

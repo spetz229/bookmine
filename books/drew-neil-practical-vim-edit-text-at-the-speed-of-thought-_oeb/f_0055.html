@@ -1,0 +1,266 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0054.html
+next: f_0056.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.ex.word.completion">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 33</td>
+<td class="arr-recipe-name">Insert the Current Word at the Command Prompt</td>
+</tr>
+</table>
+<p id="N132B8" class="calibre4">
+<span class="calibre5">
+        Even in Command-Line mode, Vim always knows where the cursor is positioned and which split window is active. To save time, we can insert the current word (or WORD) from the active document onto our command prompt.
+    </span>
+</p>
+<p id="N132CE" class="calibre4">
+      At Vim’s command line, the <span class="calibre17">&lt;C-r&gt;&lt;C-w&gt;</span> mapping copies the word under the cursor and inserts it at the command-line prompt. We can use this to save ourselves a bit of typing.
+    </p>
+<p id="N132D4" class="calibre4">
+      Suppose that we want to rename the <code class="cf">tally</code> variable in this excerpt to <code class="cf">counter</code>:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/ex_mode/loop.js">ex_mode/loop.js</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">var</strong> tally;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">for</strong> (tally=1; tally &lt;= 10; tally++) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​  <em class="comment">// do something with tally</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​};​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N132F9" class="calibre4">
+      With our cursor positioned on the word <code class="cf">tally</code>, we could use the <span class="calibre17">*</span> command to search for each occurrence. 
+      (The <span class="calibre17">*</span> command is equivalent to typing the sequence
+      <code class="cf">/\&lt;<span class="calibre17">&lt;C-r&gt;&lt;C-w&gt;</span>\&gt;</code>
+<span class="calibre17">&lt;CR&gt;</span>.
+      See <a xmlns:str="http://exslt.org/strings" href="f_0109.html#sec.word.boundaries">Tip 76</a>, for a discussion of how <code class="cf">\&lt;</code> and <code class="cf">\&gt;</code> items work in a pattern.)
+    </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">{start}</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var <span class="shade-fg-white">t</span>ally;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​for (tally=1; tally &lt;= 10; tally++) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  // do something with tally​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​};​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">*</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var <span class="shade-fg-black">tally</span>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​for (<span class="shade-fg-black">
+<span class="shade-fg-white">t</span>ally</span>=1; <span class="shade-fg-black">tally</span> &lt;= 10; <span class="shade-fg-black">tally</span>++) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  // do something with <span class="shade-fg-black">tally</span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​};​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">cw</span>
+<code class="cf">counter&lt;Esc&gt;</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var <span class="shade-fg-black">tally</span>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​for (counte<span class="shade-fg-white">r</span>=1; <span class="shade-fg-black">tally</span> &lt;= 10; <span class="shade-fg-black">tally</span>++) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  // do something with <span class="shade-fg-black">tally</span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​};​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N133B5" class="calibre4">
+      When we press the <span class="calibre17">*</span> key, our cursor jumps forward to the next match, but the cursor ends up on the same word anyway. Typing <span class="calibre17">cw</span>
+<code class="cf">counter&lt;Esc&gt;</code> makes the change.
+    </p>
+<p id="N133C0" class="calibre4">
+      We’ll carry out the remaining changes using a <code class="cf">:substitute</code> command. Since our cursor is on the word “counter,” we don’t need to type it out again. We can just use the <span class="calibre17">&lt;C-r&gt;&lt;C-w&gt;</span> mapping to populate the replacement field:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:%s//&lt;C-r&gt;&lt;C-w&gt;/g</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N133DB" class="calibre4">
+      That command doesn’t look very succinct when written down, but two keystrokes to insert a word ain’t bad. We didn’t have to type the search pattern either, thanks to the <span class="calibre17">*</span> command. Refer to <a xmlns:str="http://exslt.org/strings" href="f_0125.html#sec.substitute.lastpat">Tip 90</a>, to see why we can leave the search field blank like that.
+    </p>
+<p id="N133E5" class="calibre4">
+      While <span class="calibre17">&lt;C-r&gt;&lt;C-w&gt;</span> gets the <span class="calibre5">word</span> under the cursor, we can instead use <span class="calibre17">&lt;C-r&gt;&lt;C-a&gt;</span> if we want to get the <code class="cf">WORD</code> (for an explanation, see <a xmlns:str="http://exslt.org/strings" href="f_0075.html#sec.words.and.words">Tip 48</a>). See <strong xmlns:str="http://exslt.org/strings" class="calibre10">c_CTRL-R_CTRL-W</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/cmdline.html#c_CTRL-R_CTRL-W">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a> for more details. We’ve used the <code class="cf">:substitute</code> command in this example, but these mappings can be used with any Ex command.
+    </p>
+<p id="N133FF" class="calibre4">
+      For another application, try opening your <code class="cf">vimrc</code> file, place your cursor on a setting, and then type <code class="cf">:help &lt;C-r&gt;&lt;C-w&gt;</code> to look up the documentation for that setting.
+	  </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

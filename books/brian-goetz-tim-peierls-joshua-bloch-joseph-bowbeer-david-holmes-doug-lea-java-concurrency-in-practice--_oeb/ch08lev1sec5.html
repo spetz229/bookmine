@@ -1,0 +1,247 @@
+---
+layout: page
+title: "Java Concurrency in Practice"
+prev: ch08lev1sec4.html
+next: ch08lev1sec6.html
+book_path: books/brian-goetz-tim-peierls-joshua-bloch-joseph-bowbeer-david-holmes-doug-lea-java-concurrency-in-practice--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a href="21021536.html" class="calibre2"><img src="pixel.jpg" alt="" border="0" class="calibre26"/></a><a name="ch08lev1sec5" class="calibre18" id="ch08lev1sec5"></a>
+<h3 id="title-IDAEXCDL" class="docSection1Title">8.5. Parallelizing Recursive Algorithms</h3>
+<p class="docText1"><a name="iddle2206" class="calibre18" id="iddle2206"></a><a name="iddle1062" class="calibre18" id="iddle1062"></a><a name="iddle1063" class="calibre18" id="iddle1063"></a><a name="iddle1915" class="calibre18" id="iddle1915"></a><a name="iddle2577" class="calibre18" id="iddle2577"></a><a name="iddle2578" class="calibre18" id="iddle2578"></a><a name="iddle2884" class="calibre18" id="iddle2884"></a><a name="iddle3455" class="calibre18" id="iddle3455"></a><a name="iddle3804" class="calibre18" id="iddle3804"></a><a name="iddle4115" class="calibre18" id="iddle4115"></a><a name="iddle4165" class="calibre18" id="iddle4165"></a><a name="iddle4967" class="calibre18" id="iddle4967"></a><a name="iddle4968" class="calibre18" id="iddle4968"></a>The page rendering examples in <a class="calibre2" href="ch06lev1sec2.html#ch06list03">Section 6.3</a> went through a series of refinements in search of exploitable parallelism. The first attempt was entirely sequential; the second used two threads but still performed all the image downloads sequentially; the final version treated each image download as a separate task to achieve greater parallelism. Loops whose bodies contain nontrivial computation or perform potentially blocking I/O are frequently good candidates for parallelization, as long as the iterations are independent.</p>
+<p class="docText1">If we have a loop whose iterations are independent and we don't need to wait for all of them to complete before proceeding, we can use an <tt class="calibre25">Executor</tt> to transform a sequential loop into a parallel one, as shown in <tt class="calibre25">processSequentially</tt> and <tt class="calibre25">processInParallel</tt> in <a class="calibre2" href="#ch08list10">Listing 8.10</a>.</p>
+<a name="ch08list10" class="calibre18" id="ch08list10"></a><h5 id="title-IDAD3CDL" class="docExampleTitle">Listing 8.10. Transforming Sequential Execution into Parallel Execution.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">void processSequentially(List&lt;Element&gt; elements) {
+    for (Element e : elements)
+        process(e);
+}
+
+void processInParallel(Executor exec, List&lt;Element&gt; elements) {
+    for (final Element e : elements)
+        exec.execute(new Runnable() {
+            public void run() { process(e); }
+        });
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1">A call to <tt class="calibre25">processInParallel</tt> returns more quickly than a call to <tt class="calibre25">processSequentially</tt> because it returns as soon as all the tasks are queued to the <tt class="calibre25">Executor</tt>, rather than waiting for them all to complete. If you want to submit a set of tasks and wait for them all to complete, you can use <tt class="calibre25">ExecutorService.invokeAll</tt>; to retrieve the results as they become available, you can use a <tt class="calibre25">CompletionService</tt>, as in <tt class="calibre25">Renderer</tt> on page <a class="calibre2" href="ch06lev1sec3.html#ch06list15">130</a>.</p>
+<a name="ch08sb04" class="calibre18" id="ch08sb04"></a><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<p class="docText1">Sequential loop iterations are suitable for parallelization when each iteration is independent of the others and the work done in each iteration of the loop body is significant enough to offset the cost of managing a new task.</p>
+</td></tr></table></p><p class="calibre1"> </p>
+<p class="docText1">Loop parallelization can also be applied to some recursive designs; there are often sequential loops within the recursive algorithm that can be parallelized in the same manner as <a class="calibre2" href="#ch08list10">Listing 8.10</a>. The easier case is when each iteration does not require the results of the recursive iterations it invokes. For example, <tt class="calibre25">sequentialRecursive</tt> in <a class="calibre2" href="#ch08list11">Listing 8.11</a> does a depth-first traversal of a tree, performing a calculation on each node and placing the result in a collection. The transformed version, <tt class="calibre25">parallelRecursive</tt>, also does a depth-first traversal, but instead of computing the result as each node is visited, it submits a task to compute the node result.</p>
+<a name="ch08list11" class="calibre18" id="ch08list11"></a><h5 id="title-IDAJ5CDL" class="docExampleTitle">Listing 8.11. Transforming Sequential Tail-recursion into Parallelized Recursion.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">public&lt;T&gt; void sequentialRecursive(List&lt;Node&lt;T&gt;&gt; nodes,
+                                   Collection&lt;T&gt; results) {
+    for (Node&lt;T&gt; n : nodes) {
+        results.add(n.compute());
+        sequentialRecursive(n.getChildren(), results);
+    }
+}
+
+public&lt;T&gt; void parallelRecursive(final Executor exec,
+                                 List&lt;Node&lt;T&gt;&gt; nodes,
+                                 final Collection&lt;T&gt; results) {
+    for (final Node&lt;T&gt; n : nodes) {
+        exec.execute(new Runnable() {
+            public void run() {
+                results.add(n.compute());
+            }
+        });
+        parallelRecursive(exec, n.getChildren(), results);
+    }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1">When <tt class="calibre25">parallelRecursive</tt> returns, each node in the tree has been visited (the traversal is still sequential: only the calls to <tt class="calibre25">compute</tt> are executed in parallel) and the computation for each node has been queued to the <tt class="calibre25">Executor</tt>. Callers of <tt class="calibre25">parallelRecursive</tt> can wait for all the results by creating an <tt class="calibre25">Executor</tt> specific to the traversal and using <tt class="calibre25">shutdown</tt> and <tt class="calibre25">awaitTermination</tt>, as shown in <a class="calibre2" href="#ch08list12">Listing 8.12</a>.</p>
+<a name="ch08list12" class="calibre18" id="ch08list12"></a><h5 id="title-IDAUADDL" class="docExampleTitle">Listing 8.12. Waiting for Results to be Calculated in Parallel.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">public&lt;T&gt; Collection&lt;T&gt; getParallelResults(List&lt;Node&lt;T&gt;&gt; nodes)
+        throws InterruptedException {
+    ExecutorService exec = Executors.newCachedThreadPool();
+    Queue&lt;T&gt; resultQueue = new ConcurrentLinkedQueue&lt;T&gt;();
+    parallelRecursive(exec, nodes, resultQueue);
+    exec.shutdown();
+    exec.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+    return resultQueue;
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<a name="ch08lev2sec9" class="calibre18" id="ch08lev2sec9"></a>
+<h4 id="title-IDAGBDDL" class="docSection2Title">8.5.1. Example: A Puzzle Framework</h4>
+<p class="docText1"><a name="iddle2163" class="calibre18" id="iddle2163"></a><a name="iddle2727" class="calibre18" id="iddle2727"></a><a name="iddle3454" class="calibre18" id="iddle3454"></a><a name="iddle3740" class="calibre18" id="iddle3740"></a><a name="iddle3741" class="calibre18" id="iddle3741"></a><a name="iddle4427" class="calibre18" id="iddle4427"></a><a name="iddle4428" class="calibre18" id="iddle4428"></a><a name="iddle4736" class="calibre18" id="iddle4736"></a><a name="iddle4956" class="calibre18" id="iddle4956"></a><a name="iddle4957" class="calibre18" id="iddle4957"></a><a name="iddle4958" class="calibre18" id="iddle4958"></a>An appealing application of this technique is solving puzzles that involve finding a sequence of transformations from some initial state to reach a goal state, such as the familiar "sliding block puzzles",<sup class="docFootnote"><a class="calibre2" href="#ch08fn07">[7]</a></sup> "Hi-Q", "Instant Insanity", and other solitaire puzzles.</p><blockquote class="calibre19"><p class="docFootnote1"><sup class="calibre27"><a name="ch08fn07" class="calibre18" id="ch08fn07">[7]</a></sup> See <tt class="calibre35"><a class="calibre2" target="_blank" href="http://www.puzzleworld.org/SlidingBlockPuzzles">http://www.puzzleworld.org/SlidingBlockPuzzles</a></tt>.</p></blockquote>
+<p class="docText1">We define a "puzzle" as a combination of an initial position, a goal position, and a set of rules that determine valid moves. The rule set has two parts: computing the list of legal moves from a given position and computing the result of applying a move to a position. <tt class="calibre25">Puzzle</tt> in <a class="calibre2" href="#ch08list13">Listing 8.13</a> shows our puzzle abstraction; the type parameters <tt class="calibre25">P</tt> and <tt class="calibre25">M</tt> represent the classes for a position and a move. From this interface, we can write a simple sequential solver that searches the puzzle space until a solution is found or the puzzle space is exhausted.</p>
+<a name="ch08list13" class="calibre18" id="ch08list13"></a><h5 id="title-IDA3FDDL" class="docExampleTitle">Listing 8.13. Abstraction for Puzzles Like the "Sliding Blocks Puzzle".</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">public interface Puzzle&lt;P, M&gt; {
+    P initialPosition();
+    boolean isGoal(P position);
+    Set&lt;M&gt; legalMoves(P position);
+    P move(P position, M move);
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1"><tt class="calibre25">Node</tt> in <a class="calibre2" href="#ch08list14">Listing 8.14</a> represents a position that has been reached through some series of moves, holding a reference to the move that created the position and the previous <tt class="calibre25">Node</tt>. Following the links back from a <tt class="calibre25">Node</tt> lets us reconstruct the sequence of moves that led to the current position.</p>
+<p class="docText1"><tt class="calibre25">SequentialPuzzleSolver</tt> in <a class="calibre2" href="#ch08list15">Listing 8.15</a> shows a sequential solver for the puzzle framework that performs a depth-first search of the puzzle space. It terminates when it finds a solution (which is not necessarily the shortest solution).</p>
+<p class="docText1">Rewriting the solver to exploit concurrency would allow us to compute next moves and evaluate the goal condition in parallel, since the process of evaluating one move is mostly independent of evaluating other moves. (We say "mostly" because tasks share some mutable state, such as the set of seen positions.) If multiple processors are available, this could reduce the time it takes to find a solution.</p>
+<p class="docText1"><tt class="calibre25">ConcurrentPuzzleSolver</tt> in <a class="calibre2" href="#ch08list16">Listing 8.16</a> uses an inner <tt class="calibre25">SolverTask</tt> class that extends <tt class="calibre25">Node</tt> and implements <tt class="calibre25">Runnable</tt>. Most of the work is done in <tt class="calibre25">run</tt>: evaluating the set of possible next positions, pruning positions already searched, evaluating whether success has yet been achieved (by this task or by some other task), and submitting unsearched positions to an <tt class="calibre25">Executor</tt>.</p>
+<p class="docText1">To avoid infinite loops, the sequential version maintained a <tt class="calibre25">Set</tt> of previously searched positions; <tt class="calibre25">ConcurrentPuzzleSolver</tt> uses a <tt class="calibre25">ConcurrentHashMap</tt> for this purpose. This provides thread safety and avoids the race condition inherent in conditionally updating a shared collection by using <tt class="calibre25">putIfAbsent</tt> to atomically <a name="iddle2176" class="calibre18" id="iddle2176"></a><a name="iddle1699" class="calibre18" id="iddle1699"></a><a name="iddle2145" class="calibre18" id="iddle2145"></a><a name="iddle2213" class="calibre18" id="iddle2213"></a><a name="iddle2941" class="calibre18" id="iddle2941"></a><a name="iddle3976" class="calibre18" id="iddle3976"></a><a name="iddle3977" class="calibre18" id="iddle3977"></a><a name="iddle3978" class="calibre18" id="iddle3978"></a><a name="iddle4112" class="calibre18" id="iddle4112"></a><a name="iddle4113" class="calibre18" id="iddle4113"></a><a name="iddle4114" class="calibre18" id="iddle4114"></a><a name="iddle4360" class="calibre18" id="iddle4360"></a><a name="iddle4361" class="calibre18" id="iddle4361"></a><a name="iddle4483" class="calibre18" id="iddle4483"></a><a name="iddle4484" class="calibre18" id="iddle4484"></a><a name="iddle5039" class="calibre18" id="iddle5039"></a>add a position only if it was not previously known. <tt class="calibre25">ConcurrentPuzzleSolver</tt> uses the internal work queue of the thread pool instead of the call stack to hold the state of the search.</p>
+<a name="ch08list14" class="calibre18" id="ch08list14"></a><h5 id="title-IDA2NDDL" class="docExampleTitle">Listing 8.14. Link Node for the Puzzle Solver Framework.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">@Immutable
+static class Node&lt;P, M&gt; {
+    final P pos;
+    final M move;
+    final Node&lt;P, M&gt; prev;
+
+    Node(P pos, M move, Node&lt;P, M&gt; prev) {...}
+
+    List&lt;M&gt; asMoveList() {
+        List&lt;M&gt; solution = new LinkedList&lt;M&gt;();
+        for (Node&lt;P, M&gt; n = this; n.move != null; n = n.prev)
+            solution.add(0, n.move);
+        return solution;
+    }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1">The concurrent approach also trades one form of limitation for another that might be more suitable to the problem domain. The sequential version performs a depth-first search, so the search is bounded by the available stack size. The concurrent version performs a breadth-first search and is therefore free of the stack size restriction (but can still run out of memory if the set of positions to be searched or already searched exceeds the available memory).</p>
+<p class="docText1">In order to stop searching when we find a solution, we need a way to determine whether any thread has found a solution yet. If we want to accept the first solution found, we also need to update the solution only if no other task has already found one. These requirements describe a sort of <span class="docEmphasis">latch</span> (see <a class="calibre2" href="ch05lev1sec5.html#ch05lev2sec10">Section 5.5.1</a>) and in particular, a <span class="docEmphasis">result-bearing latch</span>. We could easily build a blocking resultbearing latch using the techniques in <a class="calibre2" href="ch14.html#ch14">Chapter 14</a>, but it is often easier and less error-prone to use existing library classes rather than low-level language mechanisms. <tt class="calibre25">ValueLatch</tt> in <a class="calibre2" href="#ch08list17">Listing 8.17</a> uses a <tt class="calibre25">CountDownLatch</tt> to provide the needed latching behavior, and uses locking to ensure that the solution is set only once.</p>
+<p class="docText1">Each task first consults the solution latch and stops if a solution has already been found. The main thread needs to wait until a solution is found; <tt class="calibre25">getValue</tt> in <tt class="calibre25">ValueLatch</tt> blocks until some thread has set the value. <tt class="calibre25">ValueLatch</tt> provides a way to hold a value such that only the first call actually sets the value, callers can test whether it has been set, and callers can block waiting for it to be set. On the first call to <tt class="calibre25">setValue</tt>, the solution is updated and the <tt class="calibre25">CountDownLatch</tt> is decremented, releasing the main solver thread from <tt class="calibre25">getValue</tt>.</p>
+<p class="docText1">The first thread to find a solution also shuts down the <tt class="calibre25">Executor</tt>, to prevent new tasks from being accepted. To avoid having to deal with <tt class="calibre25">RejectedExecutionException</tt>, <a name="iddle2099" class="calibre18" id="iddle2099"></a><a name="iddle2184" class="calibre18" id="iddle2184"></a><a name="iddle2214" class="calibre18" id="iddle2214"></a><a name="iddle3827" class="calibre18" id="iddle3827"></a><a name="iddle3831" class="calibre18" id="iddle3831"></a><a name="iddle4677" class="calibre18" id="iddle4677"></a><a name="iddle4893" class="calibre18" id="iddle4893"></a>the rejected execution handler should be set to discard submitted tasks. Then, all unfinished tasks eventually run to completion and any subsequent attempts to execute new tasks fail silently, allowing the executor to terminate. (If the tasks took longer to run, we might want to interrupt them instead of letting them finish.)</p>
+<a name="ch08list15" class="calibre18" id="ch08list15"></a><h5 id="title-IDAWSDDL" class="docExampleTitle">Listing 8.15. Sequential Puzzle Solver.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">public class SequentialPuzzleSolver&lt;P, M&gt; {
+    private final Puzzle&lt;P, M&gt; puzzle;
+    private final Set&lt;P&gt; seen = new HashSet&lt;P&gt;();
+
+    public SequentialPuzzleSolver(Puzzle&lt;P, M&gt; puzzle) {
+        this.puzzle = puzzle;
+    }
+
+    public List&lt;M&gt; solve() {
+        P pos = puzzle.initialPosition();
+        return search(new Node&lt;P, M&gt;(pos, null, null));
+    }
+
+    private List&lt;M&gt; search(Node&lt;P, M&gt; node) {
+        if (!seen.contains(node.pos)) {
+            seen.add(node.pos);
+            if (puzzle.isGoal(node.pos))
+                return node.asMoveList();
+            for (M move : puzzle.legalMoves(node.pos)) {
+                P pos = puzzle.move(node.pos, move);
+                Node&lt;P, M&gt; child = new Node&lt;P, M&gt;(pos, move, node);
+                List&lt;M&gt; result = search(child);
+                if (result != null)
+                    return result;
+            }
+        }
+        return null;
+    }
+
+    static class Node&lt;P, M&gt; {  /*  Listing 8.14  */  }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<a name="ch08list16" class="calibre18" id="ch08list16"></a><h5 id="title-IDAJTDDL" class="docExampleTitle">Listing 8.16. Concurrent Version of Puzzle Solver.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">public class ConcurrentPuzzleSolver&lt;P, M&gt; {
+    private final Puzzle&lt;P, M&gt; puzzle;
+    private final ExecutorService exec;
+    private final ConcurrentMap&lt;P, Boolean&gt; seen;
+    final ValueLatch&lt;Node&lt;P, M&gt;&gt; solution
+            = new ValueLatch&lt;Node&lt;P, M&gt;&gt;();
+    ...
+    public List&lt;M&gt; solve() throws InterruptedException {
+        try {
+            P p = puzzle.initialPosition();
+            exec.execute(newTask(p, null, null));
+            // <span class="docEmphasis">block until solution found</span>
+            Node&lt;P, M&gt; solnNode = solution.getValue();
+            return (solnNode == null) ? null : solnNode.asMoveList();
+        } finally {
+            exec.shutdown();
+        }
+    }
+
+    protected Runnable newTask(P p, M m, Node&lt;P,M&gt; n) {
+        return new SolverTask(p, m, n);
+    }
+
+    class SolverTask extends Node&lt;P, M&gt; implements Runnable {
+        ...
+        public void run() {
+            if (solution.isSet()
+                    || seen.putIfAbsent(pos, true) != null)
+                return; // already solved or seen this position
+            if (puzzle.isGoal(pos))
+                solution.setValue(this);
+            else
+                for (M m : puzzle.legalMoves(pos))
+                    exec.execute(
+                        newTask(puzzle.move(pos, m), m, this));
+        }
+    }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<a name="ch08list17" class="calibre18" id="ch08list17"></a><h5 id="title-IDA2TDDL" class="docExampleTitle">Listing 8.17. Result-bearing Latch Used by <tt class="calibre33">ConcurrentPuzzleSolver</tt>.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">@ThreadSafe
+public class ValueLatch&lt;T&gt; {
+    @GuardedBy("this") private T value = null;
+    private final CountDownLatch done = new CountDownLatch(1);
+
+    public boolean isSet() {
+        return (done.getCount() == 0);
+    }
+
+    public synchronized void setValue(T newValue) {
+        if (!isSet()) {
+            value = newValue;
+            done.countDown();
+        }
+    }
+
+    public T getValue() throws InterruptedException {
+        done.await();
+        synchronized (this) {
+            return value;
+        }
+    }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1"><tt class="calibre25">ConcurrentPuzzleSolver</tt> does not deal well with the case where there is no solution: if all possible moves and positions have been evaluated and no solution has been found, <tt class="calibre25">solve</tt> waits forever in the call to <tt class="calibre25">getSolution</tt>. The sequential version terminated when it had exhausted the search space, but getting concurrent programs to terminate can sometimes be more difficult. One possible solution is to keep a count of active solver tasks and set the solution to null when the count drops to zero, as in <a class="calibre2" href="#ch08list18">Listing 8.18</a>.</p>
+<p class="docText1">Finding the solution may also take longer than we are willing to wait; there are several additional termination conditions we could impose on the solver. One is a time limit; this is easily done by implementing a timed <tt class="calibre25">getValue</tt> in <tt class="calibre25">ValueLatch</tt> (which would use the timed version of <tt class="calibre25">await</tt>), and shutting down the <tt class="calibre25">Executor</tt> and declaring failure if <tt class="calibre25">getValue</tt> times out. Another is some sort of puzzle-specific metric such as searching only up to a certain number of positions. Or we can provide a cancellation mechanism and let the client make its own <a name="iddle2164" class="calibre18" id="iddle2164"></a>decision about when to stop searching.</p>
+<a name="ch08list18" class="calibre18" id="ch08list18"></a><h5 id="title-IDAXVDDL" class="docExampleTitle">Listing 8.18. Solver that Recognizes when No Solution Exists.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">public class PuzzleSolver&lt;P,M&gt; extends ConcurrentPuzzleSolver&lt;P,M&gt; {
+    ...
+    private final AtomicInteger taskCount = new AtomicInteger(0);
+
+    protected Runnable newTask(P p, M m, Node&lt;P,M&gt; n) {
+        return new CountingSolverTask(p, m, n);
+    }
+
+    class CountingSolverTask extends SolverTask {
+        CountingSolverTask(P pos, M move, Node&lt;P, M&gt; prev) {
+            super(pos, move, prev);
+            taskCount.incrementAndGet();
+        }
+        public void run() {
+            try {
+                super.run();
+            } finally {
+                if (taskCount.decrementAndGet() == 0)
+                    solution.setValue(null);
+            }
+        }
+    }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<a href="21021536.html" class="calibre2"><img src="pixel.jpg" alt="" border="0" class="calibre26"/></a>
+<p class="calibre3"> </p>
+
+</div>
+
+{% endraw %}
+

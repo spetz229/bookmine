@@ -1,0 +1,95 @@
+---
+layout: page
+title: "Unknown"
+prev: c20820.htm
+next: x20921.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="c20820.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 12. JDBC</td><td width="10%" valign="bottom" class="calibre5"><a href="x20921.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="AEN20856" class="calibre8">Using the PostgreSQL Driver</a></h1><p class="calibre9">This section describes the process for using the built-in PostgreSQL JDBC driver. First, add the path to your
+    <span><i class="EMPHASIS">postgresql.jar</i></span> file into your <tt class="REPLACEABLE">CLASSPATH</tt> setting. This can be done
+    either by setting your <tt class="REPLACEABLE">CLASSPATH</tt> environment variable, or by passing the path as an argument
+    on the command line to your Java executable each time a Java application is executed. For more information, see your JVM
+    vendor's instructions for setting your classpath.</p><p class="calibre9">Next, when coding a Java application, you need to ensure that the <tt class="REPLACEABLE">Driver</tt> gets
+    registered within your code. When the <tt class="REPLACEABLE">Driver</tt> class passes through the Java class loader, it
+    registers itself with the <tt class="REPLACEABLE">DriverManager</tt> class so that JDBC will know what
+    <tt class="REPLACEABLE">Driver</tt> to use when connecting to a specific type of database. For instance, when you connect
+    to a PostgreSQL database, you would obviously use the PostgreSQL driver class.</p><p class="calibre9">To make sure that the <tt class="REPLACEABLE">Driver</tt> class passes through the class loader, you can do a
+    lookup by class name, as shown in the Java code snippet in <a href="x20856.htm#CLASSNAMELOOKUP">Example 12-1</a>.</p><div class="NAVHEADER"><a name="CLASSNAMELOOKUP"></a><p class="calibre9"><b class="calibre10">Example 12-1. Class name lookup</b></p><pre class="SCREEN">try {
+  Class.forName("org.postgresql.Driver");
+} catch (ClassNotFoundException cnfe) {
+  System.err.println("Couldn't find driver class:");
+  cnfe.printStackTrace();
+}</pre></div><p class="calibre9"><tt class="REPLACEABLE">Class.forName</tt> is a method that finds a class by name. In this case, you look for the
+    Driver. This causes the class loader to search through the <tt class="REPLACEABLE">CLASSPATH</tt> and find a class by
+    that name. If it finds it, the class loader will then read in the binary description of the class. If it does not find it, it
+    will throw a <tt class="REPLACEABLE">ClassNotFoundException</tt>, in which case you can print out an error message to
+    that effect. If you reach this state, you either haven't built the driver correctly, or the <span><i class="EMPHASIS">.jar</i></span> file is
+    not in your classpath.</p><p class="calibre9">Once you have registered the Driver class, you need to request a connection to a PostgreSQL database. To do this, you
+    use a class called <tt class="REPLACEABLE">DriverManager</tt>. The <tt class="REPLACEABLE">DriverManager</tt> class
+    is responsible for handling JDBC URLs, finding an appropriate driver, and then using that driver to provide a connection to
+    the database.</p><p class="calibre9">JDBC URLs are of the following format, in three colon-delimited parts: </p><pre class="SCREEN">jdbc:<tt class="REPLACEABLE"><i class="EMPHASIS">[drivertype]</i></tt>:<tt class="REPLACEABLE"><i class="EMPHASIS">[database]</i></tt></pre><p class="calibre9">The first part, <tt class="REPLACEABLE">jdbc</tt>, is a constant. It represents that you are connecting to a JDBC
+    data source. The second part, <tt class="REPLACEABLE"><i class="EMPHASIS">[drivertype]</i></tt>, represents the kind of database you want to
+    connect to. Use <span><i class="EMPHASIS">postgresql</i></span> to connect to a PostgreSQL database.  The third part is passed
+    off to the driver, which finds the actual database. It takes on one of the following formats: </p><pre class="SCREEN"><tt class="REPLACEABLE"><i class="EMPHASIS">databasename</i></tt>
+//<tt class="REPLACEABLE"><i class="EMPHASIS">hostname</i></tt>/<tt class="REPLACEABLE"><i class="EMPHASIS">databasename</i></tt>
+//<tt class="REPLACEABLE"><i class="EMPHASIS">hostname</i></tt>:<tt class="REPLACEABLE"><i class="EMPHASIS">portnumber</i></tt>/<tt class="REPLACEABLE"><i class="EMPHASIS">databasename</i></tt></pre><p class="calibre9">In the first case, the PostgreSQL database is running on the local machine, on the default port number. The
+    <tt class="REPLACEABLE"><i class="EMPHASIS">databasename</i></tt> is the literal name of the database you wish to connect to. The second case is
+    used for when you want to specify a hostname and a database. This also uses the default port number. The third case allows
+    you to specify a port number as well. Even if you use the first type of URL, the JDBC connection will always be made via
+    TCP/IP.</p><p class="calibre9">For the purposes of the examples from now on, this chapter will use the URL:
+    <span><i class="EMPHASIS">jdbc:postgresql://localhost/booktown</i></span>, meaning you are connecting to host
+    <span><i class="EMPHASIS">localhost</i></span> and database <tt class="REPLACEABLE">booktown</tt>. With that in mind, try to
+    make a connection, using all you have learned so far.  <a href="x20856.htm#ASIMPLEJDBCCONNECTION">Example 12-2</a> shows a simple Java program
+    that opens a JDBC connection to the <tt class="REPLACEABLE">booktown</tt> database. If you run the example yourself, be sure to 
+    replace the username and password with values that will work on your system. </p><div class="NAVHEADER"><a name="ASIMPLEJDBCCONNECTION"></a><p class="calibre9"><b class="calibre10">Example 12-2. A simple JDBC connection</b></p><pre class="SCREEN">import java.sql.DriverManager;
+import java.sql.Connection;
+import java.sql.SQLException;
+
+public class Example1 {
+  public static void main(String[] argv) {
+  System.out.println("Checking if Driver is registered with DriverManager.");
+  
+  try {
+    Class.forName("org.postgresql.Driver");
+  } catch (ClassNotFoundException cnfe) {
+    System.out.println("Couldn't find the driver!");
+    System.out.println("Let's print a stack trace, and exit.");
+    cnfe.printStackTrace();
+    System.exit(1);
+  }
+  
+  System.out.println("Registered the driver ok, so let's make a connection.");
+  
+  Connection c = null;
+  
+  try {
+    // The second and third arguments are the username and password,
+    // respectively. They should be whatever is necessary to connect
+    // to the database.
+    c = DriverManager.getConnection("jdbc:postgresql://localhost/booktown",
+                                    "username", "password");
+  } catch (SQLException se) {
+    System.out.println("Couldn't connect: print out a stack trace and exit.");
+    se.printStackTrace();
+    System.exit(1);
+  }
+  
+  if (c != null)
+    System.out.println("Hooray! We connected to the database!");
+  else
+    System.out.println("We should never get here.");
+  }
+}</pre></div><p class="calibre9">At this point you should be able to use this <tt class="REPLACEABLE">Connection</tt> object to do anything you want
+    with the PostgreSQL database.</p><p class="calibre9">Notice the first three lines of <a href="x20856.htm#ASIMPLEJDBCCONNECTION">Example 12-2</a>. These three
+    <tt class="REPLACEABLE">import</tt> statements make available the required classes to register with the
+    <tt class="REPLACEABLE">DriverManager</tt> object, to create a <tt class="REPLACEABLE">Connection</tt> object, and to
+    use <tt class="REPLACEABLE">SQLException</tt> objects. In general, to make available a JDBC class, the syntax is as
+    follows, where <tt class="REPLACEABLE">classname</tt> is the name of the class you wish to be able to instantiate, and
+    access:</p><pre class="SCREEN">import java.sql.<tt class="REPLACEABLE"><i class="EMPHASIS">classname</i></tt></pre><p class="calibre9">If you are unsure of what classes to import, you may use the following line to make all of the JDBC classes available to your program:</p><pre class="SCREEN">import java.sql.*</pre><p class="calibre9">Understand that importing the entire set of JDBC classes can introduce a great deal of extra overhead. For maximum
+    efficiency, you should only import those classes that you know your application requires.</p></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="c20820.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x20921.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">JDBC</td><td width="34%" valign="top" class="calibre4"><a href="c20820.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Using JDBC</td></tr></table></div></div>
+
+{% endraw %}
+

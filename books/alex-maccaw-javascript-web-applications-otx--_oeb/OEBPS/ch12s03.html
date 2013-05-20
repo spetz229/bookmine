@@ -1,0 +1,115 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch12s02.html
+next: OEBPS/ch12s04.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Views"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect112_d1e12193" class="calibre1"></a>Views</h1></div></div></div><p class="calibre3"><a id="I_indexterm12_d1e12197" class="calibre1"></a><a id="I_indexterm12_d1e12202" class="calibre1"></a>Backbone views are not templates themselves, but are control
+    classes that handle a model’s presentation. This can be confusing, because
+    many MVC implementations refer to views as chunks of HTML or templates
+    that deal with events and rendering in controllers. Regardless, in
+    Backbone, it is a view “because it represents a logical chunk of UI,
+    responsible for the contents of a single DOM.”</p><p class="calibre3">Like models and collections, views are created by extending one of
+    Backbone’s existing classes—in this case, <code class="literal">Backbone.View</code>:</p><pre class="screen">var UserView = Backbone.View.extend({
+  initialize: function(){ /* ... */ },
+  render: function(){ /* ... */ }
+});</pre><p class="calibre3">Every view instance has the idea of a current DOM element, or
+    <code class="literal">this.el</code>, regardless of whether the view
+    has been inserted into the page. <code class="literal">el</code> is
+    created using the attributes from the view’s <code class="literal">tagName</code>, <code class="literal">className</code>, or <code class="literal">id</code> properties. If none of these is specified,
+    <code class="literal">el</code> is an empty div:</p><pre class="screen">var UserView = Backbone.View.extend({
+  tagName: "span",
+  className: "users"
+});
+
+assertEqual( (new UserView).el.className, "users" );</pre><p class="calibre3">If you want to bind the view onto an existing element in the page,
+    simply set <code class="literal">el</code> directly. Clearly, you
+    need to make sure this view is set up after the page has loaded;
+    otherwise, the element won’t yet exist:</p><pre class="screen">var UserView = Backbone.View.extend({
+  el: $(".users")     
+});</pre><p class="calibre3">You can also pass <code class="literal">el</code> as an option
+    when instantiating a view, as with the <code class="literal">tagName</code>, <code class="literal">className</code>, and <code class="literal">id</code> properties:</p><pre class="screen">new UserView({id: "followers"});</pre><div class="book" title="Rendering Views"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2939079" class="calibre12"></a>Rendering Views</h2></div></div></div><p class="calibre3"><a id="I_indexterm12_d1e12265" class="calibre1"></a>Every view also has a <code class="literal">render()</code> function, which by default is a no-op
+      (an empty function). Your view should call this function whenever the
+      view needs to be redrawn. You should override this function with
+      functionality specific to your view, dealing with rendering templates
+      and updating <code class="literal">el</code> with any new
+      HTML:</p><pre class="screen">var TodoView = Backbone.View.extend({
+  template: _.template($("#todo-template").html()),
+
+  render: function() {
+    $(this.el).html(this.template(this.model.toJSON()));
+    return this;
+  }
+});</pre><p class="calibre3">Backbone is pretty agnostic about how you render views. You can
+      generate the elements yourself or using a templating library. The latter
+      approach is advocated, though, because it’s generally the cleanest
+      method—keeping HTML out of your JavaScript programs. Since
+      Underscore.js, being a dependency of Backbone, is on the page, you can
+      use <a class="ulink" href="http://documentcloud.github.com/underscore/#template"><code class="literal">_.template()</code></a>—a handy utility for
+      generating templates.</p><p class="calibre3">Above, you’ll notice that we’re using a local property called
+      <code class="literal">this.model</code>. This actually points to a
+      model’s instance and is passed through to the view upon instantiation.
+      <span class="calibre1">The model’s</span> <code class="literal">toJSON()</code> function <a id="I_indexterm12_d1e12296" class="calibre1"></a><a id="I_indexterm12_d1e12299" class="calibre1"></a>essentially returns the model’s raw attributes, ready for
+      the template to use:</p><pre class="screen">new TodoView({model: new Todo});</pre></div><div class="book" title="Delegating Events"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2939196" class="calibre12"></a>Delegating Events</h2></div></div></div><p class="calibre3"><a id="I_indexterm12_d1e12312" class="calibre1"></a><a id="I_indexterm12_d1e12317" class="calibre1"></a>Through delegation, Backbone’s views provide an easy
+      shortcut for adding event handlers onto <code class="literal">el</code>. Here’s how you can set a hash <a id="I_indexterm12_d1e12326" class="calibre1"></a><a id="I_indexterm12_d1e12331" class="calibre1"></a>of events and their corresponding callbacks <a id="I_indexterm12_d1e12337" class="calibre1"></a>on the view:</p><pre class="screen">var TodoView = Backbone.View.extend({
+  events: {
+    "change input[type=checkbox]" : "toggleDone",
+    "click .destroy"              : "clear",
+  },
+
+  toggleDone: function(e){ /* ... */},
+  clear: function(e){ /* ... */}
+});</pre><p class="calibre3">The event hash is in the format <code class="literal">{"eventType selector": "callback"}</code>. The
+      selector <span class="calibre1">is optional</span>, and if it
+      isn’t provided, the event is bound straight to <code class="literal">el</code>. If the selector is provided, the event is
+      <a class="ulink" href="http://api.jquery.com/delegate">delegated</a>, which
+      basically means it’s bound dynamically to any of <code class="literal">el</code>’s children that match the selector.
+      Delegation uses event bubbling, meaning that events will still fire
+      regardless of whether <code class="literal">el</code>’s contents have
+      changed.</p><p class="calibre3">The callback is a string, and it refers to the name of an instance
+      function on the <span class="calibre1">current view</span>. When
+      the view’s event callbacks are triggered, they’re invoked in the current
+      view’s context, rather than the current target or window’s context. This
+      is rather useful because you have direct access to <code class="literal">this.el</code> and <code class="literal">this.model</code> from any callbacks, such as in the
+      example <code class="literal">toggleDone()</code> and <code class="literal">clear()</code> functions above.</p></div><div class="book" title="Binding and Context"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2939365" class="calibre12"></a>Binding and Context</h2></div></div></div><p class="calibre3">So, how is the view’s <code class="literal">render()</code>
+      function <a id="I_indexterm12_d1e12391" class="calibre1"></a><a id="I_indexterm12_d1e12394" class="calibre1"></a>actually invoked? Well, typically this is called by the
+      view’s model when it changes, using the <span class="calibre1"><em class="calibre4">change</em></span>
+      event.<a id="I_indexterm12_d1e12403" class="calibre1"></a><a id="I_indexterm12_d1e12406" class="calibre1"></a> This means your application’s views and HTML are kept in
+      sync (bound) with your model’s data:</p><pre class="screen">var TodoView = Backbone.View.extend({
+  initialize: function() {
+    _.bindAll(this, 'render', 'close');
+    this.model.bind('change', this.render);
+  },
+
+  close: function(){ /* ... */ }
+});</pre><p class="calibre3">One thing to watch out for is context changes <a id="I_indexterm12_d1e12416" class="calibre1"></a><a id="I_indexterm12_d1e12421" class="calibre1"></a><a id="I_indexterm12_d1e12426" class="calibre1"></a>in event callbacks. Underscore provides a useful function
+      to get around this: <a class="ulink" href="http://documentcloud.github.com/underscore/#bindAll"><code class="literal">_.bindAll(context,
+      *functionNames)</code></a><a id="I_indexterm12_d1e12435" class="calibre1"></a>. This function binds a context and function names (as
+      strings). <code class="literal">_.bindAll()</code> ensures that
+      all the functions you indicate are always invoked in the specified
+      context. This is especially useful for event callbacks, as their context
+      is always changing. In the example above, the <code class="literal">render()</code> and <code class="literal">close()</code> functions will always execute in the
+      <code class="literal">TodoView</code>’s instance context.</p><p class="calibre3">Catering to model destruction works similarly. Your views just
+      need to bind to the model’s <span class="calibre1"><em class="calibre4">delete</em></span> event, removing
+      <code class="literal">el</code> when it’s triggered:</p><pre class="screen">var TodoView = Backbone.View.extend({
+  initialize: function() {
+    _.bindAll(this, 'render', 'remove');
+    this.model.bind('change',  this.render);
+    this.model.bind('delete', this.remove);
+  },
+
+  remove: function(){ 
+    $(this.el).remove();
+  }
+});</pre><p class="calibre3">Note that you can render Backbone’s views without using models or
+      event callbacks. You could easily call the <code class="literal">render()</code> function from <code class="literal">initialize()</code>, rendering the view <span class="calibre1">when it’s</span> first instantiated. However,
+      I’ve been covering model and view integration because it’s the typical
+      use case for views—the binding capabilities are one of Backbone’s most
+      useful and powerful features.</p></div></div></div>
+
+{% endraw %}
+

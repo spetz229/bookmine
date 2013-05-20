@@ -1,0 +1,152 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch04s03.html
+next: OEBPS/ch05.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Routing"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect14_d1e4592" class="calibre1"></a>Routing</h1></div></div></div><p class="calibre3"><a id="index-285O764CC4M" class="calibre1"></a><a id="index-500T134DI4V" class="calibre1"></a>Our application is now running from a single page, which
+    means its URL won’t change. This is a problem for our users because
+    they’re accustomed to having a unique URL for a resource on the Web.
+    Additionally, people are used to navigating the Web with the browser’s
+    back and forward buttons.</p><p class="calibre3">To resolve this, we want to tie the application’s state to the URL.
+    When the application’s state changes, so will the URL. The reverse is
+    true, too—when the URL changes, so will the application’s state. During
+    the initial page load, we’ll check the URL and set up the application’s
+    initial state.</p><div class="book" title="Using the URL’s Hash"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2919771" class="calibre12"></a>Using the URL’s Hash</h2></div></div></div><p class="calibre3"><a id="I_indexterm4_d1e4611" class="calibre1"></a><a id="I_indexterm4_d1e4618" class="calibre1"></a><a id="I_indexterm4_d1e4623" class="calibre1"></a><a id="I_indexterm4_d1e4626" class="calibre1"></a>However, the page’s base URL can’t be changed without
+      triggering a page refresh, which is something we’re trying to avoid.
+      Luckily, there are a few solutions. The traditional way to manipulate
+      the URL was to change its hash. The hash is never sent to the server, so
+      it can be changed without triggering a page request. For example, here’s
+      the URL for my Twitter page, the hash being <code class="literal">#!/maccman</code>:</p><pre class="screen">http://twitter.com/#!/maccman</pre><p class="calibre3">You can retrieve and alter the page’s hash using the <code class="literal">location</code> object:</p><pre class="screen">// Set the hash
+window.location.hash = "foo";
+assertEqual( window.location.hash , "#foo" );
+
+// Strip "#"
+var hashValue = window.location.hash.slice(1);
+assertEqual( hashValue, "foo" );</pre><p class="calibre3"><span class="calibre1">If the URL doesn’t have a hash,
+      <code class="literal">location.hash</code> is an empty string. Otherwise,
+      <code class="literal">location</code></span><code class="literal"><code class="literal1">.</code></code><code class="literal">hash</code>
+      equals the URL’s hash fragment, prefixed with the <code class="literal">#</code>
+      character.</p><p class="calibre3">Setting the hash too often can really hurt performance, especially
+      on mobile browsers. So, if you’re setting it frequently—say, as a user
+      scrolls through a list—you may want to consider throttling.</p></div><div class="book" title="Detecting Hash Changes"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2919911" class="calibre12"></a>Detecting Hash Changes</h2></div></div></div><p class="calibre3"><a id="I_indexterm4_d1e4667" class="calibre1"></a><a id="I_indexterm4_d1e4674" class="calibre1"></a><a id="I_indexterm4_d1e4679" class="calibre1"></a>Historically, changes to the hash were detected rather
+      crudely with a polling timer. Things are improving, though, and modern
+      browsers support the <span class="calibre1"><em class="calibre4">hashchange</em></span> event<a id="I_indexterm4_d1e4688" class="calibre1"></a>. This is fired on the <code class="literal">window</code>, and you can listen for it in order to
+      catch changes to the hash:</p><pre class="screen">window.addEventListener("hashchange", function(){ /* ... */ }, false);</pre><p class="calibre3">Or with jQuery:</p><pre class="screen">$(window).bind("hashchange", function(event){
+  // hash changed, change state
+});</pre><p class="calibre3">When the <code class="literal">hashchange</code> event fires, we can make
+      sure the application is in the appropriate state. The event has good
+      cross-browser support, with implementations in all the latest versions
+      of the major browsers:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre3">IE &gt;= 8</p></li><li class="listitem"><p class="calibre3">Firefox &gt;= 3.6</p></li><li class="listitem"><p class="calibre3">Chrome</p></li><li class="listitem"><p class="calibre3">Safari &gt;= 5</p></li><li class="listitem"><p class="calibre3">Opera &gt;= 10.6</p></li></ul></div><p class="calibre3">The event isn’t fired on older browsers; however, there’s a <a class="ulink" href="http://benalman.com/projects/jquery-hashchange-plugin/">useful
+      jQuery plug-in</a> that adds the <span class="calibre1"><em class="calibre4">hashchange</em></span>
+      event to legacy browsers.<a id="I_indexterm4_d1e4732" class="calibre1"></a></p><p class="calibre3">It’s worth noting that this event isn’t fired when the page
+      initially loads, only when the hash changes. If you’re using hash
+      routing in your application, you may want to fire the event manually on
+      page load:</p><pre class="screen">jQuery(function(){
+  var hashValue = location.hash.slice(1);
+  if (hashValue)
+    $(window).trigger("hashchange");
+});</pre></div><div class="book" title="Ajax Crawling"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2920061" class="calibre12"></a>Ajax Crawling</h2></div></div></div><p class="calibre3"><a id="I_indexterm4_d1e4745" class="calibre1"></a><a id="I_indexterm4_d1e4752" class="calibre1"></a><a id="I_indexterm4_d1e4757" class="calibre1"></a><a id="I_indexterm4_d1e4762" class="calibre1"></a>Because they don’t execute JavaScript, search engine
+      crawlers can’t see any content that’s created dynamically. Additionally,
+      none of our hash routes will be indexed; as in the eyes of the crawlers,
+      they’re all the same URL—the hash fragment is never sent to the
+      server.</p><p class="calibre3">This is obviously a problem if we want our pure JavaScript
+      applications to be indexable and available on search engines like
+      Google. As a workaround, developers would create a “parallel universe”
+      of content. Crawlers would be sent to special static HTML snapshots of
+      the content, while normal browsers would continue to use the dynamic
+      JavaScript version of the application. This resulted in a lot more work
+      for developers and entailed practices like browser sniffing, something
+      best avoided. Luckily, Google <a id="I_indexterm4_d1e4768" class="calibre1"></a>has provided an alternative: the <a class="ulink" href="http://code.google.com/web/ajaxcrawling/index.html">Ajax Crawling
+      specification</a>.</p><p class="calibre3">Let’s take a look at my Twitter <a id="I_indexterm4_d1e4779" class="calibre1"></a>profile address again (notice the exclamation mark after
+      the hash):</p><pre class="screen">http://twitter.com/#!/maccman</pre><p class="calibre3">The exclamation mark signifies to Google’s crawlers that our site
+      conforms to the Ajax Crawling spec. Rather than request the URL
+      as-is—excluding the hash, of course—the crawler translates the URL into
+      this:</p><pre class="screen">http://twitter.com/?_escaped_fragment_=/maccman</pre><p class="calibre3">The hash has been replaced with the <code class="literal">_escaped_fragment_</code> URL parameter. In the
+      specification, this is called an <span class="calibre1"><em class="calibre4">ugly</em></span> URL, and it’s
+      something users will never see. The crawler then goes ahead and fetches
+      that ugly URL. Since the hash fragment is now a URL parameter, your
+      server knows the specific resource the crawler is requesting—in this
+      case, my Twitter page.</p><p class="calibre3">The server can then map that ugly URL to whatever resource it
+      represented and respond with a pure HTML or text fragment, which is then
+      indexed. Since Twitter still has a static version of their site, they
+      just redirect the crawler to that.</p><pre class="screen">curl -v http://twitter.com/?_escaped_fragment_=/maccman
+  302 redirected to http://twitter.com/maccman</pre><p class="calibre3">Because Twitter is using a temporary redirect (302) rather than a
+      permanent one <span class="calibre1">(301), the</span> URL shown
+      in the search results will typically be the hash address—i.e., the
+      dynamic JavaScript version of the site (<code class="literal">http://twitter.com/#!/maccman</code>). If you don’t
+      have a static version of your site, just serve up a static HTML or text
+      fragment when URLs are requested with the <code class="literal">_escaped_fragment_</code> parameter.</p><p class="calibre3">Once you’ve added support for the Ajax Crawling spec to your site,
+      you can check whether it’s working using the <a class="ulink" href="http://www.google.com/support/webmasters/bin/answer.py?hl=en&amp;answer=158587">Fetch
+      as Googlebot tool</a>. If you choose not to implement the scheme on
+      your site, pages will remain indexed as-is, with a good likelihood of
+      not being properly represented in search results. In the long term,
+      however, it’s likely that search engines like Google will add JavaScript
+      support to their crawlers, making schemes like this one
+      unnecessary.</p></div><div class="book" title="Using the HTML5 History API"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2920282" class="calibre12"></a>Using the HTML5 History API</h2></div></div></div><p class="calibre3"><a id="I_indexterm4_d1e4822" class="calibre1"></a><a id="I_indexterm4_d1e4829" class="calibre1"></a><a id="I_indexterm4_d1e4834" class="calibre1"></a><a id="I_indexterm4_d1e4839" class="calibre1"></a><a id="I_indexterm4_d1e4842" class="calibre1"></a>The History API is part of the HTML5 spec and essentially
+      allows you to replace the current location with an arbitrary URL. You
+      can also choose whether to add the new URL to the browser’s history,
+      giving your application “back button” support. Like setting the
+      location’s hash, the key is that the page won’t reload—its state will be
+      <span class="calibre1">preserved</span>.</p><p class="calibre3">Supported browsers are:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre3">Firefox &gt;= 4.0</p></li><li class="listitem"><p class="calibre3">Safari &gt;= 5.0</p></li><li class="listitem"><p class="calibre3">Chrome &gt;= 7.0</p></li><li class="listitem"><p class="calibre3">IE: no support</p></li><li class="listitem"><p class="calibre3">Opera &gt;= 11.5</p></li></ul></div><p class="calibre3">The API is fairly straightforward, revolving mostly around the
+      <code class="literal">history.pushState()</code>
+      function.<a id="I_indexterm4_d1e4874" class="calibre1"></a><a id="I_indexterm4_d1e4877" class="calibre1"></a> This takes three arguments: a data object, a title, and
+      the new URL:</p><pre class="screen">// The data object is arbitrary and is passed with the popstate event
+var dataObject = { 
+    createdAt: '2011-10-10', 
+    author:    'donnamoss'
+};
+
+var url = '/posts/new-url';
+history.pushState(dataObject, document.title, url);</pre><p class="calibre3">The three arguments are all optional, but they control what’s
+      pushed onto the browser’s history stack:</p><div class="book"><dl class="book"><dt class="calibre8"><span class="calibre1">The <code class="literal">data</code> object</span></dt><dd class="calibre9"><p class="calibre3">This is completely arbitrary—you specify any custom object
+            you want. It’ll be passed along with a
+            <span class="calibre1"><em class="calibre4">popstate</em></span> event (which we’ll cover in depth
+            later).</p></dd><dt class="calibre8"><span class="calibre1">The <code class="literal">title</code> argument</span></dt><dd class="calibre9"><p class="calibre3">This is currently ignored by a lot of browsers, but
+            according to the spec will change the new page’s title and appear
+            in the browser’s history.</p></dd><dt class="calibre8"><span class="calibre1">The <code class="literal">url</code> argument</span></dt><dd class="calibre9"><p class="calibre3">This is a string specifying the URL to replace the browser’s
+            current location. If it’s relative, the new URL is calculated
+            relative to the current one, with the same domain, port, and
+            protocol. Alternatively, you can specify an absolute URL, but for
+            security reasons, it’s restricted to the same domain as the
+            current location.</p></dd></dl></div><p class="calibre3">The issue with using the new History API in JavaScript
+      applications is that every URL needs a real HTML representation.
+      Although the browser won’t request the new <span class="calibre1">URL when</span> you call <code class="literal">history.pushState()</code>, it will be requested if
+      the page is reloaded. In other words, every URL you pass to the API
+      needs to exist—you can’t just make up fragments like you can with
+      hashes.</p><p class="calibre3">This isn’t a problem if you already have a static HTML
+      representation of your site, but it is if your application is pure
+      JavaScript. One solution is to always serve up the JavaScript
+      application regardless of the URL called. Unfortunately, this will break
+      404 <span class="calibre1">(page not</span> found) support, so
+      every URL will return a successful response. The alternative is to
+      actually do some server-side checking to make sure the URL and requested
+      resource is valid before serving up the application.</p><p class="calibre3">The History API contains a few more features. <code class="literal">history.replaceState()</code> acts exactly the same
+      as <code class="literal">history.pushState()</code>, but it
+      doesn’t add an entry to the history stack. You can navigate through the
+      browser’s history using the <code class="literal">history.back(</code><code class="literal">)</code> and
+      <code class="literal">h</code><code class="literal">istory.forward()</code>
+      functions.<a id="I_indexterm4_d1e4950" class="calibre1"></a><a id="I_indexterm4_d1e4955" class="calibre1"></a></p><p class="calibre3">The <span class="calibre1"><em class="calibre4">popstate</em></span> event <a id="I_indexterm4_d1e4964" class="calibre1"></a><a id="I_indexterm4_d1e4967" class="calibre1"></a>mentioned earlier is triggered when the page is loaded or
+      when <code class="literal">history.pushState()</code> is called.
+      In the case of the latter, the <code class="literal">event</code> object will
+      contain a <code class="literal">state</code> property that holds
+      the data object given to <code class="literal">history.pushState()</code>:<a id="I_indexterm4_d1e4986" class="calibre1"></a><a id="I_indexterm4_d1e4987" class="calibre1"></a><a id="I_indexterm4_d1e4988" class="calibre1"></a></p><pre class="screen">window.addEventListener("popstate", function(event){
+  if (event.state) {
+    // history.pushState() was called
+  }
+});</pre><p class="calibre3">You can listen to the event and ensure that your application’s
+      state stays consistent with the URL. If you’re using jQuery, you need to
+      bear in mind that the event is normalized. So, to access the state
+      object, you’ll need to access the original event:</p><pre class="screen">$(window).bind("popstate", function(event){
+  event = event.originalEvent;
+  if (event.state) {
+    // history.pushState() was called
+  }
+});</pre></div></div></div>
+
+{% endraw %}
+

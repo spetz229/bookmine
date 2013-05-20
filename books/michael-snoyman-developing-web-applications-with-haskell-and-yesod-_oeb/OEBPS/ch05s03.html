@@ -1,0 +1,29 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch05s02.html
+next: OEBPS/ch05s04.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Constructing Widgets"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect15_d1e2058" class="calibre1"></a>Constructing Widgets</h1></div></div></div><p class="calibre7">In order to use widgets, you’ll obviously need to be able to get your hands on them. The
+      most common way will be via the <code class="literal">ToWidget</code> typeclass, and its
+        <code class="literal">toWidget</code> method. This allows you to convert your
+      Shakespearean templates directly to a <code class="literal">Widget</code>: Hamlet code
+      will appear in the body, Julius scripts inside a <code class="literal">&lt;script&gt;</code> tag in the head, and Cassius and Lucius in a <code class="literal">&lt;style&gt;</code> tag.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">You can actually override the default behavior and have the script and style code appear
+        in a separate file. The scaffolded site provides this for you automatically. Additionally,
+        we’ll see in the Yesod typeclass chapter how to turn on asynchronous script loading, which
+        will place your script content at the end of the body.</p></div><p class="calibre7">But what if you want to add some <code class="literal">&lt;meta&gt;</code> tags,
+      which need to appear in the head? Or if you want some JavaScript to appear in the body instead
+      of the head? For these purposes, Yesod provides two additional type classes: <code class="literal">ToWidgetHead</code> and <code class="literal">ToWidgetBody</code>.
+      These work exactly as they seem they should.</p><p class="calibre7">In addition, there are a number of other functions for creating specific kinds of Widgets:</p><div class="book"><dl class="book"><dt class="calibre9"><span class="firstname">setTitle</span></dt><dd class="calibre10"><p class="calibre7">Turns some HTML into the page title.</p></dd><dt class="calibre9"><span class="firstname">addCassiusMedia, addLuciusMedia</span></dt><dd class="calibre10"><p class="calibre7">Works the same as toWidget, but takes an additional parameter to indicate what kind of media
+     this applies to. Useful for creating print stylesheets, for instance.</p></dd><dt class="calibre9"><span class="firstname">addStylesheet</span></dt><dd class="calibre10"><p class="calibre7">Adds a reference, via a <code class="literal">&lt;link&gt;</code> tag, to an external
+     stylesheet. Takes a type-safe URL.</p></dd><dt class="calibre9"><span class="firstname">addStylesheetRemote</span></dt><dd class="calibre10"><p class="calibre7">Same as <code class="literal">addStylesheet</code>, but takes a normal URL.
+            Useful for referring to files hosted on a CDN, like Google’s jQuery UI CSS files.</p></dd><dt class="calibre9"><span class="firstname">addScript</span></dt><dd class="calibre10"><p class="calibre7">Adds a reference, via a <code class="literal">&lt;script&gt;</code> tag, to an external script.
+     Takes a type-safe URL.</p></dd><dt class="calibre9"><span class="firstname">addScriptRemote</span></dt><dd class="calibre10"><p class="calibre7">Same as <code class="literal">addScript</code>, but takes a normal URL. Useful
+            for referring to files hosted on a CDN, like Google’s jQuery.</p></dd></dl></div></div></div>
+
+{% endraw %}
+

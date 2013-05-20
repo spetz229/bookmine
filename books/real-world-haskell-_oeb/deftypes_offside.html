@@ -1,0 +1,211 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: deftypes_locals.html
+next: deftypes_case.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="deftypes_locals.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="deftypes_case.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="deftypes_offside" class="calibre27" id="deftypes_offside"></a><h3 id="643999-827" class="docSection1Title">3.10. The Offside Rule and Whitespace in an Expression</h3><a name="x_u4" class="calibre27" id="x_u4"></a><p class="docText">In<a name="I_indexterm3_d1e7931" class="calibre27" id="I_indexterm3_d1e7931"></a><a name="I_indexterm3_d1e7932" class="calibre27" id="I_indexterm3_d1e7932"></a><a name="ch03-offsiderules" class="calibre27" id="ch03-offsiderules"></a><a name="ch03-whitespace" class="calibre27" id="ch03-whitespace"></a> our definitions of <i class="docEmphasis">lend</i> and <i class="docEmphasis">lend2</i>, the left margin of our text wandered
+    around quite a bit. This was not an accident; in Haskell, whitespace has
+    meaning.</p><a name="x_v4" class="calibre27" id="x_v4"></a><p class="docText">Haskell uses indentation as a cue to parse sections of
+    code. This use of layout to convey structure is sometimes called the
+    <span class="docEmphasis">offside rule</span>. At the beginning of a source file, the
+    first top-level declaration or definition can start in any column, and the
+    Haskell compiler or interpreter remembers that indentation level. Every
+    subsequent top-level declaration must have the same indentation.</p><a name="x_w4" class="calibre27" id="x_w4"></a><p class="docText">Here's an illustration of the top-level indentation rule;
+    our first file, <i class="docEmphasis">GoodIndent.hs</i>, is
+    well-behaved:</p><pre class="calibre39">-- file: ch03/GoodIndent.hs
+-- This is the leftmost column.
+
+  -- It's fine for top-level declarations to start in any column...
+  firstGoodIndentation = 1
+
+  -- ...provided all subsequent declarations do, too!
+  secondGoodIndentation = 2</pre><br class="calibre48"/>
+<a name="x_x4" class="calibre27" id="x_x4"></a><p class="docText">Our second, <i class="docEmphasis">BadIndent.hs</i>, doesn't play by the rules:</p><pre class="calibre39">-- file: ch03/BadIndent.hs
+-- This is the leftmost column.
+
+    -- Our first declaration is in column 4.
+    firstBadIndentation = 1
+
+  -- Our second is left of the first, which is illegal!
+  secondBadIndentation = 2</pre><br class="calibre48"/>
+<a name="x_y4" class="calibre27" id="x_y4"></a><p class="docText">Here's what happens when we try to load the two files into
+    <i class="docEmphasis">ghci</i>:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:load GoodIndent.hs</b>
+[1 of 1] Compiling Main             ( GoodIndent.hs, interpreted )
+Ok, modules loaded: Main.
+ghci&gt; <b class="calibre40">:load BadIndent.hs</b>
+[1 of 1] Compiling Main             ( BadIndent.hs, interpreted )
+
+BadIndent.hs:8:2: parse error on input `secondBadIndentation'
+Failed, modules loaded: none.</pre><a name="x_z4" class="calibre27" id="x_z4"></a><p class="docText">An empty following line is treated as a continuation of
+    the current item, as is a following line indented further to the
+    right.</p><a name="x_A5" class="calibre27" id="x_A5"></a><p class="docText">The rules for <tt class="calibre34">let</tt>
+    expressions and <tt class="calibre34">where</tt> clauses are
+    similar. After a <tt class="calibre34">let</tt> or <tt class="calibre34">where</tt> keyword, the Haskell compiler or
+    interpreter remembers the indentation of the next token it sees. If the
+    line that follows is empty, or its indentation is further to the right, it
+    is considered as a continuation of the previous line. If the indentation
+    is the same as the start of the preceding item, it is treated as beginning
+    a new item in the same block:</p><pre class="calibre39">-- file: ch03/Indentation.hs
+foo = let firstDefinition = blah blah
+          -- a comment-only line is treated as empty
+                              continuation blah
+
+          -- we reduce the indentation, so this is a new definition
+          secondDefinition = yada yada
+
+                             continuation yada
+      in whatever</pre><br class="calibre48"/>
+<a name="x_B5" class="calibre27" id="x_B5"></a><p class="docText">Here are nested uses of <tt class="calibre34">let</tt> and <tt class="calibre34">where</tt>:</p><pre class="calibre39">-- file: ch03/letwhere.hs
+bar = let b = 2
+          c = True
+      in let a = b
+         in (a, c)</pre><br class="calibre48"/>
+<a name="x_C5" class="calibre27" id="x_C5"></a><p class="docText">The name <span class="docMonofont">a</span> is only visible within the
+    inner <tt class="calibre34">let</tt> expression—it's not visible
+    in the outer <tt class="calibre34">let</tt>. If we try to use the
+    name <span class="docMonofont">a</span> there, we'll get a compilation error. The
+    indentation gives both us and the compiler a visual cue as to what is
+    currently in scope:</p><pre class="calibre39">-- file: ch03/letwhere.hs
+foo = x
+    where x = y
+              where y = 2</pre><br class="calibre48"/>
+<a name="x_D5" class="calibre27" id="x_D5"></a><p class="docText">Similarly, the scope of the first <tt class="calibre34">where</tt> clause is the definition of
+    <span class="docMonofont">foo</span>, but the scope of the second is just the first
+    <tt class="calibre34">where</tt> clause.</p><a name="x_E5" class="calibre27" id="x_E5"></a><p class="docText">The indentation we use for the <tt class="calibre34">let</tt> and <tt class="calibre34">where</tt>
+    clauses makes our intentions easy to figure out.</p><a name="deftypes_tabs" class="calibre27" id="deftypes_tabs"></a><h4 id="title-IDA3RWVD" class="docSection1Title">3.10.1. A Note About Tabs Versus Spaces</h4><a name="x_F5" class="calibre27" id="x_F5"></a><p class="docText">If you use a Haskell-aware<a name="I_indexterm3_d1e8050" class="calibre27" id="I_indexterm3_d1e8050"></a><a name="I_indexterm3_d1e8055" class="calibre27" id="I_indexterm3_d1e8055"></a><a name="I_indexterm3_d1e8060" class="calibre27" id="I_indexterm3_d1e8060"></a> text editor (e.g., Emacs), it is probably already
+      configured to use space characters for all whitespace when you edit
+      Haskell source files. If your editor is <span class="docEmphasis">not</span>
+      Haskell-aware, you should configure it to use only space
+      characters.</p><a name="x_G5" class="calibre27" id="x_G5"></a><p class="docText">The reason for this is portability. In an editor that
+      uses a fixed-width font, tab stops are by convention placed at different
+      intervals on Unix-like systems (every eight characters) than on Windows
+      (every four characters). This means that no matter what your personal
+      beliefs are about where tabs belong, you can't rely on someone else's
+      editor <span class="docEmphasis">honoring</span> your preferences.
+      Any indentation that uses tabs is going to look broken under
+      <span class="docEmphasis">someone's</span> configuration. In fact, this could lead
+      to compilation problems, as the Haskell language standard requires
+      implementations to use the Unix tab width convention. Using space
+      characters avoids this problem entirely.</p><a name="deftypes_block" class="calibre27" id="deftypes_block"></a><h4 id="title-IDABTWVD" class="docSection1Title">3.10.2. The Offside Rule Is Not Mandatory</h4><a name="x_H5" class="calibre27" id="x_H5"></a><p class="docText">We can use explicit structuring instead of layout to
+      indicate what we mean. To do so, we start a block of equations with an
+      opening curly brace, separate each item with a semicolon, and finish the
+      block with a closing curly brace. The following two uses of <tt class="calibre34">let</tt> have the same meanings:</p><pre class="calibre39">-- file: ch03/Braces.hs
+bar = let a = 1
+          b = 2
+          c = 3
+      in a + b + c
+
+foo = let { a = 1;  b = 2;
+        c = 3 }
+      in a + b + c</pre><br class="calibre48"/>
+<a name="x_I5" class="calibre27" id="x_I5"></a><p class="docText">When we use explicit structuring, the normal layout
+      rules don't apply, which is why we can get away with unusual indentation
+      in the second <tt class="calibre34">let</tt> expression.</p><a name="x_J5" class="calibre27" id="x_J5"></a><p class="docText">We can use explicit structuring anywhere that we'd
+      normally use layout. It's valid for <tt class="calibre34">where</tt> clauses and even for top-level
+      declarations. Just remember that although the facility exists, explicit
+      structuring is hardly ever actually <span class="docEmphasis">used</span> in Haskell
+      programs.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"><a href="21061538.html" class="calibre2"><img src="btn_next_.gif" alt="Next" border="0" class="calibre31"/></a> 
+           
+          <span class="calibre33"><a target="_self" href="deftypes_locals.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="deftypes_case.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

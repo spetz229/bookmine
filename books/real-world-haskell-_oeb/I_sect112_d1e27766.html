@@ -1,0 +1,217 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect112_d1e27743.html
+next: I_sect112_d1e27934.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect112_d1e27743.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect112_d1e27934.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect112_d1e27766" class="calibre27" id="I_sect112_d1e27766"></a><h3 id="title-IDAQV1SB" class="docSection1Title">12.6. Turning a Color Image into Something Tractable</h3><a name="x_HU" class="calibre27" id="x_HU"></a><p class="docText">Since<a name="ch12-barcolor" class="calibre27" id="ch12-barcolor"></a><a name="ch12-colorimages" class="calibre27" id="ch12-colorimages"></a> we want to work with barcodes (which are sequences of black
+    and white stripes) and we want to write a simple decoder, an easy
+    representation to work with will be a monochrome image, in which each
+    pixel is either black or white.</p><a name="I_sect112_d1e27766d1e28125" class="calibre27" id="I_sect112_d1e27766d1e28125"></a><h4 id="title-IDADW1SB" class="docSection1Title">12.6.1. Parsing a Color Image</h4><a name="x_IU" class="calibre27" id="x_IU"></a><p class="docText">As we mentioned earlier, we'll work with netpbm images.
+      The netpbm<a name="I_indexterm12_d1e27785" class="calibre27" id="I_indexterm12_d1e27785"></a> color image format is only slightly more complicated than
+      the grayscale image format<a name="ch12-greyscaleimages" class="calibre27" id="ch12-greyscaleimages"></a> that we parsed in <a class="docLink" href="binary_split_000.html#binary">Chapter 10</a>. The
+      identifying string in a header is "P6," with the rest of the header
+      layout identical to the grayscale format. In the body of an image, each
+      pixel is represented as three bytes, one each for red, green, and
+      blue.</p><a name="x_JU" class="calibre27" id="x_JU"></a><p class="docText">We'll represent the image data as a two-dimensional
+      array of pixels. We're using arrays here purely to gain experience with
+      them. For this application, we could just as well use a list of lists.
+      The only advantage of an array is slight—we can efficiently extract a
+      row:</p><pre class="calibre39">-- file: ch12/Barcode.hs
+type Pixel = Word8
+type RGB = (Pixel, Pixel, Pixel)
+
+type Pixmap = Array (Int,Int) RGB</pre><br class="calibre48"/>
+<a name="x_KU" class="calibre27" id="x_KU"></a><p class="docText">We provide a few type synonyms to make our type
+      signatures more readable.</p><a name="x_LU" class="calibre27" id="x_LU"></a><p class="docText">Since Haskell gives us considerable freedom in how we
+      lay out an array, we must choose a representation. We'll play it safe
+      and follow a popular convention: indices begin at zero. We don't need to
+      store the dimensions of the image explicitly, since we can extract them
+      using<a name="I_indexterm12_d1e27805" class="calibre27" id="I_indexterm12_d1e27805"></a> the <i class="docEmphasis">bounds</i>
+      function.</p><a name="x_MU" class="calibre27" id="x_MU"></a><p class="docText">The actual parser is mercifully short, thanks to the
+      combinators we developed in <a class="docLink" href="binary_split_000.html#binary">Chapter 10</a>:</p><pre class="calibre39">-- file: ch12/Barcode.hs
+parseRawPPM :: Parse Pixmap
+parseRawPPM =
+    parseWhileWith w2c (/= '\n') ==&gt; \header -&gt; skipSpaces ==&gt;&amp;
+    assert (header == "P6") "invalid raw header" ==&gt;&amp;
+    parseNat ==&gt; \width -&gt; skipSpaces ==&gt;&amp;
+    parseNat ==&gt; \height -&gt; skipSpaces ==&gt;&amp;
+    parseNat ==&gt; \maxValue -&gt;
+    assert (maxValue == 255) "max value out of spec" ==&gt;&amp;
+    parseByte ==&gt;&amp;
+    parseTimes (width * height) parseRGB ==&gt; \pxs -&gt;
+    identity (listArray ((0,0),(width-1,height-1)) pxs)
+
+parseRGB :: Parse RGB
+parseRGB = parseByte ==&gt; \r -&gt;
+           parseByte ==&gt; \g -&gt;
+           parseByte ==&gt; \b -&gt;
+           identity (r,g,b)
+
+parseTimes :: Int -&gt; Parse a -&gt; Parse [a]
+parseTimes 0 _ = identity []
+parseTimes n p = p ==&gt; \x -&gt; (x:) &lt;$&gt; parseTimes (n-1) p</pre><br class="calibre48"/>
+<a name="x_NU" class="calibre27" id="x_NU"></a><p class="docText">The only function of note here is <i class="docEmphasis">parseTimes</i>, which<a name="I_indexterm12_d1e27823" class="calibre27" id="I_indexterm12_d1e27823"></a> calls another parser a given number of times, building up
+      a list of results.</p><a name="I_sect112_d1e27766d1e28172" class="calibre27" id="I_sect112_d1e27766d1e28172"></a><h4 id="title-IDAOI2SB" class="docSection1Title">12.6.2. Grayscale Conversion</h4><a name="x_OU" class="calibre27" id="x_OU"></a><p class="docText">Now that we have a color image in hand, we need to
+      convert the color data into <span class="docEmphasis">monochrome</span>. An intermediate step is to
+      convert the data to grayscale. There's a simple, widely used
+      formula<sup class="docFootnote"><a class="docLink1" href="#x_OUd1e28180">[30]</a></sup> for converting an<a name="I_indexterm12_d1e27839" class="calibre27" id="I_indexterm12_d1e27839"></a> RGB image into a grayscale image, based on the perceived
+      brightness of each color channel:</p><blockquote class="calibre30"><p class="docFootnote1"><sup class="calibre50"><a name="x_OUd1e28180" class="calibre5" id="x_OUd1e28180">[30]</a></sup> The formula originates in ITU-R Recommendation
+          601.</p></blockquote><pre class="calibre39">-- file: ch12/Barcode.hs
+luminance :: (Pixel, Pixel, Pixel) -&gt; Pixel
+luminance (r,g,b) = round (r' * 0.30 + g' * 0.59 + b' * 0.11)
+    where r' = fromIntegral r
+          g' = fromIntegral g
+          b' = fromIntegral b</pre><br class="calibre48"/>
+<a name="x_PU" class="calibre27" id="x_PU"></a><p class="docText">Haskell arrays are members of the <tt class="calibre34">Functor</tt>
+      typeclass,<a name="I_indexterm12_d1e27850" class="calibre27" id="I_indexterm12_d1e27850"></a> so we can simply use <i class="docEmphasis">fmap</i> to turn an entire image, or a single
+      scanline, from color into grayscale:</p><pre class="calibre39">-- file: ch12/Barcode.hs
+type Greymap = Array (Int,Int) Pixel
+
+pixmapToGreymap :: Pixmap -&gt; Greymap
+pixmapToGreymap = fmap luminance</pre><br class="calibre48"/>
+<a name="x_QU" class="calibre27" id="x_QU"></a><p class="docText">This <i class="docEmphasis">pixmapToGreymap</i> function is just for
+      illustration. Since we'll only be checking a few rows of an image for
+      possible barcodes, there's no reason to do the extra work of converting
+      data we'll never subsequently use.</p><a name="I_sect112_d1e27766d1e28209" class="calibre27" id="I_sect112_d1e27766d1e28209"></a><h4 id="title-IDACK2SB" class="docSection1Title">12.6.3. Grayscale to Binary and Type Safety</h4><a name="x_RU" class="calibre27" id="x_RU"></a><p class="docText">Our next subproblem is to convert the grayscale image
+      into a two-valued image, where each pixel is either on or off.</p><a name="x_SU" class="calibre27" id="x_SU"></a><p class="docText">In an image-processing application, where we're juggling
+      lots of numbers, it would be easy to reuse the same numeric type for
+      several different purposes. For example, we could use the
+      Pixel type to represent on/off states, using the convention
+      that the digit one represents a bit that's "on," and zero represents
+      "off."</p><a name="x_TU" class="calibre27" id="x_TU"></a><p class="docText">However, reusing types for multiple purposes in this way
+      quickly leads to potential confusion. To see whether a particular
+      "Pixel" is<a name="I_indexterm12_d1e27879" class="calibre27" id="I_indexterm12_d1e27879"></a> a number or an on/off value, we can no longer simply
+      glance at a type signature. We could easily use a value containing
+      "the wrong kind of number" in some context, and the
+      compiler wouldn't catch it because the types work out.</p><a name="x_UU" class="calibre27" id="x_UU"></a><p class="docText">We could try to work around this by introducing a type
+      alias. In the same way that we declared Pixel to be a
+      synonym of Word8, we could declare a Bit type
+      as a synonym of Pixel. While this might help readability,
+      type synonyms still don't make the compiler do any useful work on our
+      behalf.</p><a name="x_VU" class="calibre27" id="x_VU"></a><p class="docText">The compiler would treat Pixel and
+      Bit as exactly the same type, so it could not catch a
+      mistake such as using a Pixel value of 253 in a function
+      that expects Bit values of zero or one.</p><a name="x_WU" class="calibre27" id="x_WU"></a><p class="docText">If we define the monochrome type ourselves, the compiler
+      will prevent us from accidentally mixing our types up like this:</p><pre class="calibre39">-- file: ch12/Barcode.hs
+data Bit = Zero | One
+           deriving (Eq, Show)
+
+threshold :: (Ix k, Integral a) =&gt; Double -&gt; Array k a -&gt; Array k Bit
+threshold n a = binary &lt;$&gt; a
+    where binary i | i &lt; pivot  = Zero
+                   | otherwise  = One
+          pivot    = round $ least + (greatest - least) * n
+          least    = fromIntegral $ choose (&lt;) a
+          greatest = fromIntegral $ choose (&gt;) a
+          choose f = foldA1 $ \x y -&gt; if f x y then x else y</pre><br class="calibre48"/>
+<a name="x_XU" class="calibre27" id="x_XU"></a><p class="docText">Our <i class="docEmphasis">threshold</i>
+      function computes the minimum and maximum values in its input array. It
+      takes these and a threshold valued between zero and one, and computes a
+      "pivot" value. Then for each value in the array, if that
+      value is less than the pivot, the result is <tt class="calibre34">Zero</tt>;
+      otherwise, <tt class="calibre34">One</tt>. Notice that we use one of the folding
+      functions that we wrote in <a class="docLink" href="barcode_array_split_000.html#barcode_fold">Section 12.2.2</a>.</p>
+<a href="21061538.html" class="calibre2"><img src="pixel.gif" alt="" border="0" class="calibre31"/></a><ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect112_d1e27743.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect112_d1e27934.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

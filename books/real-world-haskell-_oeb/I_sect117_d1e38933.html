@@ -1,0 +1,321 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect117_d1e38308.html
+next: monadtrans_split_000.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect117_d1e38308.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="monadtrans_split_000.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect117_d1e38933" class="calibre27" id="I_sect117_d1e38933"></a><h3 id="title-IDAZQASD" class="docSection1Title">17.4. Matching on Strings</h3><a name="x_uI1" class="calibre27" id="x_uI1"></a><p class="docText">The<a name="I_indexterm17_d1e38938" class="calibre27" id="I_indexterm17_d1e38938"></a><a name="I_indexterm17_d1e38939" class="calibre27" id="I_indexterm17_d1e38939"></a> second part of a good regular expression library is the
+    matching function. Given a compiled regular expression, this function does
+    the matching of the compiled regex against some input, indicating whether
+    it matched, and if so, what parts of the string matched. In PCRE, this
+    <a name="I_indexterm17_d1e38947" class="calibre27" id="I_indexterm17_d1e38947"></a>function is <tt class="calibre34">pcre_exec</tt>, which has type:</p><pre class="calibre39">int pcre_exec(const pcre *code,
+              const pcre_extra *extra,
+              const char *subject,
+              int length,
+              int startoffset,
+              int options,
+              int *ovector,
+              int ovecsize);</pre><br class="calibre48"/>
+<a name="x_vI1" class="calibre27" id="x_vI1"></a><p class="docText">The most important arguments are the input
+    <tt class="calibre34">pcre</tt> pointer structure (which we obtained from
+    <tt class="calibre34">pcre_compile</tt>) and the subject string. The other flags let us
+    provide bookkeeping structures and space for return values. We can
+    directly translate this type to the Haskell import declaration:</p><pre class="calibre39">-- file: ch17/RegexExec.hs
+foreign import ccall "pcre.h pcre_exec"
+    c_pcre_exec     :: Ptr PCRE
+                    -&gt; Ptr PCREExtra
+                    -&gt; Ptr Word8
+                    -&gt; CInt
+                    -&gt; CInt
+                    -&gt; PCREExecOption
+                    -&gt; Ptr CInt
+                    -&gt; CInt
+                    -&gt; IO CInt</pre><br class="calibre48"/>
+<a name="x_wI1" class="calibre27" id="x_wI1"></a><p class="docText">We use the same method as before to create typed pointers
+    for the <tt class="calibre34">PCREExtra</tt> structure, and a <tt class="calibre34">newtype</tt> to
+    represent flags passed at regex execution time. This lets us ensure that
+    users don't pass compile-time flags incorrectly at regex runtime.</p><a name="I_sect117_d1e38933d1e39302" class="calibre27" id="I_sect117_d1e38933d1e39302"></a><h4 id="title-IDAJSASD" class="docSection1Title">17.4.1. Extracting Information About the Pattern</h4><a name="x_xI1" class="calibre27" id="x_xI1"></a><p class="docText">The main complication involved in calling
+      <tt class="calibre34">pcre_exec</tt> is the array of <tt class="calibre34">int</tt> pointers used to
+      hold the offsets of matching substrings found by the pattern matcher.
+      These offsets are held in an offset vector, whose required size is
+      determined by analyzing the input regular expression to determine the
+      number of captured patterns it contains. PCRE provides a function,
+      <tt class="calibre34">pcre_fullinfo</tt>, for<a name="I_indexterm17_d1e38988" class="calibre27" id="I_indexterm17_d1e38988"></a> determining much information about the regular
+      expression, including the number of patterns. We'll need to call this,
+      and now, we can directly write down the Haskell type for binding to
+      <tt class="calibre34">pcre_fullinfo</tt> as:</p><pre class="calibre39">-- file: ch17/RegexExec.hs
+foreign import ccall "pcre.h pcre_fullinfo"
+    c_pcre_fullinfo :: Ptr PCRE
+                    -&gt; Ptr PCREExtra
+                    -&gt; PCREInfo
+                    -&gt; Ptr a
+                    -&gt; IO CInt</pre><br class="calibre48"/>
+<a name="x_yI1" class="calibre27" id="x_yI1"></a><p class="docText">The most important arguments to this function are the
+      compiled regular expression and the <tt class="calibre34">PCREInfo</tt> flag, which
+      indicates which information we're interested in. In this case, we care
+      about the captured pattern count. The flags are encoded in numeric
+      constants, and we need to use specifically the
+      <tt class="calibre34">PCRE_INFO_CAPTURECOUNT</tt> value. There is a range of other
+      constants that determine the result type of the function, which we can
+      bind to using the <tt class="calibre34">#enum</tt> construct as before. The final
+      argument is a pointer to a location to store the information about the
+      pattern (whose size depends on the flag argument passed in!).</p><a name="x_zI1" class="calibre27" id="x_zI1"></a><p class="docText">Calling <tt class="calibre34">pcre_fullinfo</tt> to determine the
+      captured pattern count is pretty easy:</p><pre class="calibre39">-- file: ch17/RegexExec.hs
+capturedCount :: Ptr PCRE -&gt; IO Int
+capturedCount regex_ptr =
+    alloca $ \n_ptr -&gt; do
+         c_pcre_fullinfo regex_ptr nullPtr info_capturecount n_ptr
+         return . fromIntegral =&lt;&lt; peek (n_ptr :: Ptr CInt)</pre><br class="calibre48"/>
+<a name="x_AJ1" class="calibre27" id="x_AJ1"></a><p class="docText">This takes a raw PCRE pointer and allocates space for
+      the <tt class="calibre34">CInt</tt> count of the matched patterns. We then call the
+      information function and peek into the result structure, finding a
+      <tt class="calibre34">CInt</tt>. Finally, we convert this to a normal Haskell
+      <tt class="calibre34">Int</tt> and pass it back to the user.</p><a name="I_sect117_d1e38933d1e39354" class="calibre27" id="I_sect117_d1e38933d1e39354"></a><h4 id="title-IDA2TASD" class="docSection1Title">17.4.2. Pattern Matching with Substrings</h4><a name="x_BJ1" class="calibre27" id="x_BJ1"></a><p class="docText">Let's now<a name="I_indexterm17_d1e39031" class="calibre27" id="I_indexterm17_d1e39031"></a> write the regex matching function. The Haskell type for
+      matching is similar to that for compiling regular expressions:</p><pre class="calibre39">-- file: ch17/RegexExec.hs
+match :: Regex -&gt; ByteString -&gt; [PCREExecOption] -&gt; Maybe [ByteString]</pre><br class="calibre48"/>
+<a name="x_CJ1" class="calibre27" id="x_CJ1"></a><p class="docText">This function is how users will match strings against
+      compiled regular expressions. Again, the main design point is that it is
+      a pure function. Matching is a pure function: given the same input
+      regular expression and subject string, it will always return the same
+      matched substrings. We convey this information to the user via the type
+      signature, indicating no side effects will occur when you call this
+      function.</p><a name="x_DJ1" class="calibre27" id="x_DJ1"></a><p class="docText">The arguments are a compiled <tt class="calibre34">Regex</tt>, a
+      strict <tt class="calibre34">ByteString</tt> (containing the input data), and a list
+      of flags that modify the regular expression engine's behavior at
+      runtime. The result is either no match at all, indicated by a
+      <tt class="calibre34">Nothing</tt> value, or just a list of matched substrings. We use
+      the <tt class="calibre34">Maybe</tt> type to clearly indicate in the type that
+      matching may fail. Using strict <tt class="calibre34">ByteString</tt>s for the input
+      data, we can extract matched substrings in constant time, without
+      copying, which makes the interface rather efficient. If substrings are
+      matched in the input, the offset vector is populated with pairs of
+      integer offsets into the subject string. We'll need to loop over this
+      result vector, reading offsets, and building <tt class="calibre34">ByteString</tt>
+      slices as we go.</p><a name="x_EJ1" class="calibre27" id="x_EJ1"></a><p class="docText">The implementation of the match wrapper can be broken
+      into three parts. At the top level, our function takes apart the
+      compiled <tt class="calibre34">Regex</tt> structure, yielding the underlying
+      <tt class="calibre34">PCRE</tt> pointer:</p><pre class="calibre39">-- file: ch17/RegexExec.hs
+match :: Regex -&gt; ByteString -&gt; [PCREExecOption] -&gt; Maybe [ByteString]
+match (Regex pcre_fp _) subject os = unsafePerformIO $ do
+  withForeignPtr pcre_fp $ \pcre_ptr -&gt; do
+    n_capt &lt;- capturedCount pcre_ptr
+
+    let ovec_size = (n_capt + 1) * 3
+        ovec_bytes = ovec_size * sizeOf (undefined :: CInt)</pre><br class="calibre48"/>
+<a name="x_FJ1" class="calibre27" id="x_FJ1"></a><p class="docText">As it is pure, we can use <tt class="calibre34">unsafePerformIO</tt>
+      to<a name="I_indexterm17_d1e39077" class="calibre27" id="I_indexterm17_d1e39077"></a> hide any allocation effects internally. After pattern
+      matching on the <tt class="calibre34">PCRE</tt> type, we need to take apart the
+      <tt class="calibre34">ForeignPtr</tt> that hides our C-allocated raw PCRE data. We can
+      use <tt class="calibre34">withForeignPtr</tt>. This<a name="I_indexterm17_d1e39091" class="calibre27" id="I_indexterm17_d1e39091"></a> holds onto the Haskell data associated with the PCRE
+      value while the call is being made, preventing it from being collected
+      for at least the time it is used by this call. We then call the
+      information function and use that value to compute the size of the
+      offset vector (the formula for which is given in the PCRE
+      documentation). The number of bytes we need is the number of elements
+      multiplied by the size of a <tt class="calibre34">CInt</tt>. To portably compute C
+      type sizes, the <tt class="calibre34">Storable</tt> class provides a
+      <tt class="calibre34">sizeOf</tt> function, which takes some arbitrary value of the
+      required type (and we can use the <tt class="calibre34">undefined</tt> value here to
+      do our type dispatch).</p><a name="x_GJ1" class="calibre27" id="x_GJ1"></a><p class="docText">The next step is to allocate an offset vector of the
+      size we computed, in order to convert the input <tt class="calibre34">ByteString</tt>
+      into a pointer to a C <tt class="calibre34">char</tt> array. Finally, we call
+      <tt class="calibre34">pcre_exec</tt> with all the required arguments:</p><pre class="calibre39">-- file: ch17/RegexExec.hs
+    allocaBytes ovec_bytes $ \ovec -&gt; do
+
+        let (str_fp, off, len) = toForeignPtr subject
+        withForeignPtr str_fp $ \cstr -&gt; do
+            r &lt;- c_pcre_exec
+                         pcre_ptr
+                         nullPtr
+                         (cstr `plusPtr` off)
+                         (fromIntegral len)
+                         0
+                         (combineExecOptions os)
+                         ovec
+                         (fromIntegral ovec_size)</pre><br class="calibre48"/>
+<a name="x_HJ1" class="calibre27" id="x_HJ1"></a><p class="docText">For the offset vector, we use <tt class="calibre34">allocaBytes</tt>
+      to control exactly the size of the allocated array. It is like
+      <tt class="calibre34">alloca</tt>, but rather than using the <tt class="calibre34">Storable</tt>
+      class to determine the required size, it takes an explicit size in bytes
+      to allocate. Taking apart <tt class="calibre34">ByteString</tt>s, yielding the
+      underlying pointer to memory that the <tt class="calibre34">Bytestring</tt>s contain,
+      is done with <tt class="calibre34">toForeignPtr</tt>, which
+      converts our nice <tt class="calibre34">ByteString</tt> type into a managed pointer.
+      Using <tt class="calibre34">withForeignPtr</tt> on the result
+      gives us a raw <tt class="calibre34">Ptr CChar</tt>, which is exactly what we need to
+      pass the input string to C. Programming in Haskell is often just solving
+      a type puzzle!</p><a name="x_IJ1" class="calibre27" id="x_IJ1"></a><p class="docText">We then just call <tt class="calibre34">c_pcre_exec</tt> with the raw
+      PCRE pointer, the input string pointer at the correct offset, its
+      length, and the result vector pointer. A status code is returned, and,
+      finally, we analyze the result:</p><pre class="calibre39">-- file: ch17/RegexExec.hs
+            if r &lt; 0
+                then return Nothing
+                else let loop n o acc =
+                            if n == r
+                              then return (Just (reverse acc))
+                              else do
+                                    i &lt;- peekElemOff ovec o
+                                    j &lt;- peekElemOff ovec (o+1)
+                                    let s = substring i j subject
+                                    loop (n+1) (o+2) (s : acc)
+                     in loop 0 0 []
+
+  where
+    substring :: CInt -&gt; CInt -&gt; ByteString -&gt; ByteString
+    substring x y _ | x == y = empty
+    substring a b s = end
+        where
+            start = unsafeDrop (fromIntegral a) s
+            end   = unsafeTake (fromIntegral (b-a)) start</pre><br class="calibre48"/>
+<a name="x_JJ1" class="calibre27" id="x_JJ1"></a><p class="docText">If the result value is less than zero, there was an
+      error, or no match, so we return <tt class="calibre34">Nothing</tt> to the user.
+      Otherwise, we need a loop peeking pairs of offsets from the offset
+      vector (via <tt class="calibre34">peekElemOff</tt>). Those offsets are used to find
+      the matched substrings. To build substrings, we use a helper function
+      that, given a start and end offset, drops the surrounding portions of
+      the subject string, yielding just the matched portion. The loop runs
+      until it has extracted the number of substrings we were told the matcher
+      found.</p><a name="x_KJ1" class="calibre27" id="x_KJ1"></a><p class="docText">The substrings are accumulated in a tail recursive
+      loop, building up a reverse list of each string. Before returning the
+      substrings of the user, we need to flip that list around and wrap it in
+      a successful <tt class="calibre34">Just</tt> tag. Let's try it out!</p><a name="I_sect117_d1e38933d1e39501" class="calibre27" id="I_sect117_d1e38933d1e39501"></a><h4 id="title-IDAHYASD" class="docSection1Title">17.4.3. The Real Deal: Compiling and Matching Regular Expressions</h4><a name="x_LJ1" class="calibre27" id="x_LJ1"></a><p class="docText">If we take this function<a name="I_indexterm17_d1e39178" class="calibre27" id="I_indexterm17_d1e39178"></a> and its surrounding hsc2hs definitions and data wrappers,
+      and process it with <tt class="calibre34">hsc2hs</tt>, we can load the resulting
+      Haskell file in GHCi and try out our code (we need to import
+      <tt class="calibre34">Data.ByteString.Char8</tt> so<a name="I_indexterm17_d1e39190" class="calibre27" id="I_indexterm17_d1e39190"></a> we can build <tt class="calibre34">ByteString</tt>s from string
+      literals):</p><pre class="calibre39">$ <b class="calibre40">hsc2hs Regex.hsc</b>$ <b class="calibre40">ghci Regex.hs -lpcre</b>*Regex&gt; <b class="calibre40">:t compile</b>
+compile :: ByteString -&gt; [PCREOption] -&gt; Either String Regex
+*Regex&gt; <b class="calibre40">:t match</b>
+match :: Regex -&gt; ByteString -&gt; Maybe [ByteString]</pre><a name="x_MJ1" class="calibre27" id="x_MJ1"></a><p class="docText">Things seem to be in order. Now let's try some
+      compilation and matching. First, something easy:</p><pre class="calibre39">*Regex&gt; <b class="calibre40">:m + Data.ByteString.Char8</b>*Regex Data.ByteString.Char8&gt; <b class="calibre40">let Right r = compile (pack "the quick brown fox") []</b>*Regex Data.ByteString.Char8&gt; <b class="calibre40">match r (pack "the quick brown fox") []</b>
+Just ["the quick brown fox"]
+*Regex Data.ByteString.Char8&gt; <b class="calibre40">match r (pack "The Quick Brown Fox") []</b>
+Nothing
+*Regex Data.ByteString.Char8&gt; <b class="calibre40">match r (pack "What
+  do you know about the quick brown fox?") []</b>
+Just ["the quick brown fox"]</pre><a name="x_NJ1" class="calibre27" id="x_NJ1"></a><p class="docText">(We could also avoid the <tt class="calibre34">pack</tt> calls by
+      using the <tt class="calibre34">OverloadedStrings</tt> extensions). Or we can be more
+      adventurous:</p><pre class="calibre39">*Regex Data.ByteString.Char8&gt; <b class="calibre40">let Right r = compile 
+(pack "a*abc?xyz+pqr{3}ab{2,}xy{4,5}pq{0,6}AB{0,}zz") []</b>*Regex Data.ByteString.Char8&gt; <b class="calibre40">match r (pack "abxyzpqrrrabbxyyyypqAzz") []</b>
+Just ["abxyzpqrrrabbxyyyypqAzz"]
+*Regex Data.ByteString.Char8&gt; <b class="calibre40">let Right r = compile 
+(pack "^([^!]+)!(.+)=apquxz\\.ixr\\.zzz\\.ac\\.uk$") []</b>
+*Regex Data.ByteString.Char8&gt; <b class="calibre40">match r (pack "abc!pqr=apquxz.ixr.zzz.ac.uk") []</b>
+Just ["abc!pqr=apquxz.ixr.zzz.ac.uk","abc","pqr"]</pre><a name="x_OJ1" class="calibre27" id="x_OJ1"></a><p class="docText">That's pretty awesome. The full power of Perl regular
+      expressions in Haskell, at your fingertips.</p><a name="x_PJ1" class="calibre27" id="x_PJ1"></a><p class="docText">In this chapter, we've looked at how to declare
+      bindings that let Haskell code call C functions, how to marshal
+      different data types between the two languages, how to allocate memory
+      at a low level (by allocating locally or via C's memory management), and
+      how to exploit the Haskell type system and garbage collector to automate
+      much of the hard work of dealing with C. Finally, we looked at how FFI
+      preprocessors can ease much of the labor of constructing new bindings.
+      The result is a natural Haskell API that is actually implemented
+      primarily in C.</p><a name="x_QJ1" class="calibre27" id="x_QJ1"></a><p class="docText">The majority of FFI tasks fall into these categories.
+      Other advanced techniques that we are unable to cover include linking
+      Haskell into C programs, registering callbacks from one language to
+      another, and the <tt class="calibre34">c2hs</tt> preprocessing tool.You can find more
+      <span class="docEmphasis">information</span> about these
+      topics<a name="I_indexterm17_d1e39289" class="calibre27" id="I_indexterm17_d1e39289"></a><a name="I_indexterm17_d1e39290" class="calibre27" id="I_indexterm17_d1e39290"></a><a name="I_indexterm17_d1e39291" class="calibre27" id="I_indexterm17_d1e39291"></a>
+      online.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"><a href="21061538.html" class="calibre2"><img src="btn_next_.gif" alt="Next" border="0" class="calibre31"/></a> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect117_d1e38308.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="monadtrans_split_000.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

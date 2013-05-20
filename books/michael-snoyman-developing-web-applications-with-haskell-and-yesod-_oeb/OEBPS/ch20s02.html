@@ -1,0 +1,58 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch20.html
+next: OEBPS/ch21.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Client"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect13_d1e8298" class="calibre1"></a>Client</h1></div></div></div><p class="calibre7"></p><p class="calibre7"><code class="function">http-conduit</code> was written as a companion to WAI. It too uses
+    <code class="literal">conduit</code> and <code class="literal">blaze-builder</code> pervasively, meaning we once again
+   get easy interop with <code class="literal">aeson</code>. A few extra comments for those not familiar with
+    <code class="literal">http-conduit</code>:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">A <code class="literal">Manager</code> is present to keep track of open connections, so
+    that multiple requests to the same server use the same connection. You usually want to use the
+     <code class="literal">withManager</code> function to create and clean up this
+     <code class="literal">Manager</code>, since it is exception safe.</p></li><li class="listitem"><p class="calibre7">We need to know the size of our request body, which can’t be determined directly from
+    a <code class="literal">Builder</code>. Instead, we convert the <code class="literal">Builder</code> into a lazy
+     <code class="literal">ByteString</code> and take the size from there.</p></li><li class="listitem"><p class="calibre7">There are a number of different functions for initiating a request. We use
+     <code class="literal">http</code>, which allows us to directly access the data stream. There are other
+    higher level functions (such as <code class="literal">httpLbs</code>) that let you ignore the issues of
+    sources and get the entire body directly.</p></li></ul></div><a id="I_programlisting3_d1e8352" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE OverloadedStrings #-}</code>
+<code class="kr">import</code> <code class="nn">Network.HTTP.Conduit</code>
+    <code class="p">(</code> <code class="nf">http</code><code class="p">,</code> <code class="nf">parseUrl</code><code class="p">,</code> <code class="nf">withManager</code><code class="p">,</code> <code class="kt">RequestBody</code> <code class="p">(</code><code class="kt">RequestBodyLBS</code><code class="p">)</code>
+    <code class="p">,</code> <code class="nf">requestBody</code><code class="p">,</code> <code class="nf">method</code><code class="p">,</code> <code class="kt">Response</code> <code class="p">(</code><code class="o">..</code><code class="p">)</code>
+    <code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Data.Aeson</code> <code class="p">(</code><code class="kt">Value</code> <code class="p">(</code><code class="kt">Object</code><code class="p">,</code> <code class="kt">String</code><code class="p">))</code>
+<code class="kr">import</code> <code class="nn">Data.Aeson.Parser</code> <code class="p">(</code><code class="nf">json</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Data.Conduit</code> <code class="p">((</code><code class="o">$$</code><code class="p">))</code>
+<code class="kr">import</code> <code class="nn">Data.Conduit.Attoparsec</code> <code class="p">(</code><code class="nf">sinkParser</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Control.Monad.IO.Class</code> <code class="p">(</code><code class="nf">liftIO</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Data.Aeson</code> <code class="p">(</code><code class="nf">encode</code><code class="p">,</code> <code class="p">(</code><code class="o">.=</code><code class="p">),</code> <code class="nf">object</code><code class="p">)</code>
+
+<code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">withManager</code> <code class="o">$</code> <code class="nf">\</code><code class="n">manager</code> <code class="ow">-&gt;</code> <code class="kr">do</code>
+    <code class="n">value</code> <code class="ow">&lt;-</code> <code class="n">liftIO</code> <code class="n">makeValue</code>
+    <code class="cm">-- We need to know the size of the request body, so we convert to a</code>
+    <code class="cm">-- ByteString</code>
+    <code class="kr">let</code> <code class="n">valueBS</code> <code class="ow">=</code> <code class="n">encode</code> <code class="n">value</code>
+    <code class="n">req'</code> <code class="ow">&lt;-</code> <code class="n">liftIO</code> <code class="o">$</code> <code class="n">parseUrl</code> <code class="s">"http://localhost:3000/"</code>
+    <code class="kr">let</code> <code class="n">req</code> <code class="ow">=</code> <code class="n">req'</code> <code class="p">{</code> <code class="n">method</code> <code class="ow">=</code> <code class="s">"POST"</code><code class="p">,</code> <code class="n">requestBody</code> <code class="ow">=</code> <code class="kt">RequestBodyLBS</code> <code class="n">valueBS</code> <code class="p">}</code>
+    <code class="kt">Response</code> <code class="n">status</code> <code class="n">headers</code> <code class="n">body</code> <code class="ow">&lt;-</code> <code class="n">http</code> <code class="n">req</code> <code class="n">manager</code>
+    <code class="n">resValue</code> <code class="ow">&lt;-</code> <code class="n">body</code> <code class="o">$$</code> <code class="n">sinkParser</code> <code class="n">json</code>
+    <code class="n">liftIO</code> <code class="o">$</code> <code class="n">handleResponse</code> <code class="n">resValue</code>
+
+<code class="cm">-- Application-specific function to make the request value</code>
+<code class="nf">makeValue</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="kt">Value</code>
+<code class="nf">makeValue</code> <code class="ow">=</code> <code class="n">return</code> <code class="o">$</code> <code class="n">object</code>
+    <code class="p">[</code> <code class="p">(</code><code class="s">"foo"</code> <code class="o">.=</code> <code class="p">(</code><code class="s">"bar"</code> <code class="ow">::</code> <code class="kt">String</code><code class="p">))</code>
+    <code class="p">]</code>
+
+<code class="cm">-- Application-specific function to handle the response from the server</code>
+<code class="nf">handleResponse</code> <code class="ow">::</code> <code class="kt">Value</code> <code class="ow">-&gt;</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">handleResponse</code> <code class="ow">=</code> <code class="n">print</code>
+</pre></div></div>
+
+{% endraw %}
+

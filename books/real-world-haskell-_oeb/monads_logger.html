@@ -1,0 +1,232 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect114_d1e31273.html
+next: monads_liftM.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect114_d1e31273.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="monads_liftM.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="monads_logger" class="calibre27" id="monads_logger"></a><h3 id="title-IDAPGEVD" class="docSection1Title">14.6. Using a New Monad: Show Your Work!</h3><a name="x_MX" class="calibre27" id="x_MX"></a><p class="docText">In our introduction to monads, we showed how some
+    preexisting code was already monadic in form. Now that we are beginning to
+    grasp what a monad is and have seen the <tt class="calibre34">Monad</tt> typeclass,
+    let's build a monad with foreknowledge of what we're doing. We'll start
+    out by defining its interface, and then we'll put it to use. Once we have
+    those out of the way, we'll finally build it.</p><a name="x_NX" class="calibre27" id="x_NX"></a><p class="docText">Pure Haskell code is wonderfully clean to write, but, of
+    course, it can't perform I/O. Sometimes, we'd like to have a record of
+    decisions we made, without writing log <span class="docEmphasis">information</span> to a file. Let's develop a small
+    library to help with this.</p><a name="x_OX" class="calibre27" id="x_OX"></a><p class="docText">Recall the <i class="docEmphasis">globToRegex</i> function that we developed in <a class="docLink" href="glob_translate_split_000.html#glob_translate">Section 8.5</a>. We will modify it so that it keeps a record
+    of each of the special pattern sequences that it translates. We are
+    revisiting familiar territory for a reason: it lets us compare nonmonadic
+    and monadic versions of the same code.</p><a name="x_PX" class="calibre27" id="x_PX"></a><p class="docText">To start off, we'll wrap our result type with a
+    <tt class="calibre34">Logger</tt> type constructor:</p><pre class="calibre39">-- file: ch14/Logger.hs
+globToRegex :: String -&gt; Logger String</pre><br class="calibre48"/>
+<a name="monads_loggerd1e31704" class="calibre27" id="monads_loggerd1e31704"></a><h4 id="title-IDAVHEVD" class="docSection1Title">14.6.1. Information Hiding</h4><a name="x_QX" class="calibre27" id="x_QX"></a><p class="docText">We'll intentionally keep the internals of the
+      Logger module abstract:</p><pre class="calibre39">-- file: ch14/Logger.hs
+module Logger
+    (
+      Logger
+    , Log
+    , runLogger
+    , record
+    ) where</pre><br class="calibre48"/>
+<a name="x_RX" class="calibre27" id="x_RX"></a><p class="docText">Hiding the details like this has two benefits: it grants
+      us considerable flexibility in how we implement our monad, and more
+      importantly, it gives users a simple interface.</p><a name="x_SX" class="calibre27" id="x_SX"></a><p class="docText">Our Logger type is purely a
+      <span class="docEmphasis">type</span> constructor. We don't export the
+      <span class="docEmphasis">value</span> constructor that a user would need to create
+      a value of this type. All they can use Logger for is
+      writing type signatures.</p><a name="x_TX" class="calibre27" id="x_TX"></a><p class="docText">The Log type is just a synonym for a list
+      of strings, to make a few signatures more readable. We use a list of
+      strings to keep the implementation simple:</p><pre class="calibre39">-- file: ch14/Logger.hs
+type Log = [String]</pre><br class="calibre48"/>
+<a name="x_UX" class="calibre27" id="x_UX"></a><p class="docText">Instead of giving our users a value constructor, we
+      provide them with a function, <i class="docEmphasis">runLogger</i>, that evaluates a logged action.
+      This returns both the result of an action and whatever was logged while
+      the result was being computed:</p><pre class="calibre39">-- file: ch14/Logger.hs
+runLogger :: Logger a -&gt; (a, Log)</pre><br class="calibre48"/>
+<a name="monads_escape" class="calibre27" id="monads_escape"></a><h4 id="title-IDAHJEVD" class="docSection1Title">14.6.2. Controlled Escape</h4><a name="x_VX" class="calibre27" id="x_VX"></a><p class="docText">The <tt class="calibre34">Monad</tt> typeclass doesn't provide any
+      means for values to escape their monadic shackles. We can inject a value
+      into a monad using <tt class="calibre34">return</tt>. We can
+      extract a value from a monad using <i class="docEmphasis">(&gt;&gt;=)</i> but<a name="I_indexterm14_d1e31422" class="calibre27" id="I_indexterm14_d1e31422"></a> the function on the right, which can see an unwrapped
+      value, has to wrap its own result back up again.</p><a name="x_WX" class="calibre27" id="x_WX"></a><p class="docText">Most monads have one or more <i class="docEmphasis">runLogger</i>-like functions. The notable
+      exception is of course IO, which we usually escape from
+      simply by exiting a program.</p><a name="x_XX" class="calibre27" id="x_XX"></a><p class="docText">A monad execution function runs the code inside the
+      monad and unwraps its result. Such functions are usually the only means
+      provided for a value to escape from its monadic wrapper. The author of a
+      monad thus has complete control over how whatever happens inside the
+      monad gets out.</p><a name="x_YX" class="calibre27" id="x_YX"></a><p class="docText">Some monads have several execution functions. In our
+      case, we can imagine a few alternatives to <i class="docEmphasis">runLogger</i>: one might return only the log
+      messages, whereas another might return just the result and drop the log
+      messages.</p><a name="monads_loggerd1e31777" class="calibre27" id="monads_loggerd1e31777"></a><h4 id="title-IDAQKEVD" class="docSection1Title">14.6.3. Leaving a Trace</h4><a name="x_ZX" class="calibre27" id="x_ZX"></a><p class="docText">When executing inside a Logger action, the
+      user code calls <i class="docEmphasis">record</i> to record
+      something:</p><pre class="calibre39">-- file: ch14/Logger.hs
+record :: String -&gt; Logger ()</pre><br class="calibre48"/>
+<a name="x_aG1" class="calibre27" id="x_aG1"></a><p class="docText">Since recording occurs in the plumbing of our monad,
+      our action's result supplies no information.</p><a name="x_aX" class="calibre27" id="x_aX"></a><p class="docText">Usually, a monad will provide one or more helper
+      functions such as our <i class="docEmphasis">record</i>. These
+      are our means for accessing the special behaviors of that monad.</p><a name="x_bX" class="calibre27" id="x_bX"></a><p class="docText">Our module also defines the <tt class="calibre34">Monad</tt> instance
+      for the Logger type. These definitions are all that a
+      client module needs in order to be able to use this monad.</p><a name="x_cX" class="calibre27" id="x_cX"></a><p class="docText">Here is a preview, in <i class="docEmphasis">ghci</i>, of how our monad will behave:</p><pre class="calibre39">ghci&gt; <b class="calibre40">let simple = return True :: Logger Bool</b>ghci&gt; <b class="calibre40">runLogger simple</b>
+(True,[])</pre><a name="x_dX" class="calibre27" id="x_dX"></a><p class="docText">When we run the logged action using <i class="docEmphasis">runLogger</i>, we get back a pair. The first
+      element is the result of our code; the second is the list of items
+      logged while the action executed. We haven't logged anything, so the
+      list is empty. Let's fix that:</p><pre class="calibre39">ghci&gt; <b class="calibre40">runLogger (record "hi mom!" &gt;&gt; return 3.1337)</b>
+(3.1337,["hi mom!"])
+</pre><a name="monads_loggerd1e31831" class="calibre27" id="monads_loggerd1e31831"></a><h4 id="title-IDAUMEVD" class="docSection1Title">14.6.4. Using the Logger Monad</h4><a name="x_eX" class="calibre27" id="x_eX"></a><p class="docText">Here's how we kick off our glob-to-regexp conversion
+      inside the Logger monad:</p><pre class="calibre39">-- file: ch14/Logger.hs
+globToRegex cs =
+    globToRegex' cs &gt;&gt;= \ds -&gt;
+    return ('^':ds)</pre><br class="calibre48"/>
+<a name="x_gX" class="calibre27" id="x_gX"></a><p class="docText">There are a few coding style issues worth mentioning
+      here. The body of the function starts on the line after its name. This
+      gives us some horizontal whitespace. We've also "hung" the
+      parameter of the anonymous function at the end of the line. This is
+      common practice in monadic code.</p><a name="x_fX" class="calibre27" id="x_fX"></a><p class="docText">Remember the type of <i class="docEmphasis">(&gt;&gt;=)</i>: it extracts the value on the
+      left from its Logger wrapper, and passes the unwrapped
+      value to the function on the right. The function on the right must, in
+      turn, wrap <span class="docEmphasis">its</span> result with the Logger
+      wrapper. This is exactly what <tt class="calibre34">return</tt>
+      does. It takes a pure value, and wraps it in the monad's type
+      constructor:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type (&gt;&gt;=)</b>
+(&gt;&gt;=) :: (Monad m) =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+ghci&gt; <b class="calibre40">:type (globToRegex "" &gt;&gt;=)</b>
+(globToRegex "" &gt;&gt;=) :: (String -&gt; Logger b) -&gt; Logger b</pre><a name="x_hX" class="calibre27" id="x_hX"></a><p class="docText">Even when we write a function that does almost nothing,
+      we must call <i class="docEmphasis">return</i> to wrap the
+      result with the correct type:</p><pre class="calibre39">-- file: ch14/Logger.hs
+globToRegex' :: String -&gt; Logger String
+globToRegex' "" = return "$"</pre><br class="calibre48"/>
+<a name="x_iX" class="calibre27" id="x_iX"></a><p class="docText">When we call <i class="docEmphasis">record</i>
+      to save a log entry, we use<a name="I_indexterm14_d1e31551" class="calibre27" id="I_indexterm14_d1e31551"></a> <i class="docEmphasis">(&gt;&gt;)</i> instead
+      of <i class="docEmphasis">(&gt;&gt;=)</i> to chain it with the
+      following action:</p><pre class="calibre39">-- file: ch14/Logger.hs
+globToRegex' ('?':cs) =
+    record "any" &gt;&gt;
+    globToRegex' cs &gt;&gt;= \ds -&gt;
+    return ('.':ds)</pre><br class="calibre48"/>
+<a name="x_jX" class="calibre27" id="x_jX"></a><p class="docText">Recall that this is a variant of <i class="docEmphasis">(&gt;&gt;=)</i> that ignores the result on the
+      left. We know that the result of <i class="docEmphasis">record</i> will always be <tt class="calibre34">()</tt>, so
+      there's no point in capturing it.</p><a name="x_kX" class="calibre27" id="x_kX"></a><p class="docText">We can use <tt class="calibre34">do</tt>
+      notation, which we first encountered in <a class="docLink" href="io_monad.html#io_bind">Section 7.5.2</a>, to
+      tidy up our code somewhat:</p><pre class="calibre39">-- file: ch14/Logger.hs
+globToRegex' ('*':cs) = do
+    record "kleene star"
+    ds &lt;- globToRegex' cs
+    return (".*" ++ ds)</pre><br class="calibre48"/>
+<a name="x_lX" class="calibre27" id="x_lX"></a><p class="docText">The choice of <tt class="calibre34">do</tt>
+      notation versus explicit <i class="docEmphasis">(&gt;&gt;=)</i> with anonymous functions is
+      mostly a matter of taste, although almost everyone's taste is to use
+      <tt class="calibre34">do</tt> notation for anything longer than
+      about two lines. There is one significant difference between the two
+      styles, though, which we'll return to in <a class="docLink" href="monads_do.html#monads_do">Section 14.12</a>.</p><a name="x_mX" class="calibre27" id="x_mX"></a><p class="docText">Parsing a character class mostly follows the same
+      pattern that we've already seen:</p><pre class="calibre39">-- file: ch14/Logger.hs
+globToRegex' ('[':'!':c:cs) =
+    record "character class, negative" &gt;&gt;
+    charClass cs &gt;&gt;= \ds -&gt;
+    return ("[^" ++ c : ds)
+globToRegex' ('[':c:cs) =
+    record "character class" &gt;&gt;
+    charClass cs &gt;&gt;= \ds -&gt;
+    return ("[" ++ c : ds)
+globToRegex' ('[':_) =
+    fail "unterminated character class"</pre><br class="calibre48"/>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"><a href="21061538.html" class="calibre2"><img src="btn_next_.gif" alt="Next" border="0" class="calibre31"/></a> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect114_d1e31273.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="monads_liftM.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

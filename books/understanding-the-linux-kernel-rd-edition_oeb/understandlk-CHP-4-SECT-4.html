@@ -1,0 +1,99 @@
+---
+layout: page
+title: "Understanding the Linux Kernel, 3rd Edition"
+prev: understandlk-CHP-4-SECT-3.html
+next: understandlk-CHP-4-SECT-5.html
+book_path: books/understanding-the-linux-kernel-rd-edition_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a name="understandlk-CHP-4-SECT-4"></a>
+<h3 class="docSection1Title">4.4. Initializing the Interrupt Descriptor Table</h3>
+<p class="docText1">Now that we understand what the 80x86 microprocessors do with interrupts and exceptions at the hardware level, we can move on to describe how the Interrupt Descriptor Table is initialized.</p>
+<p class="docText1">Remember that before the kernel enables the interrupts, it must load the initial address of the IDT table into the <tt class="calibre25">idtr</tt><a name="IDX-CHP-4-1133"></a> 
+ register and initialize all the entries of that table. This activity is done while initializing<a name="IDX-CHP-4-1134"></a> 
+ the system (see Appendix A).</p>
+<p class="docText1">The <tt class="calibre25">int</tt><a name="IDX-CHP-4-1135"></a> 
+ instruction allows a User Mode process to issue an interrupt signal that has an arbitrary vector ranging from 0 to 255. Therefore, initialization of the IDT must be done carefully, to block illegal interrupts and exceptions simulated by User Mode processes via <tt class="calibre25">int</tt> instructions. This can be achieved by setting the DPL field of the particular Interrupt or Trap Gate Descriptor to 0. If the process attempts to issue one of these interrupt signals, the control unit checks the CPL value against the DPL field and issues a "General protection<a name="IDX-CHP-4-1136"></a> 
+" exception.</p>
+<p class="docText1">In a few cases, however, a User Mode process must be able to issue a programmed exception. To allow this, it is sufficient to set the DPL field of the corresponding Interrupt or Trap Gate Descriptors to 3  that is, as high as possible.</p>
+<p class="docText1">Let's now see how Linux implements this strategy.</p>
+<a name="understandlk-CHP-4-SECT-4.1"></a>
+<h4 class="docSection2Title">4.4.1. Interrupt, Trap, and System Gates</h4><a name="IDX-CHP-4-1137"></a>
+<a name="IDX-CHP-4-1138"></a>
+<a name="IDX-CHP-4-1139"></a>
+<a name="IDX-CHP-4-1140"></a>
+<a name="IDX-CHP-4-1141"></a>
+<a name="IDX-CHP-4-1142"></a>
+<a name="IDX-CHP-4-1143"></a>
+<a name="IDX-CHP-4-1144"></a>
+<a name="IDX-CHP-4-1145"></a>
+<a name="IDX-CHP-4-1146"></a>
+<p class="docText1">As mentioned in the earlier section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-4-SECT-2.html#understandlk-CHP-4-SECT-2.3">Interrupt Descriptor Table</a>," Intel provides three types of interrupt descriptors<a name="IDX-CHP-4-1147"></a> 
+: Task, Interrupt, and Trap Gate Descriptors. Linux uses a slightly different breakdown and terminology from Intel when classifying the interrupt descriptors included in the Interrupt Descriptor Table:</p>
+<a name="IDX-CHP-4-1148"></a><a name="IDX-CHP-4-1149"></a><a name="IDX-CHP-4-1150"></a><a name="IDX-CHP-4-1151"></a><a name="IDX-CHP-4-1152"></a><a name="IDX-CHP-4-1153"></a><a name="IDX-CHP-4-1154"></a><a name="IDX-CHP-4-1155"></a><dl class="docText1"><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">Interrupt gate</span></span></p></dt>
+<dd class="calibre20"><p class="docList">An Intel interrupt gate that cannot be accessed by a User Mode process (the gate's DPL field is equal to 0). All Linux interrupt handlers are activated by means of interrupt gates<a name="IDX-CHP-4-1148"></a> 
+, and all are restricted to Kernel Mode.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">System gate</span></span></p></dt>
+<dd class="calibre20"><p class="docList">An Intel trap gate that can be accessed by a User Mode process (the gate's DPL field is equal to 3). The three Linux exception handlers associated with the vectors 4, 5, and 128 are activated by means of system gates<a name="IDX-CHP-4-1149"></a> 
+, so the three assembly language instructions <tt class="calibre25">into</tt><a name="IDX-CHP-4-1150"></a> 
+, <tt class="calibre25">bound</tt><a name="IDX-CHP-4-1151"></a> 
+, and <tt class="calibre25">int<a name="IDX-CHP-4-1152"></a> 
+ $0x80</tt> can be issued in User Mode.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">System interrupt gate</span></span></p></dt>
+<dd class="calibre20"><p class="docList">An Intel interrupt gate that can be accessed by a User Mode process (the gate's DPL field is equal to 3). The exception handler associated with the vector 3 is activated by means of a system interrupt gate, so the assembly language instruction <tt class="calibre25">int3</tt><a name="IDX-CHP-4-1153"></a> 
+ can be issued in User Mode.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">Trap gate</span></span></p></dt>
+<dd class="calibre20"><p class="docList">An Intel trap gate that cannot be accessed by a User Mode process (the gate's DPL field is equal to 0). Most Linux exception handlers are activated by means of trap gates<a name="IDX-CHP-4-1154"></a> 
+.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">Task gate</span></span></p></dt>
+<dd class="calibre20"><p class="docList">An Intel task gate that cannot be accessed by a User Mode process (the gate's DPL field is equal to 0). The Linux handler for the "Double fault<a name="IDX-CHP-4-1155"></a> 
+" exception is activated by means of a task gate.</p></dd></dl>
+<p class="docText1">The following architecture-dependent functions are used to insert gates in the IDT:</p>
+<dl class="docText1"><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">set_intr_gate(n,addr)</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">Inserts an interrupt gate in the <span class="docEmphasis">n</span> th IDT entry. The Segment Selector inside the gate is set to the kernel code's Segment Selector. The Offset field is set to <tt class="calibre25">addr</tt>, which is the address of the interrupt handler. The DPL field is set to 0.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">set_system_gate(n,addr)</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">Inserts a trap gate in the <span class="docEmphasis">n</span> th IDT entry. The Segment Selector inside the gate is set to the kernel code's Segment Selector. The Offset field is set to <tt class="calibre25">addr</tt>, which is the address of the exception handler. The DPL field is set to 3.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">set_system_intr_gate(n,addr)</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">Inserts an interrupt gate in the <span class="docEmphasis">n</span> th IDT entry. The Segment Selector inside the gate is set to the kernel code's Segment Selector. The Offset field is set to <tt class="calibre25">addr</tt>, which is the address of the exception handler. The DPL field is set to 3.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">set_trap_gate(n,addr)</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">Similar to the previous function, except the DPL field is set to 0.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">set_task_gate(n,gdt)</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">Inserts a task gate in the <span class="docEmphasis">n</span> th IDT entry. The Segment Selector inside the gate stores the index in the GDT of the TSS containing the function to be activated. The Offset field is set to 0, while the DPL field is set to 3.</p></dd></dl>
+<a name="understandlk-CHP-4-SECT-4.2"></a>
+<h4 class="docSection2Title">4.4.2. Preliminary Initialization of the IDT</h4><a name="IDX-CHP-4-1156"></a>
+<a name="IDX-CHP-4-1157"></a>
+<a name="IDX-CHP-4-1158"></a>
+<a name="IDX-CHP-4-1159"></a>
+<a name="IDX-CHP-4-1160"></a>
+<a name="IDX-CHP-4-1161"></a>
+<a name="IDX-CHP-4-1162"></a>
+<a name="IDX-CHP-4-1163"></a>
+<a name="IDX-CHP-4-1164"></a>
+<p class="docText1">The IDT is initialized and used by the BIOS routines while the computer still operates in Real Mode. Once Linux takes over, however, the IDT is moved to another area of RAM and initialized a second time, because Linux does not use any BIOS routine (see Appendix A).</p>
+<p class="docText1">The IDT is stored in the <tt class="calibre25">idt_table</tt> table, which includes 256 entries. The 6-byte <tt class="calibre25">idt_descr</tt> variable stores both the size of the IDT and its address and is used in the system initialization phase when the kernel sets up the <tt class="calibre25">idtr</tt> register with the <tt class="calibre25">lidt</tt><a name="IDX-CHP-4-1165"></a> 
+ assembly language instruction.<sup class="docFootnote"><a class="pcalibre5 docLink pcalibre1" href="#understandlk-CHP-4-FN6">[*]</a></sup></p><blockquote class="calibre22"><p class="docFootnote1"><sup class="calibre24"><a name="understandlk-CHP-4-FN6">[*]</a></sup> Some old Pentium models have the notorious "f00f" bug, which allows User Mode programs to freeze the system. When executing on such CPUs, Linux uses a workaround based on initializing the <tt class="calibre42">idtr</tt> register with a fix-mapped read-only linear address pointing to the actual IDT (see the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-2-SECT-5.html#understandlk-CHP-2-SECT-5.6">Fix-Mapped Linear Addresses</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-2.html#understandlk-CHP-2">Chapter 2</a>).</p></blockquote>
+<p class="docText1">During kernel initialization, the <tt class="calibre25">setup_idt( )</tt> assembly language function starts by filling all 256 entries of <tt class="calibre25">idt_table</tt> with the same interrupt gate, which refers to the <tt class="calibre25">ignore_int( )</tt> interrupt handler:</p>
+<pre class="calibre27">
+    setup_idt:
+        lea ignore_int, %edx
+        movl $(_ _KERNEL_CS &lt;&lt; 16), %eax
+        movw %dx, %ax       /* selector = 0x0010 = cs */
+        movw $0x8e00, %dx   /* interrupt gate, dpl=0, present */
+        lea idt_table, %edi
+        mov $256, %ecx
+    rp_sidt:
+        movl %eax, (%edi)
+        movl %edx, 4(%edi)
+        addl $8, %edi
+        dec %ecx
+        jne rp_sidt
+        ret</pre><br class="calibre7"/>
+<p class="docText1">The <tt class="calibre25">ignore_int( )</tt> interrupt handler, which is in assembly language, may be viewed as a null handler that executes the following actions:</p>
+<div class="calibre44"><ol class="docList1" type="1"><li class="calibre12"><div class="calibre45"><p class="docList">Saves the content of some registers in the stack.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Invokes the <tt class="calibre25">printk( )</tt> function to print an "Unknown interrupt" system message.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Restores the register contents from the stack.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Executes an <tt class="calibre25">iret</tt><a name="IDX-CHP-4-1166"></a> 
+ instruction to restart the interrupted program.</p></div></li></ol></div>
+<p class="docText1">The <tt class="calibre25">ignore_int( )</tt> handler should never be executed. The occurrence of "Unknown interrupt" messages on the console or in the log files denotes either a hardware problem (an I/O device is issuing unforeseen interrupts) or a kernel problem (an interrupt or exception is not being handled properly).</p>
+<p class="docText1">Following this preliminary initialization, the kernel makes a second pass in the IDT to replace some of the null handlers with meaningful trap and interrupt handlers. Once this is done, the IDT includes a specialized interrupt, trap, or system gate for each different exception issued by the control unit and for each IRQ recognized by the interrupt controller.</p>
+<p class="docText1">The next two sections illustrate in detail how this is done for exceptions and interrupts.</p>
+<a href="31071535.html"><img src="pixel.jpg" alt="" border="0" class="calibre19"/></a>
+<br class="calibre7"/>
+
+</div>
+
+{% endraw %}
+

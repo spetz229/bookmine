@@ -1,0 +1,379 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0090.html
+next: f_0092.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.visual.put">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 61</td>
+<td class="arr-recipe-name">Replace a Visual Selection with a Register</td>
+</tr>
+</table>
+<p id="N16A0C" class="calibre4">
+<span class="calibre5">
+        When used from Visual mode, Vim’s put command has some unusual qualities. We’ll find out how these can be exploited in this tip.
+    </span>
+</p>
+<p id="N16A26" class="calibre4">
+      When we use the <span class="calibre17">p</span> command in Visual mode, Vim <span class="calibre5">replaces the selection</span> with the contents of the specified register (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">v_p</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/change.html#v_p">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). We can exploit this feature to solve our problem from <a xmlns:str="http://exslt.org/strings" href="f_0089.html#sec.clobber">​<em class="calibre5">Oops! I Clobbered My Yank</em>​</a>:
+    </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">yiw</span>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">c</span>ollection = getCollection();​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​process(somethingInTheWay, target);​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">jww</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​collection = getCollection();​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​process(<span class="shade-fg-white">s</span>omethingInTheWay, target);​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">ve</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​collection = getCollection();​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​process(<span class="shade-fg-black">somethingInTheWa<span class="shade-fg-white">y</span>
+</span>, target);​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">p</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​collection = getCollection();​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​process(collectio<span class="shade-fg-white">n</span>, target);​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N16AAB" class="calibre4">
+      For this particular problem, this is my favorite solution. We can get away with using the unnamed register for both the yank and put operations because there’s no delete step. Instead, we combine the delete and put operations into a single step that replaces the selection.
+    </p>
+<p id="N16AB6" class="calibre4">
+      It’s important to understand that this technique has a side effect. Try pressing <span class="calibre17">u</span> to undo the last change. Now press <span class="calibre17">gv</span> to reselect the last visual selection and then press the <span class="calibre17">p</span> key again. What happens? Apparently nothing!
+    </p>
+<p id="N16AC2" class="calibre4">
+      To make it work this time, we’d have to press <span class="calibre17">"0p</span> to replace the visual selection with the contents of the yank register. We got away with using <span class="calibre17">p</span> the first time because the unnamed register happened to contain the text that we wanted to use. The second time around, the unnamed register contains the text that was overwritten.
+    </p>
+<p id="N16AD6" class="calibre4">
+      To illustrate how strange this is, let’s consider an imaginary API for the standard cut, copy, and paste model. This API has methods called <code class="cf">setClipboard()</code> and <code class="cf">getClipboard()</code>. The cut and copy operations both call <code class="cf">setClipboard()</code>, while the paste operation calls <code class="cf">getClipboard()</code>. When we use Vim’s <span class="calibre17">p</span> command in Visual mode, it does both: it <span class="calibre5">gets</span> the contents of the unnamed register, and it <span class="calibre5">sets</span> the contents of the unnamed register.
+    </p>
+<p id="N16AEE" class="calibre4">
+      Think of it this way: the visual selection in the document <span class="calibre5">swaps places</span> with the text in the register. Is it a feature? Is it a bug? You decide!
+    </p>
+<h3 id="sec.swap.words" class="calibre22">Swap Two Words</h3>
+<p id="N16AF9" class="calibre4">
+        We can exploit this quirk in Vim’s visual put behavior. Let’s say that we want to swap the order of two words in this sentence to make it read “fish and chips”:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">{start}</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">I</span> like chips and fish.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">fc</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​I like <span class="shade-fg-white">c</span>hips and fish.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">de</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​I like <span class="shade-fg-white"> </span>and fish.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">mm</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​I like <span class="shade-fg-white"> </span>and fish.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">ww</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​I like  and <span class="shade-fg-white">f</span>ish.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">ve</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​I like  and <span class="shade-fg-black">fis<span class="shade-fg-white">h</span>
+</span>.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">p</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​I like  and <span class="shade-fg-white">c</span>hips.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">✎m</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​I like <span class="shade-fg-white"> </span>and chips.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">P</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​I like fis<span class="shade-fg-white">h</span> and chips.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N16BDF" class="calibre4">
+        We use <span class="calibre17">de</span> to cut the word “chips,” copying it into the unnamed register. Then we visually select the word “fish,” which we want to replace. When we use the <span class="calibre17">p</span> command, the word “chips” goes into the document, and the word “fish” is copied into the unnamed register. Then we can snap back to the gap and paste the word “fish” from the unnamed register back into the document.
+      </p>
+<p id="N16BE8" class="calibre4">
+        In this case, it would be quicker to delete “chips and fish” and then type out “fish and chips” instead, using the <span class="calibre17">c3w</span> command for example. But this same technique can also be used to swap the order of longer phrases.
+      </p>
+<p id="N16BEE" class="calibre4">
+        The <span class="calibre17">m{char}</span> command sets a mark, and the <span class="calibre17">✎{char}</span> command jumps to the mark. Refer to <a xmlns:str="http://exslt.org/strings" href="f_0080.html#sec.marks">Tip 53</a>, for more information.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

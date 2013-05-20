@@ -1,0 +1,153 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0066.html
+next: f_0068.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.find.command">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 42</td>
+<td class="arr-recipe-name">Open a File by Its Filename Using ‘:find’</td>
+</tr>
+</table>
+<p id="N14539" class="calibre4">
+<span class="calibre5">
+        The <code class="cf">:find</code> command allows us to open a file by its name without having to provide a fully qualified path. To exploit this feature, we first have to configure the <code class="cf">‘path’</code> setting.
+    </span>
+</p>
+<p id="N14553" class="calibre4">
+      We can always use the <code class="cf">:edit</code> command to open a file by providing its full path. But what if we’re working on a project where the files are nested a few directories deep? Entering the full path every time we want to open a file can get tiresome. That’s where the <code class="cf">:find</code> command comes in.
+    </p>
+<h3 class="calibre22">Preparation</h3>
+<p id="N14560" class="calibre4">
+        We’ll use the <code class="cf">files/mvc</code> directory to demonstrate. The source files are distributed with this book. In the shell, we’ll launch Vim from the <code class="cf">files/mvc</code> directory:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ cd code/files/mvc</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ vim index.html</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1457B" class="calibre4">
+        Let’s see what happens if we attempt to use the <code class="cf">:find</code> command right now:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:find Main.js</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​E345: Can't find file "Main.js" in path​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14592" class="calibre4">
+        The error message tells us that no <code class="cf">Main.js</code> file can be found in the path. So let’s do something about it.
+      </p>
+<h3 class="calibre22">Configure the <code class="cf2">‘path’</code>
+</h3>
+<p id="N1459E" class="calibre4">
+        The <code class="cf">‘path’</code> option allows us to specify a set of directories inside of which Vim will search when the <code class="cf">:find</code> command is invoked (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">'path'</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/options.html#'path'">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). In our case, we want to make it easier to look up files in the <code class="cf">app/controllers</code> and <code class="cf">app/views</code> directories. We can add these to our path simply by running this:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:set path+=app/**</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N145CE" class="calibre4">
+        The <code class="cf">**</code> wildcard matches all subdirectories beneath the <code class="cf">app/</code> directory. We discussed wildcards in <a xmlns:str="http://exslt.org/strings" href="f_0061.html#sec.populate.args">​<em class="calibre5">Populate the Argument List</em>​</a>, but the treatment of <code class="cf">*</code> and <code class="cf">**</code> is slightly different in the context of the <code class="cf">‘path’</code> setting (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">file-searching</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/editing.html#file-searching">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). The wildcards are handled by Vim rather than by the shell.
+      </p>
+<div class="sidebar">
+<div class="sidebar-title">Smart Path Management with rails.vim</div>
+<div class="calibre1">
+<p id="N145F3" class="calibre4">
+        Tim Pope’s rails.vim plugin does some clever things to make navigating around a Rails project easier.<a id="FNPTR-13" href="f_0070.html#FOOTNOTE-13">[13]</a> The plugin automatically configures the <code class="cf1">‘path’</code> setting to include all the directories found in a conventional Rails project. This means that we can use the <code class="cf1">:find</code> command without having to worry about setting up the <code class="cf1">‘path’</code>.
+      </p>
+<p id="N14610" class="calibre4">
+        But rails.vim doesn’t stop there. It also provides convenience commands, such as <code class="cf1">:Rcontroller</code>, <code class="cf1">:Rmodel</code>, <code class="cf1">:Rview</code>, and others. Each of these acts as a specialized version of the <code class="cf1">:find</code> command, scoping its search to the corresponding directory.
+      </p>
+</div>
+</div>
+<h3 class="calibre22">Use ‘:find’ to Look up Files by Name</h3>
+<p id="N14623" class="calibre4">
+        Now that we’ve configured our <code class="cf">‘path’</code>, we can open files in the directories we specified by providing just their filename. For example, if we wanted to open the <code class="cf">app/controllers/Navigation.js</code> file, we could enter this command:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:find Navigation.js</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1463E" class="calibre4">
+        We can use the <span class="calibre17">&lt;Tab&gt;</span> key to autocomplete filenames, so in fact we can get what we want by typing as little as <code class="cf">:find nav&lt;Tab&gt;</code> followed by the Enter key.
+      </p>
+<p id="N14647" class="calibre4">
+        You might be wondering what happens if the specified filename is not unique. Let’s find out. In our demo codebase, we have two files named <code class="cf">Main.js</code>: one is in the <code class="cf">app/controllers</code> directory and the other is in <code class="cf">app/views</code>.
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:find Main.js&lt;Tab&gt;</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14662" class="calibre4">
+        If we type out the <code class="cf">Main.js</code> filename and then hit <span class="calibre17">&lt;Tab&gt;</span>, Vim expands the entire path of the first full match: <code class="cf">./app/controllers/Main.js</code>. Press <span class="calibre17">&lt;Tab&gt;</span> a second time, and the next matching filepath takes its place, in this case <code class="cf">./app/views/Main.js</code>. When we press the Enter key, Vim will use the entire filepath if it has been expanded or the first full match if no <span class="calibre17">&lt;Tab&gt;</span> expansion has been performed.
+      </p>
+<p id="N14677" class="calibre4">
+        You may observe slightly different tab-completion behavior if you have changed the <code class="cf">‘wildmode’</code> setting from its default value of <code class="cf">full</code>. Refer to <a xmlns:str="http://exslt.org/strings" href="f_0054.html#sec.tab.complete">Tip 32</a>, for more details.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

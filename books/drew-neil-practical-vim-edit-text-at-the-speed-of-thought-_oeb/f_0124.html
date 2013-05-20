@@ -1,0 +1,183 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0123.html
+next: f_0125.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.substitute.confirm">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 89</td>
+<td class="arr-recipe-name">Eyeball Each Substitution</td>
+</tr>
+</table>
+<p id="N197EE" class="calibre4">
+<span class="calibre5">
+        Finding all occurrences of a pattern and blindly replacing them with something else won’t always work. Sometimes we need to look at each match and decide if it should be substituted. The <code class="cf">c</code> flag modifies the <code class="cf">:substitute</code> command to make this possible.
+    </span>
+</p>
+<p id="N19806" class="calibre4">
+      Remember this example from <a xmlns:str="http://exslt.org/strings" href="f_0022.html#sec.cw.ndot">Tip 5</a>?
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/the_vim_way/1_copy_content.txt">the_vim_way/1_copy_content.txt</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​...We're waiting for content before the site can go live...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​...If you are content with this, let's go ahead with it...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​...We'll launch as soon as we have the content...​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N19820" class="calibre4">
+      We couldn’t use find and replace to change “content” to “copy.” Instead, we used the Dot Formula to solve our problem. However, we could also have used the <code class="cf">c</code> flag on the substitute command:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:%s/content/copy/gc</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N19833" class="calibre4">
+      The <code class="cf">c</code> flag causes Vim to show us each match and ask “Replace with copy?” We can then say <span class="calibre17">y</span> to perform the change or <span class="calibre17">n</span> to skip it. Vim does what we ask and then moves to the next match and asks us again.
+    </p>
+<p id="N19846" class="calibre4">
+      In our example, we would respond <span class="calibre17">yny</span>, changing the first and last occurrences while leaving the middle one untouched.
+    </p>
+<p id="N1984C" class="calibre4">
+      We aren’t limited to just two answers. In fact, Vim helpfully reminds us of our options with the prompt “y/n/a/q/l/^E/^Y.” This table shows what each answer means:
+    </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Trigger</th>
+<th class="hlines">Effect</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">y</span>
+</p>
+</td>
+<td class="calibre24">
+<p class="last-para-in-cell">Substitute this match</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">n</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Skip this match</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">q</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Quit substituting</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">l</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">“last”—Substitute this match, then quit</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">a</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">“all”—Substitute this and any remaining matches</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;C-e&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Scroll the screen up</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;C-y&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Scroll the screen down</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N1989E" class="calibre4">
+      You can also find this information in Vim’s help by looking up <strong xmlns:str="http://exslt.org/strings" class="calibre10">:s_c</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/change.html#:s_c">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>.
+    </p>
+<h3 class="calibre22">Discussion</h3>
+<p id="N198A9" class="calibre4">
+        Unusually, most buttons on the keyboard do nothing in Vim’s Substitute-Confirmation mode. As always, the <span class="calibre17">&lt;Esc&gt;</span> key allows us to return to Normal mode, but apart from that, the landscape feels unfamiliar.
+      </p>
+<p id="N198B4" class="calibre4">
+        On the up side, this allows us to complete the task with a minimum of keystrokes. On the down side, all of the functionality that we’re used to is unavailable to us. By contrast, if we use the Dot Formula (as in <a xmlns:str="http://exslt.org/strings" href="f_0022.html#sec.cw.ndot">Tip 5</a>), then we’re in plain old Normal mode throughout. Everything works just as we expect it to.
+      </p>
+<p id="N198BB" class="calibre4">
+        Try both methods, and use whichever one you feel more comfortable with.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

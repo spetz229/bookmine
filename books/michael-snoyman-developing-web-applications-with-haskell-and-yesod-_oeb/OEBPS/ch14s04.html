@@ -1,0 +1,108 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch14s03.html
+next: OEBPS/ch14s05.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Authorization"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect13_d1e7181" class="calibre1"></a>Authorization</h1></div></div></div><p class="calibre7"></p><p class="calibre7">Once you can authenticate your users, you can use their credentials to
+                <span class="firstname"><em class="calibre4">authorize</em></span> requests. Authorization in Yesod is simple and
+            declarative: most of the time, you just need to add the <code class="literal">authRoute</code> and <code class="literal">isAuthorized</code> methods to
+            your Yesod typeclass instance. Let’s see an example.</p><a id="I_programlisting3_d1e7196" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE OverloadedStrings, TemplateHaskell, TypeFamilies,</code>
+<code class="cm">             MultiParamTypeClasses, QuasiQuotes #-}</code>
+<code class="kr">import</code> <code class="nn">Yesod</code>
+<code class="kr">import</code> <code class="nn">Yesod.Auth</code>
+<code class="kr">import</code> <code class="nn">Yesod.Auth.Dummy</code> <code class="cm">-- just for testing, don't use in real life!!!</code>
+<code class="kr">import</code> <code class="nn">Data.Text</code> <code class="p">(</code><code class="kt">Text</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Network.HTTP.Conduit</code> <code class="p">(</code><code class="kt">Manager</code><code class="p">,</code> <code class="nf">newManager</code><code class="p">,</code> <code class="nf">def</code><code class="p">)</code>
+
+<code class="kr">data</code> <code class="kt">MyAuthSite</code> <code class="ow">=</code> <code class="kt">MyAuthSite</code>
+    <code class="p">{</code> <code class="n">httpManager</code> <code class="ow">::</code> <code class="kt">Manager</code>
+    <code class="p">}</code>
+
+<code class="nf">mkYesod</code> <code class="s">"MyAuthSite"</code> <code class="p">[</code><code class="n">parseRoutes</code><code class="o">|</code>
+<code class="o">/</code> <code class="kt">RootR</code> <code class="kt">GET</code> <code class="kt">POST</code>
+<code class="o">/</code><code class="n">admin</code> <code class="kt">AdminR</code> <code class="kt">GET</code>
+<code class="o">/</code><code class="n">auth</code> <code class="kt">AuthR</code> <code class="kt">Auth</code> <code class="n">getAuth</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="kr">instance</code> <code class="kt">Yesod</code> <code class="kt">MyAuthSite</code> <code class="kr">where</code>
+    <code class="n">authRoute</code> <code class="kr">_</code> <code class="ow">=</code> <code class="kt">Just</code> <code class="o">$</code> <code class="kt">AuthR</code> <code class="kt">LoginR</code>
+
+    <code class="cm">-- route name, then a boolean indicating if it's a write request</code>
+    <code class="n">isAuthorized</code> <code class="kt">RootR</code> <code class="kt">True</code> <code class="ow">=</code> <code class="n">isAdmin</code>
+    <code class="n">isAuthorized</code> <code class="kt">AdminR</code> <code class="kr">_</code> <code class="ow">=</code> <code class="n">isAdmin</code>
+
+    <code class="cm">-- anyone can access other pages</code>
+    <code class="n">isAuthorized</code> <code class="kr">_</code> <code class="kr">_</code> <code class="ow">=</code> <code class="n">return</code> <code class="kt">Authorized</code>
+
+<code class="nf">isAdmin</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="n">mu</code> <code class="ow">&lt;-</code> <code class="n">maybeAuthId</code>
+    <code class="n">return</code> <code class="o">$</code> <code class="kr">case</code> <code class="n">mu</code> <code class="kr">of</code>
+        <code class="kt">Nothing</code> <code class="ow">-&gt;</code> <code class="kt">AuthenticationRequired</code>
+        <code class="kt">Just</code> <code class="s">"admin"</code> <code class="ow">-&gt;</code> <code class="kt">Authorized</code>
+        <code class="kt">Just</code> <code class="kr">_</code> <code class="ow">-&gt;</code> <code class="kt">Unauthorized</code> <code class="s">"You must be an admin"</code>
+
+<code class="kr">instance</code> <code class="kt">YesodAuth</code> <code class="kt">MyAuthSite</code> <code class="kr">where</code>
+    <code class="kr">type</code> <code class="kt">AuthId</code> <code class="kt">MyAuthSite</code> <code class="ow">=</code> <code class="kt">Text</code>
+    <code class="n">getAuthId</code> <code class="ow">=</code> <code class="n">return</code> <code class="o">.</code> <code class="kt">Just</code> <code class="o">.</code> <code class="n">credsIdent</code>
+
+    <code class="n">loginDest</code> <code class="kr">_</code> <code class="ow">=</code> <code class="kt">RootR</code>
+    <code class="n">logoutDest</code> <code class="kr">_</code> <code class="ow">=</code> <code class="kt">RootR</code>
+
+    <code class="n">authPlugins</code> <code class="kr">_</code> <code class="ow">=</code> <code class="p">[</code><code class="n">authDummy</code><code class="p">]</code>
+
+    <code class="n">authHttpManager</code> <code class="ow">=</code> <code class="n">httpManager</code>
+
+<code class="kr">instance</code> <code class="kt">RenderMessage</code> <code class="kt">MyAuthSite</code> <code class="kt">FormMessage</code> <code class="kr">where</code>
+    <code class="n">renderMessage</code> <code class="kr">_</code> <code class="kr">_</code> <code class="ow">=</code> <code class="n">defaultFormMessage</code>
+
+<code class="nf">getRootR</code> <code class="ow">::</code> <code class="kt">Handler</code> <code class="kt">RepHtml</code>
+<code class="nf">getRootR</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="n">maid</code> <code class="ow">&lt;-</code> <code class="n">maybeAuthId</code>
+    <code class="n">defaultLayout</code> <code class="p">[</code><code class="n">whamlet</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code><code class="kt">Note:</code> <code class="kt">Log</code> <code class="kr">in</code> <code class="n">as</code> <code class="s">"admin"</code> <code class="n">to</code> <code class="n">be</code> <code class="n">an</code> <code class="n">administrator</code><code class="o">.</code>
+<code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code><code class="kt">Your</code> <code class="n">current</code> <code class="n">auth</code> <code class="kt">ID:</code> <code class="o">#</code><code class="p">{</code><code class="n">show</code> <code class="n">maid</code><code class="p">}</code>
+<code class="o">$</code><code class="n">maybe</code> <code class="kr">_</code> <code class="ow">&lt;-</code> <code class="n">maid</code>
+    <code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code>
+        <code class="o">&lt;</code><code class="n">a</code> <code class="n">href</code><code class="o">=@</code><code class="p">{</code><code class="kt">AuthR</code> <code class="kt">LogoutR</code><code class="p">}</code><code class="o">&gt;</code><code class="kt">Logout</code>
+<code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">a</code> <code class="n">href</code><code class="o">=@</code><code class="p">{</code><code class="kt">AdminR</code><code class="p">}</code><code class="o">&gt;</code><code class="kt">Go</code> <code class="n">to</code> <code class="n">admin</code> <code class="n">page</code>
+<code class="o">&lt;</code><code class="n">form</code> <code class="n">method</code><code class="ow">=</code><code class="n">post</code><code class="o">&gt;</code>
+    <code class="kt">Make</code> <code class="n">a</code> <code class="n">change</code> <code class="p">(</code><code class="n">admins</code> <code class="n">only</code><code class="p">)</code>
+    <code class="nf">\</code> <code class="o">#</code>
+    <code class="o">&lt;</code><code class="n">input</code> <code class="kr">type</code><code class="ow">=</code><code class="n">submit</code><code class="o">&gt;</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">postRootR</code> <code class="ow">::</code> <code class="kt">Handler</code> <code class="nb">()</code>
+<code class="nf">postRootR</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="n">setMessage</code> <code class="s">"You made some change to the page"</code>
+    <code class="n">redirect</code> <code class="kt">RootR</code>
+
+<code class="nf">getAdminR</code> <code class="ow">::</code> <code class="kt">Handler</code> <code class="kt">RepHtml</code>
+<code class="nf">getAdminR</code> <code class="ow">=</code> <code class="n">defaultLayout</code> <code class="p">[</code><code class="n">whamlet</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code><code class="kt">I</code> <code class="n">guess</code> <code class="n">you're</code> <code class="n">an</code> <code class="n">admin</code><code class="o">!</code>
+<code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">a</code> <code class="n">href</code><code class="o">=@</code><code class="p">{</code><code class="kt">RootR</code><code class="p">}</code><code class="o">&gt;</code><code class="kt">Return</code> <code class="n">to</code> <code class="n">homepage</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="n">manager</code> <code class="ow">&lt;-</code> <code class="n">newManager</code> <code class="n">def</code>
+    <code class="n">warpDebug</code> <code class="mi">3000</code> <code class="o">$</code> <code class="kt">MyAuthSite</code> <code class="n">manager</code>
+</pre><p class="calibre7"><code class="literal">authRoute</code> should be your login page, almost always
+                <code class="literal">AuthR</code>
+            <code class="literal">LoginR</code>. <code class="literal">isAuthorized</code> is a function that takes two parameters: the requested
+            route, and whether or not the request was a “write” request. You can actually change the
+            meaning of what a write request is using the <code class="literal">isWriteRequest</code> method, but the out-of-the-box version follows RESTful
+            principles: anything but a <code class="literal">GET</code>, <code class="literal">HEAD</code>, <code class="literal">OPTIONS</code>, or
+                <code class="literal">TRACE</code> request is a write request.</p><p class="calibre7">What’s convenient about the body of <code class="literal">isAuthorized</code> is
+            that you can run any <code class="literal">Handler</code> code you want. This
+            means you can:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">Access the filesystem (normal IO)</p></li><li class="listitem"><p class="calibre7">Lookup values in the database</p></li><li class="listitem"><p class="calibre7">Pull any session or request values you want</p></li></ul></div><p class="calibre7">Using these techniques, you can develop as sophisticated an authorization system as you like,
+   or even tie into existing systems used by your organization.</p></div></div>
+
+{% endraw %}
+

@@ -1,0 +1,211 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: typeclasses_auto_derivation.html
+next: I_sect16_d1e17476.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="typeclasses_auto_derivation.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect16_d1e17476.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="jsonclass" class="calibre27" id="jsonclass"></a><h3 id="title-IDAWP35C" class="docSection1Title">6.6. Typeclasses at Work: Making JSON Easier to Use</h3><a name="x_jz" class="calibre27" id="x_jz"></a><p class="docText">The JValue type<a name="ch06-jsontypeclass" class="calibre27" id="ch06-jsontypeclass"></a> that we introduced in <a class="docLink" href="library_jvalue.html#library_jvalue">Section 5.2</a> is
+    not especially easy to work with. Here is a truncated and tidied snippet
+    of some real JSON data, produced by a well-known search engine:</p><pre class="calibre39">{
+  "query": "awkward squad haskell",
+  "estimatedCount": 3920,
+  "moreResults": true,
+  "results":
+  [{
+    "title": "Simon Peyton Jones: papers",
+    "snippet": "Tackling the awkward squad: monadic input/output ...",
+    "url": "http://research.microsoft.com/~simonpj/papers/marktoberdorf/",
+   },
+   {
+    "title": "Haskell for C Programmers | Lambda the Ultimate",
+    "snippet": "... the best job of all the tutorials I've read ...",
+    "url": "http://lambda-the-ultimate.org/node/724",
+   }]
+}</pre><br class="calibre48"/>
+<a name="x_kz" class="calibre27" id="x_kz"></a><p class="docText">And here's a further slimmed down fragment of that data,
+    represented in Haskell:</p><pre class="calibre39">-- file: ch05/SimpleResult.hs
+import SimpleJSON
+
+result :: JValue
+result = JObject [
+  ("query", JString "awkward squad haskell"),
+  ("estimatedCount", JNumber 3920),
+  ("moreResults", JBool True),
+  ("results", JArray [
+     JObject [
+      ("title", JString "Simon Peyton Jones: papers"),
+      ("snippet", JString "Tackling the awkward ..."),
+      ("url", JString "http://.../marktoberdorf/")
+     ]])
+  ]</pre><br class="calibre48"/>
+<a name="x_lz" class="calibre27" id="x_lz"></a><p class="docText">Because Haskell doesn't natively support lists that
+    contain types of different values, we can't directly represent a JSON
+    object that contains values of different types. Instead, we must wrap each
+    value with a JValue constructor, which limits our
+    flexibility—if we want to change the number <tt class="calibre34">3920</tt> to a string
+    <tt class="calibre34">"3,920"</tt>, we must change the constructor that we use to wrap
+    it from <tt class="calibre34">JNumber</tt> to <tt class="calibre34">JString</tt>.</p><a name="x_mz" class="calibre27" id="x_mz"></a><p class="docText">Haskell's typeclasses offer a tempting solution to this
+    problem:</p><pre class="calibre39">-- file: ch06/JSONClass.hs
+type JSONError = String
+
+class JSON a where
+    toJValue :: a -&gt; JValue
+    fromJValue :: JValue -&gt; Either JSONError a
+
+instance JSON JValue where
+    toJValue = id
+    fromJValue = Right</pre><br class="calibre48"/>
+<a name="x_nz" class="calibre27" id="x_nz"></a><p class="docText">Now, instead of applying a constructor such as
+    <tt class="calibre34">JNumber</tt> to a value in order to wrap it, we apply the
+    <i class="docEmphasis">toJValue</i> function. If we change a
+    value's type, the compiler will choose a suitable implementation of
+    toJValue to use with it.</p><a name="x_oz" class="calibre27" id="x_oz"></a><p class="docText">We also provide a <i class="docEmphasis">fromJValue</i> function, which attempts to convert
+    a JValue into a value of our desired type.</p><a name="jsonclassd1e17695" class="calibre27" id="jsonclassd1e17695"></a><h4 id="title-IDACS35C" class="docSection1Title">6.6.1. More Helpful Errors</h4><a name="x_pz" class="calibre27" id="x_pz"></a><p class="docText">The return<a name="I_indexterm6_d1e17345" class="calibre27" id="I_indexterm6_d1e17345"></a> type of our <i class="docEmphasis">fromJValue</i> function uses the
+      Either type. Like Maybe, this type is
+      predefined for us. We'll often use it to represent a computation that
+      could fail.</p><a name="x_qz" class="calibre27" id="x_qz"></a><p class="docText">While Maybe is useful for this purpose, it
+      gives us no information if a failure occurs: we literally have
+      <tt class="calibre34">Nothing</tt>. The Either type has a similar
+      structure, but instead of <tt class="calibre34">Nothing</tt>, the
+      "something bad happened" constructor is named
+      <tt class="calibre34">Left</tt>, and it takes a parameter:</p><pre class="calibre39">-- file: ch06/DataEither.hs
+data Maybe a = Nothing
+             | Just a
+               deriving (Eq, Ord, Read, Show)
+
+data Either a b = Left a
+                | Right b
+                  deriving (Eq, Ord, Read, Show)</pre><br class="calibre48"/>
+<a name="x_rz" class="calibre27" id="x_rz"></a><p class="docText">Quite often, the type we use for the <span class="docMonofont">a</span> parameter value is String, so we
+      can provide a useful description if something goes wrong. To see how we
+      use the Either type in practice, let's look at a simple
+      instance of our typeclass:</p><pre class="calibre39">-- file: ch06/JSONClass.hs
+instance JSON Bool where
+    toJValue = JBool
+    fromJValue (JBool b) = Right b
+    fromJValue _ = Left "not a JSON boolean"</pre><br class="calibre48"/>
+<a name="jsonclassd1e17752" class="calibre27" id="jsonclassd1e17752"></a><h4 id="title-IDA1T35C" class="docSection1Title">6.6.2. Making an Instance with a Type Synonym</h4><a name="x_sz" class="calibre27" id="x_sz"></a><p class="docText">The Haskell 98<a name="I_indexterm6_d1e17402" class="calibre27" id="I_indexterm6_d1e17402"></a> <a name="I_indexterm6_d1e17408" class="calibre27" id="I_indexterm6_d1e17408"></a>standard does not allow us to write an instance<a name="I_indexterm6_d1e17414" class="calibre27" id="I_indexterm6_d1e17414"></a> of the following form, even though it seems perfectly
+      reasonable:</p><pre class="calibre39">-- file: ch06/JSONClass.hs
+instance JSON String where
+    toJValue               = JString
+
+    fromJValue (JString s) = Right s
+    fromJValue _           = Left "not a JSON string"</pre><br class="calibre48"/>
+<a name="x_tz" class="calibre27" id="x_tz"></a><p class="docText">Recall that String is a synonym for
+      [Char], which in turn is the type [a] where
+      Char is substituted for the type parameter <span class="docMonofont">a</span>. According to Haskell 98's rules, we are not
+      allowed to supply a type in place of a type parameter when we write an
+      instance. In other words, it would be legal for us to write an instance
+      for [a], but not for [Char].</p><a name="x_uz" class="calibre27" id="x_uz"></a><p class="docText">While <span class="docMonofont">GHC</span>
+      follows the Haskell 98 standard by default, we can relax this particular
+      restriction by placing a specially formatted comment at the top of our
+      source file:</p><pre class="calibre39">-- file: ch06/JSONClass.hs
+{-# LANGUAGE TypeSynonymInstances #-}</pre><br class="calibre48"/>
+<a name="x_vz" class="calibre27" id="x_vz"></a><p class="docText">This comment is a directive to the compiler, called a
+      <span class="docEmphasis">pragma</span>, which tells it to enable a<a name="I_indexterm6_d1e17460" class="calibre27" id="I_indexterm6_d1e17460"></a> language extension. <a name="I_indexterm6_d1e17466" class="calibre27" id="I_indexterm6_d1e17466"></a>The <tt class="calibre34">TypeSynonymInstances</tt> language extension
+      makes the <span class="docEmphasis">preceding</span> code legal.
+      We'll encounter a few other language extensions in this chapter, and a
+      handful more later in this book.</p>
+<a href="21061538.html" class="calibre2"><img src="pixel.gif" alt="" border="0" class="calibre31"/></a><ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="typeclasses_auto_derivation.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect16_d1e17476.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

@@ -1,0 +1,543 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0145.html
+next: f_0147.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.makeprg">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 107</td>
+<td class="arr-recipe-name">Customize the External Compiler</td>
+</tr>
+</table>
+<p id="N1B267" class="calibre4">
+<span class="calibre5">
+        Vim’s <code class="cf">:make</code> command isn’t limited to calling the external make program; it can execute any compilers available on your machine. (Note that Vim’s definition of “compiler” is looser than what you may be used to; see <a xmlns:str="http://exslt.org/strings" href="#sidebar.make.compile">​<em class="calibre5">‘:compiler’ and ‘:make’ Are Not Just for Compiled Languages</em>​</a>.) In this tip, we’ll set up the <code class="cf">:make</code> command so that it passes a JavaScript file through JSLint and then uses the output to populate the quickfix list.
+    </span>
+</p>
+<p id="N1B289" class="calibre4">
+        First, we’ll configure Vim so that running <code class="cf">:make</code> calls nodelint,<a id="FNPTR-30" href="#FOOTNOTE-30">[30]</a> a command-line interface to JSLint.<a id="FNPTR-31" href="#FOOTNOTE-31">[31]</a> It depends on Node.js and can be installed using NPM simply by running this:<a id="FNPTR-32" href="#FOOTNOTE-32">[32]</a>
+</p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ npm install nodelint -g</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1B2BC" class="calibre4">
+        As a test case, we’ll use this JavaScript implementation of FizzBuzz:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/quickfix/fizzbuzz.js">quickfix/fizzbuzz.js</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">var</strong> i;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">for</strong> (i=1; i &lt;= 100; i++) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​    <strong class="prompt">if</strong>(i % 15 == 0) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​        console.log(<em class="string">'Fizzbuzz'</em>);​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​    } <strong class="prompt">else</strong> <strong class="prompt">if</strong>(i % 5 == 0) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​        console.log(<em class="string">'Buzz'</em>);​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​    } <strong class="prompt">else</strong> <strong class="prompt">if</strong>(i % 3 == 0) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​        console.log(<em class="string">'Fizz'</em>);​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​    } <strong class="prompt">else</strong> {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​        console.log(i);​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​    }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​};​</code>​</div>
+</td>
+</tr>
+</table>
+<h3 class="calibre22">Configure ‘:make’ to Invoke Nodelint</h3>
+<p id="N1B310" class="calibre4">
+        The <code class="cf">‘makeprg’</code> setting allows us to specify the program that will be called when we run <code class="cf">:make</code> (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">'makeprg'</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/options.html#'makeprg'">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). We can instruct Vim to run nodelint as follows:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:setlocal makeprg=NODE_DISABLE_COLORS=1\ nodelint\ %</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1B337" class="calibre4">
+        The <code class="cf">%</code> symbol is expanded to the path for the current file. So if we were editing a file called <code class="cf">~/quickfix/fizzbuzz.js</code>, then running <code class="cf">:make</code> inside Vim would be equivalent to running this in the shell:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ export NODE_DISABLE_COLORS=1</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ nodelint ~/quickfix/fizzbuzz.js</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​~/quickfix/fizzbuzz.js, line 2, character 22: Unexpected '++'.​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​for (i=1; i &lt;= 100; i++) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​~/quickfix/fizzbuzz.js, line 3, character 15: Expected '===' ...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​if(i % 15 == 0) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​~/quickfix/fizzbuzz.js, line 5, character 21: Expected '===' ...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​} else if(i % 5 == 0) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​~/quickfix/fizzbuzz.js, line 7, character 21: Expected '===' ...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​} else if(i % 3 == 0) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​~/quickfix/fizzbuzz.js, line 12, character 2: Unexpected ';'.​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​};​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​5 errors​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1B377" class="calibre4">
+        By default, <code class="cf">nodelint</code> highlights errors in red using ANSI color codes. Setting <code class="cf">NODE_DISABLE_COLORS=1</code> mutes the colors, which makes it easier to parse the error messages.
+      </p>
+<p id="N1B380" class="calibre4">
+      
+        Next, we have to make Vim parse the output from nodelint so that it can build a quickfix list from the results. We can approach this problem in two ways: we could configure nodelint so that its output resembled the error messages generated by <code class="cf">make</code>, which Vim already understands, or we could teach Vim how to parse the default output from nodelint. We’ll use the latter technique.
+      </p>
+<h3 id="sec.errorformat" class="calibre22">Populate the Quickfix List Using Nodelint’s Output</h3>
+<p id="N1B38B" class="calibre4">
+        The <code class="cf">‘errorformat’</code> setting allows us to teach Vim how to parse the output generated by running <code class="cf">:make</code> (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">'errorformat'</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/options.html#'errorformat'">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). We can inspect the default value by running the following:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:setglobal errorformat?</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​errorformat=%*[^"]"%f"%*\D%l: %m,"%f"%*\D%l: %m, ...[abridged]...​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1B3B9" class="calibre4">
+        If you’re familiar with scanf (in C), then you’ll recognize the concept. Each of the characters preceded by a percent sign has a special meaning: <code class="cf">%f</code> stands for the filename, <code class="cf">%l</code> for the line number, and <code class="cf">%m</code> for the error message. For the complete list, look up <strong xmlns:str="http://exslt.org/strings" class="calibre10">errorformat</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/quickfix.html#errorformat">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>.
+      </p>
+<p id="N1B3C9" class="calibre4">
+        To parse the output from nodelint, we could set the error format as follows:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:setlocal efm=%A%f\,\ line\ %l\,\ character\ %c:%m,%Z%.%#,%-G%.%#</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1B3D9" class="calibre4">
+        Now when we run <code class="cf">:make</code>, Vim will use this error format to parse the output from nodelint. For each warning it will extract the filename, line number, and column number to generate an address, which becomes a record in the quickfix list. That means we can jump between warnings using all of the commands discussed in <a xmlns:str="http://exslt.org/strings" href="f_0144.html#sec.quickfix.browse">Tip 105</a>.
+      </p>
+<h3 class="calibre22">Set Up <code class="cf2">‘makeprg’</code> and <code class="cf2">‘errorformat’</code> with a Single Command</h3>
+<p id="N1B3FE" class="calibre4">
+        This <code class="cf">‘errorformat’</code> string is not something we would want to commit to memory. Instead, we can save it to a file and then activate it with the <code class="cf">:compiler</code> command, which is a convenient shortcut for setting both <code class="cf">‘makeprg’</code> and <code class="cf">‘errorformat’</code> options (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">:compiler</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/quickfix.html#:compiler">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>):
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:compiler nodelint</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1B41E" class="calibre4">
+        The <code class="cf">:compiler</code> command activates a <span class="calibre5">compiler plugin</span>, which sets the <code class="cf">‘makeprg’</code> and <code class="cf">‘errorformat’</code> options to run and parse nodelint. It’s roughly equivalent to sourcing these lines of configuration:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/quickfix/ftplugin.javascript.vim">quickfix/ftplugin.javascript.vim</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">setlocal</strong> <strong class="prompt">makeprg</strong>=NODE_DISABLE_COLORS=1\ nodelint\ %​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">let</strong> &amp;l:<strong class="prompt">efm</strong>=<em class="string">'%A'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">let</strong> &amp;l:<strong class="prompt">efm</strong>.=<em class="string">'%f\, '</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">let</strong> &amp;l:<strong class="prompt">efm</strong>.=<em class="string">'line %l\, '</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">let</strong> &amp;l:<strong class="prompt">efm</strong>.=<em class="string">'character %c:'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">let</strong> &amp;l:<strong class="prompt">efm</strong>.=<em class="string">'%m'</em> . <em class="string">','</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">let</strong> &amp;l:<strong class="prompt">efm</strong>.=<em class="string">'%Z%.%#'</em> . <em class="string">','</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">let</strong> &amp;l:<strong class="prompt">efm</strong>.=<em class="string">'%-G%.%#'</em>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1B492" class="calibre4">
+        The internals of a compiler plugin are more elaborate, but this is a fair approximation of what goes on. You can familiarize yourself with the compiler plugins that are distributed with Vim by running this command:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:args $VIMRUNTIME/compiler/*.vim</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1B4A2" class="calibre4">
+        Note that Vim doesn’t ship with a nodelint compiler plugin, but we can easily install one.<a id="FNPTR-33" href="#FOOTNOTE-33">[33]</a> If we wanted to always use nodelint as the compiler for JavaScript files, we could either use an autocommand or a file-type plugin to make it so. To find out how, see <a xmlns:str="http://exslt.org/strings" href="f_0171.html#sec.filetype.detection">Section 21.6, ​<em class="calibre5">Apply Customizations to Certain Types of Files</em>​</a>.
+      </p>
+<div class="sidebar" id="sidebar.make.compile">
+<div class="sidebar-title">‘:compiler’ and ‘:make’ Are Not Just for Compiled Languages</div>
+<div class="calibre1">
+<p id="N1B4C3" class="calibre4">
+        The words <span class="calibre5">make</span> and <span class="calibre5">compile</span> have particular meanings in the context of a compiled programming language. But in Vim, the corresponding <code class="cf1">:make</code> and <code class="cf1">:compile</code> commands have more flexible definitions, making them just as applicable for interpreted languages and markup formats.
+      </p>
+<p id="N1B4E6" class="calibre4">
+        For example, when working on a LaTeX document, we can configure Vim so that the <code class="cf1">:make</code> command compiles our .tex file into a PDF. Or if we’re working with an interpreted language such as JavaScript, we can have <code class="cf1">:make</code> run our source code through JSLint or some other (less opinionated) syntax checker. Alternatively, we could set up <code class="cf1">:make</code> so that it runs the test suite.
+      </p>
+<p id="N1B4FC" class="calibre4">
+        In Vim’s terminology, a compiler is any external program that <span class="calibre5">does something</span> with our document and produces a list of errors or warnings. The <code class="cf1">:make</code> command simply invokes the external compiler and then parses the output to construct a navigable quickfix list from them.
+      </p>
+</div>
+</div>
+
+<div class="footnotes">
+<h4 class="calibre20">Footnotes</h4>
+<table cellspacing="3" class="table-of-contents">
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-30" href="#FNPTR-30">[30]</a>
+</td>
+<td class="calibre8">
+<p id="N1B29B" class="calibre4">
+<a href="https://github.com/tav/nodelint">https://github.com/tav/nodelint</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-31" href="#FNPTR-31">[31]</a>
+</td>
+<td class="calibre8">
+<p id="N1B2A1" class="calibre4">
+<a href="http://jslint.com/">http://jslint.com/</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-32" href="#FNPTR-32">[32]</a>
+</td>
+<td class="calibre8">
+<p id="N1B2A7" class="calibre4">
+<a href="http://nodejs.org/">http://nodejs.org/</a> and <a href="http://npmjs.org/">http://npmjs.org/</a>, respectively.</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-33" href="#FNPTR-33">[33]</a>
+</td>
+<td class="calibre8">
+<p id="N1B4A6" class="calibre4">
+<a href="https://github.com/bigfish/vim-nodelint">https://github.com/bigfish/vim-nodelint</a>
+</p>
+</td>
+</tr>
+</table>
+</div>
+<div class="copyright">Copyright © 2012, The Pragmatic Bookshelf.</div>
+
+
+
+
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

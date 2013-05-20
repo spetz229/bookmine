@@ -1,0 +1,29 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch10s03.html
+next: OEBPS/ch10s05.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Gzip Compression"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect110_d1e9936" class="calibre1"></a>Gzip Compression</h1></div></div></div><p class="calibre3"><a id="I_indexterm10_d1e9940" class="calibre1"></a><a id="I_indexterm10_d1e9945" class="calibre1"></a><a id="I_indexterm10_d1e9948" class="calibre1"></a>Gzip is the most popular and supported compression method on
+    the Web. It was developed by the GNU project, and support for it was added
+    in HTTP/1.1. Web clients indicate their support for compression by sending
+    an <code class="literal">Accept-Encoding</code> header along with
+    the request:</p><pre class="screen">Accept-Encoding: gzip, deflate</pre><p class="calibre3">If the web server sees this header and supports any of the
+    compression types listed, it may compress its response and indicate this
+    via the <code class="literal">Content-Encoding</code> header:</p><pre class="screen">Content-Encoding: gzip</pre><p class="calibre3">Browsers can then decode the response properly. Obviously,
+    compressing the data can reduce network time, but the true extent of this
+    is often not realized. Gzip generally reduces the response size by 70%, a
+    massive reduction that greatly speeds up the time it takes for your site
+    to load.</p><p class="calibre3">Servers generally have to be configured over which file types should
+    be gzipped. A good rule of thumb is to gzip any text response, such as
+    HTML, JSON, JavaScript, and stylesheets. If the files are already
+    compressed, such as images and PDFs, they shouldn’t be served with gzip
+    because the recompression doesn’t reduce their size.</p><p class="calibre3">Configuring gzip depends on your web server, but if you use Apache
+    2.x or later, the module you need is <a class="ulink" href="http://httpd.apache.org/docs/2.0/mod/mod_deflate.html">mod_deflate</a><a id="I_indexterm10_d1e9972" class="calibre1"></a>. For other web servers, see their documentation.</p></div></div>
+
+{% endraw %}
+

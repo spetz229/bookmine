@@ -1,0 +1,254 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: jsonclass.html
+next: I_sect16_d1e17824.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="jsonclass.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect16_d1e17824.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect16_d1e17476" class="calibre27" id="I_sect16_d1e17476"></a><h3 id="643999-976" class="docSection1Title">6.7. Living in an Open World</h3><a name="x_wz" class="calibre27" id="x_wz"></a><p class="docText">Haskell's<a name="I_indexterm6_d1e17481" class="calibre27" id="I_indexterm6_d1e17481"></a> typeclasses<a name="ch06-typeopen" class="calibre27" id="ch06-typeopen"></a><a name="ch06-openworldass" class="calibre27" id="ch06-openworldass"></a> are intentionally designed to let us create new instances
+    of a typeclass whenever we see fit:</p><pre class="calibre39">-- file: ch06/JSONClass.hs
+doubleToJValue :: (Double -&gt; a) -&gt; JValue -&gt; Either JSONError a
+doubleToJValue f (JNumber v) = Right (f v)
+doubleToJValue _ _ = Left "not a JSON number"
+
+instance JSON Int where
+    toJValue = JNumber . realToFrac
+    fromJValue = doubleToJValue round
+
+instance JSON Integer where
+    toJValue = JNumber . realToFrac
+    fromJValue = doubleToJValue round
+
+instance JSON Double where
+    toJValue = JNumber
+    fromJValue = doubleToJValue id</pre><br class="calibre48"/>
+<a name="x_xz" class="calibre27" id="x_xz"></a><p class="docText">We can add new instances anywhere; they are not confined
+    to the module where we define a typeclass. This feature of the typeclass
+    system is referred to as its <span class="docEmphasis">open world assumption</span>.
+    If we had a way to express a notion of "the following are the only
+    instances of this typeclass that can exist," we would have<a name="I_indexterm6_d1e17499" class="calibre27" id="I_indexterm6_d1e17499"></a> a <span class="docEmphasis">closed</span> world.</p><a name="x_yz" class="calibre27" id="x_yz"></a><p class="docText">We would like to be able to turn a list into what JSON
+    calls an array. We won't worry about implementation details just yet, so
+    let's use <tt class="calibre34">undefined</tt> as the bodies of the instance's
+    methods:</p><pre class="calibre39">-- file: ch06/BrokenClass.hs
+instance (JSON a) =&gt; JSON [a] where
+    toJValue = undefined
+    fromJValue = undefined</pre><br class="calibre48"/>
+<a name="x_zz" class="calibre27" id="x_zz"></a><p class="docText">It would also be convenient if we could turn a list of
+    name/value pairs into a JSON object:</p><pre class="calibre39">-- file: ch06/BrokenClass.hs
+instance (JSON a) =&gt; JSON [(String, a)] where
+    toJValue = undefined
+    fromJValue = undefined</pre><br class="calibre48"/>
+<a name="I_sect16_d1e17476d1e17872" class="calibre27" id="I_sect16_d1e17476d1e17872"></a><h4 id="title-IDA1JVZD" class="docSection1Title">6.7.1. When Do Overlapping Instances Cause Problems?</h4><a name="x_A01" class="calibre27" id="x_A01"></a><p class="docText">If we put these <a name="I_indexterm6_d1e17522" class="calibre27" id="I_indexterm6_d1e17522"></a>definitions into a source file and load them into <i class="docEmphasis">ghci</i>, everything seems fine initially:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:load BrokenClass</b>
+[1 of 2] Compiling SimpleJSON       ( ../ch05/SimpleJSON.hs, interpreted )
+[2 of 2] Compiling BrokenClass      ( BrokenClass.hs, interpreted )
+Ok, modules loaded: BrokenClass, SimpleJSON.
+</pre><a name="x_B01" class="calibre27" id="x_B01"></a><p class="docText">However, once we try to <span class="docEmphasis">use</span> the
+      list-of-pairs instance, we run into trouble:</p><pre class="calibre39">ghci&gt; <b class="calibre40">toJValue [("foo","bar")]</b>
+
+&lt;interactive&gt;:1:0:
+    Overlapping instances for JSON [([Char], [Char])]
+      arising from a use of `toJValue' at &lt;interactive&gt;:1:0-23
+    Matching instances:
+      instance (JSON a) =&gt; JSON [a]
+        -- Defined at BrokenClass.hs:(44,0)-(46,25)
+      instance (JSON a) =&gt; JSON [(String, a)]
+        -- Defined at BrokenClass.hs:(50,0)-(52,25)
+    In the expression: toJValue [("foo", "bar")]
+    In the definition of `it': it = toJValue [("foo", "bar")]
+</pre><a name="x_C01" class="calibre27" id="x_C01"></a><p class="docText">This problem of <span class="docEmphasis">overlapping
+      instances</span> is<a name="I_indexterm6_d1e17553" class="calibre27" id="I_indexterm6_d1e17553"></a> a consequence of Haskell's open world assumption. Here's
+      a simpler example that makes it clearer what's going on:</p><pre class="calibre39">-- file: ch06/Overlap.hs
+class Borked a where
+    bork :: a -&gt; String
+
+instance Borked Int where
+    bork = show
+
+instance Borked (Int, Int) where
+    bork (a, b) = bork a ++ ", " ++ bork b
+
+instance (Borked a, Borked b) =&gt; Borked (a, b) where
+    bork (a, b) = "&gt;&gt;" ++ bork a ++ " " ++ bork b ++ "&lt;&lt;"</pre><br class="calibre48"/>
+<a name="x_D01" class="calibre27" id="x_D01"></a><p class="docText">We have two instances of the typeclass
+      Borked for pairs: one for a pair of Ints and
+      another for a pair of anything else that's Borked.</p><a name="x_E01" class="calibre27" id="x_E01"></a><p class="docText">Suppose that we want to <i class="docEmphasis">bork</i> a pair of Int values. To do
+      so, the compiler must choose an instance to use. Because these instances
+      are right next to each other, it may seem that it could simply choose
+      the more specific instance.</p><a name="x_F01" class="calibre27" id="x_F01"></a><p class="docText">However, <span class="docMonofont">GHC</span>
+      is conservative by default and insists that there must be only one
+      possible instance that it can use. It will thus report an error if we
+      try to use <tt class="calibre34">bork</tt>.</p><a name="idd1e17941" class="calibre27" id="idd1e17941"></a><div class="docNote"><p class="docNormalTitle">NOTE</p><p class="calibre37"><a name="x_G01" class="calibre27" id="x_G01"></a></p><p class="docText">As we mentioned earlier, we can scatter instances of
+        a typeclass across several modules. <span class="docMonofont">GHC</span> does not complain about the mere
+        existence of overlapping instances. Instead, it complains only when we
+        try to use a method of the affected typeclass, when it is forced to
+        make a decision about which instance to use.</p></div><a name="I_sect16_d1e17476d1e17949" class="calibre27" id="I_sect16_d1e17476d1e17949"></a><h4 id="title-IDAUMVZD" class="docSection1Title">6.7.2. Relaxing Some Restrictions on Typeclasses</h4><a name="x_xD1" class="calibre27" id="x_xD1"></a><p class="docText">Normally, <a name="I_indexterm6_d1e17599" class="calibre27" id="I_indexterm6_d1e17599"></a>we cannot write an instance of a typeclass for a
+      specialized version of a polymorphic type. The [Char] type
+      is the polymorphic type [a] specialized to the type
+      Char. We are thus prohibited from declaring
+      [Char] to be an instance of a typeclass. This is highly
+      inconvenient, since strings are ubiquitous in real code.</p><a name="x_yD1" class="calibre27" id="x_yD1"></a><p class="docText">The <tt class="calibre34">TypeSynonymInstances</tt>
+      language<a name="I_indexterm6_d1e17622" class="calibre27" id="I_indexterm6_d1e17622"></a> <a name="I_indexterm6_d1e17626" class="calibre27" id="I_indexterm6_d1e17626"></a>extension removes this restriction, permitting us to write
+      such instances.</p><a name="x_H01" class="calibre27" id="x_H01"></a><p class="docText"><span class="docMonofont">GHC</span> supports
+      another useful language extension, <tt class="calibre34">OverlappingInstances</tt>,
+      which addresses the problem we saw with overlapping instances. When
+      there are multiple overlapping instances to choose from, this extension
+      causes the compiler to pick the most specific one.</p><a name="x_I01" class="calibre27" id="x_I01"></a><p class="docText">We frequently use this extension together with
+      <tt class="calibre34">TypeSynonymInstances</tt>. Here's an <span class="docEmphasis">example</span>:</p><pre class="calibre39">-- file: ch06/SimpleClass.hs
+{-# LANGUAGE TypeSynonymInstances, OverlappingInstances #-}
+
+import Data.List
+
+class Foo a where
+    foo :: a -&gt; String
+
+instance Foo a =&gt; Foo [a] where
+    foo = concat . intersperse ", " . map foo
+
+instance Foo Char where
+    foo c = [c]
+
+instance Foo String where
+    foo = id</pre><br class="calibre48"/>
+<a name="x_zD1" class="calibre27" id="x_zD1"></a><p class="docText">If we apply <i class="docEmphasis">foo</i> to
+      a String, the compiler will use the
+      String-specific implementation. Even though we have an
+      instance of Foo for [a] and Char,
+      the instance for String is more specific, so <span class="docMonofont">GHC</span> chooses it. For other types of list,
+      we will see the behavior specified for [a].</p><a name="x_J01" class="calibre27" id="x_J01"></a><p class="docText">With the <tt class="calibre34">OverlappingInstances</tt>
+      extension<a name="I_indexterm6_d1e17684" class="calibre27" id="I_indexterm6_d1e17684"></a><a name="I_indexterm6_d1e17689" class="calibre27" id="I_indexterm6_d1e17689"></a><a name="I_indexterm6_d1e17692" class="calibre27" id="I_indexterm6_d1e17692"></a> enabled, <span class="docMonofont">GHC</span>
+      will still reject code if it finds more than one equally specific
+      instance.</p><a name="idd1e18056" class="calibre27" id="idd1e18056"></a><div class="docNote"><p class="docNormalTitle">NOTE</p><p class="calibre37"><a name="x_K01" class="calibre27" id="x_K01"></a></p><p class="docText">Here's an important point: <span class="docMonofont">GHC</span> treats
+        <tt class="calibre34">OverlappingInstances</tt> as affecting the declaration of an
+        instance, <span class="docEmphasis">not</span> a location where we use the
+        instance. In other words, when we define an instance that we wish to
+        allow to overlap with another instance, we must enable the extension
+        for the module that contains the definition. When it compiles the
+        module, <span class="docMonofont">GHC</span> will record
+        that instance as "can be overlapped with other <span class="docEmphasis">instances</span>."</p><a name="x_L01" class="calibre27" id="x_L01"></a><p class="docText">Once we import this module and use the instance, we
+        <span class="docEmphasis">won't</span> need to enable
+        <tt class="calibre34">OverlappingInstances</tt> in the importing module.
+        <span class="docMonofont">GHC</span> will already know that
+        the instance was marked as "OK to overlap" when it was
+        defined.</p><a name="x_M01" class="calibre27" id="x_M01"></a><p class="docText">This behavior is useful when we are writing a
+        library: we can choose to create overlappable instances, but users of
+        our library do not need to enable any special language
+        extensions.</p></div><a name="I_sect16_d1e17476d1e18092" class="calibre27" id="I_sect16_d1e17476d1e18092"></a><h4 id="title-IDAIRVZD" class="docSection1Title">6.7.3. How Does Show Work for Strings?</h4><a name="x_N01" class="calibre27" id="x_N01"></a><p class="docText">The <tt class="calibre34">OverlappingInstances</tt> and
+      <tt class="calibre34">TypeSynonymInstances</tt> language extensions are specific to
+      <span class="docMonofont">GHC</span>, and by definition were
+      not present in Haskell 98. <a name="I_indexterm6_d1e17751" class="calibre27" id="I_indexterm6_d1e17751"></a>However, the familiar Show typeclass from
+      Haskell 98 somehow renders a list of Char differently from
+      a list of Int. It achieves this via a clever, but simple,
+      trick.</p><a name="x_O01" class="calibre27" id="x_O01"></a><p class="docText">The Show class<a name="I_indexterm6_d1e17772" class="calibre27" id="I_indexterm6_d1e17772"></a> defines both a <i class="docEmphasis">show</i>
+      method, which renders one value, and a <i class="docEmphasis">showList</i> method, which renders a list of
+      values. The default implementation of <i class="docEmphasis">showList</i> renders a list using square brackets
+      and commas.</p><a name="x_AE1" class="calibre27" id="x_AE1"></a><p class="docText">The instance of Show for [a]
+      is implemented using <i class="docEmphasis">showList</i>. The
+      instance of Show for Char provides a special
+      implementation of <i class="docEmphasis">showList</i> that
+      uses double quotes and escapes non-ASCII-printable characters.</p><a name="x_BE1" class="calibre27" id="x_BE1"></a><p class="docText">As a result, if someone applies <i class="docEmphasis">show</i> to a [Char] value, the
+      implementation of <i class="docEmphasis">showList</i> will be
+      chosen, and it will correctly render the string using quotes.</p><a name="x_P01" class="calibre27" id="x_P01"></a><p class="docText">At least sometimes, then, we can avoid the need for the
+      <tt class="calibre34">OverlappingInstances</tt> extension with a little bit of lateral
+      thinking.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"><a href="21061538.html" class="calibre2"><img src="btn_next_.gif" alt="Next" border="0" class="calibre31"/></a> 
+           
+          <span class="calibre33"><a target="_self" href="jsonclass.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect16_d1e17824.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

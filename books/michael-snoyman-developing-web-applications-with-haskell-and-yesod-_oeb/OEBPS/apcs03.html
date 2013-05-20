@@ -1,0 +1,34 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/apcs02.html
+next: OEBPS/apd.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Middleware"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect1_d1e10872" class="calibre1"></a>Middleware</h1></div></div></div><p class="calibre7"></p><p class="calibre7">In addition to allowing our applications to run on multiple backends without code changes,
+      the WAI allows us another benefit: middleware. Middleware is essentially an
+        <em class="calibre4">application transformer</em>, taking one application and returning another
+      one.</p><p class="calibre7">Middleware components can be used to provide lots of services: cleaning up URLs,
+                                                  authentication, caching, JSON-P requests. But
+                                                  perhaps the most useful and most intuitive
+                                                  middleware is gzip compression. The middleware
+                                                  works very simply: it parses the request headers
+                                                  to determine if a client supports compression, and
+                                                  if so compresses the response body and adds the
+                                                  appropriate response header.</p><p class="calibre7">The great thing about middlewares is that they are unobtrusive. Let’s see how we would apply the gzip middleware to our hello world application.</p><a id="I_programlisting_d1e10885" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE OverloadedStrings #-}</code>
+<code class="kr">import</code> <code class="nn">Network.Wai</code>
+<code class="kr">import</code> <code class="nn">Network.Wai.Handler.Warp</code> <code class="p">(</code><code class="nf">run</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Network.Wai.Middleware.Gzip</code> <code class="p">(</code><code class="nf">gzip</code><code class="p">,</code> <code class="nf">def</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Network.HTTP.Types</code> <code class="p">(</code><code class="nf">status200</code><code class="p">)</code>
+
+<code class="nf">application</code> <code class="kr">_</code> <code class="ow">=</code> <code class="n">return</code> <code class="o">$</code> <code class="n">responseLBS</code> <code class="n">status200</code> <code class="p">[(</code><code class="s">"Content-Type"</code><code class="p">,</code> <code class="s">"text/plain"</code><code class="p">)]</code>
+                       <code class="s">"Hello World"</code>
+
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">run</code> <code class="mi">3000</code> <code class="o">$</code> <code class="n">gzip</code> <code class="n">def</code> <code class="n">application</code>
+</pre><p class="calibre7">We added an import line to actually have access to the middleware, and then simply applied gzip to our application. You can also <span class="firstname"><em class="calibre4">chain together</em></span> multiple middlewares: a line such as <code class="literal">gzip False $ jsonp $ othermiddleware $ myapplication</code> is perfectly valid. One word of warning: the order the middleware is applied can be important. For example, jsonp needs to work on uncompressed data, so if you apply it after you apply gzip, you’ll have trouble.</p></div></div>
+
+{% endraw %}
+

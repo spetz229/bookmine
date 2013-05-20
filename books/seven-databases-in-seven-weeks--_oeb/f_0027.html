@@ -1,0 +1,223 @@
+---
+layout: page
+title: "Seven Databases in Seven Weeks (for Greg Kennedy)"
+prev: f_0026.html
+next: f_0028.html
+book_path: books/seven-databases-in-seven-weeks--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="N13B55" class="calibre18">3.5 Wrap-Up</h2>
+<p id="N13B59" class="calibre5">
+    Riak is the first NoSQL style database we’ve covered. It is a distributed, data-replicating, enhanced key-value store without a single point of failure.
+  </p>
+<p id="N13B6F" class="calibre5">
+    If your experience with databases until now has been only relational, Riak may seem like an alien beast. There are no transactions, no SQL, no schema. There are keys, but linking between buckets is not at all like a table join, and mapreduce can be a daunting methodology to grok. 
+  </p>
+<p id="N13B72" class="calibre5">
+    The trade-offs, however, are worth it for a certain class of problems. Riak’s ability to scale out with more servers (rather than scale up with larger single servers) and its ease of use are excellent attempts at solving the unique scalability problems of the Web. And rather than reinventing the wheel, Riak piggybacks on the HTTP structure, allowing maximum flexibility for any framework or web-enabled system.
+  </p>
+<h3 id="sec.riaksStrengths" class="calibre20">Riak’s Strengths</h3>
+<p id="N13B7A" class="calibre5">
+      If you want to design a large-scale ordering system a la Amazon, or in any situation where high availability is your paramount concern, you should consider Riak. Hands down, one of Riak’s strengths lies in its focus on removing single points of failure in an attempt to support maximum uptime and grow (or shrink) to meet changing demands. If you do not have complex data, Riak keeps things simple but still allows for some pretty sophisticated data diving should you need it. There is currently support for about a dozen languages (which you can find on the Riak website) but is extendable to its core if you like to write in Erlang. And if you require more speed than HTTP can handle, you can also try your hand at communicating via Protobuf,<a id="FNPTR-25" href="#FOOTNOTE-25">[25]</a> which is a more efficient binary encoding and transport protocol.
+    </p>
+<h3 id="sec.riaksWeaknesses" class="calibre20">Riak’s Weaknesses</h3>
+<p id="N13B92" class="calibre5">
+      If you require simple queryability, complex data structures, or a rigid schema or if you have no need to scale horizontally with your servers, Riak is probably not your best choice. One of our major gripes about Riak is it still lags in terms of an easy and robust ad hoc querying framework, although it is certainly on the right track. Mapreduce provides fantastic and powerful functionality, but we’d like to see more built-in URL-based or other <code class="cf">PUT</code> query actions. The addition of indexing was a major step in the right direction and a concept we’d love to see expanded upon. Finally, if you don’t want to write Erlang, you may see a few limitations using JavaScript, such as the unavailability of post-commit or slower mapreduce execution. However, the Riak team is working on these relatively minor hiccups.
+    </p>
+<h3 id="sec.riakonCAP" class="calibre20">Riak on CAP</h3>
+<p id="N13BA5" class="calibre5">
+      Riak provides a clever way of circumventing the constraints that CAP places on all distributed databases. How it dances around the problem is astounding, compared to a system like PostgreSQL that can (largely) only support strong write consistency. Riak leverages the Amazon Dynamo paper’s insight that CAP can be changed on a per-bucket, or per-request, basis. It’s a big step forward for robust and flexible open source database systems. As you read about other databases in this book, keep Riak in mind, and you’ll continue to be impressed by its flexibility.
+      </p>
+<h3 id="sec.partingThoughts" class="calibre20">Parting Thoughts</h3>
+<p id="N13BBF" class="calibre5">
+      If you need to store a huge catalog of data, you could do worse than Riak. Though relational databases have been researched and tweaked for more than forty years, not every problem needs ACID compliance or the ability to enforce a schema. If you want to embed a database into a device or handle financial transactions, you should avoid Riak. If you want to scale out or serve up loads of data on the Web, take a look.
+    </p>
+
+<div class="footnotes">
+<h4 class="calibre21">Footnotes</h4>
+<table cellspacing="3" class="table-of-contents">
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-9" href="f_0023.html#FNPTR-9">[9]</a>
+</td>
+<td class="calibre9">
+<p id="N12517" class="calibre5">
+<a href="http://allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf">http://allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-10" href="f_0024.html#FNPTR-10">[10]</a>
+</td>
+<td class="calibre9">
+<p id="N12546" class="calibre5">
+<a href="http://www.basho.com/">http://www.basho.com/</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-11" href="f_0024.html#FNPTR-11">[11]</a>
+</td>
+<td class="calibre9">
+<p id="N1254C" class="calibre5">
+<a href="http://www.erlang.org/">http://www.erlang.org/</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-12" href="f_0025.html#FNPTR-12">[12]</a>
+</td>
+<td class="calibre9">
+<p id="N12C14" class="calibre5">
+<a href="http://ruby-lang.org">http://ruby-lang.org</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-13" href="f_0025.html#FNPTR-13">[13]</a>
+</td>
+<td class="calibre9">
+<p id="N12C1C" class="calibre5">
+<a href="http://rubygems.org">http://rubygems.org</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-14" href="f_0025.html#FNPTR-14">[14]</a>
+</td>
+<td class="calibre9">
+<p id="N12C22" class="calibre5">
+<a href="http://rubygems.org/gems/riak-client">http://rubygems.org/gems/riak-client</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-15" href="f_0025.html#FNPTR-15">[15]</a>
+</td>
+<td class="calibre9">
+<p id="N12CF1" class="calibre5">
+<a href="http://research.google.com/archive/mapreduce.html">http://research.google.com/archive/mapreduce.html</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-16" href="f_0025.html#FNPTR-16">[16]</a>
+</td>
+<td class="calibre9">
+<p id="N13412" class="calibre5">
+<a href="http://wiki.basho.com/Replication.html">http://wiki.basho.com/Replication.html</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-17" href="f_0025.html#FNPTR-17">[17]</a>
+</td>
+<td class="calibre9">
+<p id="N134B9" class="calibre5">
+<a href="http://wiki.basho.com/MapReduce.html">http://wiki.basho.com/MapReduce.html</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-18" href="f_0025.html#FNPTR-18">[18]</a>
+</td>
+<td class="calibre9">
+<p id="N134BF" class="calibre5">
+<a href="http://en.wikipedia.org/wiki/MapReduce">http://en.wikipedia.org/wiki/MapReduce</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-19" href="f_0026.html#FNPTR-19">[19]</a>
+</td>
+<td class="calibre9">
+<p id="N1351A" class="calibre5">
+<a href="http://en.wikipedia.org/wiki/Vector_clock">http://en.wikipedia.org/wiki/Vector_clock</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-20" href="f_0026.html#FNPTR-20">[20]</a>
+</td>
+<td class="calibre9">
+<p id="N13734" class="calibre5">
+<a href="http://wiki.basho.com/Vector-Clocks.html">http://wiki.basho.com/Vector-Clocks.html</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-21" href="f_0026.html#FNPTR-21">[21]</a>
+</td>
+<td class="calibre9">
+<p id="N13918" class="calibre5">
+<a href="http://lucene.apache.org/solr/">http://lucene.apache.org/solr/</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-22" href="f_0026.html#FNPTR-22">[22]</a>
+</td>
+<td class="calibre9">
+<p id="N13AC4" class="calibre5">
+<a href="http://code.google.com/p/leveldb/">http://code.google.com/p/leveldb/</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-23" href="f_0026.html#FNPTR-23">[23]</a>
+</td>
+<td class="calibre9">
+<p id="N13B4B" class="calibre5">
+<a href="http://aws.amazon.com/ec2/">http://aws.amazon.com/ec2/</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-24" href="f_0026.html#FNPTR-24">[24]</a>
+</td>
+<td class="calibre9">
+<p id="N13B51" class="calibre5">
+<a href="http://wiki.basho.com/Loading-Data-and-Running-MapReduce-Queries.html">http://wiki.basho.com/Loading-Data-and-Running-MapReduce-Queries.html</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-25" href="#FNPTR-25">[25]</a>
+</td>
+<td class="calibre9">
+<p id="N13B88" class="calibre5">
+<a href="http://code.google.com/p/protobuf/">http://code.google.com/p/protobuf/</a>
+</p>
+</td>
+</tr>
+</table>
+</div>
+<div class="copyright">Copyright © 2012, The Pragmatic Bookshelf.</div>
+
+
+
+
+<script src="scripts/book_local.js" type="text/javascript" class="calibre3"/>
+</div>
+
+{% endraw %}
+

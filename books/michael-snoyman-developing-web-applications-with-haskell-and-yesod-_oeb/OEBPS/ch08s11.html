@@ -1,0 +1,67 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch08s10.html
+next: OEBPS/ch08s12.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Input Forms"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect18_d1e4445" class="calibre1"></a>Input Forms</h1></div></div></div><p class="calibre7">Applicative and monadic forms handle both the generation of your HTML code and the parsing
+      of user input. Sometimes, you only want to do the latter, such as when there’s an
+      already-existing form in HTML somewhere, or if you want to generate a form dynamically using
+      JavaScript. In such a case, you’ll want input forms.</p><p class="calibre7">These work mostly the same as applicative and monadic forms, with some differences:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">You use <code class="literal">runInputPost</code> and <code class="literal">runInputGet</code>.</p></li><li class="listitem"><p class="calibre7">You use <code class="literal">ireq</code> and <code class="literal">iopt</code>. These functions now only
+    take two arguments: the field type and the name (i.e., HTML <code class="literal">name</code> attribute) of
+    the field in question.</p></li><li class="listitem"><p class="calibre7">After running a form, it returns the value. It doesn’t return a widget or an encoding
+          type.</p></li><li class="listitem"><p class="calibre7">If there are any validation errors, the page returns an “invalid
+          arguments” error page.</p></li></ul></div><p class="calibre7">You can use input forms to recreate the previous example. Note, however, that the input
+      version is less user friendly. If you make a mistake in an applicative or monadic form, you
+      will be brought back to the same page, with your previously entered values in the form, and an
+      error message explaining what you need to correct. With input forms, the user simply gets an
+      error message.</p><a id="I_programlisting8_d1e4482" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE OverloadedStrings, TypeFamilies, QuasiQuotes,</code>
+<code class="cm">             TemplateHaskell, MultiParamTypeClasses #-}</code>
+<code class="kr">import</code> <code class="nn">Yesod</code>
+<code class="kr">import</code> <code class="nn">Control.Applicative</code>
+<code class="kr">import</code> <code class="nn">Data.Text</code> <code class="p">(</code><code class="kt">Text</code><code class="p">)</code>
+
+<code class="kr">data</code> <code class="kt">Input</code> <code class="ow">=</code> <code class="kt">Input</code>
+
+<code class="nf">mkYesod</code> <code class="s">"Input"</code> <code class="p">[</code><code class="n">parseRoutes</code><code class="o">|</code>
+<code class="o">/</code> <code class="kt">RootR</code> <code class="kt">GET</code>
+<code class="o">/</code><code class="n">input</code> <code class="kt">InputR</code> <code class="kt">GET</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="kr">instance</code> <code class="kt">Yesod</code> <code class="kt">Input</code>
+
+<code class="kr">instance</code> <code class="kt">RenderMessage</code> <code class="kt">Input</code> <code class="kt">FormMessage</code> <code class="kr">where</code>
+    <code class="n">renderMessage</code> <code class="kr">_</code> <code class="kr">_</code> <code class="ow">=</code> <code class="n">defaultFormMessage</code>
+
+<code class="kr">data</code> <code class="kt">Person</code> <code class="ow">=</code> <code class="kt">Person</code> <code class="p">{</code> <code class="n">personName</code> <code class="ow">::</code> <code class="kt">Text</code><code class="p">,</code> <code class="n">personAge</code> <code class="ow">::</code> <code class="kt">Int</code> <code class="p">}</code>
+    <code class="kr">deriving</code> <code class="kt">Show</code>
+
+<code class="nf">getRootR</code> <code class="ow">::</code> <code class="kt">Handler</code> <code class="kt">RepHtml</code>
+<code class="nf">getRootR</code> <code class="ow">=</code> <code class="n">defaultLayout</code> <code class="p">[</code><code class="n">whamlet</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">form</code> <code class="n">action</code><code class="o">=@</code><code class="p">{</code><code class="kt">InputR</code><code class="p">}</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code>
+        <code class="kt">My</code> <code class="n">name</code> <code class="n">is</code> <code class="o">#</code>
+        <code class="o">&lt;</code><code class="n">input</code> <code class="kr">type</code><code class="ow">=</code><code class="n">text</code> <code class="n">name</code><code class="ow">=</code><code class="n">name</code><code class="o">&gt;</code>
+        <code class="nf">\</code> <code class="n">and</code> <code class="kt">I</code> <code class="n">am</code> <code class="o">#</code>
+        <code class="o">&lt;</code><code class="n">input</code> <code class="kr">type</code><code class="ow">=</code><code class="n">text</code> <code class="n">name</code><code class="ow">=</code><code class="n">age</code><code class="o">&gt;</code>
+        <code class="nf">\</code> <code class="n">years</code> <code class="n">old</code><code class="o">.</code> <code class="o">#</code>
+        <code class="o">&lt;</code><code class="n">input</code> <code class="kr">type</code><code class="ow">=</code><code class="n">submit</code> <code class="n">value</code><code class="ow">=</code><code class="s">"Introduce myself"</code><code class="o">&gt;</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">getInputR</code> <code class="ow">::</code> <code class="kt">Handler</code> <code class="kt">RepHtml</code>
+<code class="nf">getInputR</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="n">person</code> <code class="ow">&lt;-</code> <code class="n">runInputGet</code> <code class="o">$</code> <code class="kt">Person</code>
+                <code class="o">&lt;$&gt;</code> <code class="n">ireq</code> <code class="n">textField</code> <code class="s">"name"</code>
+                <code class="o">&lt;*&gt;</code> <code class="n">ireq</code> <code class="n">intField</code> <code class="s">"age"</code>
+    <code class="n">defaultLayout</code> <code class="p">[</code><code class="n">whamlet</code><code class="o">|&lt;</code><code class="n">p</code><code class="o">&gt;#</code><code class="p">{</code><code class="n">show</code> <code class="n">person</code><code class="p">}</code><code class="o">|</code><code class="p">]</code>
+
+<code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">warpDebug</code> <code class="mi">3000</code> <code class="kt">Input</code>
+</pre></div></div>
+
+{% endraw %}
+

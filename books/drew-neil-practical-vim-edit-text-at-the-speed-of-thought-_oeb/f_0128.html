@@ -1,0 +1,126 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0127.html
+next: f_0129.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.substitute.capture">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 93</td>
+<td class="arr-recipe-name">Rearrange CSV Fields Using Submatches</td>
+</tr>
+</table>
+<p id="N19D42" class="calibre4">
+<span class="calibre5">
+        In this tip, we’ll see how submatches captured from the search pattern can be referenced in the replacement field.
+    </span>
+</p>
+<p id="N19D5A" class="calibre4">
+      Let’s say that we have a CSV file containing a list of email addresses along with first and last names:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/substitution/subscribers.csv">substitution/subscribers.csv</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​last name,first name,email​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​neil,drew,drew@vimcasts.org​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​doe,john,john@example.com​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N19D70" class="calibre4">
+      Now suppose that we want to swap the order of the fields so that the email comes first, then the first name, and finally the last name. We could use this substitute command to do it:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">/\v^([^,]*),([^,]*),([^,]*)$</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:%s//\3,\2,\1</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N19D85" class="calibre4">
+      In the pattern, <code class="cf">[^,]</code> matches anything that isn’t a comma. So <code class="cf">([^,]*)</code> matches zero or more consecutive non-commas and captures the result as a submatch (refer to <a xmlns:str="http://exslt.org/strings" href="f_0108.html#sec.pattern.submatch">Tip 75</a>). We repeat this three times to capture each of the three fields in the CSV file.
+    </p>
+<p id="N19D92" class="calibre4">
+      We can reference these submatches using the <code class="cf">\n</code> notation. So, in the replacement field, <code class="cf">\1</code> will refer to the last name field, <code class="cf">\2</code> refers to the first name field, and <code class="cf">\3</code> refers to the email field. Having sliced each line into the individual fields, we can rearrange them into the order we want, namely <code class="cf">\3,\2\,1</code>—email, first name, last name.
+    </p>
+<p id="N19DAD" class="calibre4">
+      The result of running this command looks like this:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​email,first name,last name​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​drew@vimcasts.org,drew,neil​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​john@example.com,john,doe​</code>​</div>
+</td>
+</tr>
+</table>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

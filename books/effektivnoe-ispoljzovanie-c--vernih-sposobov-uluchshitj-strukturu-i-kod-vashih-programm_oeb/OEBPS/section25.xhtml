@@ -1,0 +1,298 @@
+---
+layout: page
+title: "Эффективное использование C++. 55 верных способов улучшить структуру и код ваших программ"
+prev: OEBPS/section24.xhtml
+next: OEBPS/section26.xhtml
+book_path: books/effektivnoe-ispoljzovanie-c--vernih-sposobov-uluchshitj-strukturu-i-kod-vashih-programm_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <div class="calibre">
+      <div class="title1">
+        <h2 class="calibre3">Правило 8: Не позволяйте исключениям покидать деструкторы</h2>
+      </div>
+      <p class="calibre2">C++ не запрещает использовать исключения в деструкторах, но это, безусловно, очень нежелательная практика. На то есть серьезная причина. Рассмотрим пример:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Widget {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">~Widget() {...} // предположим, здесь есть исключение</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void doSomething()</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::vector&lt;Widget&gt; v;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">} // здесь v автоматически уничтожается</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Когда вектор v уничтожается, он отвечает за уничтожение всех объектов Widget, которые в нем содержатся. Предположим, что v содержит 10 объектов Widget, и во время уничтожения первого из них возбужается исключение. Остальные девять объектов Widget также должны быть уничтожены (иначе ресурсы, выделенные для них, будут потеряны), поэтому необходимо вызвать и их деструкторы. Но представим, что в это время деструктор второго объекта Widget также возбудит исключение. Тогда возникнет сразу два одновременно активных исключения, а это слишком много для C++. В зависимости от конкретных условий исполнение программы либо будет прервано, либо ее поведение окажется неопределенным. В этом примере как раз имеет место второй случай. И так будет происходить при использовании любого библиотечного контейнера (например, list, set), любого контейнера TR1 (см. правило 54) и даже массива. И причина этой проблемы не в контейнерах или массивах. Преждевременное завершение программы или неопределенное поведение здесь является результатом того, что деструкторы возбуждают исключения. C++ <em class="calibre5">не</em> любит деструкторов, возбуждающих исключения!</p>
+      <p class="calibre2">Это достаточно просто понять. Но что вы должны делать, если в вашем деструкторе необходимо выполнить операцию, которая может породить исключение? Например, предположим, что мы имеем дело с классом, описывающим подключение к базе данных:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class DBConnection {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">static DBConnection create(); // функция возвращает объект</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// DBConnection; параметры для</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// простоты опущены</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void close(); // закрыть соединение; при неудаче</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}; // возбуждает исключение</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Для гарантии того, что клиент не забудет вызвать close для объектов DBConnection, резонно создать класс для управления ресурсами DBConnection, который вызывает close в своем деструкторе. Классы, управляющие ресурсами, мы подробно рассмотрим в главе 3, а здесь достаточно прикинуть, как должен выглядеть деструктор такого класса:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class DBConn { // Класс для управления объектами</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public: // DBConnection</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">~DBConn() // обеспечить, чтобы соединения с базой</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{ // данных всегда закрывались</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">db.close();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">private:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">DBConnecton db;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Тогда клиент может содержать такой код:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">{ // блок открывается</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">DBConn dbc(DBConnection::create()); // создать объект DBConnection</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// и передать его объекту DBConn</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">... // использовать объект DBConnection</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// через интерфейс DBConn</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">} // в конце блока объект DBConn</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// уничтожается, при этом</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// автоматически вызывается метод close</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// объекта DBConnection</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Все это приемлемо до тех пор, пока метод close завершается успешно, но если его вызов возбуждает исключение, то оно покидает пределы деструктора DBConn. Это очень плохо, потому что деструкторы, возбуждающие исключения, могут стать источниками ошибок.</p>
+      <p class="calibre2">Есть два основных способа избежать этой проблемы. Деструктор DBConn может:</p>
+      <p class="calibre2">• <strong class="calibre4">Прервать программу,</strong> если close возбуждает исключение; обычно для этого вызывается функция abort:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">DBConn::~DBConn()</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">try {db.close();}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">catch(...) {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">
+          <em class="calibre5">записать в протокол, что вызов close завершился неудачно;</em>
+        </code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::abort();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Это резонный выбор, если программа не может продолжать работу после того, как в деструкторе произошла ошибка. Преимущество такого подхода – в предотвращении неопределенного поведения. Вызов abort упредит возникновение неопределенности.</p>
+      <p class="calibre2">• <strong class="calibre4">Перехватить исключение,</strong> возбужденное вызовом close:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">DBConn::~DBConn()</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">try {db.close();}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">catch(...) {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">
+          <em class="calibre5">записать в протокол, что вызов close завершился неудачно;</em>
+        </code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Вообще говоря, такое «проглатывание» исключений – плохая идея, потому что мы теряем важную информацию: <em class="calibre5">что-то не сработало</em> ! Но иногда лучше поступить так, чтобы избежать преждевременной остановки программы или неопределенного поведения. Выбирать этот подход следует лишь в случае, когда программа в состоянии надежно продолжать исполнение, даже после того, как ошибка произошла, но была проигнорирована.</p>
+      <p class="calibre2">Ни одно из этих решений не является идеальным. Проблема в том, что в обоих случаях программа не имеет возможности отреагировать на ситуацию, которая привела к возбуждению исключения внутри close.</p>
+      <p class="calibre2">Более разумная стратегия – спроектировать интерфейс DBConn так, чтобы его клиенты сами имели возможность реагировать на возникающие ошибки. Например, класс DBConn может предоставить собственную функцию close и таким образом дать клиентам шанс обработать исключение, возникшее в процессе операции. Объект этого класса мог бы отслеживать, было ли соединение DBConnection уже закрыто функцией close, и, если это не так, закрывать его в деструкторе. Тем самым предотвращается утечка соединений. Но если close все-таки будет вызвана из деструктора и возбудит исключение, то мы опять возвращаемся к описанным выше вариантам: прервать программу или «проглотить» исключение:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class DBConn {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void close() // новая функция для использования клиентом</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">db.close()</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">closed = true;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">~DBConn()</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">if(!closed)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">try {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">db.close(); // закрыть соединение, если этого не сделал</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">} // клиент</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">catch(...) { // если возникнет исключение, запротоколировать</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">
+          <em class="calibre5">записать в протокол, </em>
+        </code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// и прервать программу или «проглотить» его</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">
+          <em class="calibre5">что вызов close</em>
+        </code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">
+          <em class="calibre5">завершился неудачно;</em>
+        </code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">private:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">DBConnecton db;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">bool closed;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Перемещение вызова close из деструктора DBConn в код клиента (и оставлением в деструкторе DBConn «страховочного» вызова) может показаться вам беспринципным перекладыванием ответственности. Вы даже можете усмотреть в этом нарушение принципа, описанного в правиле 18: интерфейс должно быть легко использовать правильно. На самом деле все не так. Если операция может завершиться неудачно с возбуждением исключения и есть необходимость обработать это исключение, то исключение должно возбуждаться <em class="calibre5">функцией, не являющейся деструктором.</em> Связано это с тем, что деструкторы, возбуждающие исключения, опасны и всегда чреваты преждевременным завершением программы или неопределенным поведением. Говоря клиентам, что они должны сами вызывать функцию close, мы не обременяем их лишней работой, а даем возможность обработать ошибки, на которые в противном случае они не смогли бы отреагировать. Если они считают, что им это ни к чему, то могут проигнорировать эту возможность, полагаясь на то, что соединение закроет деструктор DBConn. Если же при этом произойдет ошибка, то есть close возбудит исключение, то им не на что жаловаться, если DBConn проглотит его или прервет программу. В конце-то концов, у них ведь был случай отреагировать по-другому, а они им не воспользовались.</p>
+      <div class="subtitle">
+        <p class="subtitle1">
+          <strong class="calibre4">
+            <em class="calibre5">Что следует помнить</em>
+          </strong>
+        </p>
+      </div>
+      <p class="calibre2">• Деструкторы никогда не должны возбуждать исключений. Если функция, вызываемая в деструкторе, может это сделать, то деструктор обязан перехватывать все исключения, а затем «проглатывать» их либо прерывать программу.</p>
+      <p class="calibre2">• Если клиенты класса нуждаются в возможности реагировать на исключения во время некоторой операции, то класс должен предоставить обычную функцию (то есть не деструктор), которая эту операцию выполнит.</p>
+    </div>
+  </div>
+
+{% endraw %}
+

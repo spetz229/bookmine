@@ -1,0 +1,114 @@
+---
+layout: page
+title: "Эффективное использование C++. 55 верных способов улучшить структуру и код ваших программ"
+prev: OEBPS/section62.xhtml
+next: OEBPS/section64.xhtml
+book_path: books/effektivnoe-ispoljzovanie-c--vernih-sposobov-uluchshitj-strukturu-i-kod-vashih-programm_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <div class="calibre">
+      <div class="title1">
+        <h2 class="calibre3">Реализация паттерна «Стратегия» посредством указателей на функции</h2>
+      </div>
+      <p class="calibre2">Идиома NVI – это интересная альтернатива открытым виртуальным функциям, но с точки зрения проектирования она дает не слишком много. В конце концов, мы по-прежнему используем виртуальные функции для вычисления жизненной силы каждого персонажа. С точки зрения проектирования гораздо более сильным было бы утверждение о том, что вычисление жизненной силы персонажа не зависит от типа персонажа, что такие вычисления вообще не являются свойством персонажа как такового. Например, мы можем потребовать, чтобы конструктору каждого персонажа передавался указатель на функцию, которая вызывалась бы для вычисления его жизненной силы:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class GameCharacter; // опережающее объявление</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// функция алгоритма по умолчанию для вычисления жизненной силы персонажа</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">int defaultHealthCalc(const GameCharacter&amp; gc);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class GameCharacter {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">typedef int (*HealthCalcFunc)(const GameCharacter&amp;);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">explicit GameCharacter(HealthCalcFunc hcf = defaultHealthCalc)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">: healthFunc(hcf)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">int healthValue() const</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{ return healthFunc(*this);}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">private:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">HealthCalcFunc healthFunc;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Это простой пример применения другого распространенного паттерна проектирования – «Стратегия» (Strategy). По сравнению с подходами, основанными на виртуальных функциях в иерархии GameCharacter, он предоставляет некоторые любопытные возможности, повышающие гибкость:</p>
+      <p class="calibre2">• Разные экземпляры персонажей одного и того же типа могут иметь разные функции вычисления жизненной силы. Например:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class EvilBadGay: public GameCharacter {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">explicit EvilBadGay(HealthCalcFunc hcf = defaultHealthCalc)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">: GameCharacter(hcf)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{...}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">int loseHealthQuickly(const GameCharacter&amp;); // функции вычисления</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">int loseHealthSlowly(const GameCharacter&amp;); // жизненной силы</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// с разным поведением</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">EvilBadGay ebg1(loseHealthQuickly); // однотипные персонажи</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">EvilBadGay ebg2(loseHealthSlowly); // с разным поведением</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// относительно здоровья</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">• Функция вычисления жизненной силы для одного и того же персонажа может изменяться во время исполнения. Например, класс GameCharacter мог бы предложить функцию-член setHealthCalculator, которая позволяет заменить текущую функцию вычисления жизненной силы.</p>
+      <p class="calibre2">С другой стороны, тот факт, что функция вычисления жизненной силы больше не является функцией-членом иерархии GameCharacter, означает, что она не имеет специального доступа к внутреннему состоянию объекта, чью жизненную силу вычисляет. Например, defaultHealthCalc не имеет доступа к закрытым частям EvilBadGay. Это не страшно, если жизненная сила персонажа может быть вычислена с помощью его открытого интерфейса, но для максимально точных расчетов может понадобиться доступ к закрытой информации. На самом деле такая проблема может возникать всегда, когда некоторая функциональность выносится из класса наружу (например, из функций-членов в свободные функции, не являющиеся друзьями класса, или в функции-члены другого класса, не дружественного данному). Она будет встречаться в настоящем правиле и далее, потому что все прочие проектные решения, которые нам еще предстоит рассмотреть, тоже включают использование функций, находящихся вне иерархии GameCharacter.</p>
+      <p class="calibre2">Общее правило таково: единственный способ рарешить функциям, не являющимся членами класса, доступ к его закрытой части – ослабить степень инкапсуляции. Например, класс может объявлять функции-нечлены в качестве друзей либо предоставлять открытые функции для доступа к тем частям реализации, которые лучше было бы оставить закрытыми. Имеет ли смысл жертвовать инкапсуляцией ради выгоды от использования указателей на функции вместо виртуальных функций (например, чтобы иметь разные функции жизненной силы для разных объектов и динамически менять их), решать вам в каждом конкретном случае.</p>
+    </div>
+  </div>
+
+{% endraw %}
+

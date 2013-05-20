@@ -1,0 +1,144 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch12.html
+next: OEBPS/ch12s03.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Representations"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect11_d1e6297" class="calibre1"></a>Representations</h1></div></div></div><p class="calibre7">Suppose we have a Haskell data type and value:</p><a id="I_programlisting1_d1e6302" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">data</code> <code class="kt">Person</code> <code class="ow">=</code> <code class="kt">Person</code> <code class="p">{</code> <code class="n">name</code> <code class="ow">::</code> <code class="kt">String</code><code class="p">,</code> <code class="n">age</code> <code class="ow">::</code> <code class="kt">Int</code> <code class="p">}</code>
+<code class="nf">michael</code> <code class="ow">=</code> <code class="kt">Person</code> <code class="s">"Michael"</code> <code class="mi">25</code>
+</pre><p class="calibre7">We could represent that data as HTML:</p><a id="I_programlisting1_d1e6306" class="firstname"></a><pre class="programlistinghaskell">&lt;table&gt;
+    &lt;tr&gt;
+        &lt;th&gt;Name&lt;/th&gt;
+        &lt;td&gt;Michael&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;th&gt;Age&lt;/th&gt;
+        &lt;td&gt;25&lt;/td&gt;
+    &lt;/tr&gt;
+&lt;/table&gt;</pre><p class="calibre7">or we could represent it as JSON:</p><a id="I_programlisting1_d1e6310" class="firstname"></a><pre class="programlistinghaskell">{"name":"Michael","age":25}</pre><p class="calibre7">or as XML:</p><a id="I_programlisting1_d1e6314" class="firstname"></a><pre class="programlistinghaskell">&lt;person&gt;
+    &lt;name&gt;Michael&lt;/name&gt;
+    &lt;age&gt;25&lt;/age&gt;
+&lt;/person&gt;</pre><p class="calibre7">Oftentimes, web applications will use a different URL to get each of these
+            representations; perhaps <code class="literal">/person/michael.html</code>,
+                <code class="literal">/person/michael.json</code>, etc. Yesod follows the
+            RESTful principle of a single URL for each <em class="calibre4">resource</em>. So in Yesod,
+            all of these would be accessed from <code class="literal">/person/michael</code>.</p><p class="calibre7">Then the question becomes how do we determine <span class="firstname"><em class="calibre4">which</em></span> representation to
+            serve. The answer is the HTTP <code class="literal">Accept</code> header: it gives a prioritized
+            list of content types the client is expecting. Yesod will automatically determine which
+            representation to serve based upon this header.</p><p class="calibre7">Let’s make that last sentence a bit more concrete with some code:</p><a id="I_programlisting1_d1e6344" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">type</code> <code class="kt">ChooseRep</code> <code class="ow">=</code> <code class="p">[</code><code class="kt">ContentType</code><code class="p">]</code> <code class="ow">-&gt;</code> <code class="kt">IO</code> <code class="p">(</code><code class="kt">ContentType</code><code class="p">,</code> <code class="kt">Content</code><code class="p">)</code>
+<code class="kr">class</code> <code class="kt">HasReps</code> <code class="n">a</code> <code class="kr">where</code>
+    <code class="n">chooseRep</code> <code class="ow">::</code> <code class="n">a</code> <code class="ow">-&gt;</code> <code class="kt">ChooseRep</code>
+</pre><p class="calibre7">The <code class="literal">chooseRep</code> function takes two arguments: the value
+            we are getting representations for and a list of content types that the client will
+            accept. We determine this by reading the <code class="literal">Accept</code>
+            request header. <code class="literal">chooseRep</code> returns a tuple containing
+            the content type of our response and the actual content.</p><p class="calibre7">This typeclass is the core of Yesod’s RESTful approach to representations. Every handler
+            function must return an instance of <code class="literal">HasReps</code>. When
+            Yesod generates the dispatch function, it automatically applies <code class="literal">chooseRep</code> to each handler, essentially giving all functions the type
+                <code class="literal">Handler ChooseRep</code>. After running the <code class="literal">Handler</code> and obtaining the <code class="literal">ChooseRep</code> result, it is applied to the list of content types parsed from
+            the <code class="literal">Accept</code> header.</p><p class="calibre7">Yesod provides a number of instances of <code class="literal">HasReps</code> out of the
+            box. When we use <code class="literal">defaultLayout</code>, for example, the return type
+            is <code class="literal">RepHtml</code>, which looks like:</p><a id="I_programlisting1_d1e6395" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">newtype</code> <code class="kt">RepHtml</code> <code class="ow">=</code> <code class="kt">RepHtml</code> <code class="kt">Content</code>
+<code class="kr">instance</code> <code class="kt">HasReps</code> <code class="kt">RepHtml</code> <code class="kr">where</code>
+    <code class="n">chooseRep</code> <code class="p">(</code><code class="kt">RepHtml</code> <code class="n">content</code><code class="p">)</code> <code class="kr">_</code> <code class="ow">=</code> <code class="n">return</code> <code class="p">(</code><code class="s">"text/html"</code><code class="p">,</code> <code class="n">content</code><code class="p">)</code>
+</pre><p class="calibre7">Notice that we ignore entirely the list of expected content types. A number of the
+            built-in representations (<code class="literal">RepHtml</code>, <code class="literal">RepPlain</code>, <code class="literal">RepJson</code>,
+                <code class="literal">RepXml</code>) in fact only support a single
+            representation, and therefore what the client requests in the <code class="literal">Accept</code> header is irrelevant.</p><div class="book" title="RepHtmlJson"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3089851" class="calibre1"></a>RepHtmlJson</h2></div></div></div><p class="calibre7">An example to the contrary is <code class="literal">RepHtmlJson</code>, which provides either an
+            HTML or JSON representation. This instance helps greatly in programming AJAX
+            applications that degrade nicely. Here is an example that returns either HTML or JSON
+            data, depending on what the client wants.</p><a id="I_programlisting1_d1e6422" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE QuasiQuotes, TypeFamilies, OverloadedStrings #-}</code>
+<code class="cm">{-# LANGUAGE MultiParamTypeClasses, TemplateHaskell #-}</code>
+<code class="kr">import</code> <code class="nn">Yesod</code>
+<code class="kr">data</code> <code class="kt">R</code> <code class="ow">=</code> <code class="kt">R</code>
+<code class="nf">mkYesod</code> <code class="s">"R"</code> <code class="p">[</code><code class="n">parseRoutes</code><code class="o">|</code>
+<code class="o">/</code> <code class="kt">RootR</code> <code class="kt">GET</code>
+<code class="o">/#</code><code class="kt">String</code> <code class="kt">NameR</code> <code class="kt">GET</code>
+<code class="o">|</code><code class="p">]</code>
+<code class="kr">instance</code> <code class="kt">Yesod</code> <code class="kt">R</code>
+
+<code class="nf">getRootR</code> <code class="ow">=</code> <code class="n">defaultLayout</code> <code class="o">$</code> <code class="kr">do</code>
+    <code class="n">setTitle</code> <code class="s">"Homepage"</code>
+    <code class="n">addScriptRemote</code> <code class="s">"http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"</code>
+    <code class="n">addJulius</code> <code class="p">[</code><code class="n">julius</code><code class="o">|</code>
+<code class="o">$</code><code class="p">(</code><code class="n">function</code><code class="nb">()</code><code class="p">{</code>
+    <code class="o">$</code><code class="p">(</code><code class="s">"#ajax a"</code><code class="p">)</code><code class="o">.</code><code class="n">click</code><code class="p">(</code><code class="n">function</code><code class="nb">()</code><code class="p">{</code>
+        <code class="n">jQuery</code><code class="o">.</code><code class="n">getJSON</code><code class="p">(</code><code class="o">$</code><code class="p">(</code><code class="n">this</code><code class="p">)</code><code class="o">.</code><code class="n">attr</code><code class="p">(</code><code class="s">"href"</code><code class="p">),</code> <code class="n">function</code><code class="p">(</code><code class="n">o</code><code class="p">){</code>
+            <code class="o">$</code><code class="p">(</code><code class="s">"div"</code><code class="p">)</code><code class="o">.</code><code class="n">text</code><code class="p">(</code><code class="n">o</code><code class="o">.</code><code class="n">name</code><code class="p">);</code>
+        <code class="p">});</code>
+        <code class="n">return</code> <code class="n">false</code><code class="p">;</code>
+    <code class="p">});</code>
+<code class="p">});</code>
+<code class="o">|</code><code class="p">]</code>
+    <code class="kr">let</code> <code class="n">names</code> <code class="ow">=</code> <code class="n">words</code> <code class="s">"Larry Moe Curly"</code>
+    <code class="n">addHamlet</code> <code class="p">[</code><code class="n">hamlet</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">h2</code><code class="o">&gt;</code><code class="kt">AJAX</code> <code class="kt">Version</code>
+<code class="o">&lt;</code><code class="n">div</code> <code class="o">#</code><code class="n">results</code><code class="o">&gt;</code>
+    <code class="kt">AJAX</code> <code class="n">results</code> <code class="n">will</code> <code class="n">be</code> <code class="n">placed</code> <code class="n">here</code> <code class="n">when</code> <code class="n">you</code> <code class="n">click</code> <code class="o">#</code>
+    <code class="n">the</code> <code class="n">names</code> <code class="n">below</code><code class="o">.</code>
+<code class="o">&lt;</code><code class="n">ul</code> <code class="o">#</code><code class="n">ajax</code><code class="o">&gt;</code>
+    <code class="o">$</code><code class="n">forall</code> <code class="n">name</code> <code class="ow">&lt;-</code> <code class="n">names</code>
+        <code class="o">&lt;</code><code class="n">li</code><code class="o">&gt;</code>
+            <code class="o">&lt;</code><code class="n">a</code> <code class="n">href</code><code class="o">=@</code><code class="p">{</code><code class="kt">NameR</code> <code class="n">name</code><code class="p">}</code><code class="o">&gt;#</code><code class="p">{</code><code class="n">name</code><code class="p">}</code>
+
+<code class="o">&lt;</code><code class="n">h2</code><code class="o">&gt;</code><code class="kt">HTML</code> <code class="kt">Version</code>
+<code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code>
+    <code class="kt">Clicking</code> <code class="n">the</code> <code class="n">names</code> <code class="n">below</code> <code class="n">will</code> <code class="n">redirect</code> <code class="n">the</code> <code class="n">page</code> <code class="o">#</code>
+    <code class="n">to</code> <code class="n">an</code> <code class="kt">HTML</code> <code class="n">version</code><code class="o">.</code>
+<code class="o">&lt;</code><code class="n">ul</code> <code class="o">#</code><code class="n">html</code><code class="o">&gt;</code>
+    <code class="o">$</code><code class="n">forall</code> <code class="n">name</code> <code class="ow">&lt;-</code> <code class="n">names</code>
+        <code class="o">&lt;</code><code class="n">li</code><code class="o">&gt;</code>
+            <code class="o">&lt;</code><code class="n">a</code> <code class="n">href</code><code class="o">=@</code><code class="p">{</code><code class="kt">NameR</code> <code class="n">name</code><code class="p">}</code><code class="o">&gt;#</code><code class="p">{</code><code class="n">name</code><code class="p">}</code>
+
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">getNameR</code> <code class="n">name</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="kr">let</code> <code class="n">widget</code> <code class="ow">=</code> <code class="kr">do</code>
+            <code class="n">setTitle</code> <code class="o">$</code> <code class="n">toHtml</code> <code class="n">name</code>
+            <code class="n">addHamlet</code> <code class="p">[</code><code class="n">hamlet</code><code class="o">|</code><code class="kt">Looks</code> <code class="n">like</code> <code class="n">you</code> <code class="n">have</code> <code class="kt">Javascript</code> <code class="n">off</code><code class="o">.</code> <code class="kt">Name:</code> <code class="o">#</code><code class="p">{</code><code class="n">name</code><code class="p">}</code><code class="o">|</code><code class="p">]</code>
+    <code class="kr">let</code> <code class="n">json</code> <code class="ow">=</code> <code class="n">object</code> <code class="p">[</code><code class="s">"name"</code> <code class="o">.=</code> <code class="n">name</code><code class="p">]</code>
+    <code class="n">defaultLayoutJson</code> <code class="n">widget</code> <code class="n">json</code>
+
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">warpDebug</code> <code class="mi">4000</code> <code class="kt">R</code>
+</pre><p class="calibre7">Our <code class="literal">getRootR</code> handler creates a page with three links
+                and some JavaScript that intercept clicks on the links and performs asynchronous
+                requests. If the user has JavaScript enabled, clicking on the link will cause a
+                request to be sent with an <code class="literal">Accept</code> header of
+                    <code class="literal">application/json</code>. In that case, <code class="literal">getNameR</code> will return the JSON representation
+                instead.</p><p class="calibre7">If the user disables JavaScript, clicking on the link will send the user to the
+                appropriate URL. A web browser places priority on an HTML representation of the
+                data, and therefore the page defined by the widget will be returned.</p><p class="calibre7">We can of course extend this to work with XML, Atom feeds, or even binary
+                representations of the data. A fun exercise could be writing a web application that
+                serves data simply using the default <code class="literal">Show</code>
+                instances of data types, and then writing a web client that parses the results using
+                the default <code class="literal">Read</code> instances.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">You might be concerned about efficiency here. Doesn’t this approach mean we have to
+                    generate both an HTML and JSON response for each request? Thanks to laziness,
+                    that’s not the case. In <code class="literal">getNameR</code>, neither
+                        <code class="literal">widget</code> nor <code class="literal">json</code> will be evaluated until the appropriate response type has
+                    been selected, and therefore only one of them will ever be run.</p></div></div><div class="book" title="News Feeds"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3090021" class="calibre1"></a>News Feeds</h2></div></div></div><p class="calibre7">A great, practical example of multiple representations is the <code class="function">yesod-newsfeed</code> package. There are two major formats for news feeds
+                on the Web: RSS and Atom. They contain almost exactly the same information, but are
+                just packaged differently.</p><p class="calibre7">The <code class="literal">yesod-newsfeed</code> package defines a <code class="literal">Feed</code> data type that contains information like title,
+                description, and last updated time. It then provides two separate sets of functions
+                for displaying this data: one for RSS, one for Atom. They each define their own
+                representation data types:</p><a id="I_programlisting1_d1e6482" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">newtype</code> <code class="kt">RepAtom</code> <code class="ow">=</code> <code class="kt">RepAtom</code> <code class="kt">Content</code>
+<code class="kr">instance</code> <code class="kt">HasReps</code> <code class="kt">RepAtom</code> <code class="kr">where</code>
+    <code class="n">chooseRep</code> <code class="p">(</code><code class="kt">RepAtom</code> <code class="n">c</code><code class="p">)</code> <code class="kr">_</code> <code class="ow">=</code> <code class="n">return</code> <code class="p">(</code><code class="n">typeAtom</code><code class="p">,</code> <code class="n">c</code><code class="p">)</code>
+<code class="kr">newtype</code> <code class="kt">RepRss</code> <code class="ow">=</code> <code class="kt">RepRss</code> <code class="kt">Content</code>
+<code class="kr">instance</code> <code class="kt">HasReps</code> <code class="kt">RepRss</code> <code class="kr">where</code>
+    <code class="n">chooseRep</code> <code class="p">(</code><code class="kt">RepRss</code> <code class="n">c</code><code class="p">)</code> <code class="kr">_</code> <code class="ow">=</code> <code class="n">return</code> <code class="p">(</code><code class="n">typeRss</code><code class="p">,</code> <code class="n">c</code><code class="p">)</code>
+</pre><p class="calibre7">But there’s a third module that defines another data type:</p><a id="I_programlisting1_d1e6486" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">data</code> <code class="kt">RepAtomRss</code> <code class="ow">=</code> <code class="kt">RepAtomRss</code> <code class="kt">RepAtom</code> <code class="kt">RepRss</code>
+<code class="kr">instance</code> <code class="kt">HasReps</code> <code class="kt">RepAtomRss</code> <code class="kr">where</code>
+    <code class="n">chooseRep</code> <code class="p">(</code><code class="kt">RepAtomRss</code> <code class="p">(</code><code class="kt">RepAtom</code> <code class="n">a</code><code class="p">)</code> <code class="p">(</code><code class="kt">RepRss</code> <code class="n">r</code><code class="p">))</code> <code class="ow">=</code> <code class="n">chooseRep</code>
+        <code class="p">[</code> <code class="p">(</code><code class="n">typeAtom</code><code class="p">,</code> <code class="n">a</code><code class="p">)</code>
+        <code class="p">,</code> <code class="p">(</code><code class="n">typeRss</code><code class="p">,</code> <code class="n">r</code><code class="p">)</code>
+        <code class="p">]</code>
+</pre><p class="calibre7">This data type will automatically serve whichever representation the client prefers,
+                defaulting to Atom. If a client connects that only understands RSS, assuming it
+                provides the correct HTTP headers, Yesod will provide RSS output.</p></div></div></div>
+
+{% endraw %}
+

@@ -1,0 +1,86 @@
+---
+layout: page
+title: "jQuery UI"
+prev: OEBPS/ch07s02.html
+next: OEBPS/ch07s04.html
+book_path: books/eric-sarrion-jquery-ui-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="The slider () Method"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="the_slider_open_parenthesis_close_parent" class="calibre1"></a>The slider () Method</h1></div></div></div><p class="calibre7">The <code class="literal">slider ()</code> method can be used
+    in two forms:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7"><code class="literal">$(selector, context).slider
+        (options)</code></p></li><li class="listitem"><p class="calibre7"><code class="literal">$(selector, context).slider ("action",
+        params)</code></p></li></ul></div><div class="book" title="The slider (options) Method"><div class="book"><div class="book"><div class="book"><h2 class="title5"><a id="the_slider_open_parenthesis_options_clos" class="calibre1"></a>The slider (options) Method</h2></div></div></div><p class="calibre7">The <code class="literal">slider (options)</code> method
+      declares that an HTML element should be managed as a slider. The
+      <code class="literal">options</code> parameter is an object that
+      specifies the appearance and behavior of the slider.</p><p class="calibre7">Some options allow you to position multiple cursors on the axis
+      and specify whether the cursors can pass each other on the axis.</p><div class="book" title="Managing the appearance and behavior of sliders"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="managing_the_appearance_and_behavior_of" class="calibre1"></a>Managing the appearance and behavior of sliders</h3></div></div></div><p class="calibre7"><a class="ulink" href="ch07s03.html#options_for_managing_slider_appearance_a" title="Table 7-1. Options for managing slider appearance and behavior">Table 7-1</a>
+        describes the options for managing the appearance and behavior of
+        sliders.</p><div class="table"><a id="options_for_managing_slider_appearance_a" class="firstname"></a><p class="title7">Table 7-1. Options for managing slider appearance and behavior</p><div class="book"><table summary="Options for managing slider appearance and behavior" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.disabled</code></p></td><td valign="top" class="calibre21"><p class="calibre7">If <code class="literal">true</code>, disables the slider. No cursor
+                movement or click on the axis will be considered until the
+                slider is returned to the enabled state (by <code class="literal">slider ("enable")</code>).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.animate</code></p></td><td valign="top" class="calibre21"><p class="calibre7">If <code class="literal">true</code>, creates an animated effect
+                when users click directly on the axis. By default, it is set
+                to <code class="literal">false</code>, in which case
+                clicking on the axis places the cursor directly where the user
+                clicked, with no animated effect.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.orientation</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Indicates the
+                horizontal or vertical orientation of the slider. The default
+                value is <code class="literal">"horizontal"</code>. To
+                position the slider vertically, use <code class="literal">"vertical"</code>.</p></td></tr></tbody></table></div></div></div><div class="book" title="Managing the values of cursors"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="managing_the_values_of_cursors" class="calibre1"></a>Managing the values of cursors</h3></div></div></div><p class="calibre7"><a class="ulink" href="ch07s03.html#options_for_managing_slider_values" title="Table 7-2. Options for managing slider values">Table 7-2</a> describes
+        the options available for managing the values that appear on the
+        slider.</p><div class="table"><a id="options_for_managing_slider_values" class="firstname"></a><p class="title7">Table 7-2. Options for managing slider values</p><div class="book"><table summary="Options for managing slider values" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.min</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Indicates the value of
+                the cursor when positioned at the beginning of the axis (first
+                graduation). The default is 0.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.max</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Indicates the value of
+                the cursor when positioned at the end of the axis (last
+                graduation). The default is 100.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.value</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Indicates the value of
+                the cursor in the <code class="literal">[options.min,
+                options.max]</code> interval.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.values</code></p></td><td valign="top" class="calibre21"><p class="calibre7">When using multiple
+                cursors, indicates the value of these in an array. The number
+                of values is the number of cursors used.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.range</code></p></td><td valign="top" class="calibre21"><p class="calibre7">When set to <code class="literal">true</code>, indicates that two cursors
+                should be used (<code class="literal">options.values</code> should have a length
+                of 2, with each value indicating the initial value for a
+                cursor).</p> <p class="calibre7">If <code class="literal">"min"</code> or <code class="literal">"max"</code>, a single cursor must be used
+                (if not, this option does not work). In all cases, the space
+                between the two cursors on the axis is styled (if <code class="literal">true</code>), or the space between the
+                cursor and the beginning of the axis (if <code class="literal">"min"</code>) or the space between the
+                cursor and the end of the axis (if "<code class="literal">max"</code>).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.step</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Indicates the increment
+                of displacement of a cursor on the axis. The default is
+                1.</p></td></tr></tbody></table></div></div></div><div class="book" title="Managing events on the slider"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="managing_events_on_the_slider" class="calibre1"></a>Managing events on the slider</h3></div></div></div><p class="calibre7">The events listed in <a class="ulink" href="ch07s03.html#options_for_managing_events_on_a_slider" title="Table 7-3. Options for managing events on a slider">Table 7-3</a> are generated by
+        either clicks on the cursor, clicks on the axis, or calls to the
+        <code class="literal">slider ("value", value)</code> or <code class="literal">slider ("values", index, value)</code>
+        methods.</p><div class="table"><a id="options_for_managing_events_on_a_slider" class="firstname"></a><p class="title7">Table 7-3. Options for managing events on a slider</p><div class="book"><table summary="Options for managing events on a slider" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.start</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">start (event)</code> method is called when
+                the movement of a cursor starts.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.stop</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">stop (event)</code> method is called when
+                the movement of a cursor finishes.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.change</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">change (event)</code> method is called when
+                the movement of a cursor finishes (same as <code class="literal">options.stop</code>).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.slide</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">slide (event)</code> method is called when
+                the cursor is moved using drag-and-drop. This method is not
+                called when users click directly on the axis.</p></td></tr></tbody></table></div></div></div></div><div class="book" title="The slider (“action”, params) Method"><div class="book"><div class="book"><div class="book"><h2 class="title5"><a id="the_slider_open_parenthesis_quotation_ma" class="calibre1"></a>The slider (“action”, params) Method</h2></div></div></div><p class="calibre7">The <code class="literal">slider ("action", params)</code>
+      method (detailed in <a class="ulink" href="ch07s03.html#the_slider_open_parenthesis_quotatio" title="Table 7-4. The slider (“action”, params) method actions">Table 7-4</a>) allows an action on
+      the slider, such as moving the cursor to a new location. The action is
+      specified as a string in the first argument (e.g., <code class="literal">"value"</code> to indicate a new value of the
+      cursor).</p><div class="table"><a id="the_slider_open_parenthesis_quotatio" class="firstname"></a><p class="title7">Table 7-4. The slider (“action”, params) method actions</p><div class="book"><table summary="The slider (“action”, params) method actions" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Action</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">slider ("disable")</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Disable the functioning
+              of the slider. Clicks will not be taken into
+              account.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">slider ("enable")</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Reactivate the
+              functioning of the slider. The clicks are again
+              considered.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">slider ("value")</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Retrieve the current
+              value of <code class="literal">options.value</code> (the
+              indicator). Use only if the indicator is unique (if not, use
+              <code class="literal">slider
+              ("values")</code>).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">slider ("value", value)</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Change the value of the
+              indicator. Use only if the indicator is unique (otherwise use
+              <code class="literal">slider ("values",
+              values)</code>).</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">slider ("values")</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Retrieve the current
+              value of <code class="literal">options.values</code> (the
+              value of the indicators in an array).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">slider ("values",
+              values)</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Assign new values to the
+              indicators in an array.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">slider ("option",
+              param)</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Retrieve the value of the
+              specified <code class="literal">param</code> option. This
+              option corresponds to one of those used with <code class="literal">slider (options)</code>.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">slider ("option", param,
+              value)</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Change the value of the
+              <code class="literal">param</code> option. This option
+              corresponds to one of those used with <code class="literal">slider (options)</code>.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">slider ("destroy")</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Remove the management of
+              the sliders. Sliders revert to simple HTML without CSS class or
+              event management.</p></td></tr></tbody></table></div></div></div></div></div>
+
+{% endraw %}
+

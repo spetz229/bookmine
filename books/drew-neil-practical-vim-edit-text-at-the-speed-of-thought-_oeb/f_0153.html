@@ -1,0 +1,171 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0152.html
+next: f_0154.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.auto.popup">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 112</td>
+<td class="arr-recipe-name">Work with the Autocomplete Pop-Up Menu</td>
+</tr>
+</table>
+<p id="N1BA7C" class="calibre4">
+<span class="calibre5">
+        To get the most from the autocomplete command, learn how to interact with the pop-up menu. Either  refine the choices and then pick an item, or dismiss the list if it doesn’t contain what you want.
+    </span>
+</p>
+<p id="N1BA92" class="calibre4">
+      When autocomplete is triggered, Vim draws a pop-up menu containing the items in the word list. We can interact with this menu using the commands shown in <a xmlns:str="http://exslt.org/strings" href="#table.popup-commands">Table 30, ​<em class="calibre5">Commands for the Pop-Up Menu</em>​</a>.
+    </p>
+<hr class="calibre37"/>
+<div class="figurecaption" id="table.popup-commands">Table 30. Commands for the Pop-Up Menu</div>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Effect</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;C-n&gt;</span>
+</p>
+</td>
+<td class="calibre24">
+<p class="last-para-in-cell">Use the next match from the word list (<span class="calibre5">next</span> match)</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;C-p&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Use the previous match from the word list (<span class="calibre5">previous</span> match)</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;Down&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Select the next match from the word list</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;Up&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Select the previous match from the word list</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;C-y&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Accept the currently selected match (<span class="calibre5">yes</span>)</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;C-e&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Revert to the originally typed text (<span class="calibre5">exit</span> from autocompletion)</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;C-h&gt; (and &lt;BS&gt;)</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Delete one character from current match</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;C-l&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Add one character from current match</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">{char}</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Stop completion and insert <code class="cf">{char}</code>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+<hr class="calibre37"/>
+<p id="N1BB0D" class="calibre4">
+      More details can be found in Vim’s documentation: <strong xmlns:str="http://exslt.org/strings" class="calibre10">popupmenu-completion</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/insert.html#popupmenu-completion">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>.
+    </p>
+<p id="N1BB14" class="calibre4">
+      No matter which variant of autocompletion is used, when the autocomplete pop-up menu is visible, <span class="calibre17">&lt;C-n&gt;</span> and <span class="calibre17">&lt;C-p&gt;</span> always move to the previous or next item in the menu. In contrast, when used from Insert mode, <span class="calibre17">&lt;C-n&gt;</span> and <span class="calibre17">&lt;C-p&gt;</span> trigger generic keyword autocompletion.
+    </p>
+<p id="N1BB23" class="calibre4">
+      The <span class="calibre17">&lt;C-n&gt;</span> and <span class="calibre17">&lt;Down&gt;</span> keys both select the next item from the pop-up menu, while the <span class="calibre17">&lt;C-p&gt;</span> and <span class="calibre17">&lt;Up&gt;</span> keys select the previous item. The mechanics are slightly different, whether we use <span class="calibre17">&lt;C-p&gt;</span>/<span class="calibre17">&lt;C-n&gt;</span> or <span class="calibre17">&lt;Up&gt;</span>/<span class="calibre17">&lt;Down&gt;</span>.
+    </p>
+<h3 class="calibre22">Browse the Word List Without Changing the Document</h3>
+<p id="N1BB42" class="calibre4">
+        When we press <span class="calibre17">&lt;Down&gt;</span>, the pop-up menu is updated to select the next item in the list but the text in the document is left unchanged. We can scroll through the list of words in the pop-up menu using the <span class="calibre17">&lt;Up&gt;</span> and <span class="calibre17">&lt;Down&gt;</span> keys until we find the word we want to use. Then we can insert it into the document either by hitting the <span class="calibre17">&lt;CR&gt;</span> key or by pressing <span class="calibre17">&lt;C-y&gt;</span>.
+      </p>
+<h3 class="calibre22">Update the Document As You Scroll Through the Word List</h3>
+<p id="N1BB5D" class="calibre4">
+        By contrast, the <span class="calibre17">&lt;C-n&gt;</span> key not only <span class="calibre5">selects</span> the next item from the list, it also updates the document to <span class="calibre5">use</span> the selected word. This means that we don’t have to press <span class="calibre17">&lt;CR&gt;</span> to confirm our selection, because the text in the document is always synchronized with the selected item in the pop-up menu. Once we’ve chosen our word from the list, we simply continue typing and the pop-up menu disappears.
+      </p>
+<p id="N1BB76" class="calibre4">
+        I prefer the <span class="calibre17">&lt;C-p&gt;</span> and <span class="calibre17">&lt;C-n&gt;</span> chords over <span class="calibre17">&lt;Up&gt;</span> and <span class="calibre17">&lt;Down&gt;</span> for a couple of reasons. I don’t have to move my hand from the home row when using <span class="calibre17">&lt;C-p&gt;</span> and <span class="calibre17">&lt;C-n&gt;</span>. Also, I don’t have to confirm my choice by pressing <span class="calibre17">&lt;CR&gt;</span> or <span class="calibre17">&lt;C-y&gt;</span> because the text is inserted into the document automatically. Once again, we meet our mantra from <a xmlns:str="http://exslt.org/strings" href="f_0073.html#sec.hjkl">Tip 46</a>: keep your fingers on the home row.
+      </p>
+<h3 class="calibre22">Dismiss All Selections</h3>
+<p id="N1BB99" class="calibre4">
+        Once we’ve summoned the autocomplete menu, we might want to dismiss it again. For instance, if the list has too many suggestions, typing out the word by hand may prove quicker. We can end autocompletion by pressing <span class="calibre17">&lt;C-e&gt;</span>, which dismisses the pop-up menu and restores the text in front of the cursor to the partial word that was typed before autocomplete was invoked.
+      </p>
+<h3 class="calibre22">Refine the Word List as You Type</h3>
+<p id="N1BBA4" class="calibre4">
+        Here’s one of my favorite tricks when working with the autocomplete pop-up menu. Try pressing <span class="calibre17">&lt;C-n&gt;&lt;C-p&gt;</span>. That’s two separate commands: <span class="calibre17">&lt;C-n&gt;</span> followed immediately by <span class="calibre17">&lt;C-p&gt;</span> (although <span class="calibre17">&lt;C-p&gt;&lt;C-n&gt;</span> would work just as well). The first command invokes autocomplete, summons the pop-up menu, and selects the first item in the word list. The second command selects the previous item in the word list, taking us back to where we started but without dismissing the pop-up menu. Now we can continue to type, and Vim will filter the word list in real time.
+      </p>
+<p id="N1BBB3" class="calibre4">
+        This can be especially handy if the word list contains too many suggestions to read in one visual gulp. Suppose that the word list contains twenty suggestions and we typed only a partial word consisting of two characters. If we type a third character, the word list will be immediately refined. We can continue typing characters in this manner until the word list is short enough to be useful and we can make our selection.
+      </p>
+<p id="N1BBB6" class="calibre4">
+        This trick works just as well with the other variants of autocompletion. For example, we could type <span class="calibre17">&lt;C-x&gt;&lt;C-o&gt;&lt;C-p&gt;</span> to perform live filtering on omni autocompletion, or <span class="calibre17">&lt;C-x&gt;&lt;C-f&gt;&lt;C-p&gt;</span> to do the same with filename completion.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

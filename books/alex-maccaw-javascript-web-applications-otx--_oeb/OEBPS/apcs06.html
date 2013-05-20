@@ -1,0 +1,48 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/apcs05.html
+next: OEBPS/apcs07.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Gradients"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect1_d1e16437" class="calibre1"></a>Gradients</h1></div></div></div><p class="calibre3"><a id="I_indexterm_d1e16441" class="calibre1"></a><a id="I_indexterm_d1e16446" class="calibre1"></a>Previously, gradients were implemented by using repeating
+    background images. This meant they had a fixed width or height, and you
+    needed to open up an image editor to alter them.</p><p class="calibre3">CSS3 adds support for linear and radial gradients,<a id="I_indexterm_d1e16452" class="calibre1"></a> which is one of its most useful features. There are a few
+    CSS functions you call to generate the gradients, and you can use them
+    wherever you would normally use a color.</p><p class="calibre3">For linear gradients, just pass the <code class="literal">linear-gradient</code> function a list of colors you
+    want to transition through:</p><pre class="screen">linear-gradient(#CCC, #DDD, white)</pre><p class="calibre3">By default, the gradients are vertical; however, you can change that
+    by passing in a position:</p><pre class="screen">// horizontal gradient
+linear-gradient(left, #CCC, #DDD, #FFF);
+
+// or with a specific angle
+linear-gradient(-45deg , #CCC , #FFF)</pre><p class="calibre3">If you want more control over where a gradient transition begins,
+    you can use color stops. Just specify a percentage or pixel value along
+    with the color:</p><pre class="screen">linear-gradient(white , #DDD 20% , black)</pre><p class="calibre3">You can also transition to and from a transparency:</p><pre class="screen">radial-gradient( rgba(255, 255, 255, .8) , transparent )</pre><p class="calibre3">Safari currently has a markedly different syntax. It will soon align
+    with the standard, but, for now, here’s how to use it:</p><pre class="screen">// -webkit-gradient(&lt;type&gt;, &lt;point&gt; [, &lt;radius&gt;]?, &lt;point&gt; [, &lt;radius&gt;]? 
+//[, &lt;stop&gt;]*);
+-webkit-gradient(linear, left top, left bottom, 
+from(#FFF), color-stop(10%, #DDD), to(#CCC));</pre><p class="calibre3">Although most major browsers support the CSS gradient
+    standard,<a id="I_indexterm_d1e16482" class="calibre1"></a> each prefixes the syntax with its own vendor name:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre3">Firefox: with <code class="literal">-moz-</code></p></li><li class="listitem"><p class="calibre3">Chrome: with <code class="literal">-webkit-</code></p></li><li class="listitem"><p class="calibre3">Safari: alternative implementation</p></li><li class="listitem"><p class="calibre3">IE &gt;= 10: with <code class="literal">-ms-</code></p></li><li class="listitem"><p class="calibre3">Opera &gt;= 11.1: with <code class="literal">-o-</code></p></li></ul></div><p class="calibre3">So, a gradient that works cross-browser looks like this:</p><pre class="screen">#gradient-example {
+  /* Fallback */
+  background: #FFF;
+  /* Chrome &lt; 10, Safari &lt; 5.1 */
+  background: -webkit-gradient(linear, left top, left bottom, from(#FFF), to(#CCC));
+  /* Chrome &gt;= 10, Safari &gt;= 5.1 */
+  background: -webkit-linear-gradient(#FFF, #CCC);
+  /* Firefox &gt;= 3.6 */
+  background: -moz-linear-gradient(#FFF, #CCC);
+  /* Opera &gt;= 11.1 */
+  background: -o-linear-gradient(#FFF, #CCC);
+  /* IE &gt;= 10 */
+  background: -ms-linear-gradient(#FFF, #CCC);
+  /* The standard */
+  background: linear-gradient(#FFF, #CCC);
+}</pre><p class="calibre3">Phew, that’s quite a mouthful! Luckily, projects like Less and Sass
+    take the pain out of it, which I’ll elaborate on later in this
+    chapter.</p></div></div>
+
+{% endraw %}
+

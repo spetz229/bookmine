@@ -1,0 +1,64 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch08s02.html
+next: OEBPS/ch08s04.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Real-Time Architecture"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect18_d1e7801" class="calibre1"></a>Real-Time Architecture</h1></div></div></div><p class="calibre3"><a id="I_indexterm8_d1e7805" class="calibre1"></a>It’s all very well being able to push data to clients in
+    theory, but how does that integrate with a JavaScript application? Well,
+    if your application is modeled correctly, it’s actually remarkably
+    straightforward. We’re going to go through all the steps involved in
+    making your application real time, specifically following the PubSub
+    pattern. The first thing to understand is the process that updates go
+    through to reach clients.</p><p class="calibre3">A real-time architecture is event-driven.<a id="I_indexterm8_d1e7813" class="calibre1"></a> Typically, events are driven by user interaction: a user
+    changes a record and events are propagated throughout the system until
+    data is pushed to connected clients, updating them. When you’re thinking
+    about making your application real time, you need to consider two
+    things:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre3">Which models need to be real time?</p></li><li class="listitem"><p class="calibre3">When those models’ instances change, which users need
+        notifying?</p></li></ul></div><p class="calibre3">It may be that when a model changes, you want to send notifications
+    to all connected clients. This would be the case for a real-time activity
+    feed on the home page, for example, where every client saw the same
+    information. However, the common use case is when you have a resource
+    associated with a particular set of users. You need to notify those users
+    of that resource change.</p><p class="calibre3">Let’s consider an example scenario of a chat room:<a id="I_indexterm8_d1e7831" class="calibre1"></a></p><div class="book"><ol class="orderedlist"><li class="listitem"><p class="calibre3">A user posts a new message to the room.</p></li><li class="listitem"><p class="calibre3">An Ajax request is sent off to the server, and a <code class="literal">Chat</code> record is created.</p></li><li class="listitem"><p class="calibre3">Save callbacks fire on the <code class="literal">Chat</code> model, invoking our method to update
+        clients.</p></li><li class="listitem"><p class="calibre3">We search for all users associated with the <code class="literal">Chat</code> record’s room—these are the ones we
+        need to notify.</p></li><li class="listitem"><p class="calibre3">An update detailing what’s happened (<code class="literal">Chat</code> record created) is pushed to the
+        relevant users.</p></li></ol></div><p class="calibre3">The process details are specific to your chosen backend. However, if
+    you’re using Rails, <a class="ulink" href="http://github.com/maccman/holla">Holla</a><a id="I_indexterm8_d1e7866" class="calibre1"></a> is a good example. When <code class="literal">Message</code> records are created, the <code class="literal">JuggernautObserver</code> updates relevant
+    clients.</p><p class="calibre3">That brings us to the next question: how can we send notifications
+    to specific users? Well, an excellent way of doing so is with the PubSub
+    pattern:<a id="I_indexterm8_d1e7878" class="calibre1"></a> clients subscribe to particular channels and servers
+    publish to those channels. A user just subscribes to a unique channel
+    containing an identifier, perhaps the user’s database ID; then, the server
+    simply needs to publish to that unique channel to send notifications to
+    that specific user.</p><p class="calibre3">For example, a particular user could subscribe to the following
+    channel:</p><pre class="screen">/observer/0765F0ED-96E6-476D-B82D-8EBDA33F4EC4</pre><p class="calibre3">where the random set of digits is a unique identifier for the
+    currently logged-in user. To send notifications to that particular user,
+    the server just needs to publish to that same channel.</p><p class="calibre3">You may be wondering how the PubSub pattern works with transports
+    like WebSockets and Comet. Fortunately, there are already a lot of
+    solutions, such as Juggernaut and Pusher, both mentioned previously.
+    PubSub is a common abstraction on top of WebSockets, and its API should be
+    fairly similar to whatever service or library you end up choosing.</p><p class="calibre3">Once notifications have been pushed to clients, you’ll see the real
+    beauty of the MVC architecture. Let’s go back to our chat example. The
+    notification we sent out to clients could look like this.</p><pre class="screen">{
+  "klass":  "Chat",
+  "type":   "create",
+  "id":     "3",
+  "record": {"body": "New chat"}
+}</pre><p class="calibre3">It contains the model that’s changed, the type of change, and any
+    relevant attributes. Using this, our client can create a new <code class="literal">Chat</code> record locally. As the client’s models are
+    bound to the UI, the interface is automatically updated to reflect the new
+    chat message.</p><p class="calibre3">What’s brilliant is that none of this is specific to the <code class="literal">Chat</code> model. If we want to make another model
+    real time, it’s just a case of adding another observer server side, making
+    sure clients are updated when it changes. Our backend and client-side
+    models are now tied together. Any changes to the backend models get
+    automatically propagated to all the relevant clients, updating their UI.
+    With this architecture, the application is truly real time. Any
+    interaction a user makes is instantly broadcast to other users.</p></div></div>
+
+{% endraw %}
+

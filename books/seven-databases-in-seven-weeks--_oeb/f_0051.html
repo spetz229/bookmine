@@ -1,0 +1,110 @@
+---
+layout: page
+title: "Seven Databases in Seven Weeks (for Greg Kennedy)"
+prev: f_0050.html
+next: f_0052.html
+book_path: books/seven-databases-in-seven-weeks--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="N19740" class="calibre18">7.5 Wrap-Up</h2>
+<p id="N19744" class="calibre5">
+      Neo4j is a top open source implementation of the (relatively rare) class of graph databases. Graph databases focus on the relationships between data, rather than the commonalities among values. Modeling graph data is simple. You just create nodes and relationships between them and optionally hang key-value pairs from them. Querying is as easy as declaring how to walk the graph from a starting node.
+    </p>
+<h3 id="sec.neo4jStrengths" class="calibre20">Neo4j’s Strengths</h3>
+<p id="N1974C" class="calibre5">
+        Neo4j is one of the finest examples of open source graph databases. Graph databases are perfect for unstructured data, in many ways even more so than document datastores. Not only is Neo4j typeless and schemaless, but it puts no constraints on how data is related. It is, in the best sense, a free-for-all. Currently, Neo4j can support 34.4 billion nodes and 34.4 billion relationships, which is more than enough for most uses (Neo4j could hold more than 42 nodes for each of Facebook’s 800 million users in a single graph). 
+      </p>
+<p id="N19757" class="calibre5">
+        The Neo4j distributions provide several tools for fast lookups with Lucene and easy-to-use (if sometimes cryptic) language extensions like Gremlin and the REST interface. Beyond ease of use, Neo4j is fast. Unlike join operations in relational databases or map-reduce operations in other databases, graph traversals are constant time. Like data is only a node step away, rather than joining values in bulk and filtering the desired results—as most of the databases we’ve seen operate. It doesn’t matter how large the graph becomes; moving from node A to node B is always one step if they share a relationship. Finally, the Enterprise edition provides for highly available and high read-traffic sites by way of Neo4j HA.
+      </p>
+<h3 id="sec.neo4jWeaknesses" class="calibre20">Neo4j’s Weaknesses</h3>
+<p id="N1975F" class="calibre5">
+        Neo4j does have a few shortcomings. Edges in Neo4j cannot direct a vertex back on itself. We also found its choice of nomenclature (<span class="calibre6">node</span> rather than <span class="calibre6">vertex</span>, and <span class="calibre6">relationship</span> rather than <span class="calibre6">edge</span>) to add complexity when communicating. Although HA is excellent at replication, it can only replicate a full graph to other servers. It cannot currently shard subgraphs, which still places a limit on graph size (though, to be fair, that limit measures in the tens of billions). Finally, if you are looking for a business-friendly open source license (like MIT), Neo4j may not be for you. Where the Community edition (everything we used in the first two days) is GPL, if you want to run a production environment using the Enterprise tools (which includes HA and backups), you’ll probably need to purchase a license.
+        </p>
+<h3 id="sec.neo4jonCAP" class="calibre20">Neo4j on CAP</h3>
+<p id="N1977C" class="calibre5">
+        If you choose to distribute, the name “high availability” cluster should give away their strategy. Neo4j HA is available and partition tolerant (AP). Each slave will return only what it currently has, which may be out of sync with the master node temporarily. Although you can reduce the update latency by increasing a slave’s pull interval, it’s still technically eventually consistent. This is why Neo4j HA is recommended for read-mostly requirements.
+      </p>
+<h3 class="calibre20">Parting Thoughts</h3>
+<p id="N19788" class="calibre5">
+        Neo4j’s simplicity can be off-putting if you’re not used to modeling graph data. It provides a powerful open source API with years of production use and yet still has relatively few users. We chalk this up to lack of knowledge, since graph databases mesh so naturally with how humans tend to conceptualize data. We imagine our families as trees, or our friends as graphs; most of us don’t imagine personal relationships as self-referential datatypes. For certain classes of problems, like social networks, Neo4j is an obvious choice. But you should give it some serious consideration for nonobvious problems as well—it just may surprise you how powerful and easy it is.
+      </p>
+
+<div class="footnotes">
+<h4 class="calibre21">Footnotes</h4>
+<table cellspacing="3" class="table-of-contents">
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-47" href="f_0049.html#FNPTR-47">[47]</a>
+</td>
+<td class="calibre9">
+<p id="N18EAD" class="calibre5">
+<a href="http://api.neo4j.org/current/org/neo4j/graphalgo/GraphAlgoFactory.html">http://api.neo4j.org/current/org/neo4j/graphalgo/GraphAlgoFactory.html</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-48" href="f_0049.html#FNPTR-48">[48]</a>
+</td>
+<td class="calibre9">
+<p id="N18F8F" class="calibre5">
+<a href="http://docs.neo4j.org/chunked/stable/gremlin-plugin.html">http://docs.neo4j.org/chunked/stable/gremlin-plugin.html</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-49" href="f_0049.html#FNPTR-49">[49]</a>
+</td>
+<td class="calibre9">
+<p id="N18FD5" class="calibre5">
+<a href="http://download.freebase.com/datadumps/latest/browse/film/performance.tsv">http://download.freebase.com/datadumps/latest/browse/film/performance.tsv</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-50" href="f_0049.html#FNPTR-50">[50]</a>
+</td>
+<td class="calibre9">
+<p id="N19301" class="calibre5">
+<a href="http://blueprints.tinkerpop.com">http://blueprints.tinkerpop.com</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-51" href="f_0050.html#FNPTR-51">[51]</a>
+</td>
+<td class="calibre9">
+<p id="N194FD" class="calibre5">
+<a href="http://neo4j.org/download/">http://neo4j.org/download/</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-52" href="f_0050.html#FNPTR-52">[52]</a>
+</td>
+<td class="calibre9">
+<p id="N19664" class="calibre5">
+<a href="http://localhost:7471/webadmin/#/info/org.neo4j/High%20Availability/">http://localhost:7471/webadmin/#/info/org.neo4j/High%20Availability/</a>
+</p>
+</td>
+</tr>
+</table>
+</div>
+<div class="copyright">Copyright © 2012, The Pragmatic Bookshelf.</div>
+
+
+
+
+<script src="scripts/book_local.js" type="text/javascript" class="calibre3"/>
+</div>
+
+{% endraw %}
+

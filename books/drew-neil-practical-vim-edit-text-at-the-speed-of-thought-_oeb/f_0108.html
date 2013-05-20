@@ -1,0 +1,148 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0107.html
+next: f_0109.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.pattern.submatch">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 75</td>
+<td class="arr-recipe-name">Use Parentheses to Capture Submatches</td>
+</tr>
+</table>
+<p id="N18520" class="calibre4">
+<span class="calibre5">
+        When specifying a pattern, we can capture submatches and then reference them elsewhere. This feature is especially useful in combination with the substitute command, but it can also be used to define patterns where a word is repeated.
+    </span>
+</p>
+<p id="N18536" class="calibre4">
+      Take this excerpt of text:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/patterns/springtime.txt">patterns/springtime.txt</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​I love Paris in the​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​the springtime.​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N18549" class="calibre4">
+      Can you spot the grammatical error? It’s surprisingly hard to see because of a trick that our mind plays on us, but it should pop out with emphasis: “Paris in <span class="calibre5">the the</span> springtime.” When a line break separates two occurrences of the same word, our brain tends to ignore the duplicate. The effect is called a <span class="calibre5">lexical illusion</span>.<a id="FNPTR-20" href="f_0111.html#FOOTNOTE-20">[20]</a>
+</p>
+<p id="N18557" class="calibre4">
+      Here’s a regular expression that matches duplicate words:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">/\v&lt;(\w+)\_s+\1&gt;</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N18567" class="calibre4">
+      Now try searching for this pattern on the springtime excerpt, and you should see “the the” light up as a search match. Now try joining the two lines together (<span class="calibre17">vipJ</span> will do it), and you should find that it still matches. Best of all, this pattern doesn’t just match “the the,” it works for <span class="calibre5">any</span> pair of duplicate words. Let’s pick the regular expression apart and see how it works.
+    </p>
+<p id="N18570" class="calibre4">
+      The trick to matching the same word twice lies in the combination of <code class="cf">()</code> and <code class="cf">\1</code>. Anything that matches inside of parentheses is automatically assigned to a temporary silo. We can reference the captured text as <code class="cf">\1</code>. If our pattern contained more than one set of parentheses, then we could reference the submatch for each pair of <code class="cf">()</code> by using <code class="cf">\1</code>, <code class="cf">\2</code>, and so on, up to <code class="cf">\9</code>. The <code class="cf">\0</code> item always refers to the entire match, whether or not parentheses were used in the pattern.
+    </p>
+<p id="N1858B" class="calibre4">
+      The regular expression for matching lexical illusions contains several other tricks. We’ve already seen in <a xmlns:str="http://exslt.org/strings" href="f_0106.html#sec.pattern.search">Tip 73</a>, that the <code class="cf">\v</code> pattern switch enables <code class="cf">very magic</code> search. The <code class="cf">&lt;</code> and <code class="cf">&gt;</code> symbols match word boundaries, as discussed in <a xmlns:str="http://exslt.org/strings" href="f_0109.html#sec.word.boundaries">Tip 76</a>. Finally, the <code class="cf">\_s</code> item matches whitespace or a line break (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">/\_</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/pattern.html#/\_">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a> and <strong xmlns:str="http://exslt.org/strings" class="calibre10">27.8</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/usr_27.html#27.8">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>, respectively).
+    </p>
+<p id="N185BA" class="calibre4">
+      There aren’t many scenarios where submatches are useful in a search pattern. One more example springs to mind: matching opening and closing pairs of XML or HTML tags. But as we’ll see in <a xmlns:str="http://exslt.org/strings" href="f_0128.html#sec.substitute.capture">Tip 93</a>, we can also use submatches in the replacement <code class="cf">{string}</code> of the <code class="cf">:substitute</code> command.
+    </p>
+<div class="sidebar" id="sidebar.noncapturing.groups">
+<div class="sidebar-title">Use Parentheses Without Capturing Their Contents</div>
+<div class="calibre1">
+<p id="N185D5" class="calibre4">
+      Sometimes we may want to use parentheses for grouping, while we may have no interest in capturing the submatch. For example, take this pattern, which matches both forms of my name:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix4" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline4" valign="top">
+<div class="calibre38">
+​<code class="calibre39">​<strong class="prompt">/\v(And|D)rew Neil</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N185EF" class="calibre4">
+      Here we’re using parentheses to match either “Andrew” or “Drew,” but we’re probably not interested in capturing the “And or D” fragment that is wrapped in parentheses. We can tell Vim not to bother assigning it to the <code class="cf1">\1</code> register by prepending a <code class="cf1">%</code> in front of the parentheses, like this:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix4" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline4" valign="top">
+<div class="calibre38">
+​<code class="calibre39">​<strong class="prompt">/\v%(And|D)rew Neil</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N18605" class="calibre4">
+      What difference does this make? Well, it’s a smidge faster, not that you’re likely to notice. But it can be useful if you find yourself using several sets of parentheses. Suppose we wanted to replace all occurrences of <code class="cf1">FIRSTNAME LASTNAME</code> with <code class="cf1">LASTNAME, FIRSTNAME</code> for both forms of my name. We could do so like this:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix4" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline4" valign="top">
+<div class="calibre38">
+​<code class="calibre39">​<strong class="prompt">/\v(%(And|D)rew) (Neil)</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix4" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline4" valign="top">
+<div class="calibre38">
+​<code class="calibre39">​<strong class="prompt">:%s//\2, \1/g</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N18620" class="calibre4">
+      The search pattern assigns either “Andrew” or “Drew” to capture register <code class="cf1">\1</code> and assigns “Neil” to register <code class="cf1">\2</code>. If we hadn’t used <code class="cf1">%()</code> for the second set of parentheses, then it would have captured a fragment of text unnecessarily, cluttering up our replacement field.
+    </p>
+</div>
+</div>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

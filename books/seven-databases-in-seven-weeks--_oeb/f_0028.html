@@ -1,0 +1,39 @@
+---
+layout: page
+title: "Seven Databases in Seven Weeks (for Greg Kennedy)"
+prev: f_0027.html
+next: f_0029.html
+book_path: books/seven-databases-in-seven-weeks--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<div class="calibre19"></div><h1 class="chapter-title" id="chp.hbase">
+<span class="chapter-number">
+	      Chapter
+	      4</span>
+<br class="calibre1"/>
+<span class="chapter-name">HBase</span>
+</h1>
+
+<p id="N13BC9" class="calibre5">
+    Apache HBase is made for big jobs, like a nail gun. You would never use HBase to catalog your corporate sales list, just like you’d never use a nail gun to build a dollhouse. If your data is not measured by many gigabytes, you probably need a smaller tool.
+  </p>
+<p id="N13BD2" class="calibre5">
+HBase, at first glance, looks a lot like a relational database—so much so that if you didn’t know any better, you might think that it is one.  The most challenging part of learning HBase isn’t the technology; it’s that many of the words used in HBase are coaxingly, deceptively familiar.  For example, HBase stores data in buckets it calls <span class="calibre6">tables</span>, which contain <span class="calibre6">cells</span> that appear at the intersection of <span class="calibre6">rows</span> and <span class="calibre6">columns</span>.  So far so good, right?
+  </p>
+<p id="N13BE1" class="calibre5">
+Wrong! In HBase, tables don’t behave like relations, rows don’t act like records, and columns are completely variable (not enforced by a schema description).  Schema design is still important, since it informs the performance characteristics of the system, but it won’t keep your house in order.  HBase is the evil twin, the bizarro, if you will, of RDBMS.
+  </p>
+<p id="N13BE5" class="calibre5">
+So, why would you use this database?  Aside from scalability, there are a few reasons.  First, HBase has some built-in features that other databases lack, such as versioning, compression, garbage collection (for expired data), and in-memory tables.  Having these features available right out of the box means less code that you have to write when your requirements demand them.  HBase also makes strong consistency guarantees, making it easier to transition from relational databases.  
+  </p>
+<p id="N13BE8" class="calibre5">
+For all of these reasons, HBase really shines as the cornerstone of an online analytics processing system.  While individual operations may be slower than equivalent operations in other databases, scanning through enormous datasets is something HBase takes to with relish.  So, for genuinely big queries, HBase often outpaces other databases.  This also explains why HBase is often employed at big companies to back logging and search systems.
+  </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre3"/>
+</div>
+
+{% endraw %}
+

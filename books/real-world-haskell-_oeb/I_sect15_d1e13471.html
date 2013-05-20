@@ -1,0 +1,209 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect15_d1e13394.html
+next: I_sect15_d1e13753.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect15_d1e13394.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect15_d1e13753.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect15_d1e13471" class="calibre27" id="I_sect15_d1e13471"></a><h3 id="title-IDAKEJUH" class="docSection1Title">5.10. Pretty Printing a String</h3><a name="x_fn" class="calibre27" id="x_fn"></a><p class="docText">When we must pretty print a string value, JSON has
+    moderately involved escaping rules that we must follow. At the highest
+    level, a string is just a series of characters wrapped in quotes:</p><pre class="calibre39">-- file: ch05/PrettyJSON.hs
+string :: String -&gt; Doc
+string = enclose '"' '"' . hcat . map oneChar</pre><br class="calibre48"/>
+<a name="I_sect15_d1e13471d1e13542" class="calibre27" id="I_sect15_d1e13471d1e13542"></a><div class="docNote"><p class="docNormalTitle">NOTE</p><p class="calibre37"><a name="x_qD1" class="calibre27" id="x_qD1"></a></p><p class="docText">This style of writing a definition exclusively as a
+      composition of other functions is <a name="I_indexterm5_d1e13483" class="calibre27" id="I_indexterm5_d1e13483"></a>called <span class="docEmphasis">point-free style</span>. The use of
+      the word <span class="docEmphasis">point</span> is not related to <a name="I_indexterm5_d1e13493" class="calibre27" id="I_indexterm5_d1e13493"></a><a name="I_indexterm5_d1e13496" class="calibre27" id="I_indexterm5_d1e13496"></a>the "<tt class="calibre34">.</tt>" character used for
+      function composition. The term <span class="docEmphasis">point</span> is roughly
+      synonymous (in Haskell) with <span class="docEmphasis">value</span>, so a
+      <span class="docEmphasis">point-free</span> expression<a name="I_indexterm5_d1e13514" class="calibre27" id="I_indexterm5_d1e13514"></a> makes no mention of the values that it operates
+      on.</p><a name="x_rD1" class="calibre27" id="x_rD1"></a><p class="docText">Contrast this point-free definition of <i class="docEmphasis">string</i> with this "pointy"
+      version, which uses a variable, <span class="docMonofont">s</span>, to refer to the
+      value on which it operates:</p><pre class="calibre39">-- file: ch05/PrettyJSON.hs
+pointyString :: String -&gt; Doc
+pointyString s = enclose '"' '"' (hcat (map oneChar s))</pre><br class="calibre48"/>
+</div><a name="x_hn" class="calibre27" id="x_hn"></a><p class="docText">The <i class="docEmphasis">enclose</i>
+    function<a name="I_indexterm5_d1e13536" class="calibre27" id="I_indexterm5_d1e13536"></a> simply wraps a Doc value with an opening and
+    closing character:</p><pre class="calibre39">-- file: ch05/PrettyJSON.hs
+enclose :: Char -&gt; Char -&gt; Doc -&gt; Doc
+enclose left right x = char left &lt;&gt; x &lt;&gt; char right</pre><br class="calibre48"/>
+<a name="x_in" class="calibre27" id="x_in"></a><p class="docText">We provide a <i class="docEmphasis">(&lt;&gt;)</i> function<a name="I_indexterm5_d1e13550" class="calibre27" id="I_indexterm5_d1e13550"></a><a name="I_indexterm5_d1e13553" class="calibre27" id="I_indexterm5_d1e13553"></a><a name="I_indexterm5_d1e13556" class="calibre27" id="I_indexterm5_d1e13556"></a> in our pretty-printing library. It appends two
+    Doc values, so it's the Doc equivalent of
+    <i class="docEmphasis">(++)</i>:</p><pre class="calibre39">-- file: ch05/PrettyStub.hs
+(&lt;&gt;) :: Doc -&gt; Doc -&gt; Doc
+a &lt;&gt; b = undefined
+
+char :: Char -&gt; Doc
+char c = undefined</pre><br class="calibre48"/>
+<a name="x_jn" class="calibre27" id="x_jn"></a><p class="docText">Our pretty-printing library also provides <i class="docEmphasis">hcat</i>, which concatenates multiple
+    Doc values into one—it's the analogue of <i class="docEmphasis">concat</i> for lists:</p><pre class="calibre39">-- file: ch05/PrettyStub.hs
+hcat :: [Doc] -&gt; Doc
+hcat xs = undefined</pre><br class="calibre48"/>
+<a name="x_kn" class="calibre27" id="x_kn"></a><p class="docText">Our <i class="docEmphasis">string</i>
+    function<a name="I_indexterm5_d1e13590" class="calibre27" id="I_indexterm5_d1e13590"></a> applies the <i class="docEmphasis">oneChar</i>
+    function to every character in a string, concatenates the lot, and
+    encloses the result in quotes. The <i class="docEmphasis">oneChar</i> function escapes or renders an
+    individual character:</p><pre class="calibre39">-- file: ch05/PrettyJSON.hs
+oneChar :: Char -&gt; Doc
+oneChar c = case lookup c simpleEscapes of
+              Just r -&gt; text r
+              Nothing | mustEscape c -&gt; hexEscape c
+                      | otherwise    -&gt; char c
+    where mustEscape c = c &lt; ' ' || c == '\x7f' || c &gt; '\xff'
+
+simpleEscapes :: [(Char, String)]
+simpleEscapes = zipWith ch "\b\n\f\r\t\\\"/" "bnfrt\\\"/"
+    where ch a b = (a, ['\\',b])</pre><br class="calibre48"/>
+<a name="x_ln" class="calibre27" id="x_ln"></a><p class="docText">The <i class="docEmphasis">simpleEscapes</i>
+    value is a list of pairs. We call a list of pairs <a name="I_indexterm5_d1e13608" class="calibre27" id="I_indexterm5_d1e13608"></a><a name="I_indexterm5_d1e13613" class="calibre27" id="I_indexterm5_d1e13613"></a>an <span class="docEmphasis">association list</span>, or
+    <span class="docEmphasis">alist</span> for short. Each element of our alist associates
+    a character with its escaped <span class="docEmphasis">representation</span>:</p><pre class="calibre39">ghci&gt; <b class="calibre40">take 4 simpleEscapes</b>
+[('\b',"\\b"),('\n',"\\n"),('\f',"\\f"),('\r',"\\r")]
+</pre><a name="x_mn" class="calibre27" id="x_mn"></a><p class="docText">Our <tt class="calibre34">case</tt> expression
+    attempts to see whether our character has a match in this alist. If we
+    find the match, we emit it; otherwise, we might need to escape the
+    character in a more complicated way. If so, we perform this escaping. Only
+    if neither kind of escaping is required do we emit the plain character. To
+    be conservative, printable ASCII characters are the only unescaped
+    characters we emit.</p><a name="x_nn" class="calibre27" id="x_nn"></a><p class="docText">The more complicated escaping involves turning a character
+    into the string <tt class="calibre34">"\u"</tt> followed by a four-character sequence of
+    hexadecimal digits representing the numeric value of the Unicode
+    character:</p><pre class="calibre39">-- file: ch05/PrettyJSON.hs
+smallHex :: Int -&gt; Doc
+smallHex x  = text "\\u"
+           &lt;&gt; text (replicate (4 - length h) '0')
+           &lt;&gt; text h
+    where h = showHex x ""</pre><br class="calibre48"/>
+<a name="x_on" class="calibre27" id="x_on"></a><p class="docText">The <i class="docEmphasis">showHex</i>
+    function<a name="I_indexterm5_d1e13649" class="calibre27" id="I_indexterm5_d1e13649"></a><a name="I_indexterm5_d1e13652" class="calibre27" id="I_indexterm5_d1e13652"></a> comes from the <tt class="calibre34">Numeric</tt> library (you will need
+    to import this at the beginning of <i class="docEmphasis">Prettify.hs</i>) and returns a hexadecimal
+    representation of a number:</p><pre class="calibre39">ghci&gt; <b class="calibre40">showHex 114111 ""</b>
+"1bdbf"
+</pre><a name="x_pn" class="calibre27" id="x_pn"></a><p class="docText">The <i class="docEmphasis">replicate</i>
+    function<a name="I_indexterm5_d1e13673" class="calibre27" id="I_indexterm5_d1e13673"></a> is provided by the <tt class="calibre34">Prelude</tt> and builds a
+    fixed-length repeating list of its argument:</p><pre class="calibre39">ghci&gt; <b class="calibre40">replicate 5 "foo"</b>
+["foo","foo","foo","foo","foo"]
+</pre><a name="x_qn" class="calibre27" id="x_qn"></a><p class="docText">There's a wrinkle: the four-digit encoding that <i class="docEmphasis">smallHex</i> provides can only represent Unicode
+    characters up to <tt class="calibre34">0xffff</tt>. Valid Unicode characters can range
+    up to <tt class="calibre34">0x10ffff</tt>. To properly represent a character above
+    <tt class="calibre34">0xffff</tt> in a JSON string, we follow some complicated rules to
+    split it into two, which gives us an opportunity to perform some bit-level
+    manipulation of Haskell numbers:</p><pre class="calibre39">-- file: ch05/PrettyJSON.hs
+astral :: Int -&gt; Doc
+astral n = smallHex (a + 0xd800) &lt;&gt; smallHex (b + 0xdc00)
+    where a = (n `shiftR` 10) .&amp;. 0x3ff
+          b = n .&amp;. 0x3ff</pre><br class="calibre48"/>
+<a name="x_sn" class="calibre27" id="x_sn"></a><p class="docText">The <i class="docEmphasis">shiftR</i>
+    function<a name="I_indexterm5_d1e13708" class="calibre27" id="I_indexterm5_d1e13708"></a><a name="I_indexterm5_d1e13711" class="calibre27" id="I_indexterm5_d1e13711"></a> comes from the <tt class="calibre34">Data.Bits</tt> module and shifts a
+    number to the right. The <i class="docEmphasis">(.&amp;.)</i>
+    function, also from <tt class="calibre34">Data.Bits</tt>, performs a bit-level
+    <span class="docEmphasis">and</span> of two values:</p><pre class="calibre39">ghci&gt; <b class="calibre40">0x10000 `shiftR` 4   :: Int</b>
+4096
+ghci&gt; <b class="calibre40">7 .&amp;. 2   :: Int</b>
+2</pre><a name="x_tn" class="calibre27" id="x_tn"></a><p class="docText">Now that we've written <i class="docEmphasis">smallHex</i> and <i class="docEmphasis">astral</i>, we can provide a definition for
+    <i class="docEmphasis">hexEscape</i>:</p><pre class="calibre39">-- file: ch05/PrettyJSON.hs
+hexEscape :: Char -&gt; Doc
+hexEscape c | d &lt; 0x10000 = smallHex d
+            | otherwise   = astral (d - 0x10000)
+  where d = ord c</pre><br class="calibre48"/>
+<a href="21061538.html" class="calibre2"><img src="pixel.gif" alt="" border="0" class="calibre31"/></a><ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect15_d1e13394.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect15_d1e13753.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

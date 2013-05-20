@@ -1,0 +1,296 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0046.html
+next: f_0048.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.visual.block.ragged">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 26</td>
+<td class="arr-recipe-name">Append After a Ragged Visual Block</td>
+</tr>
+</table>
+<p id="N12583" class="calibre4">
+<span class="calibre5">
+        Visual-Block mode is great for operating on rectangular chunks of code such as lines and columns, but it’s not confined to rectangular regions of text.
+    </span>
+</p>
+<p id="N125A0" class="calibre4">
+      We’ve already met this snippet of JavaScript:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/the_vim_way/2_foo_bar.js">the_vim_way/2_foo_bar.js</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">var</strong> foo = 1​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">var</strong> bar = <em class="string">'a'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">var</strong> foobar = foo + bar​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N125BE" class="calibre4">
+      Three consecutive lines, each of different length. We want to append a semicolon at the end of each. In <a xmlns:str="http://exslt.org/strings" href="f_0019.html#sec.line.append">Tip 2</a>, we solved this problem using the dot command, but we could just as well use Visual-Block mode. <a xmlns:str="http://exslt.org/strings" href="#table.append-semicolon">Table 8, ​<em class="calibre5">Appending a Semicolon to Multiple Lines in Visual-Block Mode</em>​</a> shows how.
+    </p>
+<hr class="calibre37"/>
+<div class="figurecaption" id="table.append-semicolon">Table 8. Appending a Semicolon to Multiple Lines in Visual-Block Mode</div>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="calibre4">
+<code class="cf">{start}</code>
+</p>
+<p class="last-para-in-cell">
+<code class="cf">
+<span class="calibre5">Normal mode</span>
+</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foo = <span class="shade-fg-white">1</span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var bar = 'a'​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foobar = foo + bar​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="calibre4">
+<span class="calibre17">&lt;C-v&gt;jj$</span>
+</p>
+<p class="last-para-in-cell">
+<code class="cf">
+<span class="calibre5">Visual-Block</span>
+</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foo = <span class="shade-fg-black">1</span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var bar = <span class="shade-fg-black">’a’</span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foobar<span class="shade-fg-black"> = foo + bar</span>
+<span class="shade-fg-white"> </span>​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="calibre4">
+<span class="calibre17">A</span>
+<code class="cf">;</code>
+</p>
+<p class="last-para-in-cell">
+<code class="cf">
+<span class="calibre5">Insert mode</span>
+</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foo = 1;<span class="shade-fg-white"> </span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var bar = 'a'​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foobar = foo + bar​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="calibre4">
+<code class="cf">&lt;Esc&gt;</code>
+</p>
+<p class="last-para-in-cell">
+<code class="cf">
+<span class="calibre5">Normal mode</span>
+</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foo = <span class="shade-fg-white">1</span>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var bar = 'a';​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foobar = foo + bar;​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<hr class="calibre37"/>
+<p id="N12668" class="calibre4">
+      After engaging Visual-Block mode, we extend our selection to the end of each line by pressing <span class="calibre17">$</span>. At first glance, one might expect this to cause difficulty because each line is  a different length. But in this context, Vim understands that we want to extend our selection to the end of all selected lines. This lets us break free from our rectangular constraints, creating a selection that traces the ragged right edge of our text.
+    </p>
+<p id="N1266E" class="calibre4">
+      Having defined our selection, we can append at the end of each line using the <span class="calibre17">A</span> command (see <a xmlns:str="http://exslt.org/strings" href="#sidebar.ia.conventions">​<em class="calibre5">Vim’s Conventions for “i” and “a” Keys</em>​</a>). This drops us into Insert mode on the topmost line of our selection. Anything that we type will appear on this line only for the duration of Insert mode, but as soon as we revert to Normal mode, our changes are propagated across the rest of the lines that we selected.
+	  </p>
+<div class="sidebar" id="sidebar.ia.conventions">
+<div class="sidebar-title">Vim's Conventions for “i” and “a” Keys</div>
+<div class="calibre1">
+<p id="N1268C" class="calibre4">
+        Vim has a couple of conventions for switching from Normal to Insert mode. The <span class="calibre17">i</span> and <span class="calibre17">a</span> commands both do it, positioning the cursor in front of or after the current <span class="calibre5">character</span>, respectively. The <span class="calibre17">I</span> and <span class="calibre17">A</span> commands behave similarly, except that they position the cursor at the start or end of the current <span class="calibre5">line</span>.
+      </p>
+<p id="N126C0" class="calibre4">
+        Vim follows similar conventions for switching from Visual-Block to Insert mode. The <span class="calibre17">I</span> and <span class="calibre17">A</span> commands both do it, placing the cursor at the start or end of the <span class="calibre5">selection</span>, respectively. So what about the <span class="calibre17">i</span> and <span class="calibre17">a</span> commands; what do they do in Visual mode?
+      </p>
+<p id="N126DC" class="calibre4">
+        In Visual and Operator-Pending modes the <span class="calibre17">i</span> and <span class="calibre17">a</span> keys follow a different convention: they form the first half of a <span class="calibre5">text object</span>. These are covered in greater depth in <a xmlns:str="http://exslt.org/strings" href="f_0078.html#sec.text.objects">Tip 51</a>. If you’ve made a selection with Visual-Block mode and you wonder why you’re not in Insert mode after pressing <span class="calibre17">i</span>, try using <span class="calibre17">I</span> instead.
+      </p>
+</div>
+</div>
+
+<div class="footnotes">
+<h4 class="calibre20">Footnotes</h4>
+<table cellspacing="3" class="table-of-contents">
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-6" href="f_0043.html#FNPTR-6">[6]</a>
+</td>
+<td class="calibre8">
+<p id="N11FFE" class="calibre4">
+<a href="http://vimcasts.org/e/2">http://vimcasts.org/e/2</a>
+</p>
+</td>
+</tr>
+</table>
+</div>
+<div class="copyright">Copyright © 2012, The Pragmatic Bookshelf.</div>
+
+
+
+
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

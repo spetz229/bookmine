@@ -1,0 +1,245 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0069.html
+next: f_0071.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.write.sudo">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 45</td>
+<td class="arr-recipe-name">Save a File as the Super User</td>
+</tr>
+</table>
+<p id="N148DF" class="calibre4">
+<span class="calibre5">
+        Running Vim as the super user isn’t normal, but sometimes we have to save changes to a file that requires sudo permission. We can do so without restarting Vim by delegating the task to a shell process and running that with sudo.
+    </span>
+</p>
+<p id="N148F8" class="calibre4">
+      This tip may not work in GVim and certainly won’t work on Windows. It does work on Unix systems when you run Vim inside a terminal, which is a common enough scenario to make this tip worthy of inclusion.
+    </p>
+<p id="N148FB" class="calibre4">
+      Let’s use the <code class="cf">/etc/hosts</code> file to demonstrate. The file is owned by root, but we’re logged in with username “drew,” so we have permission only to read this file:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ ls -al /etc/ | grep hosts</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​-rw-r--r--    1 root  wheel        634  6 Apr 15:59 hosts​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ whoami</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​drew​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14922" class="calibre4">
+      We’ll open up the file in Vim as user drew:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ vim /etc/hosts</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14932" class="calibre4">
+      The first thing to note is that if we press <span class="calibre17">&lt;C-g&gt;</span> to view the file status, Vim labels it as <code class="cf">[readonly]</code>.
+    </p>
+<p id="N1493B" class="calibre4">
+      Let’s try to make a change and see what happens. We’ll run the <span class="calibre17">Go</span> commands to add a blank line at the end of the file. Vim echoes a message that reads “W10: Warning: Changing a readonly file.” Consider this a friendly reminder rather than an absolute rule. After showing the message, Vim proceeds by making the change anyway.
+    </p>
+<p id="N14945" class="calibre4">
+      Vim won’t prevent us from making changes to a readonly buffer, but it will prevent us from saving the changes to disk in the usual manner:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:write</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​E45: 'readonly' option is set (add ! to override)​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1495C" class="calibre4">
+      Let’s follow the advice in the message and repeat the command with a trailing bang symbol (which can be read as “This time I mean it!”):
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:write!</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​"/etc/hosts" E212: Can't open file for writing​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14970" class="calibre4">
+      The problem here is that we don’t have permission to write the <code class="cf">/etc/hosts</code> file. Remember: it’s owned by root, and we’re running Vim as user drew. The remedy is this strange-looking command:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:w !sudo tee % &gt; /dev/null</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​Password:​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​W12: Warning: File "hosts" has changed and the buffer was​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​changed in Vim as well​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​[O]k, (L)oad File, Load (A)ll, (I)gnore All: ​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14990" class="calibre4">
+      Vim requires interaction from us in two ways: first we have to enter the password for user drew (look away while I type it); then Vim warns us that the file has changed and prompts us with a menu of options. I recommend pressing <span class="calibre17">l</span> to load the file back into the buffer.
+    </p>
+<p id="N14996" class="calibre4">
+      How does it work? The <code class="cf">:write !{cmd}</code> command sends the contents of the buffer as standard input to the specified <code class="cf">{cmd}</code>, which can be any external program (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">:write_c</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/editing.html#:write_c">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). Vim is still running as user drew, but we can tell our external process to operate as the superuser. In this case, the <code class="cf">tee</code> utility is executed with sudo permissions, which means that it can write to the <code class="cf">/etc/hosts</code> file.
+    </p>
+<p id="N149AE" class="calibre4">
+      The <code class="cf">%</code> symbol has special meaning on Vim’s command line: it expands to represent the path of the current buffer (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">:_%</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/cmdline.html#:_%">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>), in this case <code class="cf">/etc/hosts</code>. So we can expand the final part of this command to read as follows: <code class="cf">tee /etc/hosts &gt; /dev/null</code>. This command receives the contents of the buffer as standard input, using it to overwrite the contents of the <code class="cf">/etc/hosts</code> file.
+    </p>
+<p id="N149C6" class="calibre4">
+      Vim detects that the file has been modified by an external program. Usually that would mean that the contents of the buffer and the file were out of sync, which is why Vim prompts us to choose whether we want to keep the version in the buffer or load the version on disk. In this case, the file and buffer happen to have the same contents.
+    </p>
+
+<div class="footnotes">
+<h4 class="calibre20">Footnotes</h4>
+<table cellspacing="3" class="table-of-contents">
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-12" href="f_0066.html#FNPTR-12">[12]</a>
+</td>
+<td class="calibre8">
+<p id="N1452E" class="calibre4">
+<a href="http://vimcasts.org/episodes/the-edit-command/">http://vimcasts.org/episodes/the-edit-command/</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-13" href="f_0067.html#FNPTR-13">[13]</a>
+</td>
+<td class="calibre8">
+<p id="N14602" class="calibre4">
+<a href="https://github.com/tpope/vim-rails">https://github.com/tpope/vim-rails</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-14" href="f_0068.html#FNPTR-14">[14]</a>
+</td>
+<td class="calibre8">
+<p id="N14829" class="calibre4">
+<a href="http://vimcasts.org/e/15">http://vimcasts.org/e/15</a>
+</p>
+</td>
+</tr>
+</table>
+</div>
+<div class="copyright">Copyright © 2012, The Pragmatic Bookshelf.</div>
+
+
+
+
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

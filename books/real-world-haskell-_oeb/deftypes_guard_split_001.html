@@ -1,0 +1,78 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: deftypes_guard_split_000.html
+next: fp_split_000.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<p class="calibre37"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="sfbody1"><tr class="calibre16"><td class="v3"><h2 class="docSidebarTitle" id="calibre_pb_0">Exercises</h2><div class="calibre15"><ol class="docList2" type="1"><li class="calibre19"><div class="calibre15"><p class="docText">Write a function that computes the number of elements in a
+          list. To test it, ensure that it gives the same answers as the
+          standard <i class="docEmphasis">length</i>
+          function.</p></div></li><li class="calibre19"><div class="calibre15"><p class="docText">Add a type signature for your function to your source file. To
+          test it, load the source file into <i class="docEmphasis">ghci</i> again.</p></div></li><li class="calibre19"><div class="calibre15"><p class="docText">Write a function that computes the mean of a list, i.e., the
+          sum of all elements in the list divided by its length. (You may need
+          to use the <i class="docEmphasis">fromIntegral</i>
+          function to convert the length of the list from an integer into a
+          floating-point number.)</p></div></li><li class="calibre19"><div class="calibre15"><p class="docText">Turn a list into a palindrome; i.e., it should read the same
+          both backward and forward. For example, given the list
+          <tt class="calibre34">[1,2,3]</tt>, your function should return
+          <tt class="calibre34">[1,2,3,3,2,1]</tt>.</p></div></li><li class="calibre19"><div class="calibre15"><p class="docText">Write a function that determines whether its input list is a
+          palindrome.</p></div></li><li class="calibre19"><div class="calibre15"><p class="docText">Create a function that sorts a list of lists based on the
+          length of each sublist. (You may want to look at the <i class="docEmphasis">sortBy</i> function from the
+          <tt class="calibre34">Data.List</tt> module.)</p></div></li><li class="calibre19"><div class="calibre15"><p class="docText">Define a function that joins a list of lists together using a
+          separator value:</p><pre class="calibre39">-- file: ch03/Intersperse.hs
+intersperse :: a -&gt; [[a]] -&gt; [a]</pre><br class="calibre48"/>
+</div></li><li class="calibre19"><div class="calibre15"><p class="docText">The separator should appear between elements of the list, but
+          it should not follow the last element. Your function should behave
+          as follows:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:load Intersperse</b>
+[1 of 1] Compiling Main             ( Intersperse.hs, interpreted )
+Ok, modules loaded: Main.
+ghci&gt; <b class="calibre40">intersperse ',' []</b>
+""
+ghci&gt; <b class="calibre40">intersperse ',' ["foo"]</b>
+"foo"
+ghci&gt; <b class="calibre40">intersperse ',' ["foo","bar","baz","quux"]</b>
+"foo,bar,baz,quux"</pre><br class="calibre48"/>
+</div></li><li class="calibre19"><div class="calibre15"><p class="docText">Using the binary tree type that we defined earlier in this
+          chapter, write a function that will determine the height of the
+          tree. The height is the largest number of hops from the root to an
+          <tt class="calibre34">Empty</tt>. For example, the tree <tt class="calibre34">Empty</tt> has
+          height zero; <tt class="calibre34">Node "x" Empty Empty</tt> has height one;
+          <tt class="calibre34">Node "x" Empty (Node "y" Empty Empty)</tt> has height two;
+          and so on.</p></div></li><li class="calibre19"><div class="calibre15"><p class="docText">Consider three two-dimensional points, <span class="docEmphasis">a</span>,
+          <span class="docEmphasis">b</span>, and <span class="docEmphasis">c</span>. If we look at
+          the angle formed by the line segment from <span class="docEmphasis">a</span> to
+          <span class="docEmphasis">b</span> and the line segment from
+          <span class="docEmphasis">b</span> to <span class="docEmphasis">c</span>, it turns left,
+          turns right, or forms a straight line. Define a
+          <tt class="calibre34">Direction</tt> data type that lets you represent these
+          possibilities.</p></div></li><li class="calibre19"><div class="calibre15"><p class="docText">Write a function that calculates the turn made by three
+          two-dimensional points and returns a Direction.</p></div></li><li class="calibre19"><div class="calibre15"><p class="docText">Define a function that takes a list of two-dimensional points
+          and computes the direction of each successive triple. Given a list
+          of points <tt class="calibre34">[a,b,c,d,e]</tt>, it should begin by computing the
+          turn made by <tt class="calibre34">[a,b,c]</tt>, then the turn made by
+          <tt class="calibre34">[b,c,d]</tt>, then <tt class="calibre34">[c,d,e]</tt>. Your function
+          should return a list of Direction.</p></div></li><li class="calibre19"><div class="calibre15"><p class="docText">Using the code from the preceding three exercises, implement
+          Graham's scan algorithm for the convex hull of a set of 2D points.
+          You can find good description of what a <a class="docLink" target="_blank" href="http://en.wikipedia.org/wiki/Convex_hull">convex hull</a>
+          is, and how the <a class="docLink" target="_blank" href="http://en.wikipedia.org/wiki/Graham_scan">Graham scan
+          algorithm</a> should work, on <a class="docLink" target="_blank" href="http://en.wikipedia.org/">Wikipedia</a>.</p></div></li></ol></div></td></tr></table></p><br class="calibre20"/>
+<a href="21061538.html" class="calibre13"><img src="pixel.gif" alt="" border="0" class="calibre26"/></a><ul class="calibre28"></ul><table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody"><tr class="calibre6"><td valign="middle" class="v1" height="5"><img src="pixel.gif" alt="" border="0" class="calibre8"/></td></tr><tr class="calibre6"><td valign="middle" class="v1"><table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody"><tr class="calibre6"><td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td></tr></table></td><td class="v1"/><td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="deftypes_pattern_limits.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="fp_split_000.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td></tr></table><table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody"><tr class="calibre6"><td valign="top" class="v2"><span class="calibre9"></span></td></tr></table><!--IP User 2--><td class="calibre7">
+                         
+                      </td><tr class="calibre6"><td colspan="3" valign="bottom" class="calibre7"><br class="calibre20"/><p class="v4"></p><br class="calibre20"/></td></tr></div>
+
+{% endraw %}
+

@@ -1,0 +1,137 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: binary_functor.html
+next: I_sect110_d1e26311.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="binary_functor.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect110_d1e26311.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect110_d1e26216" class="calibre27" id="I_sect110_d1e26216"></a><h3 id="643999-846" class="docSection1Title">10.6. Writing a Functor Instance for Parse</h3><a name="x_bS" class="calibre27" id="x_bS"></a><p class="docText">For the types we have surveyed so <a name="I_indexterm10_d1e26221" class="calibre27" id="I_indexterm10_d1e26221"></a>far, the behavior we ought to expect of <i class="docEmphasis">fmap</i> has been obvious. This is a little less
+    clear for Parse,<a name="I_indexterm10_d1e26233" class="calibre27" id="I_indexterm10_d1e26233"></a> due to its complexity. A reasonable guess is that the
+    function we're <i class="docEmphasis">fmap</i>ping should be
+    applied to the current result of a parse, and leave the parse state
+    untouched:</p><pre class="calibre39">-- file: ch10/Parse.hs
+instance Functor Parse where
+    fmap f parser = parser ==&gt; \result -&gt;
+                    identity (f result)</pre><br class="calibre48"/>
+<a name="x_cS" class="calibre27" id="x_cS"></a><p class="docText">This definition is easy to read, so let's perform a few
+    quick experiments to see if we're following our rules for functors.</p><a name="x_dS" class="calibre27" id="x_dS"></a><p class="docText">First, we'll check that identity is preserved. Let's try
+    this first on a parse that ought to fail—parsing a byte from an empty
+    string (remember that <i class="docEmphasis">(&lt;$&gt;)</i> is
+    <i class="docEmphasis">fmap</i>):</p><pre class="calibre39">ghci&gt; <b class="calibre40">parse parseByte L.empty</b>
+Left "byte offset 0: no more input"
+ghci&gt; <b class="calibre40">parse (id &lt;$&gt; parseByte) L.empty</b>
+Left "byte offset 0: no more input"</pre><a name="x_eS" class="calibre27" id="x_eS"></a><p class="docText">Good. Now for a parse that should succeed:</p><pre class="calibre39">ghci&gt; <b class="calibre40">let input = L8.pack "foo"</b>ghci&gt; <b class="calibre40">L.head input</b>
+102
+ghci&gt; <b class="calibre40">parse parseByte input</b>
+Right 102
+ghci&gt; <b class="calibre40">parse (id &lt;$&gt; parseByte) input</b>
+Right 102</pre><a name="x_fS" class="calibre27" id="x_fS"></a><p class="docText">Inspecting these results, we can also see that our
+    Functor instance is obeying our second rule of preserving
+    shape. Failure is preserved as failure, and success as success.</p><a name="x_gS" class="calibre27" id="x_gS"></a><p class="docText">Finally, we'll ensure that composability is
+    preserved:</p><pre class="calibre39">ghci&gt; <b class="calibre40">parse ((chr . fromIntegral) &lt;$&gt; parseByte) input</b>
+Right 'f'
+ghci&gt; <b class="calibre40">parse (chr &lt;$&gt; fromIntegral &lt;$&gt; parseByte) input</b>
+Right 'f'</pre><a name="x_hS" class="calibre27" id="x_hS"></a><p class="docText">On the basis of this brief inspection, our
+    Functor instance appears to be well behaved.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"><a href="21061538.html" class="calibre2"><img src="btn_next_.gif" alt="Next" border="0" class="calibre31"/></a> 
+           
+          <span class="calibre33"><a target="_self" href="binary_functor.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect110_d1e26311.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

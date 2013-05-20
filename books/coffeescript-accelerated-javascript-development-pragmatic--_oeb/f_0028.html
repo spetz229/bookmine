@@ -1,0 +1,344 @@
+---
+layout: page
+title: "CoffeeScript (for jay muratore)"
+prev: f_0027.html
+next: f_0029.html
+book_path: books/coffeescript-accelerated-javascript-development-pragmatic--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="sec.objects" class="calibre13">3.1 Objects as Hashes</h2>
+<p id="N11861" class="calibre5">
+      Let’s start by reviewing what we know about objects in JavaScript and then check out the syntactic additions that CoffeeScript provides.
+    </p>
+<h3 id="sec.objectsRefresher" class="calibre14">Objects 101: A JavaScript Refresher</h3>
+<p id="N11869" class="calibre5">
+        Every programming language worth its bits has some data structure that lets you store arbitrary named values. Whether you call them hashes, maps, dictionaries, or associative arrays, the core functionality is the same: you provide a key and a value, and then you use the key to fetch the value.
+      </p>
+<p id="N1187C" class="calibre5">
+        In JavaScript, every object is a hash. And just about everything is an object; the only exceptions are the <span class="emph">primitives</span> (booleans, numbers, and strings), and a few special constants like <code class="cf">undefined</code> and <code class="cf">NaN</code>.
+      </p>
+<p id="N11888" class="calibre5">
+        The simplest object can be written like this:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">obj = <strong class="prompt">new</strong> Object()</code>
+</td>
+</tr>
+</table>
+<p id="N11899" class="calibre5">
+        Or (more commonly) you can use <span class="acronym">JSON</span>-style syntax:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">obj = {}</code>
+</td>
+</tr>
+</table>
+<p id="N118AA" class="calibre5">
+        In JSON, objects are denoted by <code class="cf">{}</code>, arrays by <code class="cf">[]</code>. Note that JSON is a subset of JavaScript and can usually be pasted directly into CoffeeScript code. (The exception is when the JSON contains indentation that might be misinterpreted by the CoffeeScript compiler.)
+      </p>
+<p id="N118B8" class="calibre5">
+        But there are plenty of other ways of creating objects. In fact, we created a ton of them in the last chapter, because all functions are objects.
+      </p>
+<p id="N118BB" class="calibre5">
+        There are two ways of accessing object properties: dot notation and bracket notation. Dot notation is simple: <code class="cf">obj.x</code> refers to the property of <code class="cf">obj</code> named <code class="cf">x</code>. Bracket notation is more versatile: any expression placed in the brackets is evaluated and converted to a string, and then that string is used as the property name. So <code class="cf">obj[’x’]</code> is always equivalent to <code class="cf">obj.x</code>, while <code class="cf">obj[x]</code> refers to the property whose name matches the (stringified) value of <code class="cf">x</code>.
+      </p>
+<p id="N118D8" class="calibre5">
+        Usually you want to use dot notation if you know a property’s name in advance and bracket notation if you need to determine it dynamically. However, since property names can be arbitrary strings, you might sometimes need to use bracket notation with a literal key:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">symbols.+ = <em class="string">'plus'</em>
+<em class="comment">     # illegal syntax</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">symbols[<em class="string">'+'</em>] = <em class="string">'plus'</em>
+<em class="comment">  # perfectly valid</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N118F7" class="calibre5">
+        We can create objects with several properties at once using JSON-style constructs, which separate keys from values using <code class="cf">:</code> like so:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">father = {</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  name: <em class="string">'John'</em>,</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  daughter: {</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    name: <em class="string">'Jill'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  },</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  son: {</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    name: <em class="string">'Jack'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  }</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">}</code>
+</td>
+</tr>
+</table>
+<p id="N11927" class="calibre5">
+        Note that while curly braces have many uses in JavaScript, their <span class="emph">only</span> purpose in CoffeeScript is to declare objects.
+      </p>
+<p id="N1192D" class="calibre5">
+        Quotes are optional around the keys as long as they obey standard variable naming rules; otherwise, single- or double-quotes can be used:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">symbols = {</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <em class="string">'+'</em>: <em class="string">'plus'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <em class="string">'-'</em>: <em class="string">'minus'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">}</code>
+</td>
+</tr>
+</table>
+<p id="N1194E" class="calibre5">
+        Note that string interpolation is not supported in hash keys.
+        </p>
+<h3 id="sec.yamlLike" class="calibre14">Streamlined JSON</h3>
+<p id="N1195C" class="calibre5">
+        CoffeeScript takes JSON and distills it to its essence. While full-blown JSON is perfectly valid, significant whitespace can be used in place of much of the “symbology”: commas are optional between properties that are separated by new lines, and, best of all, curly braces are optional when an object’s properties are indented. That means that the JSON above can be replaced with something more <span class="acronym">YAML</span>-like:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">father =</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  name: <em class="string">'John'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  daughter:</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    name: <em class="string">'Jill'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  son:</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    name: <em class="string">'Jack'</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N11997" class="calibre5">
+        You can also use this streamlined notation inline:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">fellowship = wizard: <em class="string">'Gandalf'</em>, hobbits: [<em class="string">'Frodo'</em>, <em class="string">'Pippin'</em>, <em class="string">'Sam'</em>]</code>
+</td>
+</tr>
+</table>
+<p id="N119B1" class="calibre5">
+        This code is equivalent to the following:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">fellowship = {wizard: <em class="string">'Gandalf'</em>, hobbits: [<em class="string">'Frodo'</em>, <em class="string">'Pippin'</em>, <em class="string">'Sam'</em>]}</code>
+</td>
+</tr>
+</table>
+<p id="N119CB" class="calibre5">
+        The magic here is that every time the CoffeeScript compiler sees <code class="cf">:</code>, it knows that you’re building an object. This technique is especially handy when a function takes a hash of options as its last argument:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">drawSprite x, y, invert: <strong class="prompt">true</strong>
+</code>
+</td>
+</tr>
+</table>
+<h3 id="sec.sameNamePairs" class="calibre14">Same-Name Key-Value Pairs</h3>
+<p id="N119E3" class="calibre5">
+        One handy trick that CoffeeScript offers is the ability to omit the value from a key-value pair when the value is a variable named by the key. For instance, the following two pieces of code are equivalent. Here’s the short way:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">delta = <em class="string">'\u0394'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">greekUnicode = {delta}</code>
+</td>
+</tr>
+</table>
+<p id="N119F6" class="calibre5">
+       This is a little longer:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">delta = <em class="string">'\u0394'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">greekUnicode = {delta: delta}</code>
+</td>
+</tr>
+</table>
+<p id="N11A09" class="calibre5">
+        (Note that this shorthand only works with explicit curly braces.) We’ll discover a common use for this trick in Section 3.6, <a href="f_0033.html#sec.patternMatching">​<em class="emph">Pattern Matching (or, Destructuring Assignment)</em>​</a>.
+        </p>
+<h3 id="sec.soaks" class="calibre14">Soaks: ’a?.b’</h3>
+<p id="N11A1F" class="calibre5">
+        Before we move on to arrays, there’s one last CoffeeScript feature you should be aware of when accessing object properties: the existential chain operator, which has come to be known as the “soak.”
+      </p>
+<p id="N11A22" class="calibre5">
+        Soaks are a special case of the existential operator we met in Section 2.5, <a href="f_0022.html#sec.defaultArguments">​<em class="emph">Default Arguments (arg =)</em>​</a>. Recall that <code class="cf">a = b ? c</code> means “Set <code class="cf">a</code> to <code class="cf">b</code> if <code class="cf">b</code> exists; otherwise, set <code class="cf">a</code> to <code class="cf">c</code>.” But let’s say that we want to set <code class="cf">a</code> to a <span class="emph">property</span> of <code class="cf">b</code> if <code class="cf">b</code> exists. A naïve attempt might look like this:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">a = b.property ? c<em class="comment">  # bad!</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N11A53" class="calibre5">
+        The problem? If <code class="cf">b</code> doesn’t exist when this code runs, we’ll get a <code class="cf">ReferenceError</code>. That’s because the code only checks that <code class="cf">b.property</code> exists, implicitly assuming that <code class="cf">b</code> itself does.
+      </p>
+<p id="N11A62" class="calibre5">
+        The solution? Put a <code class="cf">?</code> before the property accessor:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">a = b?.property ? c<em class="comment">  # good</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N11A75" class="calibre5">
+        Now if either <code class="cf">b</code> or <code class="cf">b.property</code> doesn’t exist, <code class="cf">a</code> will be set to <code class="cf">c</code>. You can chain as many soaks as you like, with both dots and square brackets, and even use the syntax to check whether a function exists before running it:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">cats?[<em class="string">'Garfield'</em>]?.eat?() <strong class="prompt">if</strong> lasagna?</code>
+</td>
+</tr>
+</table>
+<p id="N11A95" class="calibre5">
+        In one line, we just said that <span class="emph">if</span> there’s lasagna and <span class="emph">if</span> we have cats and <span class="emph">if</span> one is named Garfield and <span class="emph">if</span> Garfield has an <code class="cf">eat</code> function, then run that function!
+      </p>
+<p id="N11AA7" class="calibre5">
+        Pretty cool, right? But sometimes the universe is a little bit more orderly than that. And when I think of things that are ordered, a very special kind of object comes to mind.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

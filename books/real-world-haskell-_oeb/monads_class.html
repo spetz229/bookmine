@@ -1,0 +1,168 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect114_d1e30935.html
+next: I_sect114_d1e31273.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect114_d1e30935.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect114_d1e31273.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="monads_class" class="calibre27" id="monads_class"></a><h3 id="title-IDA3VEVD" class="docSection1Title">14.4. The Monad Typeclass</h3><a name="x_wW" class="calibre27" id="x_wW"></a><p class="docText">We can<a name="I_indexterm14_d1e31082" class="calibre27" id="I_indexterm14_d1e31082"></a> capture the notions of chaining and injection, and the
+    types that we want them to have, in a Haskell typeclass. The standard
+    <tt class="calibre34">Prelude</tt> already defines just such a typeclass, named
+    <tt class="calibre34">Monad</tt>:</p><pre class="calibre39">-- file: ch14/Maybe.hs
+class Monad m where
+    -- chain
+    (&gt;&gt;=)  :: m a -&gt; (a -&gt; m b) -&gt; m b
+    -- inject
+    return :: a -&gt; m a</pre><br class="calibre48"/>
+<a name="x_xW" class="calibre27" id="x_xW"></a><p class="docText">Here, <i class="docEmphasis">(&gt;&gt;=)</i> is
+    our <a name="I_indexterm14_d1e31101" class="calibre27" id="I_indexterm14_d1e31101"></a>chaining function. We've already been introduced to it in
+    <a class="docLink" href="io_monad.html#io_bind">Section 7.5.2</a>. It's often<a name="I_indexterm14_d1e31109" class="calibre27" id="I_indexterm14_d1e31109"></a> referred to as <span class="docEmphasis">bind</span>, as it binds the
+    result of the computation on the left to the parameter of the one on the
+    right.</p><a name="x_yW" class="calibre27" id="x_yW"></a><p class="docText">Our injection function is <tt class="calibre34">return</tt>. As we noted in <a class="docLink" href="io_monad.html#io_return">Section 7.5.3</a>, the choice of the name <tt class="calibre34">return</tt> is a little unfortunate. That name is
+    widely used in imperative languages, where it has a fairly well-understood
+    meaning. In Haskell, its behavior is much less constrained. In particular,
+    calling <tt class="calibre34">return</tt> in the middle of a chain
+    of functions won't cause the chain to exit early. A useful way to link its
+    behavior to its name is that it <span class="docEmphasis">returns</span> a pure value
+    (of type a) into a monad (of type m a). But
+    really, "inject" would be a better name.</p><a name="x_zW" class="calibre27" id="x_zW"></a><p class="docText">While <i class="docEmphasis">(&gt;&gt;=)</i> and
+    <tt class="calibre34">return</tt> are the core functions of the
+    <tt class="calibre34">Monad</tt> typeclass,<a name="I_indexterm14_d1e31152" class="calibre27" id="I_indexterm14_d1e31152"></a><a name="I_indexterm14_d1e31157" class="calibre27" id="I_indexterm14_d1e31157"></a> it also defines two other functions. The first is <i class="docEmphasis">(&gt;&gt;)</i>. Like <i class="docEmphasis">(&gt;&gt;=)</i>, it performs chaining, but it
+    ignores the value on the left:</p><pre class="calibre39">-- file: ch14/Maybe.hs
+    (&gt;&gt;) :: m a -&gt; m b -&gt; m b
+    a &gt;&gt; f = a &gt;&gt;= \_ -&gt; f</pre><br class="calibre48"/>
+<a name="x_AX" class="calibre27" id="x_AX"></a><p class="docText">We use this function when we want to perform actions in a
+    certain order, but don't care what the result of one is. This might seem
+    pointless: why would we not care what a function's return value is?
+    Recall, though, that we defined a <i class="docEmphasis">(==&gt;&amp;)</i> combinator earlier to express
+    exactly this. Alternatively, consider a function such as <i class="docEmphasis">print</i>, which provides a placeholder result that
+    we do not need to inspect:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type print "foo"</b>
+print "foo" :: IO ()
+</pre><a name="x_BX" class="calibre27" id="x_BX"></a><p class="docText">If we use plain <i class="docEmphasis">(&gt;&gt;=)</i>, we have to provide, as its
+    righthand side, a function that ignores its argument:</p><pre class="calibre39">ghci&gt; <b class="calibre40">print "foo" &gt;&gt;= \_ -&gt; print "bar"</b>
+"foo"
+"bar"
+</pre><a name="x_CX" class="calibre27" id="x_CX"></a><p class="docText">But if we use <i class="docEmphasis">(&gt;&gt;)</i>, we<a name="I_indexterm14_d1e31204" class="calibre27" id="I_indexterm14_d1e31204"></a> can omit the needless function:</p><pre class="calibre39">ghci&gt; <b class="calibre40">print "baz" &gt;&gt; print "quux"</b>
+"baz"
+"quux"
+</pre><a name="x_DX" class="calibre27" id="x_DX"></a><p class="docText">As we just showed, the default implementation of <i class="docEmphasis">(&gt;&gt;)</i> is defined in terms of <i class="docEmphasis">(&gt;&gt;=)</i>.</p><a name="x_EX" class="calibre27" id="x_EX"></a><p class="docText">The second noncore <tt class="calibre34">Monad</tt> function is
+    <i class="docEmphasis">fail</i>, <a name="I_indexterm14_d1e31230" class="calibre27" id="I_indexterm14_d1e31230"></a>which takes an error message and does something to make the
+    chain of functions fail:</p><pre class="calibre39">-- file: ch14/Maybe.hs
+    fail :: String -&gt; m a
+    fail = error</pre><br class="calibre48"/>
+<p class="calibre37"><table border="0" cellspacing="0" cellpadding="1" width="90%" class="calibre41"><tr class="calibre16"><td class="v3"><table width="100%" border="0" cellspacing="0" cellpadding="6" class="calibre42"><tr class="calibre16"><td width="60" valign="top" class="v3"><img src="warning_yellow.gif" alt="" class="calibre44"/></td><td valign="top" class="v3"><p class="docCautionsTitle">Beware of fail</p><a name="x_FX" class="calibre27" id="x_FX"></a><p class="docText">Many <tt class="calibre34">Monad</tt> instances don't override the
+      default implementation of <i class="docEmphasis">fail</i> that
+      we show here, so in those monads, <i class="docEmphasis">fail</i> uses <i class="docEmphasis">error</i>. Calling <i class="docEmphasis">error</i> is usually highly undesirable, since it
+      throws an exception that callers either cannot catch or will not
+      expect.</p><a name="x_ZG1" class="calibre27" id="x_ZG1"></a><p class="docText">Even if you know that right now you're executing in a
+      monad that has <i class="docEmphasis">fail</i> do something
+      more sensible, we still recommend avoiding it. It's far too easy to
+      cause yourself a problem later when you refactor your code and forget
+      that a previously safe use of <i class="docEmphasis">fail</i>
+      might be dangerous in its new context.</p></td></tr></table></td></tr></table></p><br class="calibre48"/><a name="x_GX" class="calibre27" id="x_GX"></a><p class="docText">To revisit the parser that we developed in <a class="docLink" href="binary_split_000.html#binary">Chapter 10</a>, here is its <tt class="calibre34">Monad</tt> instance:</p><pre class="calibre39">-- file: ch10/Parse.hs
+instance Monad Parse where
+    return = identity
+    (&gt;&gt;=) = (==&gt;)
+    fail = bail</pre><br class="calibre48"/>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"><a href="21061538.html" class="calibre2"><img src="btn_next_.gif" alt="Next" border="0" class="calibre31"/></a> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect114_d1e30935.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect114_d1e31273.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

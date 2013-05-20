@@ -1,0 +1,2189 @@
+---
+layout: page
+title: "Seven Databases in Seven Weeks (for Greg Kennedy)"
+prev: f_0018.html
+next: f_0020.html
+book_path: books/seven-databases-in-seven-weeks--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="N10DDA" class="calibre18">2.3 Day 2: Advanced Queries, Code, and Rules</h2>
+<p id="N10DDE" class="calibre5">
+    Yesterday we saw how to define schemas, populate them with data, update and delete rows, and perform basic reads. Today we’ll dig even deeper into the myriad ways that PostgreSQL can query data.
+
+    We’ll see how to group similar values, execute code on the server, and create custom interfaces using <span class="calibre6">views</span> and <span class="calibre6">rules</span>. We’ll finish the day by using one of PostgreSQL’s contributed packages to flip tables on their heads.
+  </p>
+<h3 class="calibre20">Aggregate Functions</h3>
+<p id="N10DEB" class="calibre5">
+      An aggregate query groups results from several rows by some common criteria. It can be as simple as counting the number of rows in a table or calculating the average of some numerical column. They’re powerful SQL tools and also a lot of fun.
+    </p>
+<p id="N10E06" class="calibre5">
+      Let’s try some aggregate functions, but first we’ll need some more data in our database. Enter your own country into the <code class="cf">countries</code> table, your own city into the <code class="cf">cities</code> table, and your own address as a venue (which we just named <span class="calibre6">My Place</span>). Then add a few records to the <code class="cf">events</code> table.
+    </p>
+<p id="N10E15" class="calibre5">
+     Here’s a quick SQL tip: rather than setting the <code class="cf">venue_id</code> explicitly, you can sub-<code class="cf">SELECT</code> it using a more human-readable title. If <code class="cf1">Moby</code> is playing at the <code class="cf1">Crystal Ballroom</code>, set the <code class="cf">venue_id</code> like this:
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">INSERT</strong> <strong class="prompt">INTO</strong> events (title, starts, ends, venue_id)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">VALUES</strong> (<em class="string">'Moby'</em>, <em class="string">'2012-02-06 21:00'</em>, <em class="string">'2012-02-06 23:00'</em>, (​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">SELECT</strong> venue_id​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">FROM</strong> venues​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">WHERE</strong> name = <em class="string">'Crystal Ballroom'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​);​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N10E66" class="calibre5">
+      Populate your events table with the following data (to enter <span class="calibre6">Valentine’s Day</span> in PostgreSQL, you can escape the apostrophe with two, such as <span class="calibre6">Heaven”s Gate</span>):
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​       title     |       starts        |        ends         |      venue​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​-----------------+---------------------+---------------------+---------------​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ Wedding         | 2012-02-26 21:00:00 | 2012-02-26 23:00:00 | Voodoo Donuts​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ Dinner with Mom | 2012-02-26 18:00:00 | 2012-02-26 20:30:00 | My Place​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ Valentine’s Day | 2012-02-14 00:00:00 | 2012-02-14 23:59:00 |​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N10E86" class="calibre5">
+    With our data set up, let’s try some aggregate queries. The simplest aggregate function is <code class="cf">count</code>, which is fairly self-explanatory. Counting all titles that contain the word <code class="cf1">Day</code> (note: % is a wildcard on <code class="cf">LIKE</code> searches), you should receive a value of 3.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">SELECT</strong> count(title)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">FROM</strong> events​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">WHERE</strong> title <strong class="prompt">LIKE</strong> <em class="string">'%Day%'</em>;​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N10ED6" class="calibre5">
+      To get the first start time and last end time of all events at the Crystal Ballroom, use <code class="cf">min</code> (return the smallest value) and <code class="cf">max</code> (return the largest value).
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">SELECT</strong> min(starts), max(ends)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">FROM</strong> events <strong class="prompt">INNER</strong> <strong class="prompt">JOIN</strong> venues​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">ON</strong> events.venue_id = venues.venue_id​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">WHERE</strong> venues.name = <em class="string">'Crystal Ballroom'</em>;​</code>​</div>
+</td>
+</tr>
+</table>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​         min         |         max​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<em class="comment">---------------------+---------------------</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ 2012-02-06 21:00:00 | 2012-02-06 23:00:00​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N10F33" class="calibre5">
+      Aggregate functions are useful but limited on their own. If we wanted to count all events at each venue, we could write the following for each venue ID:
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">SELECT</strong> count(*) <strong class="prompt">FROM</strong> events <strong class="prompt">WHERE</strong> venue_id = 1;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">SELECT</strong> count(*) <strong class="prompt">FROM</strong> events <strong class="prompt">WHERE</strong> venue_id = 2;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">SELECT</strong> count(*) <strong class="prompt">FROM</strong> events <strong class="prompt">WHERE</strong> venue_id = 3;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">SELECT</strong> count(*) <strong class="prompt">FROM</strong> events <strong class="prompt">WHERE</strong> venue_id IS NULL;​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N10F70" class="calibre5">
+      This would be tedious (intractable even) as the number of venues grows.  Enter the <code class="cf">GROUP BY</code> command.
+    </p>
+<h3 id="sec.grouping" class="calibre20">Grouping</h3>
+<p id="N10F7B" class="calibre5">
+<code class="cf">GROUP BY</code> is a shortcut for running the previous queries all at once.  With <code class="cf">GROUP BY</code>, you tell Postgres to place the rows into groups and then perform some aggregate function (such as <code class="cf">count</code>) on those groups.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">SELECT</strong> venue_id, count(*)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">FROM</strong> events​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">GROUP</strong> <strong class="prompt">BY</strong> venue_id;​</code>​</div>
+</td>
+</tr>
+</table>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ venue_id | count​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​----------+-------​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        1 |     1​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        2 |     2​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        3 |     1​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​          |     3​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N10FC7" class="calibre5">
+      It’s a nice list, but can we filter by the <code class="cf">count</code> function? Absolutely. The <code class="cf">GROUP BY</code> condition has its own filter keyword: <code class="cf">HAVING</code>. <code class="cf">HAVING</code> is like the <code class="cf">WHERE</code> clause, except it can filter by aggregate functions (whereas <code class="cf">WHERE</code> cannot). 
+    </p>
+<p id="N10FF2" class="calibre5">
+        The following query <code class="cf">SELECT</code>s the most popular venues, those with two or more events:
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">SELECT</strong> venue_id​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">FROM</strong> events​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">GROUP</strong> <strong class="prompt">BY</strong> venue_id​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​HAVING count(*) &gt;= 2 <strong class="prompt">AND</strong> venue_id IS <strong class="prompt">NOT</strong> NULL;​</code>​</div>
+</td>
+</tr>
+</table>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ venue_id | count​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​----------+-------​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        2 |     2​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1102D" class="calibre5">
+      You can use <code class="cf">GROUP BY</code> without any aggregate functions. If you call <code class="cf">SELECT...</code>
+<code class="cf">FROM...GROUP BY</code> on one column, you get all unique values.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">SELECT</strong> venue_id <strong class="prompt">FROM</strong> events <strong class="prompt">GROUP</strong> <strong class="prompt">BY</strong> venue_id;​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1105B" class="calibre5">
+      This kind of grouping is so common that SQL has a shortcut in the <code class="cf">DISTINCT</code> keyword.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">SELECT</strong> DISTINCT venue_id <strong class="prompt">FROM</strong> events;​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1107C" class="calibre5">
+      The results of both queries will be identical.
+    </p>
+<div class="sidebar">
+<div class="sidebar-title">GROUP BY in MySQL</div>
+<div class="calibre2">
+<p id="N11091" class="calibre5">
+      If you tried to run a <code class="cf2">SELECT</code> with columns not defined under a <code class="cf2">GROUP BY</code> in MySQL, you may be shocked to see that it works. This originally made us question the necessity of window functions. But when we  more closely inspected the data MySQL returns, we found it will return only a random row of data along with the count, not all relevant results. Generally, that’s not useful (and quite potentially dangerous).
+    </p>
+</div>
+</div>
+<h3 class="calibre20">Window Functions</h3>
+<p id="N110A8" class="calibre5">
+      If you’ve done any sort of production work with a relational database in the past, you were likely familiar with aggregate queries. They are a common <span class="initials">SQL</span> staple. <span class="calibre6">Window functions</span>, on the other hand, are not quite so common (PostgreSQL is one of the few open source databases to implement them).
+    </p>
+<p id="N110C5" class="calibre5">
+    Window functions are similar to <code class="cf">GROUP BY</code> queries in that they allow you to run aggregate functions across multiple rows. The difference is that they allow you to use built-in aggregate functions without requiring every single field to be grouped to a single row.
+    </p>
+<p id="N110CB" class="calibre5">
+      If we attempt to select the <code class="cf">title</code> column without grouping by it, we can expect an error.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">SELECT</strong> title, venue_id, count(*)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">FROM</strong> events​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">GROUP</strong> <strong class="prompt">BY</strong> venue_id;​</code>​</div>
+</td>
+</tr>
+</table>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ERROR:  column "events.title" must appear in the GROUP BY clause or \​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        be used in an aggregate function​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N110FA" class="calibre5">
+    We are counting up the rows by <code class="cf">venue_id</code>, and in the case of <code class="cf1">LARP Club</code> and <code class="cf1">Wedding</code>, we have two titles for a single <code class="cf">venue_id</code>. Postgres doesn’t know <span class="calibre6">which</span> title to display.
+    </p>
+<div class="figure" id="fig.window.func">
+<div class="calibre2">
+<img xmlns:str="http://exslt.org/strings" src="images/postgres-window-func.png" alt="images/postgres-window-func.png" class="calibre27"/>
+</div>
+<div class="figurecaption">
+<hr class="calibre28"/>Figure 4. Window function results do not collapse results per group.</div>
+</div>
+<p id="N11121" class="calibre5">
+      Whereas a <code class="cf">GROUP BY</code> clause will return one record per matching group value, a window function can return a separate record for each row.   For a visual representation, see Figure 4, <a href="#fig.window.func">​<em class="calibre6">Window function results do not collapse results per group</em>​</a>. Let’s see an example of the sweet spot that window functions attempt to hit.
+    </p>
+<p id="N1112A" class="calibre5">
+    Window functions return all matches and replicate the results of any aggregate function.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">SELECT</strong> title, count(*) OVER (PARTITION <strong class="prompt">BY</strong> venue_id) <strong class="prompt">FROM</strong> events;​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N11141" class="calibre5">
+    We like to think of <code class="cf">PARTITION BY</code> as akin to <code class="cf">GROUP BY</code>, but rather than grouping the results outside of the <code class="cf">SELECT</code> attribute list (and thus combining the results into fewer rows), it returns grouped values as any other field (calculating on the grouped variable but otherwise just another attribute). Or in <span class="initials">SQL</span> parlance, it returns the results of an aggregate function <code class="cf">OVER</code> a <code class="cf">PARTITION</code> of the result set.
+    </p>
+<h3 class="calibre20">Transactions</h3>
+<p id="N11171" class="calibre5">
+    Transactions are the bulwark of relational database consistency. <span class="calibre6">All or nothing</span>, that’s the transaction motto. Transactions ensure that every command of a set is executed. If anything fails along the way, all of the commands are rolled back like they never happened. 
+    </p>
+<p id="N1118F" class="calibre5">
+    PostgreSQL transactions follow <span class="initials">ACID</span> compliance, which stands for  Atomic  (all ops succeed or none do),  Consistent (the data will always be in a good state—no inconsistent states),  Isolated  (transactions don’t interfere), and  Durable  (a committed transaction is safe, even after a server crash). We should note that <span class="calibre6">consistency</span> in ACID is different from <span class="calibre6">consistency</span> in CAP (covered in Appendix 2, <a href="f_0063.html#apx.cap">​<em class="calibre6">The CAP Theorem</em>​</a>).
+    </p>
+<div class="sidebar" id="sb.transactionsAlways">
+<div class="sidebar-title">Unavoidable Transactions</div>
+<div class="calibre2">
+<p id="N111A5" class="calibre5">
+        Up until now, every command we’ve executed in <code class="cf2">psql</code> has been implicitly wrapped in a transaction. If you executed a command, such as <code class="cf2">DELETE FROM account WHERE total &lt; 20;</code>, and the database crashed halfway through the delete, you wouldn’t be stuck with half a table. When you restart the database server, that command will be rolled back.
+      </p>
+</div>
+</div>
+<p id="N111B3" class="calibre5">
+    We can wrap any transaction within a <code class="cf">BEGIN TRANSACTION</code> block. To verify atomicity, we’ll kill the transaction with the <code class="cf">ROLLBACK</code> command.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">BEGIN</strong> TRANSACTION;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">DELETE</strong> <strong class="prompt">FROM</strong> events;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ROLLBACK;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">SELECT</strong> * <strong class="prompt">FROM</strong> events;​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N111ED" class="calibre5">
+    The events all remain. Transactions are useful when you’re modifying two tables that you don’t want out of sync. The classic example is a debit/credit system for a bank, where money is moved from one account to another:
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">BEGIN</strong> TRANSACTION;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">UPDATE</strong> account <strong class="prompt">SET</strong> total=total+5000.0 <strong class="prompt">WHERE</strong> account_id=1337;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">UPDATE</strong> account <strong class="prompt">SET</strong> total=total-5000.0 <strong class="prompt">WHERE</strong> account_id=45887;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">END</strong>;​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1121B" class="calibre5">
+      If something happened between the two updates, this bank just lost five grand. But when wrapped in a transaction block, the initial update is rolled back, even if the server explodes.
+      </p>
+<h3 class="calibre20">Stored Procedures</h3>
+<p id="N1122E" class="calibre5">
+      Every command we’ve seen until now has been declarative, but sometimes we need to run some code. At this point, you must make a decision: execute code on the client side or execute code on the database side.
+    </p>
+<p id="N11235" class="calibre5">
+      Stored procedures can offer huge performance advantages for huge architectural costs. You may avoid streaming thousands of rows to a client application, but you have also bound your application code to this database. The decision to use stored procedures should not be arrived at lightly.
+    </p>
+<p id="N11238" class="calibre5">
+      Warnings aside, let’s create a procedure (or <code class="cf">FUNCTION</code>) that simplifies <code class="cf">INSERT</code>ing a new event at a venue without needing the <code class="cf">venue_id</code>. If the venue doesn’t exist, create it first and reference it in the new event. Also, we’ll return a boolean indicating whether a new venue was added, as a nicety to our users.
+    </p>
+<div class="sidebar" id="sb.whatAboutVendorLock">
+<div class="sidebar-title">What About Vendor Lock?</div>
+<div class="calibre2">
+<p id="N11248" class="calibre5">
+        When relational databases hit their heyday, they were the Swiss Army knife of technologies. You could store nearly anything—even programming entire projects in them (for example, Microsoft Access). The few companies that provided this software promoted use of proprietary differences and then took advantage of this corporate reliance by charging enormous license and consulting fees. This was the dreaded <span class="calibre6">vendor lock</span> that newer programming methodologies tried to mitigate in the 1990s and early 2000s.
+      </p>
+<p id="N11251" class="calibre5">
+        However, in their zeal to neuter the vendors, maxims arose such as <span class="calibre6">no logic in the database</span>. This is a shame because relational databases are capable of so many varied data management options. Vendor lock has not disappeared. Many actions we investigate in this book are highly implementation specific. However, it’s worth knowing how to use databases to their fullest extent before deciding to skip tools like stored procedures <span class="calibre6">a priori</span>.
+      </p>
+</div>
+</div>
+<table class="processedcode">
+<tr class="calibre24">
+<td colspan="2" class="calibre34">
+<a href="http://media.pragprog.com/titles/rwdata/code/postgres/add_event.sql">postgres/add_event.sql</a>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">CREATE</strong> <strong class="prompt">OR</strong> <strong class="prompt">REPLACE</strong> FUNCTION add_event( title <strong class="prompt">text</strong>, starts <strong class="prompt">timestamp</strong>,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  ends <strong class="prompt">timestamp</strong>, venue <strong class="prompt">text</strong>, postal <strong class="prompt">varchar</strong>(9), country <strong class="prompt">char</strong>(2) )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​RETURNS <strong class="prompt">boolean</strong> <strong class="prompt">AS</strong> $$​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​DECLARE​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  did_insert <strong class="prompt">boolean</strong> := false;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  found_count <strong class="prompt">integer</strong>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  the_venue_id <strong class="prompt">integer</strong>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">BEGIN</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">SELECT</strong> venue_id <strong class="prompt">INTO</strong> the_venue_id​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">FROM</strong> venues v​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">WHERE</strong> v.postal_code=postal <strong class="prompt">AND</strong> v.country_code=country <strong class="prompt">AND</strong> v.name ILIKE venue​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  LIMIT 1;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">IF</strong> the_venue_id IS NULL <strong class="prompt">THEN</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">INSERT</strong> <strong class="prompt">INTO</strong> venues (name, postal_code, country_code)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">VALUES</strong> (venue, postal, country)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    RETURNING venue_id <strong class="prompt">INTO</strong> the_venue_id;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    did_insert := true;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">END</strong> <strong class="prompt">IF</strong>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <em class="comment">-- Note: not an “error”, as in some programming languages</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  RAISE NOTICE <em class="string">'Venue found %'</em>, the_venue_id;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">INSERT</strong> <strong class="prompt">INTO</strong> events (title, starts, ends, venue_id)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">VALUES</strong> (title, starts, ends, the_venue_id);​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  RETURN did_insert;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">END</strong>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$$ LANGUAGE plpgsql;​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1131C" class="calibre5">
+      You can import this external file into the current schema by the following command-line argument (if you don’t feel like typing all that code).
+     </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​book=<em class="comment"># \i add_event.sql</em>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1132D" class="calibre5">
+      Running it should return <code class="cf">t</code> (true), since this is the first use of the venue <code class="cf1">Run’s House</code>. This saves a client two round-trip SQL commands to the database (a select and then an insert) and instead does only one.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">SELECT</strong> add_event(<em class="string">'House Party'</em>, <em class="string">'2012-05-03 23:00'</em>,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <em class="string">'2012-05-04 02:00'</em>, <em class="string">'Run''s House'</em>, <em class="string">'97205'</em>, <em class="string">'us'</em>);​</code>​</div>
+</td>
+</tr>
+</table>
+<div class="sidebar">
+<div class="sidebar-title">Choosing to Execute Database Code</div>
+<div class="calibre2">
+<p id="N1135C" class="calibre5">
+        This is the first of a number of places you’ll see this theme in this book: does the code belong in your application or in the database? It is a difficult decision—one that you’ll have to answer uniquely for every application.
+      </p>
+<p id="N1136E" class="calibre5">
+        The benefit is you’ll often improve performance by as much as an order of magnitude. For example, you might have a complex application-specific calculation that requires custom code. If the calculation involves many rows, a stored procedure will save you from moving thousands of rows instead of a single result. The cost is splitting your application, your code, and your tests, across two different programming paradigms.
+      </p>
+</div>
+</div>
+<p id="N11371" class="calibre5">
+      The language we used in the procedure we wrote is PL/pgSQL (which stands for Procedural Language/PostgreSQL). Covering the details of an entire programming language is beyond our scope, but you can read much more about it in the online PostgreSQL documentation.<a id="FNPTR-5" href="f_0021.html#FOOTNOTE-5">[5]</a>
+</p>
+<p id="N11381" class="calibre5">
+      In addition to PL/pgSQL, Postgres supports three more core languages for writing procedures: Tcl, Perl, and Python. People have written extensions for a dozen more including Ruby, Java, PHP, Scheme, and others listed in the public documentation. Try this shell command:
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">createlang book --list</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N113AC" class="calibre5">
+      It will list the languages installed in your database. The <code class="cf">createlang</code> command is also used to add new languages, which you can find online.<a id="FNPTR-6" href="f_0021.html#FOOTNOTE-6">[6]</a>
+</p>
+<h3 class="calibre20">Pull the Triggers</h3>
+<p id="N113C3" class="calibre5">
+      Triggers automatically fire stored procedures when some event happens, like an insert or update. They allow the database to enforce some required behavior in response to changing data.
+    </p>
+<p id="N113C9" class="calibre5">
+      Let’s create a new PL/pgSQL function that logs whenever an event is updated (we want to be sure no one changes an event and tries to deny it later). First, create a <code class="cf">logs</code> table to store event changes. A primary key isn’t necessary here, since it’s just a log.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">CREATE</strong> <strong class="prompt">TABLE</strong> logs (​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  event_id <strong class="prompt">integer</strong>,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  old_title <strong class="prompt">varchar</strong>(255),​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  old_starts <strong class="prompt">timestamp</strong>,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  old_ends <strong class="prompt">timestamp</strong>,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  logged_at <strong class="prompt">timestamp</strong> <strong class="prompt">DEFAULT</strong> current_timestamp​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​);​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N11417" class="calibre5">
+      Next, we build a function to insert old data into the log. The <code class="cf">OLD</code> variable represents the row about to be changed (<code class="cf">NEW</code> represents an incoming row, which we’ll see in action soon enough). Output a notice to the console with the <code class="cf">event_id</code> before returning.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td colspan="2" class="calibre34">
+<a href="http://media.pragprog.com/titles/rwdata/code/postgres/log_event.sql">postgres/log_event.sql</a>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">CREATE</strong> <strong class="prompt">OR</strong> <strong class="prompt">REPLACE</strong> FUNCTION log_event() RETURNS <strong class="prompt">trigger</strong> <strong class="prompt">AS</strong> $$​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​DECLARE​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">BEGIN</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">INSERT</strong> <strong class="prompt">INTO</strong> logs (event_id, old_title, old_starts, old_ends)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">VALUES</strong> (OLD.event_id, OLD.title, OLD.starts, OLD.ends);​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  RAISE NOTICE <em class="string">'Someone just changed event #%'</em>, OLD.event_id;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  RETURN NEW;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">END</strong>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$$ LANGUAGE plpgsql;​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N11465" class="calibre5">
+      Finally, we create our trigger to log changes after any row is updated.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">CREATE</strong> <strong class="prompt">TRIGGER</strong> log_events​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  AFTER <strong class="prompt">UPDATE</strong> <strong class="prompt">ON</strong> events​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  FOR EACH ROW EXECUTE PROCEDURE log_event();​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N11485" class="calibre5">
+      So, it turns out our party at Run’s House has to end earlier than we hoped. Let’s change the event.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">UPDATE</strong> events​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">SET</strong> ends=<em class="string">'2012-05-04 01:00:00'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">WHERE</strong> title=<em class="string">'House Party'</em>;​</code>​</div>
+</td>
+</tr>
+</table>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​NOTICE:  Someone just changed event <em class="comment">#9</em>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N114BD" class="calibre5">
+      And the old end time was logged.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">SELECT</strong> event_id, old_title, old_ends, logged_at​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">FROM</strong> logs;​</code>​</div>
+</td>
+</tr>
+</table>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​event_id |  old_title  |      old_ends       |        logged_at​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<em class="comment">---------+-------------+---------------------+------------------------</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​       9 | House Party | 2012-05-04 02:00:00 | 2011-02-26 15:50:31.939​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N114E6" class="calibre5">
+      Triggers can also be created before updates and before or after inserts.<a id="FNPTR-7" href="f_0021.html#FOOTNOTE-7">[7]</a>
+</p>
+<h3 class="calibre20">Viewing the World</h3>
+<p id="N114FB" class="calibre5">
+      Wouldn’t it be great if you could use the results of a complex query just like any other table? Well, that’s exactly what <code class="cf">VIEW</code>s are for. Unlike stored procedures, these aren’t functions being executed but rather  aliased queries.
+    </p>
+<p id="N1150D" class="calibre5">
+      In our database, all holidays contain the word <span class="calibre6">Day</span> and have no venue.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td colspan="2" class="calibre34">
+<a href="http://media.pragprog.com/titles/rwdata/code/postgres/holiday_view_1.sql">postgres/holiday_view_1.sql</a>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">CREATE</strong> VIEW holidays <strong class="prompt">AS</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">SELECT</strong> event_id <strong class="prompt">AS</strong> holiday_id, title <strong class="prompt">AS</strong> name, starts <strong class="prompt">AS</strong> <strong class="prompt">date</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">FROM</strong> events​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">WHERE</strong> title <strong class="prompt">LIKE</strong> <em class="string">'%Day%'</em> <strong class="prompt">AND</strong> venue_id IS NULL;​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1154A" class="calibre5">
+      So, creating a view is as simple as writing a query and prefixing it with <code class="cf">CREATE VIEW some_view_name AS</code>.
+
+      Now you can query <code class="cf">holidays</code> like any other table. Under the covers it’s the plain old <code class="cf">events</code> table. As proof, add <code class="cf1">Valentine’s Day</code> on <code class="cf1">2012-02-14</code> to <code class="cf">events</code> and query the <code class="cf">holidays</code> view.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">SELECT</strong> name, to_char(<strong class="prompt">date</strong>, <em class="string">'Month DD, YYYY'</em>) <strong class="prompt">AS</strong> <strong class="prompt">date</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">FROM</strong> holidays​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">WHERE</strong> <strong class="prompt">date</strong> &lt;= <em class="string">'2012-04-01'</em>;​</code>​</div>
+</td>
+</tr>
+</table>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      name       |        date​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​-----------------+--------------------​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ April Fools Day | April     01, 2012​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ Valentine’s Day | February  14, 2012​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1159F" class="calibre5">
+      Views are powerful tools for opening up complex queried data in a simple way. The query may be a roiling sea of complexity underneath, but all you see is a table.
+    </p>
+<p id="N115A3" class="calibre5">
+      If you want to add a new column to the view, it will have to come from the underlying table. Let’s alter the <code class="cf">events</code> table to have an array of associated colors.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ALTER <strong class="prompt">TABLE</strong> events​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ADD colors <strong class="prompt">text</strong> ARRAY;​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N115BE" class="calibre5">
+    Since <code class="cf">holidays</code> are to have colors associated with them, let’s update the <code class="cf">VIEW</code> query to contain the <code class="cf">colors</code> array.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">CREATE</strong> <strong class="prompt">OR</strong> <strong class="prompt">REPLACE</strong> VIEW holidays <strong class="prompt">AS</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">SELECT</strong> event_id <strong class="prompt">AS</strong> holiday_id, title <strong class="prompt">AS</strong> name, starts <strong class="prompt">AS</strong> <strong class="prompt">date</strong>, colors​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">FROM</strong> events​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">WHERE</strong> title <strong class="prompt">LIKE</strong> <em class="string">'%Day%'</em> <strong class="prompt">AND</strong> venue_id IS NULL;​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N11607" class="calibre5">
+    Now it’s a matter of setting an array or color strings to the holiday of choice. Unfortunately, we cannot update a view directly.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">UPDATE</strong> holidays <strong class="prompt">SET</strong> colors = <em class="string">'{"red","green"}'</em> <strong class="prompt">where</strong> name = <em class="string">'Christmas Day'</em>;​</code>​</div>
+</td>
+</tr>
+</table>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ERROR:  cannot update a view​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​HINT:  You need an unconditional ON UPDATE DO INSTEAD rule.​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N11635" class="calibre5">
+    Looks like we need a <code class="cf">RULE</code>.
+    </p>
+<h3 class="calibre20">What RULEs the School?</h3>
+<p id="N11645" class="calibre5">
+      A <code class="cf">RULE</code> is a description of how to alter the parsed <span class="calibre6">query tree</span>. Every time Postgres runs an SQL statement, it parses the statement into a query tree (generally called an <span class="calibre6">abstract syntax tree</span>).
+    </p>
+<p id="N11666" class="calibre5">
+      Operators and values become branches and leaves in the tree, and the tree is walked, pruned, and in other ways edited before execution. This tree is optionally rewritten by Postgres rules, before being sent on to the query planner (which also rewrites the tree in a way to run optimally), and sends this final command to be executed. See Figure 5, <a href="#fig.rule.overview">​<em class="calibre6">How SQL gets executed in PostgreSQL</em>​</a>.
+    What’s more is that a <code class="cf">VIEW</code> such as <code class="cf">holidays</code> <span class="calibre6">is</span> a <code class="cf">RULE</code>.
+    </p>
+<div class="figure" id="fig.rule.overview">
+<div class="calibre2">
+<img xmlns:str="http://exslt.org/strings" src="images/postgres-overview.png" alt="images/postgres-overview.png" class="calibre27"/>
+</div>
+<div class="figurecaption">
+<hr class="calibre28"/>Figure 5. How SQL gets executed in PostgreSQL</div>
+</div>
+<p id="N11697" class="calibre5">
+    We can prove this by taking a look at the execution plan of the <code class="cf">holidays</code> view using the <code class="cf">EXPLAIN</code> command (notice <code class="cf1">Filter</code> is the <code class="cf">WHERE</code> clause, and <code class="cf1">Output</code> is the column list).
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​EXPLAIN VERBOSE​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">SELECT</strong> *​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">FROM</strong> holidays;​</code>​</div>
+</td>
+</tr>
+</table>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​                                    QUERY PLAN​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​-----------------------------------------------------------------------------------​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ Seq Scan on public.events  (cost=0.00..1.04 rows=1 width=57)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​   Output: events.event_id, events.title, events.starts, events.colors​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​   Filter: ((events.venue_id IS NULL) AND ((events.title)::text ~~ '%Day%'::text))​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N116D8" class="calibre5">
+    Compare that to running <code class="cf">EXPLAIN VERBOSE</code> on the query we built the <code class="cf">holidays</code>  <code class="cf">VIEW</code> from. They’re functionally identical.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​EXPLAIN VERBOSE​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">SELECT</strong> event_id <strong class="prompt">AS</strong> holiday_id,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    title <strong class="prompt">AS</strong> name, starts <strong class="prompt">AS</strong> <strong class="prompt">date</strong>, colors​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">FROM</strong> events​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">WHERE</strong> title <strong class="prompt">LIKE</strong> <em class="string">'%Day%'</em> <strong class="prompt">AND</strong> venue_id IS NULL;​</code>​</div>
+</td>
+</tr>
+</table>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​                                    QUERY PLAN​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​-----------------------------------------------------------------------------------​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ Seq Scan on public.events  (cost=0.00..1.04 rows=1 width=57)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​   Output: event_id, title, starts, colors​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​   Filter: ((events.venue_id IS NULL) AND ((events.title)::text ~~ '%Day%'::text))​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N11731" class="calibre5">
+    So, to allow updates against our <code class="cf">holidays</code> view, we need to craft a <code class="cf">RULE</code> that tells Postgres what to do with an <code class="cf">UPDATE</code>. Our rule will capture updates to the <code class="cf">holidays</code> view and instead run the update on <code class="cf">events</code>, pulling values from the pseudorelations <code class="cf">NEW</code> and <code class="cf">OLD</code>. <code class="cf">NEW</code> functionally acts as the relation containing the values we’re setting, while <code class="cf">OLD</code> contains the values we query by.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td colspan="2" class="calibre34">
+<a href="http://media.pragprog.com/titles/rwdata/code/postgres/create_rule.sql">postgres/create_rule.sql</a>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">CREATE</strong> RULE update_holidays <strong class="prompt">AS</strong> <strong class="prompt">ON</strong> <strong class="prompt">UPDATE</strong> TO holidays DO INSTEAD​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">UPDATE</strong> events​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">SET</strong> title = NEW.name,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      starts = NEW.<strong class="prompt">date</strong>,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      colors = NEW.colors​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">WHERE</strong> title = OLD.name;​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N11782" class="calibre5">
+      With this rule in place, now we can update <code class="cf">holidays</code> directly.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">UPDATE</strong> holidays <strong class="prompt">SET</strong> colors = <em class="string">'{"red","green"}'</em> <strong class="prompt">where</strong> name = <em class="string">'Christmas Day'</em>;​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N117A2" class="calibre5">
+      Next let’s insert <code class="cf1">New Years Day</code> on <code class="cf1">2013-01-01</code> into <code class="cf">holidays</code>. As expected, we need a rule for that too. No problem.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">CREATE</strong> RULE insert_holidays <strong class="prompt">AS</strong> <strong class="prompt">ON</strong> <strong class="prompt">INSERT</strong> TO holidays DO INSTEAD​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">INSERT</strong> <strong class="prompt">INTO</strong> ...​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N117CE" class="calibre5">
+      We’re going to move on from here, but if you’d like to play more with <code class="cf">RULE</code>s, try to add a <code class="cf">DELETE RULE</code>.
+      </p>
+<h3 class="calibre20">I’ll Meet You at the Crosstab</h3>
+<p id="N117E1" class="calibre5">
+      For our last exercise of the day, we’re going to build a monthly calendar of events, where each month in the calendar year counts the number of events in that month. This kind of operation is commonly done by a <span class="calibre6">pivot table</span>. These constructs “pivot” grouped data around some other output, in our case, a list of months. We’ll build our pivot table using the <code class="cf">crosstab</code> function.
+    </p>
+<p id="N11806" class="calibre5">
+    Start by crafting a query to count the number of events per month, each year. PostgreSQL provides an <code class="cf">extract</code> function that returns some subfield from a date or timestamp, which aids in our grouping.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">SELECT</strong> extract(<strong class="prompt">year</strong> <strong class="prompt">from</strong> starts) <strong class="prompt">as</strong> <strong class="prompt">year</strong>,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  extract(month <strong class="prompt">from</strong> starts) <strong class="prompt">as</strong> month, count(*)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">FROM</strong> events​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">GROUP</strong> <strong class="prompt">BY</strong> <strong class="prompt">year</strong>, month;​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1184D" class="calibre5">
+    To use <code class="cf">crosstab</code>, the query must return three columns: <code class="cf">rowid</code>, <code class="cf">category</code>, and <code class="cf">value</code>. We’ll be using the <code class="cf">year</code> as an ID, which means the other fields are category (the month) and value (the count).
+    </p>
+<p id="N1185F" class="calibre5">
+    The <code class="cf">crosstab</code> function needs another set of values to represent months. This is how the function knows how many columns we need. These are the values that become the columns (the table to <span class="calibre6">pivot</span> against). So, let’s create a table to store a temporary list of numbers.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">CREATE</strong> TEMPORARY <strong class="prompt">TABLE</strong> month_count(month <strong class="prompt">INT</strong>);​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">INSERT</strong> <strong class="prompt">INTO</strong> month_count <strong class="prompt">VALUES</strong> (1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11),(12);​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N11887" class="calibre5">
+    Now we’re ready to call <code class="cf">crosstab</code> with our two queries.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">SELECT</strong> * <strong class="prompt">FROM</strong> crosstab(​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <em class="string">'SELECT extract(year from starts) as year,</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<em class="string">    extract(month from starts) as month, count(*)</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<em class="string">   FROM events</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<em class="string">   GROUP BY year, month'</em>,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <em class="string">'SELECT * FROM month_count'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​);​</code>​</div>
+</td>
+</tr>
+</table>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ERROR:  a column definition list is required for functions returning <em class="string">"record"</em>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N118C6" class="calibre5">
+    Oops. An error occurred.
+    </p>
+<p id="N118C9" class="calibre5">
+    It may feel cryptic, but it’s saying the function is returning a set of records (rows), but it doesn’t know how to label them. In fact, it doesn’t even know what datatypes they are.
+    </p>
+<p id="N118CC" class="calibre5">
+      Remember, the pivot table is using our months as categories, but those months are just integers. So, we define them like this:
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">SELECT</strong> * <strong class="prompt">FROM</strong> crosstab(​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <em class="string">'SELECT extract(year from starts) as year,</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<em class="string">    extract(month from starts) as month, count(*)</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<em class="string">   FROM events</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<em class="string">   GROUP BY year, month'</em>,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <em class="string">'SELECT * FROM month_count'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​) <strong class="prompt">AS</strong> (​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">year</strong> <strong class="prompt">int</strong>,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  jan <strong class="prompt">int</strong>, feb <strong class="prompt">int</strong>, mar <strong class="prompt">int</strong>, apr <strong class="prompt">int</strong>, may <strong class="prompt">int</strong>, jun <strong class="prompt">int</strong>,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  jul <strong class="prompt">int</strong>, aug <strong class="prompt">int</strong>, sep <strong class="prompt">int</strong>, <strong class="prompt">oct</strong> <strong class="prompt">int</strong>, nov <strong class="prompt">int</strong>, dec <strong class="prompt">int</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​) <strong class="prompt">ORDER</strong> <strong class="prompt">BY</strong> <strong class="prompt">YEAR</strong>;​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N11944" class="calibre5">
+    We have one column year (which is the row ID) and twelve more columns representing the months.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">year</strong> | jan | feb | mar | apr | may | jun | jul | aug | sep | <strong class="prompt">oct</strong> | nov | dec​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<em class="comment">------+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​2012 |     |   5 |     |   1 |   1 |     |     |     |     |     |     |   1​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1195F" class="calibre5">
+      Go ahead and add a couple more events on another year just to see next year’s event counts. Run the crosstab function again, and enjoy the calendar.
+    </p>
+<h3 class="calibre20">Day 2 Wrap-Up</h3>
+<p id="N1196C" class="calibre5">
+    Today finalized the basics of PostgreSQL. What we’re starting to see is that Postgres is more than just a server for storing vanilla datatypes and querying them; it is a data management engine that can reformat output data, store weird datatypes like arrays, execute logic, and provide enough power to rewrite incoming queries.
+    </p>
+<h4 class="calibre21">Day 2 Homework</h4>
+<p class="calibre5">
+<strong class="calibre32">Find</strong>
+</p>
+<ol class="calibre33">
+<li class="calibre23">
+<p id="N1197A" class="calibre5">Find the list of aggregate functions in the PostgreSQL docs.</p>
+</li>
+<li class="calibre23">
+<p id="N1197E" class="calibre5">Find a GUI program to interact with PostgreSQL, such as Navicat.</p>
+</li>
+</ol>
+<p class="calibre5">
+<strong class="calibre32">Do</strong>
+</p>
+<ol class="calibre33">
+<li class="calibre23">
+<p id="N11988" class="calibre5">Create a rule that captures <code class="cf">DELETE</code>s on venues and instead sets the active flag (created in the Day 1 homework) to <code class="cf">FALSE</code>.</p>
+</li>
+<li class="calibre23">
+<p id="N11992" class="calibre5">A temporary table was not the best way to implement our event calendar pivot table. The <code class="cf">generate_series(a, b)</code> function returns a set of records, from a to b. Replace the <code class="cf">month_count</code> table <code class="cf">SELECT</code> with this.</p>
+</li>
+<li class="calibre23">
+<p id="N1199F" class="calibre5">Build a pivot table that displays every day in a single month, where each week of the month is a row and each day name forms a column across the top (seven days, starting with <code class="cf">Sunday</code> and ending with <code class="cf">Saturday</code>) like a standard month calendar. Each day should contain a count of the number of events for that date or should remain blank if no event occurs.</p>
+</li>
+</ol>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre3"/>
+</div>
+
+{% endraw %}
+

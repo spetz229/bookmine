@@ -1,0 +1,63 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch10s08.html
+next: OEBPS/ch10s10.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Closer Look at Types"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect110_d1e5707" class="calibre1"></a>Closer Look at Types</h1></div></div></div><p class="calibre7">So far, we’ve spoken about <code class="literal">Person</code> and <code class="literal">PersonId</code> without really explaining what they are. In the simplest
+      sense, for a SQL-only system, the <code class="literal">PersonId</code> could just be
+        <code class="literal">type PersonId = Int64</code>. However, that means there is
+      nothing binding a <code class="literal">PersonId</code> at the type level to the
+        <code class="literal">Person</code> entity. As a result, you could accidentally use a
+        <code class="literal">PersonId</code> and get a <code class="literal">Car</code>. In order to model this relationship, we use phantom types. So, our next naive
+      step would be:</p><a id="I_programlisting10_d1e5737" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">newtype</code> <code class="kt">Key</code> <code class="n">entity</code> <code class="ow">=</code> <code class="kt">Key</code> <code class="kt">Int64</code>
+<code class="kr">type</code> <code class="kt">PersonId</code> <code class="ow">=</code> <code class="kt">Key</code> <code class="kt">Person</code>
+</pre><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">Prior to Persistent 0.6, we used associated types instead of phantom types. You could solve
+   the problem in that direction as well, but phantoms worked out better.</p></div><p class="calibre7">And that works out really well, until you get to a backend that doesn’t use Int64
+      for its IDs. And that’s not just a theoretical question; MongoDB uses <code class="literal">ByteString</code>s instead. So what we need is a key value that can
+      contain an <code class="literal">Int</code> and a <code class="literal">ByteString</code>. Seems like a great time for a sum type:</p><a id="I_programlisting10_d1e5753" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">data</code> <code class="kt">Key</code> <code class="n">entity</code> <code class="ow">=</code> <code class="kt">KeyInt</code> <code class="kt">Int64</code> <code class="o">|</code> <code class="kt">KeyByteString</code> <code class="kt">ByteString</code>
+</pre><p class="calibre7">But that’s just asking for trouble. Next we’ll have a backend that uses
+      timestamps, so we’ll need to add another constructor to <code class="literal">Key</code>. This could go on for a while. Fortunately, we already have a sum type
+      intended for representing arbitrary data: <code class="literal">PersistValue</code>:</p><a id="I_programlisting10_d1e5763" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">newtype</code> <code class="kt">Key</code> <code class="n">entity</code> <code class="ow">=</code> <code class="kt">Key</code> <code class="kt">PersistValue</code>
+</pre><p class="calibre7">But this has another problem. Let’s say we have a web application that takes an ID
+      as a parameter from the user. It will need to receive that parameter as <code class="literal">Text</code> and then try to convert it to a <code class="literal">Key</code>. Well, that’s simple: write a function to convert a <code class="literal">Text</code> to a <code class="literal">PersistValue</code>, and
+      then wrap the result in the <code class="literal">Key</code> constructor, right?</p><p class="calibre7">Wrong. We tried this, and there’s a big problem. We end up getting <code class="literal">Key</code>s that could never be. For example, if we’re dealing with
+      SQL, a key must be an integer. But the approach described above would allow arbitrary textual
+      data in. The result was a bunch of 500 server errors as the database choked on comparing an
+      integer column to text.</p><p class="calibre7">So what we need is a way to convert text to a <code class="literal">Key</code>, but have it
+   dependent on the rules of the backend in question. And once phrased that way, the answer is
+   simple: just add another phantom. The real, actual definition of <code class="literal">Key</code> in
+   Persistent is:</p><a id="I_programlisting10_d1e5796" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">newtype</code> <code class="kt">Key</code> <code class="n">backend</code> <code class="n">entity</code> <code class="ow">=</code> <code class="kt">Key</code> <code class="p">{</code> <code class="n">unKey</code> <code class="ow">::</code> <code class="kt">PersistValue</code> <code class="p">}</code>
+</pre><p class="calibre7">This works great: we can have a <code class="literal">Text -&gt; Key MongoDB
+        entity</code> function and a <code class="literal">Text -&gt; Key SqlPersist
+        entity</code> function, and everything runs smoothly. But now we have a new problem:
+      relations. Let’s say we want to represent blogs and blog posts. We would use the entity
+      definition:</p><a id="I_programlisting10_d1e5806" class="firstname"></a><pre class="programlistinghaskell">Blog
+    title Text
+Post
+    title Text
+    blogId BlogId</pre><p class="calibre7">But what would that look like in terms of our <code class="literal">Key</code> data type?</p><a id="I_programlisting10_d1e5813" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">data</code> <code class="kt">Blog</code> <code class="ow">=</code> <code class="kt">Blog</code> <code class="p">{</code> <code class="n">blogTitle</code> <code class="ow">::</code> <code class="kt">Text</code> <code class="p">}</code>
+<code class="kr">data</code> <code class="kt">Post</code> <code class="ow">=</code> <code class="kt">Post</code> <code class="p">{</code> <code class="n">postTitle</code> <code class="ow">::</code> <code class="kt">Text</code><code class="p">,</code> <code class="n">postBlogId</code> <code class="ow">::</code> <code class="kt">Key</code> <code class="o">&lt;</code><code class="n">what</code> <code class="n">goes</code> <code class="n">here</code><code class="o">?&gt;</code> <code class="kt">Blog</code> <code class="p">}</code>
+</pre><p class="calibre7">We need something to fill in as the backend. In theory, we could hardcode this to
+    <code class="literal">SqlPersist</code>, or <code class="literal">Mongo</code>, but then our data types will only work
+   for a single backend. For an individual application, that might be acceptable, but what about
+   libraries defining data types to be used by multiple applications, using multiple backends?</p><p class="calibre7">So things got a little more complicated. Our types are actually:</p><a id="I_programlisting10_d1e5825" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">data</code> <code class="kt">BlogGeneric</code> <code class="n">backend</code> <code class="ow">=</code> <code class="kt">Blog</code> <code class="p">{</code> <code class="n">blogTitle</code> <code class="ow">::</code> <code class="kt">Text</code> <code class="p">}</code>
+<code class="kr">data</code> <code class="kt">PostGeneric</code> <code class="n">backend</code> <code class="ow">=</code> <code class="kt">Post</code> <code class="p">{</code> <code class="n">postTitle</code> <code class="ow">::</code> <code class="kt">Text</code><code class="p">,</code> <code class="n">postBlogId</code> <code class="ow">::</code> <code class="kt">Key</code> <code class="n">backend</code> <code class="p">(</code><code class="kt">BlogGeneric</code> <code class="n">backend</code><code class="p">)</code> <code class="p">}</code>
+</pre><p class="calibre7">Notice that we still keep the short names for the constructors and the records. Finally, to
+   give a simple interface for normal code, we define some type synonyms:</p><a id="I_programlisting10_d1e5829" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">type</code> <code class="kt">Blog</code> <code class="ow">=</code> <code class="kt">BlogGeneric</code> <code class="kt">SqlPersist</code>
+<code class="kr">type</code> <code class="kt">BlogId</code> <code class="ow">=</code> <code class="kt">Key</code> <code class="kt">SqlPersist</code> <code class="kt">Blog</code>
+<code class="kr">type</code> <code class="kt">Post</code> <code class="ow">=</code> <code class="kt">PostGeneric</code> <code class="kt">SqlPersist</code>
+<code class="kr">type</code> <code class="kt">PostId</code> <code class="ow">=</code> <code class="kt">Key</code> <code class="kt">SqlPersist</code> <code class="kt">Post</code>
+</pre><p class="calibre7">And no, <code class="literal">SqlPersist</code> isn’t hard-coded into
+      Persistent anywhere. That <code class="literal">sqlSettings</code> parameter you’ve been
+      passing to <code class="literal">mkPersist</code> is what tells us to use <code class="literal">SqlPersist</code>. Mongo code will use <code class="literal">mongoSettings</code> instead.</p><p class="calibre7">This might be quite complicated under the surface, but user code hardly ever touches this.
+      Look back through this whole chapter: not once did we need to deal with the <code class="literal">Key</code> or <code class="literal">Generic</code> stuff directly.
+      The most common place for it to pop up is in compiler error messages. So it’s important to be
+      aware that this exists, but it shouldn’t affect you on a day-to-day basis.</p></div></div>
+
+{% endraw %}
+

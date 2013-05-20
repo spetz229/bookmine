@@ -1,0 +1,23 @@
+---
+layout: page
+title: "Java Concurrency in Practice"
+prev: ch08lev1sec6.html
+next: ch09lev1sec1.html
+book_path: books/brian-goetz-tim-peierls-joshua-bloch-joseph-bowbeer-david-holmes-doug-lea-java-concurrency-in-practice--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a name="ch09" class="calibre18" id="ch09"></a>
+<div class="calibre32" id="calibre_pb_0"></div><div class="calibre32"></div><h2 id="title-IDAXPSMV" class="docPrefaceTitle">Chapter 9. GUI Applications</h2>
+<p class="docText1"><a name="iddle1110" class="calibre18" id="iddle1110"></a><a name="iddle1907" class="calibre18" id="iddle1907"></a><a name="iddle1908" class="calibre18" id="iddle1908"></a><a name="iddle1981" class="calibre18" id="iddle1981"></a><a name="iddle2486" class="calibre18" id="iddle2486"></a><a name="iddle2495" class="calibre18" id="iddle2495"></a><a name="iddle2496" class="calibre18" id="iddle2496"></a><a name="iddle3269" class="calibre18" id="iddle3269"></a><a name="iddle3270" class="calibre18" id="iddle3270"></a><a name="iddle3783" class="calibre18" id="iddle3783"></a><a name="iddle4243" class="calibre18" id="iddle4243"></a><a name="iddle4244" class="calibre18" id="iddle4244"></a><a name="iddle4299" class="calibre18" id="iddle4299"></a><a name="iddle4300" class="calibre18" id="iddle4300"></a><a name="iddle4818" class="calibre18" id="iddle4818"></a><a name="iddle4819" class="calibre18" id="iddle4819"></a>If you've tried to write even a simple GUI application using Swing, you know that GUI applications have their own peculiar threading issues. To maintain safety, certain tasks must run in the Swing event thread. But you cannot execute longrunning tasks in the event thread, lest the UI become unresponsive. And Swing data structures are not thread-safe, so you must be careful to confine them to the event thread.</p>
+<p class="docText1">Nearly all GUI toolkits, including Swing and SWT, are implemented as <span class="docEmphasis">singlethreaded subsystems</span> in which all GUI activity is confined to a single thread. If you are not planning to write a totally single-threaded program, there will be activities that run partially in an application thread and partially in the event thread. Like many other threading bugs, getting this division wrong may not necessarily make your program crash immediately; instead, it could behave oddly under hard-to-identify conditions. Even though the GUI frameworks themselves are single-threaded subsystems, your application may not be, and you still need to consider threading issues carefully when writing GUI code.</p>
+
+<p class="calibre1"> </p>
+
+</div>
+
+{% endraw %}
+

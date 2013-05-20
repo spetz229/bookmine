@@ -1,0 +1,187 @@
+---
+layout: page
+title: "jQuery UI"
+prev: OEBPS/ch08s02.html
+next: OEBPS/ch08s04.html
+book_path: books/eric-sarrion-jquery-ui-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="The datepicker () Method"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="the_datepicker_open_parenthesis_close_pa" class="calibre1"></a>The datepicker () Method</h1></div></div></div><p class="calibre7">The <code class="literal">datepicker ()</code> method can be
+    used in two forms:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7"><code class="literal">$(selector, context).datepicker
+        (options)</code></p></li><li class="listitem"><p class="calibre7"><code class="literal">$(selector, context).datepicker
+        ("action", params)</code></p></li></ul></div><div class="book" title="The datepicker (options) Method"><div class="book"><div class="book"><div class="book"><h2 class="title5"><a id="the_datepicker_open_parenthesis_options" class="calibre1"></a>The datepicker (options) Method</h2></div></div></div><p class="calibre7">The <code class="literal">datepicker (options)</code> method
+      declares that an <code class="literal">&lt;input&gt;</code>
+      element (or <code class="literal">&lt;div&gt;</code> or <code class="literal">&lt;span&gt;</code>, depending on how you choose to
+      display the calendar) should be managed as a datepicker. The <code class="literal">options</code> parameter is an object that specifies
+      the appearance and behavior of the calendar. It can also specify the
+      format for displaying dates in different countries.</p><div class="book" title="Managing the appearance and visual effects associated with the calendar"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="managing_the_appearance_and_visual_effec" class="calibre1"></a>Managing the appearance and visual effects associated with the
+        calendar</h3></div></div></div><p class="calibre7">The options listed in <a class="ulink" href="ch08s03.html#options_for_managing_the_appearance_of_t" title="Table 8-1. Options for managing the appearance of the calendar">Table 8-1</a> allow us to set
+        the appearance of the calendar.</p><div class="table"><a id="options_for_managing_the_appearance_of_t" class="firstname"></a><p class="title7">Table 8-1. Options for managing the appearance of the calendar</p><div class="book"><table summary="Options for managing the appearance of the calendar" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.firstDay</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Integer that indicates
+                which day begins a week on the calendar. The value 0
+                corresponds to Sunday (default).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.numberOfMonths</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Number of months
+                displayed at the same time in the calendar. For example, a
+                value of 3 indicates the calendar will display three
+                consecutive months.</p> <p class="calibre7">If it is indicated as an
+                array, it is the number of rows and columns of months
+                displayed. For example, [3, 2] for displaying six months,
+                three on each line. The default is 1 (a single
+                month).</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.showOtherMonths</code></p></td><td valign="top" class="calibre21"><p class="calibre7">If the first of the
+                month does not fall on the day indicated in <code class="literal">options.firstDay</code>, unused cells at
+                the beginning and end of the month can display days from the
+                previous or following months.</p> <p class="calibre7">The default value
+                is <code class="literal">false</code> (days from the
+                preceding and following months are not shown in the unused
+                cells of the current month).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.selectOtherMonths</code></p></td><td valign="top" class="calibre21"><p class="calibre7">When set to <code class="literal">true</code>, indicates that the cells of
+                the previous or next month indicated in the calendar of the
+                current month can be selected. This option is used with
+                <code class="literal">options.showOtherMonths</code> set
+                to <code class="literal">true.</code></p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.changeMonth</code></p></td><td valign="top" class="calibre21"><p class="calibre7">When set to <code class="literal">true</code>, displays a list of months for
+                quick selection. This list appears at the top of the calendar,
+                instead of months and the year shown. The default value is
+                <code class="literal">false.</code></p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.changeYear</code></p></td><td valign="top" class="calibre21"><p class="calibre7">When set to <code class="literal">true</code>, displays a list of years for
+                quick selection. This list appears at the top of the calendar,
+                instead of months and the year shown. The default value is
+                <code class="literal">false.</code></p></td></tr></tbody></table></div></div><p class="calibre7">jQuery UI can also apply appearance and disappearance effects
+        for the calendar window, with the <code class="literal">options.showAnim</code> option. <a class="ulink" href="ch08s03.html#options_for_managing_effects" title="Table 8-2. Options for managing effects">Table 8-2</a> describes the options, and
+        <span class="firstname"><a class="ulink" href="ch08s03.html#effects_provided_by_jquery_and_jquery_ui" title="Table 8-3. Effects provided by jQuery and jQuery UI">Table 8-3</a></span> lists
+        specific effects.</p><div class="table"><a id="options_for_managing_effects" class="firstname"></a><p class="title7">Table 8-2. Options for managing effects</p><div class="book"><table summary="Options for managing effects" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.showAnim</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Name of the visual
+                effect that will be produced during an appearance or
+                disappearance of the calendar. By default, it is a <code class="literal">"fadeIn"</code> effect. Specify <code class="literal">false</code> to produce no
+                effect.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.duration</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Duration of the
+                appearance or disappearance effect, in
+                milliseconds.</p></td></tr></tbody></table></div></div><div class="table"><a id="effects_provided_by_jquery_and_jquery_ui" class="firstname"></a><p class="title7">Table 8-3. Effects provided by jQuery and jQuery UI</p><div class="book"><table summary="Effects provided by jQuery and jQuery UI" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Effect</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">"fadeIn"</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Make the element appear
+                or disappear by changing its opacity.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">"blind"</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Make the element appear
+                or disappear from the top.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">"bounce"</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Make the element appear
+                or disappear by bouncing vertically.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">"clip"</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Make the element appear
+                or disappear vertically from its center.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">"drop"</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Make the element appear
+                or disappear on the left, by changing its
+                opacity.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">"fold"</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Make the element appear
+                or disappear from its upper left corner.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">"highlight"</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Make the element appear
+                or disappear by changing its opacity and background
+                color.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">"puff"</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Make the element appear
+                or disappear by resizing it from its center. It appears by
+                shrinking and disappears by growing.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">"pulsate"</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Make the element appear
+                or disappear by blinking.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">"scale"</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Make the element appear
+                or disappear by resizing it from its center. It disappears by
+                shrinking and appears by growing.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">"slide"</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Make the element appear
+                or disappear from the right side.</p></td></tr></tbody></table></div></div></div><div class="book" title="Internationalization options"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="internationalization_options" class="calibre1"></a>Internationalization options</h3></div></div></div><p class="calibre7">By default, the calendar is displayed in English. jQuery UI can
+        display it in most major languages (German, French, Spanish, etc.).
+        Simply include the JavaScript file for the language. These files are
+        located in the <em class="calibre4">jqueryui/development-bundle/ui/i18n</em>
+        directory.</p><p class="calibre7">Once the file of the language is inserted in the HTML, some
+        options are included by default (name of month and day, date format,
+        etc.), but you can change them using the options listed in <a class="ulink" href="ch08s03.html#internationalization_options-id1" title="Table 8-4. Internationalization options">Table 8-4</a>. The date format is a
+        string specified in <code class="literal">options.</code><span class="firstname"><code class="literal">dateFormat</code>,</span> and you can configure
+        it with the codes listed in <a class="ulink" href="ch08s03.html#date_formatting_codes" title="Table 8-5. Date formatting codes">Table 8-5</a>.</p><div class="table"><a id="internationalization_options-id1" class="firstname"></a><p class="title7">Table 8-4. Internationalization options</p><div class="book"><table summary="Internationalization options" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.dateFormat</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Specifies the date
+                format that will be retrieved from the calendar. For a date in
+                English, the default is mm/dd/yy (according to the conventions
+                listed in <a class="ulink" href="ch08s03.html#date_formatting_codes" title="Table 8-5. Date formatting codes">Table 8-5</a>).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.dayNames</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Indicates an array of
+                day names in long format (Sunday, Monday, Tuesday, etc.). The
+                array must start on Sunday.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.dayNamesShort</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Indicates an array of
+                day names in short format (Sun, Mon, Tue, etc.). The array
+                must start on Sun (Sunday).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.dayNamesMin</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Indicates an array of
+                day names in minimum size (Su, Mo, Tu, etc.). This is the name
+                specified in the calendar for each column. The array must
+                start on Su (Sunday).</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.monthNames</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Indicates an array of
+                month names in long format (January, February, etc.). The
+                array should begin in January.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.monthNamesShort</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Indicates an array of
+                month names in short format (Jan, Feb, etc.). The array must
+                begin in Jan (January).</p></td></tr></tbody></table></div></div><div class="table"><a id="date_formatting_codes" class="firstname"></a><p class="title7">Table 8-5. Date formatting codes</p><div class="book"><table summary="Date formatting codes" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Code</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">d</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Day of the month, from
+                1 to 31.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">dd</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Day of the month, from
+                01 to 31.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">o</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Day of the year, from 1
+                to 366.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">oo</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Day of the year, from
+                001 to 366.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">D</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Day’s name, in short
+                form (Mon, Tue, etc.).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">DD</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Day’s name, in long
+                form (Monday, Tuesday, etc.).</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">m</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Month from 1 to
+                12.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">mm</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Month from 01 to
+                12.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">M</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Month’s name, in short
+                form (Jan, Feb, etc.).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">MM</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The name of the month
+                in long form (January, February, etc.).</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">y</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Year as two digits (12
+                for 2012).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">yy</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Year as four digits
+                (2012).</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">@</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Number of milliseconds
+                since the 01/01/1970.</p></td></tr></tbody></table></div></div><p class="calibre7">You can combine these codes to form complete dates according to
+        your preferred order (e.g., the day before or after the month). You
+        can insert additional characters, such as slash (/) or the hyphen (-),
+        to separate fields.</p></div><div class="book" title="Managing date selection"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="managing_date_selection" class="calibre1"></a>Managing date selection</h3></div></div></div><p class="calibre7">By default, all calendar dates can be selected, including the
+        month following or preceding the current month. It is possible to
+        limit this choice by specifying a minimum or maximum date. <a class="ulink" href="ch08s03.html#options_for_managing_date_selection" title="Table 8-6. Options for managing date selection">Table 8-6</a> lists options for
+        date selection.</p><div class="table"><a id="options_for_managing_date_selection" class="firstname"></a><p class="title7">Table 8-6. Options for managing date selection</p><div class="book"><table summary="Options for managing date selection" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.minDate</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Minimum selectable date
+                in the calendar.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.maxDate</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Maximum selectable date
+                in the calendar.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.defaultDate</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Preset default date
+                when no date has been previously selected. This date will be
+                displayed in the first display of the calendar. By default,
+                this is the current date.</p></td></tr></tbody></table></div></div><p class="calibre7">The values of these options are dates that can be expressed
+        either as a <code class="literal">Date</code> object (created by
+        <code class="literal">new Date ()</code>), the number of days
+        before (e.g., −2) or after (e.g., 2) the current date, or by a string
+        taking one of the forms presented in <a class="ulink" href="ch08s03.html#forms_of_the_string_representing_the_dat" title="Table 8-7. Forms of the string representing the date to select">Table 8-7</a>.</p><div class="table"><a id="forms_of_the_string_representing_the_dat" class="firstname"></a><p class="title7">Table 8-7. Forms of the string representing the date to select</p><div class="book"><table summary="Forms of the string representing the date to select" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Format</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Example</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">X</code></p></td><td valign="top" class="calibre21"><p class="calibre7">X days after the
+                current date (where X ranges from 1 to n).</p></td><td valign="top" class="calibre21"><p class="calibre7">1, 2, 3</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">-X</code></p></td><td valign="top" class="calibre21"><p class="calibre7">X days before the
+                current date (where X ranges from 1 to n)</p></td><td valign="top" class="calibre21"><p class="calibre7">−1, −2,
+                −3</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">Xm</code></p></td><td valign="top" class="calibre21"><p class="calibre7">X months after the
+                current date (where X ranges from 1 to n)</p></td><td valign="top" class="calibre21"><p class="calibre7">1m, 2m,
+                3m</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">-Xm</code></p></td><td valign="top" class="calibre21"><p class="calibre7">X months before the
+                current date (where X ranges from 1 to n)</p></td><td valign="top" class="calibre21"><p class="calibre7">−1m, −2m,
+                −3m</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">Xw</code></p></td><td valign="top" class="calibre21"><p class="calibre7">X weeks after the
+                current date (where X ranges from 1 to n)</p></td><td valign="top" class="calibre21"><p class="calibre7">1w, 2w,
+                3w</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">-Xw</code></p></td><td valign="top" class="calibre21"><p class="calibre7">X weeks before the
+                current date (where X ranges from 1 to n)</p></td><td valign="top" class="calibre21"><p class="calibre7">−1w, −2w,
+                −3w</p></td></tr></tbody></table></div></div><p class="calibre7">Any combination of days, weeks, and months can produce a day in
+        relation to the current date. For example, 1m+3,-1m-1w.</p></div><div class="book" title="Managing events on the calendar"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="managing_events_on_the_calendar" class="calibre1"></a>Managing events on the calendar</h3></div></div></div><p class="calibre7"><a class="ulink" href="ch08s03.html#options_for_managing_events_on_the_calen" title="Table 8-8. Options for managing events on the calendar">Table 8-8</a>
+        lists options you can use to manage the events on the calendar</p><div class="table"><a id="options_for_managing_events_on_the_calen" class="firstname"></a><p class="title7">Table 8-8. Options for managing events on the calendar</p><div class="book"><table summary="Options for managing events on the calendar" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.beforeShow</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">beforeShow ()</code> method is called
+                before the calendar is displayed.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.beforeShowDay</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">beforeShowDay (date)</code> method is
+                called for each day (corresponding to the date parameter,
+                which is an object of <code class="literal">Date</code>
+                class) displayed in the calendar. The method must return an
+                array to indicate the following for each date:</p>
+                <div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">Whether it is selectable (true in [0])</p></li><li class="listitem"><p class="calibre7">CSS classes used in this calendar’s cell (in [1],
+                      “” by default)</p></li><li class="listitem"><p class="calibre7">A string displayed as a tooltip on the cell (in
+                      [2], “” by default).</p></li></ul></div></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><span class="firstname"><code class="literal">options.onChangeMonthYear</code></span></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">onChangeMonthYear (year, month)</code>
+                method is called when the month or year displayed in the
+                calendar changes. This occurs when the user clicks the buttons
+                at the top of the calendar or when <code class="literal">options.changeMonth</code> or <code class="literal">options.changeYear</code> is set to
+                <code class="literal">true</code> while the user selects
+                another month or another year from the list.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.onClose</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">onClose (dateText)</code> method is called
+                when the calendar is closed (by selecting a date, clicking
+                outside the calendar, or pressing Esc). The <code class="literal">dateText</code> parameter is the date as
+                text (in the format corresponding to <code class="literal">options.dateFormat)</code> to be written
+                into the input field.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.onSelect</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">onSelect (dateText)</code> method is called
+                when a date was selected in the calendar. The <code class="literal">dateText</code> parameter is the date as
+                text (in the format corresponding to <code class="literal">options.dateFormat)</code> to be written
+                into the input field.</p></td></tr></tbody></table></div></div><p class="calibre7">jQuery UI allows the use of only the event methods defined by
+        the previous options <code class="literal">(options.beforeShow,</code> etc.). The use of the
+        <code class="literal">bind ()</code> method to manage calendars
+        is not allowed for now.</p></div></div><div class="book" title="The datepicker (“action”, params) Method"><div class="book"><div class="book"><div class="book"><h2 class="title5"><a id="the_datepicker_open_parenthesis_quotatio" class="calibre1"></a>The datepicker (“action”, params) Method</h2></div></div></div><p class="calibre7">The <code class="literal">datepicker ("action",
+      params)</code> method can perform an action on the calendar, such as
+      selecting a new date. The action is specified as a string in the first
+      argument (e.g., <code class="literal">"show"</code> to display the
+      calendar). The available actions are listed in <a class="ulink" href="ch08s03.html#the_datepicker_open_parenthesis_quot" title="Table 8-9. The datepicker (“action”, params) method actions">Table 8-9</a>.</p><div class="table"><a id="the_datepicker_open_parenthesis_quot" class="firstname"></a><p class="title7">Table 8-9. The datepicker (“action”, params) method actions</p><div class="book"><table summary="The datepicker (“action”, params) method actions" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Action</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">datepicker ("show")</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Show
+              calendar.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">datepicker ("hide")</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Hide
+              calendar.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">datepicker ("getDate")</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Return a <code class="literal">Date</code> object corresponding to the
+              selected date.</p> <p class="calibre7">If the date format is not specified
+              (<code class="literal">options.dateFormat</code>), the
+              date is presented in the form mm/dd/yy, even if the JavaScript
+              file for the country is included. Make sure to always specify
+              <code class="literal">options.dateFormat</code> if you use
+              <code class="literal">datepicker ("getDate")</code> with a
+              format other than English.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">datepicker ("setDate",
+              date)</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Initialize a preset date
+              in the calendar. The <code class="literal">date</code>
+              parameter is expressed as noted above (<code class="literal">Date</code> object, number of days before or
+              after the current date, or string).</p> <p class="calibre7">If the date
+              format is not specified (<code class="literal">options.dateFormat</code>), the date is
+              presented in the form mm/dd/yy, even if the JavaScript file for
+              the country is included. Make sure to always specify <code class="literal">options.dateFormat</code> if you use <code class="literal">datepicker ("setDate")</code> with a format
+              other than English.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">datepicker ("option",
+              param)</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Retrieve the value of the
+              <code class="literal">param</code> option specified. This
+              option corresponds to one of those used with <code class="literal">datepicker (options)</code>.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">datepicker ("option", param,
+              value)</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Change the value of the
+              <code class="literal">param</code> option. This option
+              corresponds to one of those used with <code class="literal">datepicker (options)</code>.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">datepicker ("destroy")</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Remove the management of
+              calendars. Calendars revert to simple HTML without CSS class or
+              event management.</p></td></tr></tbody></table></div></div></div></div></div>
+
+{% endraw %}
+

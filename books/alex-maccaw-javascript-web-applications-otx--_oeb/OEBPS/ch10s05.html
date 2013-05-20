@@ -1,0 +1,44 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch10s04.html
+next: OEBPS/ch10s06.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Using a CDN"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect110_d1e9976" class="calibre1"></a>Using a CDN</h1></div></div></div><p class="calibre3"><a id="I_indexterm10_d1e9980" class="calibre1"></a><a id="I_indexterm10_d1e9985" class="calibre1"></a><a id="I_indexterm10_d1e9988" class="calibre1"></a>A content delivery network, or CDN, can serve static content
+    on your behalf, reducing its load time. The user’s proximity to the web
+    server can have an impact on load times. CDNs can deploy your content
+    across multiple geographically dispersed servers, so when a user requests
+    a resource, it can be served up from a server near them (ideally in the
+    same country). Yahoo! has found that CDNs can improve enduser response
+    times by 20% <a class="ulink" href="http://developer.yahoo.com/performance/rules.html#cdn">or
+    more</a>.</p><p class="calibre3">Depending on how much you can afford to spend, there are lot of
+    companies out there offering CDNs, such as <a class="ulink" href="http://www.akamai.com">Akamai Technologies</a>, <a class="ulink" href="http://www.limelightnetworks.com">Limelight Networks</a>, <a class="ulink" href="http://www.edgecast.com">EdgeCast</a>, and <a class="ulink" href="http://www.level3.com">Level 3 Communications</a>. <a class="ulink" href="http://aws.amazon.com">Amazon Web Services</a> has recently
+    released an affordable option called <a class="ulink" href="http://aws.amazon.com/cloudfront">Cloud Front</a> that ties into
+    its <a class="ulink" href="http://aws.amazon.com/s3">S3 service</a> closely and
+    may be a good option for startups.</p><p class="calibre3">Google offers a free CDN and loading architecture for many popular
+    open source JavaScript libraries, including jQuery and jQueryUI. One of
+    the advantages of using Google’s CDN is that many other sites use it too,
+    increasing the likelihood that any JavaScript files you reference are
+    already cached in a user’s browser.</p><p class="calibre3">Check out the list of <a class="ulink" href="http://code.google.com/apis/libraries/devguide.html">available
+    libraries</a>. If, <a id="I_indexterm10_d1e10026" class="calibre1"></a>say, you want to include the <a class="ulink" href="http://code.google.com/apis/libraries/devguide.html#jquery">jQuery
+    library</a>, you can either use Google’s JavaScript loader library or,
+    more simply, a plain old script tag:</p><pre class="screen">&lt;!-- minimized version of the jQuery library --&gt;
+&lt;script src="//ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"&gt;&lt;/script&gt;
+
+&lt;!-- minimized version of the jQuery UI library --&gt;
+&lt;script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js"&gt;
+&lt;/script&gt;</pre><p class="calibre3">You’ll notice that in the example above we haven’t specified a
+    protocol; instead, <code class="literal">//</code> is used. This is
+    a little-known trick that ensures the script file is fetched using the
+    same protocol as the host page. In other words, if your page was loaded
+    securely over HTTPS, the script file will be as well, eliminating any
+    security warnings. A relative URL without a scheme is valid and compliant
+    to the RTF spec. More importantly, it’s got support across the board;
+    heck, protocol-relative URLs even work in Internet Explorer 3.0.</p></div></div>
+
+{% endraw %}
+

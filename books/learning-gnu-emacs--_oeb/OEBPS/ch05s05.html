@@ -1,0 +1,808 @@
+---
+layout: page
+title: "Learning GNU Emacs, 3rd Edition"
+prev: OEBPS/ch05s04.html
+next: OEBPS/ch06.html
+book_path: books/learning-gnu-emacs--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h1 class="title"><a id="gnu3-CHP-5-SECT-5" class="calibre1"></a>Using Time Management Tools</h1></div></div></div><p class="copyright">Emacs is a natural place to organize all your work. It
+won't replace your Palm or other handheld, but
+ongoing work in this area may help you sync your favorite device with
+your Emacs-based schedule. Here we cover the main features that Emacs
+itself offers—the calendar and the diary.</p><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-5-SECT-5.1" class="calibre1"></a>Displaying the Calendar</h2></div></div></div><p class="copyright">To display the calendar,
+<a id="gnu3-CHP-5-ITERM-2233" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2234" class="calibre2"></a>type
+<span><strong class="calibre5">M-x calendar</strong></span>. Emacs displays a
+calendar window with three months: last month, this month, and next
+month.</p><div class="book"><a id="ch05-25-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre17">
+                           <p class="copyright">Type: <span><strong class="calibre5">M-x calendar</strong></span>
+                           </p>
+                        </td></tr><tr class="calibre12"><td class="calibre17">
+                           <p class="copyright">
+                              </p><div class="book"><div class="mediaobject"><a id="I_5_tt165" class="calibre2"></a><img src="tagoreillycom20070228oreillyimages126055.png" alt="Displaying the Calendar" class="calibre3"/></div></div><p class="copyright">
+                           </p>
+                        </td></tr><tr class="calibre12"><td class="calibre19">
+                           <p class="copyright">Emacs puts the cursor on today's date and displays
+the date on the mode line. There's no room to write
+on the calendar; that's what the diary is for, which
+we'll discuss shortly.</p>
+                        </td></tr></tbody></table></div><p class="copyright">By default, weeks start
+<a id="gnu3-CHP-5-ITERM-2235" class="calibre2"></a>on Sunday. If you'd like
+them to start on Monday instead, type <span><strong class="calibre5">M-x
+set-variable calendar-week-start Enter 1 Enter</strong></span>. You enter
+the calendar again to have this take effect. If
+you'd like to have the calendar always start on
+Monday, add this line to your <span><em class="calibre7">.emacs</em></span> file:</p><a id="I_5_tt166" class="calibre2"></a><pre class="programlisting">(setq calendar-week-start-day 1)</pre><p class="copyright">If you'd like to see the calendar each time you
+start Emacs, you can add this line to your
+<span><em class="calibre7">.emacs</em></span> file:</p><a id="I_5_tt167" class="calibre2"></a><pre class="programlisting">(calendar)</pre><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h3 class="title4"><a id="gnu3-CHP-5-SECT-5.1.1" class="calibre1"></a>Moving in the calendar</h3></div></div></div><p class="copyright">When you're in the calendar, Emacs
+<a id="gnu3-CHP-5-ITERM-2236" class="calibre2"></a>
+                  <a id="gnu3-CHP-5-ITERM-2237" class="calibre2"></a>sensibly
+moves by day rather than by character. <span><strong class="calibre5">C-f</strong></span> moves you to the next day; <span><strong class="calibre5">C-b</strong></span> moves you to the previous day. <span><strong class="calibre5">C-n</strong></span> moves you to the same day of the next
+week; <span><strong class="calibre5">C-p</strong></span> moves you back a week. The
+arrow keys work the same way. <span><strong class="calibre5">M-}</strong></span>
+and <span><strong class="calibre5">M-{</strong></span> move forward and backward by
+month, and <span><strong class="calibre5">C-x [</strong></span> and <span><strong class="calibre5">C-x ]</strong></span> move forward and backward by year.
+<span><strong class="calibre5">C-v</strong></span> scrolls forward by three months;
+<span><strong class="calibre5">M-v</strong></span> scrolls back three months.</p><p class="copyright">The movement commands just discussed move you relative to the cursor
+position. If you're on Tuesday and you press
+<span><strong class="calibre5">C-n</strong></span>, you'll move to
+next Tuesday. If you're on January 25 and press
+<span><strong class="calibre5">M-}</strong></span> you'll move to
+February 25. If you're on August 15, 2004 and press
+<span><strong class="calibre5">C-x [</strong></span>, you'll move
+to August 15, 2003.</p><p class="copyright">Other commands move to the beginning or the end of the week, month,
+or year. <span><strong class="calibre5">C-a</strong></span> and <span><strong class="calibre5">C-e</strong></span> move to the beginning and end of the week,
+<span><strong class="calibre5">M-a</strong></span> moves to the beginning of the
+month, and <span><strong class="calibre5">M-&lt;</strong></span> moves to the
+beginning of the year. <a class="calibre2" href="ch05s05.html#gnu3-CHP-5-TABLE-4" title="Table 5-4. Calendar movement commands">Table 5-4</a> summarizes these
+calendar movement commands.</p><p class="copyright">To go to a particular date, press <span><strong class="calibre5">g
+d</strong></span>. Emacs asks for the year, then the month, and then the
+day. Emacs moves you to the day selected (this command is well-suited
+for answering that all-important question, "On what
+day of the week does my birthday fall in 2020?").</p><div class="book"><a id="gnu3-CHP-5-TABLE-4" class="calibre2"></a><p class="title2"><b class="calibre25">Table 5-4. Calendar movement commands</b></p><div class="table-contents"><a id="gnu3-CHP-5-ITERM-2238" class="calibre2"></a><a id="gnu3-CHP-5-ITERM-2239" class="calibre2"></a><table summary="Calendar movement commands" class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre26">
+                              <p class="copyright">Keystrokes</p>
+                           </th><th class="calibre26">
+                              <p class="copyright">Command name</p>
+                           </th><th class="calibre27">
+                              <p class="copyright">Action</p>
+                           </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">(none)</strong></span>
+                                 <span><em class="calibre7">Tools</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Display Calendar</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Display the calendar.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">.<span><em class="calibre7">Goto</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Today</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-goto-today</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move to today's date.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-f</strong></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-forward-day</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move forward a day.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-b</strong></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-backward-day</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move backward a day.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-n</strong></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-forward-week</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move forward a week.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-p</strong></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-backward-week</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move backward a week.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">M-}</strong></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">calendar-forward-month</p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move forward one month.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">M-{</strong></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-backward-month</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move backward a month.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-x ]</strong></span>
+                                 <span><em class="calibre7">Scroll</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Forward 1 Year</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-forward-year</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move forward a year.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-x [</strong></span>
+                                 <span><em class="calibre7">Scroll</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Backward 1 Year</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-backward-year</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move backward a year.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-a</strong></span>
+                                 <span><em class="calibre7">Goto</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Beginning of Week</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-beginning-of-week</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move to the beginning of the week.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-e</strong></span>
+                                 <span><em class="calibre7">Goto</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">End of Week</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-end-of-week</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move to the end of the week.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">M-a</strong></span>
+                                 <span><em class="calibre7">Goto</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Beginning of Month</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-beginning-of-month</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move to the beginning of the month.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">M-e</strong></span>
+                                 <span><em class="calibre7">Goto</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">End of Month</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-end-of-month</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move to the end of the month.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">M-&lt;</strong></span>
+                                 <span><em class="calibre7">Goto</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Beginning of Year</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-beginning-of-year</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move to the beginning of the year.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">M-&gt;</strong></span>
+                                 <span><em class="calibre7">Goto</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">End of Year</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-end-of-year</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move to the end of the year.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">g d</strong></span>
+                                 <span><em class="calibre7">Goto</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Other Date</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-goto-date</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Go to the specified date.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">o</strong></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-other-month</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Put the specified month in the middle of the display.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-x &lt;</strong></span>
+                                 <span><em class="calibre7">Scroll</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Forward 1 Month</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">scroll-calendar-left</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Scroll forward one month.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-x &gt;</strong></span>
+                                 <span><em class="calibre7">Scroll</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Backward 1 Month</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">scroll-calendar-right</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Scroll backward one month.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-v</strong></span>
+                                 <span><em class="calibre7">Scroll</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Forward 3 Months</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">scroll-calendar-left-three-months</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Scroll forward three months.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">M-v</strong></span>
+                                 <span><em class="calibre7">Scroll</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Forward 3 Months</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">scroll-calendar-right-three-months</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Scroll backward three months.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre30">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">Space</strong></span>
+                              </p>
+                           </td><td class="calibre30">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">scroll-other-window</strong></span>
+                              </p>
+                           </td><td class="calibre31">
+                              <p class="copyright">Scroll another window.</p>
+                           </td></tr></tbody></table></div></div><br class="book"/></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h3 class="title4"><a id="gnu3-CHP-5-SECT-5.1.2" class="calibre1"></a>Displaying holidays</h3></div></div></div><p class="copyright">Let's move to a topic
+everyone<a id="gnu3-CHP-5-ITERM-2240" class="calibre2"></a>
+                  <a id="gnu3-CHP-5-ITERM-2241" class="calibre2"></a> is interested in:
+holidays. To display the holidays for the part of the calendar you
+are looking at, type <span><strong class="calibre5">a</strong></span> (for
+<span><strong class="calibre5">list-calendar-holidays</strong></span>) or select
+<span><strong class="calibre5">3 Months</strong></span> from the <span><strong class="calibre5">Holidays</strong></span> menu.</p><div class="book"><a id="ch05-27-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">Type: <span><strong class="calibre5">a</strong></span>
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">
+                                 </p><div class="book"><div class="mediaobject"><a id="I_5_tt168" class="calibre2"></a><img src="tagoreillycom20070228oreillyimages126060.png" alt="Displaying holidays" class="calibre3"/></div></div><p class="copyright">
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre19">
+                              <p class="copyright">Emacs lists holidays for the time period shown.</p>
+                           </td></tr></tbody></table></div><p class="copyright">As you can see, Emacs knows about a fairly wide variety of holidays
+or, as it calls them, "notable
+dates." If you are somewhere else on the calendar
+but want to see holidays surrounding the current month, type
+<span><strong class="calibre5">M-x holidays</strong></span>. Emacs lists them. To
+see whether today is a holiday, type <span><strong class="calibre5">h</strong></span> or select <span><strong class="calibre5">One
+Day</strong></span> from the <span><strong class="calibre5">Holidays</strong></span>
+menu.</p><p class="copyright">Typing <span><strong class="calibre5">x</strong></span> marks holidays in a special
+way, typically highlighting them in pink. If the display
+doesn't support this, Emacs puts an asterisk to the
+right of the date. Typing <span><strong class="calibre5">u</strong></span> removes
+the marks.</p><p class="copyright">We have taught you only the bare bones of the calendar commands.
+Emacs offers to tell you sunrise and sunset and phases of the moon.
+You can choose other calendars, like the Islamic calendar, the Hebrew
+calendar, the Mayan calendar, or even the French Revolutionary
+calendar. But we will leave these for you to explore.</p><p class="copyright">More calendar commands are used in the context of the diary,
+discussed next.</p></div></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-5-SECT-5.2" class="calibre1"></a>Using the Diary</h2></div></div></div><p class="copyright">The diary, closely related to the calendar, allows you to make notes
+about certain dates. You can enter a full daily schedule or just mark
+major events. The level of detail is entirely up to you.</p><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h3 class="title4"><a id="gnu3-CHP-5-SECT-5.2.1" class="calibre1"></a>Creating a diary file</h3></div></div></div><p class="copyright">To use the diary, you
+<a id="gnu3-CHP-5-ITERM-2242" class="calibre2"></a>
+                  <a id="gnu3-CHP-5-ITERM-2243" class="calibre2"></a>must have a
+<span><em class="calibre7">diary</em></span> file that contains notations about
+important events or things to do. It can remind you to back up your
+system every Thursday, that you get paid every two weeks, that
+you're on vacation during the first two weeks in
+July, or that your mother's birthday is August 6.</p><p class="copyright">The file must be called <span><em class="calibre7">diary</em></span> and must exist in
+your home directory. In this file, you insert lines—or have
+Emacs write lines for you—that note dates you want to remember.
+The <span><em class="calibre7">diary</em></span> file need not be all in one format and
+need not be sorted in any particular order. Date formats can be
+mixed: December 19, 2004 could be 12/19/04, Dec 19 04, or dec 19
+2004. Here are a few lines from a <span><em class="calibre7">diary</em></span> file to
+illustrate what we mean.</p><a id="I_5_tt169" class="calibre2"></a><pre class="programlisting">11/14 My birthday
+July 17 2004 Company picnic
+March 18 2004 Annual report due
+January 8 2004 Hair appointment
+&amp;Saturday Tea with Queen Elizabeth
+Friday Payday</pre><p class="copyright">If you don't specify a year, Emacs assumes you want
+to mark that date every year, as in birthdays. If you
+don't specify a date but only the day of the week
+(as in tea with the queen on Saturday), Emacs displays the diary
+entry every Saturday. Putting an ampersand (&amp;) before an entry
+tells Emacs not to mark it on the calendar (you
+don't want every Saturday marked, and you may not
+want everyone to know that you hang around with the royal family).</p><p class="copyright">Date formats can be mixed, but the choice to use European date format
+(DD/MM/YYYY or 9 October 2004) versus the default American format
+(MM/DD/YYYY or October 9, 2004) must be made before you create the
+<span><em class="calibre7">diary</em></span> file. To specify European date format, add
+this line to your <span><em class="calibre7">.emacs</em></span> file:</p><p class="copyright">
+                  <code class="calibre21">(setq european-calendar-style 't)</code>
+               </p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h3 class="title4"><a id="gnu3-CHP-5-SECT-5.2.2" class="calibre1"></a>
+                  <span class="firstname"><strong class="calibre36">Adding diary entries</strong></span>
+               </h3></div></div></div><p class="copyright">You can write your own
+<a id="gnu3-CHP-5-ITERM-2244" class="calibre2"></a>entries or have Emacs help you put
+them in. To have Emacs help you, go to the calendar by typing
+<span><strong class="calibre5">M-x calendar</strong></span>. Then press <span><strong class="calibre5">g d</strong></span> to specify the date you want to move to.
+Press <span><strong class="calibre5">i d</strong></span> (for <span><strong class="calibre5">insert-diary-entry</strong></span>). Emacs moves you to the
+diary window with the date written out. You can then make a diary
+entry next to the date. If your entry spans more than one line, begin
+the second and subsequent lines with a single space, so that Emacs
+understands it's a continuation. After you make the
+notation about the date, Emacs leaves you in the
+<code class="calibre21">diary</code> buffer so you can make more entries. Type
+<span><strong class="calibre5">C-x b</strong></span> to move to another buffer.</p><p class="copyright">The <span><strong class="calibre5">insert-diary-entry</strong></span> command
+assumes you want to make a single, one-time entry. To create a
+recurring entry, you need a few more commands. To insert a weekly
+entry, type <span><strong class="calibre5">i w</strong></span>. Emacs moves you to
+the <code class="calibre21">diary</code> buffer with the day of the week written
+out. Type the weekly activity (such as a staff meeting), and save the
+<span><em class="calibre7">diary</em></span> file. To insert an annual entry, type
+<span><strong class="calibre5">i y</strong></span>. Emacs moves you to the
+<code class="calibre21">diary</code> buffer with the day and month written out;
+type the annual event. There is a more specific command for
+anniversaries. Type <span><strong class="calibre5">i a</strong></span> to add an
+anniversary; this entry includes the year (though we have not seen a
+function that uses this information for any particular purpose, such
+as counting which anniversary this is).</p><p class="copyright">You can also put <a id="gnu3-CHP-5-ITERM-2245" class="calibre2"></a>
+                  <a id="gnu3-CHP-5-ITERM-2246" class="calibre2"></a>in <span><em class="calibre7">cyclic</em></span> diary
+entries, entries that occur at regular intervals, like reminders to
+change the oil in your car every three months. To do so, move to the
+date you changed your oil last and type <span><strong class="calibre5">i
+c</strong></span>. Emacs says, <code class="calibre21">Repeat every how many
+days</code>: and you type the number of days between oil changes.
+Emacs writes a Lisp function to handle this and puts it in the
+<code class="calibre21">diary</code> buffer. You can then make a notation next to
+the Lisp function, such as a note that tells you to change the oil.
+The entry that Emacs inserts looks like this (we put the part about
+changing the oil in ourselves):</p><a id="I_5_tt170" class="calibre2"></a><pre class="programlisting">%%(diary-cyclic 90 12 23 2004) Change the oil</pre><p class="copyright">The entry says that every 90 days, counting from the day we inserted
+the entry, December 23, 2004, we should change the oil in our car.</p><p class="copyright">You can mark a <a id="gnu3-CHP-5-ITERM-2247" class="calibre2"></a>block of dates, as in the
+case of a week-long conference or a vacation. Put the cursor on the
+first date and press <span><strong class="calibre5">C-Space</strong></span> to set
+the mark.<sup class="calibre6">[<a id="gnu3-CHP-5-FNOTE-7" href="#ftn.gnu3-CHP-5-FNOTE-7" class="calibre2">7</a>]</sup> Move
+(using calendar movement commands like <span><strong class="calibre5">C-f</strong></span>, <span><strong class="calibre5">C-n</strong></span>, and
+so on) to the second date and press <span><strong class="calibre5">i
+b</strong></span>. Emacs moves you to the <code class="calibre21">diary</code> buffer
+and inserts an incantation that marks the week on your calendar. Make
+a notation following the Lisp function Emacs inserts. The entry will
+look something like this:</p><a id="I_5_tt171" class="calibre2"></a><pre class="programlisting">%%(diary-block 3 15 2004 3 20 2004) Trip to Alabama</pre><p class="copyright">This entry indicates that from March 15 to March 20,
+we'll go on a trip to Alabama.</p><p class="copyright">What if you want to note that you have to file your expense report on
+the fifteenth of every month? Emacs accepts the asterisk wildcard (*)
+for the month, as you will see when you type <span><strong class="calibre5">i
+m</strong></span> (for <span><strong class="calibre5">insert-monthly-diary-entry</strong></span>). Emacs inserts an
+asterisk in place of the month, followed by the day, as in <span><strong class="calibre5">*</strong></span> 
+                  <span><strong class="calibre5">15</strong></span> for
+something scheduled for the fifteenth of each month. As always, you
+make a note following the entry.</p><p class="copyright">Now that you see how Emacs constructs diary entries, you can try
+writing some of your own based on what Emacs has done. After all, the
+<span><em class="calibre7">diary</em></span> file is like any other Emacs file; you can
+make changes, add lines, and delete lines at will. The only
+requirement is that you save the file when you're
+through. Now let's see how to display diary entries
+on the appropriate dates.</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h3 class="title4"><a id="gnu3-CHP-5-SECT-5.2.3" class="calibre1"></a>
+                  <span class="firstname"><strong class="calibre36">Displaying diary entries</strong></span>
+               </h3></div></div></div><p class="copyright">If you want to review the
+<a id="gnu3-CHP-5-ITERM-2248" class="calibre2"></a>
+                  <a id="gnu3-CHP-5-ITERM-2249" class="calibre2"></a>diary entries for a given date, press
+<span><strong class="calibre5">d</strong></span> from the calendar. In order to see
+the whole <span><em class="calibre7">diary</em></span> file, press <span><strong class="calibre5">s</strong></span> from the calendar. If you want
+today's diary entries to display automatically when
+you start Emacs, add this line to your <span><em class="calibre7">.emacs</em></span>
+file:</p><a id="I_5_tt172" class="calibre2"></a><pre class="programlisting">(diary)</pre><p class="copyright">That way, when you start up Emacs on a day for which there is a diary
+entry, the diary entry displays automatically. For example,
+let's say you marked your best
+friend's birthday some time ago, and today is the
+day. When you start Emacs, the screen would look like this:</p><div class="book"><a id="ch05-28-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">You start Emacs.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">
+                                 </p><div class="book"><div class="mediaobject"><a id="I_5_tt173" class="calibre2"></a><img src="tagoreillycom20070228oreillyimages126064.png" alt="Displaying diary entries" class="calibre3"/></div></div><p class="copyright">
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre19">
+                              <p class="copyright">Emacs displays the diary entry for your friend's
+birthday.</p>
+                           </td></tr></tbody></table></div><p class="copyright">If there are no diary entries for a given day, the diary is not
+displayed. If you start Emacs with two files so that you are editing
+in two windows, the diary is also not displayed.</p><p class="copyright">If you have already put in a <span><strong class="calibre5">(calendar)</strong></span> entry in your
+<span><em class="calibre7">.emacs</em></span> file to have the calendar displayed
+automatically, the calendar supersedes the diary, and
+you'll have to remove the calendar if you prefer to
+see the diary instead.</p><p class="copyright">To mark dates with diary entries in red, press <span><strong class="calibre5">m</strong></span> from the calendar. To remove the marks,
+press <span><strong class="calibre5">u</strong></span>. (This command removes
+highlighting for diary entries as well as for holidays.)</p><p class="copyright">
+                  <a class="calibre2" href="ch05s05.html#gnu3-CHP-5-TABLE-5" title="Table 5-5. Holiday and diary commands">Table 5-5</a> summarizes the calendar and diary
+commands.</p><div class="book"><a id="gnu3-CHP-5-TABLE-5" class="calibre2"></a><p class="title2"><b class="calibre25">Table 5-5. Holiday and diary commands</b></p><div class="table-contents"><a id="gnu3-CHP-5-ITERM-2250" class="calibre2"></a><a id="gnu3-CHP-5-ITERM-2251" class="calibre2"></a><a id="gnu3-CHP-5-ITERM-2252" class="calibre2"></a><a id="gnu3-CHP-5-ITERM-2253" class="calibre2"></a><table summary="Holiday and diary commands" class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre26">
+                              <p class="copyright">Keystrokes</p>
+                           </th><th class="calibre26">
+                              <p class="copyright">Command name</p>
+                           </th><th class="calibre27">
+                              <p class="copyright">Action</p>
+                           </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">p d</strong></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-print-day-of-year</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Display the day of the year this is (for example, Day 364 of 365).</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">p o</strong></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-print-other-dates</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Display information about this date for all calendars.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">Space</strong></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">scroll-other-window</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Scroll the other window.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">q</strong></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">exit-calendar</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Quit calendar.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">a</strong></span>
+                                 <span><em class="calibre7">Holidays</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">For Window</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">list-calendar-holidays</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Display holidays for calendar period shown.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">h</strong></span>
+                                 <span><em class="calibre7">Holidays</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">For Cursor Date</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-cursor-holidays</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">In the minibuffer, display holiday information for the day the cursor
+is on.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">x</strong></span>
+                                 <span><em class="calibre7">Holidays</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Mark</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">mark-calendar-holidays</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Display holidays in a different typeface, color, or with an asterisk
+beside them.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">u</strong></span>
+                                 <span><em class="calibre7">Holidays</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Unmark Calendar</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-unmark</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Remove marks for holidays and diary entries (opposite of <span><strong class="calibre5">x</strong></span> command).</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">i w</strong></span>
+                                 <span><em class="calibre7">Diary</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Insert Weekly</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">insert-weekly-diary-entry</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Add a weekly entry based on the day of the week.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">i y</strong></span>
+                                 <span><em class="calibre7">Diary</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Insert Yearly</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">insert-yearly-diary-entry</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Add an annual entry.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">i d</strong></span>
+                                 <span><em class="calibre7">Diary</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Insert Daily</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">insert-diary-entry</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Add an entry for a particular day.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">i m</strong></span>
+                                 <span><em class="calibre7">Diary</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Insert Monthly</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">insert-monthly-diary-entry</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Add an entry for the day of the month.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">i c</strong></span>
+                                 <span><em class="calibre7">Diary</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Insert Cyclic</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">insert-cyclic-diary-entry</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Add an entry to recur every <span><em class="calibre7">n</em></span> days.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">i a</strong></span>
+                                 <span><em class="calibre7">Diary</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Insert Anniversary</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">insert-anniversary-diary-entry</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Add an annual entry (the year is included for reference).</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">i b</strong></span>
+                                 <span><em class="calibre7">Diary</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Insert Block</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">insert-block-diary-entry</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Add a block entry.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">m</strong></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">mark-diary-entries</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Display diary entries in a different typeface, color, or with a plus
+sign beside them.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">d</strong></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">view-diary-entries</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Display diary entries for the current date.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">s</strong></span>
+                                 <span><em class="calibre7">Diary</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Show All</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">show-all-diary-entries</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Display <span><em class="calibre7">diary</em></span> file.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">M-=</strong></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-count-days-region</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Count the number of days in a region.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">M</strong></span>
+                                 <span><em class="calibre7">Moon</em></span>
+                                 <span>→</span> 
+                                 <span><em class="calibre7">Lunar Phases</em></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-phases-of-moon</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Display phases of the moon for a three-month period.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">S</strong></span>
+                              </p>
+                           </td><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-sunrise-sunset</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Given longitude and latitude, display sunrise and sunset times for
+the current date.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre30">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-Space</strong></span> or <span><strong class="calibre5">C-@</strong></span>
+                              </p>
+                           </td><td class="calibre30">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">calendar-set-mark</strong></span>
+                              </p>
+                           </td><td class="calibre31">
+                              <p class="copyright">Mark regions by time rather than horizontally.</p>
+                           </td></tr></tbody></table></div></div><br class="book"/></div></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-5-SECT-5.3" class="calibre1"></a>Problems You May Encounter</h2></div></div></div><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">In shell mode on Mac OS X, Emacs says,
+"Warning: no access to tty (Bad file descriptor).
+Thus no job control in this shell.</strong></span>" This
+happens with the graphical version of Emacs, not
+<a id="gnu3-CHP-5-ITERM-2254" class="calibre2"></a>
+                     <a id="gnu3-CHP-5-ITERM-2255" class="calibre2"></a>with the version run from the Mac OS X
+Terminal application. If you change to a different shell using the
+instructions under "Which shell?"
+earlier in this chapter, the error goes away.</p></li><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">Some commands don't work on
+Mac OS X</strong></span>. The graphical version of Mac OS X fails to find
+some operating <a id="gnu3-CHP-5-ITERM-2256" class="calibre2"></a>system commands, especially when
+invoking them through <span><strong class="calibre5">M-!</strong></span> (for
+<span><strong class="calibre5">shell-command</strong></span>). Change to a
+different shell; see "Which shell?"
+earlier in this chapter for details. Another problem is that some
+Unix commands are not available by default on Mac OS X. Try them in
+the Mac Terminal application to see if they work at all before trying
+them in shell mode. To increase Mac OS X's Unix
+functionality, use Fink (<a class="calibre2" href="http://fink.sourceforge.net">http://fink.sourceforge.net</a>) to download a
+wide variety of Unix commands and software for Mac OS X.</p></li><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">Some commands don't work on
+Windows</strong></span>. This chapter describes many commands that have no
+Windows equivalent. The Windows port of Emacs works well for most
+Dired functions, the calendar, and the diary. To get Unix command
+functionality under Windows, install Cygwin (<a class="calibre2" href="http://cygwin.com">http://cygwin.com</a>).</p></li><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">Printing does not work from Windows on USB
+printers</strong></span>. Many USB printers do not support printing from
+the command line. This problem is not specific to Emacs.</p></li></ul></div></div><div class="book"><br class="book"/><hr class="calibre4"/><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-5-FNOTE-7" href="#gnu3-CHP-5-FNOTE-7" class="calibre2">7</a>] </sup>If you normally use another binding for the
+<span><strong class="calibre5">set-mark</strong></span> command or if you typically
+spell out that command, you'll run into a problem
+marking regions in the calendar. In the calendar, <span><strong class="calibre5">C-Space</strong></span> and <span><strong class="calibre5">C-@</strong></span> run <span><strong class="calibre5">calendar-set-mark</strong></span> rather than <span><strong class="calibre5">set-mark</strong></span>, so that regions are marked by time
+rather than just across the screen. To mark regions correctly in the
+calendar (linearly by time rather than simply across the screen), you
+must type <span><strong class="calibre5">C-Space</strong></span>, <span><strong class="calibre5">C-@</strong></span>, or <span><strong class="calibre5">M-x
+calendar-set-mark</strong></span> to set the mark.</p></div></div></div></div>
+
+{% endraw %}
+

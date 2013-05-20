@@ -1,0 +1,41 @@
+---
+layout: page
+title: "Understanding the Linux Kernel, 3rd Edition"
+prev: understandlk-APP-A-SECT-1.html
+next: understandlk-APP-A-SECT-3.html
+book_path: books/understanding-the-linux-kernel-rd-edition_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a name="understandlk-APP-A-SECT-2"></a>
+<h3 class="docSection1Title" id="534871-854">A.2. Ancient Age: the Boot Loader</h3><a name="IDX-APP-A-0007"></a>
+<a name="IDX-APP-A-0008"></a>
+<a name="IDX-APP-A-0009"></a>
+<a name="IDX-APP-A-0010"></a>
+<a name="IDX-APP-A-0011"></a>
+<p class="docText1">The <span class="docEmphasis">boot loader</span> is the program invoked by the BIOS to load the image of an operating system kernel into RAM. Let's briefly sketch how boot loaders<a name="IDX-APP-A-0012"></a> 
+ work in IBM's PC architecture.</p>
+<p class="docText1">To boot from a floppy disk, the instructions stored in its first sector are loaded in RAM and executed; these instructions copy all the remaining sectors containing the kernel image into RAM.</p>
+<p class="docText1">Booting from a hard disk is done differently. The first sector of the hard disk, named the <span class="docEmphasis">Master Boot Record</span> (<span class="docEmphasis">MBR</span>), includes the partition table<sup class="docFootnote"><a class="pcalibre5 docLink pcalibre1" href="#understandlk-APP-A-FN1">[*]</a></sup> and a small program, which loads the first sector of the partition containing the operating system to be started. Some operating systems, such as Microsoft Windows<a name="IDX-APP-A-0013"></a> 
+ 98, identify this partition by means of an <span class="docEmphasis">active</span> flag included in the partition table;<sup class="docFootnote"><a class="pcalibre5 docLink pcalibre1" href="#understandlk-APP-A-FN2">[<img src="u2020.jpg" border="0" class="calibre10"/>]</a></sup> following this approach, only the operating system whose kernel image is stored in the active partition<a name="IDX-APP-A-0014"></a> 
+ can be booted. As we will see later, Linux is more flexible because it replaces the rudimentary program included in the MBR with a sophisticated programthe "boot loader"that allows users to select the operating system to be booted.</p><blockquote class="calibre22"><p class="docFootnote1"><sup class="calibre24"><a name="understandlk-APP-A-FN1">[*]</a></sup> Each partition table entry typically includes the starting and ending sectors of a partition and the kind of operating system that handles it.</p></blockquote><blockquote class="calibre22"><p class="docFootnote1"><sup class="calibre24"><a name="understandlk-APP-A-FN2">[<img src="u2020.jpg" border="0" class="calibre10"/>]</a></sup> The active flag may be set through programs such as <span class="docEmphasis">fdisk</span>.</p></blockquote>
+<p class="docText1">Kernel images of earlier Linux versionsup to the 2.4 seriesincluded a minimal "boot loader" program in the first 512 bytes; thus, copying a kernel image starting from the first sector made the floppy bootable. On the other hand, kernel images of Linux 2.6 no longer include such boot loader; thus, in order to boot from floppy disk, a suitable boot loader has to be stored in the first disk sector. Nowadays, booting from a floppy is very similar to booting from a hard disk or from a CD-ROM.</p>
+<a name="understandlk-APP-A-SECT-2.1"></a>
+<h4 class="docSection2Title">A.2.1. Booting Linux from a Disk</h4><a name="IDX-APP-A-0015"></a>
+<a name="IDX-APP-A-0016"></a>
+<p class="docText1">A two-stage boot loader is required to boot a Linux kernel from disk. A well-known Linux boot loader on 80 x 86 systems is named LInux LOader (LILO). Other boot loaders for 80 x 86 systems do exist; for instance, the GRand Unified Bootloader (GRUB) is also widely used. GRUB is more advanced than LILO, because it recognizes several disk-based filesystems and is thus capable of reading portions of the boot program from files. Of course, specific boot loader programs exist for all architectures supported by Linux.</p>
+<p class="docText1">LILO may be installed either on the MBR (replacing the small program that loads the boot sector of the active partition) or in the boot sector of every disk partition. In both cases, the final result is the same: when the loader is executed at boot time, the user may choose which operating system to load.</p>
+<p class="docText1">Actually, the LILO boot loader is too large to fit into a single sector, thus it is broken into two parts. The MBR or the partition boot sector includes a small boot loader, which is loaded into RAM starting from address <tt class="calibre25">0x00007c00</tt> by the BIOS. This small program moves itself to the address <tt class="calibre25">0x00096a00</tt>, sets up the Real Mode stack (ranging from <tt class="calibre25">0x00098000</tt> to <tt class="calibre25">0x000969ff</tt>), loads the second part of the LILO boot loader into RAM starting from address <tt class="calibre25">0x00096c00</tt>, and jumps into it.</p>
+<p class="docText1">In turn, this latter program reads a map of bootable operating systems from disk and offers the user a prompt so she can choose one of them. Finally, after the user has chosen the kernel to be loaded (or let a time-out elapse so that LILO chooses a default), the boot loader may either copy the boot sector of the corresponding partition into RAM and execute it or directly copy the kernel image into RAM.</p>
+<p class="docText1">Assuming that a Linux kernel image must be booted, the LILO boot loader, which relies on BIOS routines, performs essentially the following operations:</p>
+<div class="calibre44"><ol class="docList1" type="1"><li class="calibre12"><div class="calibre45"><p class="docList">Invokes a BIOS procedure to display a "Loading" message.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Invokes a BIOS procedure to load an initial portion of the kernel image from disk: the first 512 bytes of the kernel image are put in RAM at address <tt class="calibre25">0x00090000</tt>, while the code of the <tt class="calibre25">setup( )</tt> function (see below) is put in RAM starting from address <tt class="calibre25">0x00090200</tt>.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Invokes a BIOS procedure to load the rest of the kernel image from disk and puts the image in RAM starting from either low address <tt class="calibre25">0x00010000</tt> (for small kernel images compiled with <tt class="calibre25">make zImage</tt>) or high address <tt class="calibre25">0x00100000</tt> (for big kernel images compiled with <tt class="calibre25">make bzImage</tt>). In the following discussion, we say that the kernel image is "loaded low" or "loaded high" in RAM, respectively. Support for big kernel images uses essentially the same booting scheme as the other one, but it places data in different physical memory addresses to avoid problems with the ISA hole mentioned in the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-2-SECT-5.html#understandlk-CHP-2-SECT-5.3">Physical Memory Layout</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-2.html#understandlk-CHP-2">Chapter 2</a>.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Jumps to the <tt class="calibre25">setup( )</tt> code.</p></div></li></ol></div>
+
+<br class="calibre7"/>
+
+</div>
+
+{% endraw %}
+

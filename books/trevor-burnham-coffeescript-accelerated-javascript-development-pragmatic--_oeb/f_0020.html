@@ -1,0 +1,424 @@
+---
+layout: page
+title: "CoffeeScript (for jay muratore)"
+prev: f_0019.html
+next: f_0021.html
+book_path: books/trevor-burnham-coffeescript-accelerated-javascript-development-pragmatic--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="sec.context" class="calibre13">2.3 Context (or, “What Is ’this’?”)</h2>
+<p id="N10ED9" class="calibre5">
+      Scope and context are kissing cousins, but don’t get ’em mixed up. While scope is about which variable an identifier is referring to, context (also known as the receiver) is about the <code class="cf">this</code> keyword—and its handy CoffeeScript shorthand, <code class="cf">@</code>.
+      </p>
+<p id="N10EF0" class="calibre5">
+      JavaScript and CoffeeScript newcomers often find <code class="cf">this</code> baffling. Used rightly, it feels like magic. Used wrongly, it may be unrivaled as a source of errors. No doubt some of the confusion stems from the word itself; people expect <code class="cf">this</code> to refer to “<span class="emph">this</span> object.” Instead, you should think of it as “<span class="emph">this</span> context.” And as we’ll soon see, the context (aka <code class="cf">this</code>/<code class="cf">@</code>) can be something different every time a function is called.
+    </p>
+<p id="N10F05" class="calibre5">
+      (Before we go on, I should note that using the term <span class="emph">context</span> to describe <code class="cf">this</code>, while popular, is not standard. Some frown on it because the JavaScript specification defines something called <span class="emph">execution context</span>, which is related but different. Unfortunately, there is no other universally agreed-upon term for the value of <code class="cf">this</code>, so throughout this book, I’ll continue to refer to it as the context.)
+    </p>
+<p id="N10F14" class="calibre5">
+      Let’s go through some examples using this simple function:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/Functions/setName.coffee" class="calibre23">Functions/setName.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">setName = (name) <strong class="prompt">-&gt;</strong> @name = name</code>
+</td>
+</tr>
+</table>
+<p id="N10F26" class="calibre5">
+      Here, <code class="cf">name</code> and <code class="cf">@name</code> are totally different variables: <code class="cf">name</code> (which we could call anything, really) is a local variable, one that will never be visible outside of the function, while <code class="cf">@name</code> (shorthand for <code class="cf">this.name</code>) is a property of the context.
+      </p>
+<p id="N10F3D" class="calibre5">
+      The main purpose of context is to give an object’s <span class="emph">methods</span> (functions attached as properties) a way of referring to the object they’re being called on:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/Functions/setName.coffee" class="calibre23">Functions/setName.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">cat = {}</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">cat.setName = setName</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">cat.setName <em class="string">'Mittens'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console.log cat.name<em class="comment">   # 'Mittens'</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N10F5C" class="calibre5">
+      When we call <code class="cf">cat.setName</code>, we’re calling <code class="cf">setName</code> with the <code class="cf">cat</code> object as its context; thus <code class="cf">this</code> (or <code class="cf">@</code>) refers to the cat, and <code class="cf">@name</code> refers to <code class="cf">cat.name</code>. The function itself hasn’t changed. We could call the following:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">setName <em class="string">'Mr. Mistoffelees'</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N10F81" class="calibre5">
+      And it would have no effect on <code class="cf">cat</code>.
+    </p>
+<p id="N10F87" class="calibre5">
+      We can invoke a function in a particular context without attaching the function to that object by using the <code class="cf">call</code> or <code class="cf">apply</code> methods, which all functions have. (If you’re fuzzy on how properties work in JavaScript or surprised to learn that functions are objects, then you may want to skip ahead to Section 3.1, <a href="f_0028.html#sec.objects">​<em class="emph">Objects as Hashes</em>​</a> and then come back.) <code class="cf">apply</code> takes a context and an array of arguments to pass to the function:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/Functions/setName.coffee" class="calibre23">Functions/setName.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">pig = {}</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">setName.apply pig, [<em class="string">'Babe'</em>]</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console.log pig.name<em class="comment">   # 'Babe'</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N10FB9" class="calibre5">
+<code class="cf">call</code> works the same way, except that it takes individual arguments rather than a single array. So the equivalent of the previous would be this:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">setName.call pig, <em class="string">'Babe'</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N10FCB" class="calibre5">
+      In practice, <code class="cf">apply</code> is more commonly used than <code class="cf">call</code> because it’s more versatile: <code class="cf">call</code> only lets you change the context of a normal function call, while <code class="cf">apply</code> lets you change the context <span class="emph">and</span> pass in an arbitrary number of arguments.
+    </p>
+<p id="N10FDD" class="calibre5">
+      You can use <code class="cf">call</code> and <code class="cf">apply</code> to “borrow” one object’s methods and use them on another:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/Functions/setName.coffee" class="calibre23">Functions/setName.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">horse = {}</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">cat.setName.apply horse, [<em class="string">'Mr. Ed'</em>]</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console.log horse.name<em class="comment">   # 'Mr. Ed'</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N10FFD" class="calibre5">
+      Here, it doesn’t matter that we’re using <code class="cf">cat.setName</code> instead of <code class="cf">setName</code>: they’re the same function.
+    </p>
+<p id="N11006" class="calibre5">
+      Finally, one last way of giving a function a context is with <code class="cf">new</code>, which creates a new object using the function as a constructor:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/Functions/setName.coffee" class="calibre23">Functions/setName.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">Dog = setName<em class="comment">   # By convention, constructors are capitalized</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">dog1 = <strong class="prompt">new</strong> Dog(<em class="string">'Jimmy'</em>)</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">dog2 = <strong class="prompt">new</strong> Dog(<em class="string">'Jake'</em>)</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console.log dog1.name<em class="comment">   # 'Jimmy'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console.log dog2.name<em class="comment">   # 'Jake'</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N11043" class="calibre5">
+      The <code class="cf">new</code> keyword says, “Don’t return the result of the function; instead, create a new object, run the function in that object’s context, and then return the object.” (We can also give the object created by <code class="cf">new</code> additional properties using a prototype, as we’ll see in Section 4.2, <a href="f_0039.html#sec.prototypes">​<em class="emph">The Power of Prototypes</em>​</a>.) Because the <code class="cf">new</code> keyword sets the new <code class="cf">Dog</code> as the context, <code class="cf">@name</code> points to the new dog’s <code class="cf">name</code> property.
+    </p>
+<p id="N1105B" class="calibre5">
+      If a function isn’t called as a method and you don’t use the <code class="cf">new</code> keyword or <code class="cf">call</code>/<code class="cf">apply</code>, then the context is the global object. We’ll learn more about the global context in Section 4.1, <a href="f_0038.html#sec.modules">​<em class="emph">Modules: Splitting Up Apps</em>​</a>; for now, just remember that it’s generally a bad idea to use <code class="cf">this</code> when it’s pointing at the global object:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/Functions/setName.coffee" class="calibre23">Functions/setName.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">setName <em class="string">'Lulu'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console.log name<em class="comment">     # 'Lulu'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console.log @name<em class="comment">    # undefined</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N11085" class="calibre5">
+      So, you see that context is determined purely by how a function is called; unlike scope, it has nothing to do with where the function is defined. (Of course, we’d often like for the context to be determined by where the function is defined. Fortunately, there’s a clever technique that lets us effectively do this, one we’ll meet in <a href="#sec.boundFunctions">​<em class="emph">Bound Functions: ’this’ Means ’this’</em>​</a>.)
+    </p>
+<p id="N1108B" class="calibre5">
+      To review, here are the CoffeeScript rules of context in a nutshell, with earlier rules taking precedence over later ones:
+    </p>
+<ol class="calibre24">
+<li class="calibre3">
+<p id="N11091" class="calibre5">
+        When the <code class="cf">new</code> keyword is put in front of a function call, its context is the new object.
+      </p>
+</li>
+<li class="calibre3">
+<p id="N11098" class="calibre5">
+        When a function is called with <code class="cf">call</code> or <code class="cf">apply</code>, the context is the first argument given.
+      </p>
+</li>
+<li class="calibre3">
+<p id="N110A2" class="calibre5">
+        Otherwise, if a function is called as an object property (<code class="cf">obj.func</code>) or <code class="cf">obj[’func’]</code>), it runs in that object’s context.
+      </p>
+</li>
+<li class="calibre3">
+<p id="N110AC" class="calibre5">
+        If none of the above apply, then the function runs in the global context.
+      </p>
+</li>
+</ol>
+<p id="N110B5" class="calibre5">
+      We’ll learn more about the global context in Section 4.1, <a href="f_0038.html#sec.modules">​<em class="emph">Modules: Splitting Up Apps</em>​</a>.
+    </p>
+<h3 id="sec.boundFunctions" class="calibre14">Bound Functions: ’this’ Means ’this’</h3>
+<p id="N110C0" class="calibre5">
+        Sometimes you want a function to run in the current context no matter how it’s called. This is especially common with event callbacks. Let’s say that you want someone to leave a message in your <code class="cf">voicemail</code> array (bound to the current context). Then you might write something like this:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">callback = (message) <strong class="prompt">-&gt;</strong> @voicemail.push message</code>
+</td>
+</tr>
+</table>
+<p id="N110DE" class="calibre5">
+        Ah, but of course you realize that when <code class="cf">callback</code> is called without the relevant object, <code class="cf">this</code> will simply refer to the global object—or to whichever context the other library sets via <code class="cf">call</code> or <code class="cf">apply</code>. Isn’t there any way to make <code class="cf">this</code> always point to the same object, no matter how the function is called?
+      </p>
+<p id="N110F0" class="calibre5">
+        JavaScript lets you do that, but there’s a lot of boilerplate code involved (see <a href="#sb.functionBinding">​<em class="emph">How Does =&gt; Work?</em>​</a>, though it’s worth mentioning that ECMAScript 5, a standard supported by the latest generation of browsers, provides a much simpler <code class="cf">bind</code> method on the <code class="cf">Function</code> prototype). Thankfully, CoffeeScript makes binding a function to the current context as easy as a single character change: <code class="cf">=&gt;</code> instead of <code class="cf">-&gt;</code>. We call <code class="cf">=&gt;</code> the “bound function operator” or, less formally, the “fat arrow.”
+      </p>
+<p id="N1110D" class="calibre5">
+        So our callback function becomes this:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">callback = (message) <strong class="prompt">=&gt;</strong> @voicemail.push message</code>
+</td>
+</tr>
+</table>
+<p id="N1111E" class="calibre5">
+        Now we can relax, assured that the meaning of <code class="cf">this</code> is the same within the function as it is where the function is defined, no matter where it’s called from!
+      </p>
+<div class="sidebar" id="sb.functionBinding">
+<div class="sidebar-title">How Does =&gt; Work?</div>
+<div class="calibre1">
+<p id="N11128" class="calibre5">
+          We could write <code class="cf1">callback = (message) =&gt; @voicemail.push message</code> in JavaScript like so:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">
+<strong class="prompt">var</strong> callback;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1">
+<span class="codecalloutnumber">①</span> </td>
+<td class="codeline1">
+<code class="calibre16">callback = (<strong class="prompt">function</strong>(__this) {              </code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1">
+<span class="codecalloutnumber">②</span> </td>
+<td class="codeline1">
+<code class="calibre16">  <strong class="prompt">var</strong> __func = <strong class="prompt">function</strong>(message) {          </code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">    <strong class="prompt">return</strong> this.voicemail.push(message);</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">  };</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1">
+<span class="codecalloutnumber">③</span> </td>
+<td class="codeline1">
+<code class="calibre16">  <strong class="prompt">return</strong> <strong class="prompt">function</strong>() {                      </code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">    <strong class="prompt">return</strong> __func.apply(__this, arguments);</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">  };</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1">
+<span class="codecalloutnumber">④</span> </td>
+<td class="codeline1">
+<code class="calibre16">})(this);                                   </code>
+</td>
+</tr>
+</table>
+<dl class="calibre25">
+<dt class="calibre1">①④</dt>
+<dd class="calibre26">
+<p id="N11186" class="calibre5">
+              The outermost function takes the current context, <code class="cf1">this</code>, as an argument called <code class="cf1">__this</code>.
+            </p>
+</dd>
+<dt class="calibre1">②</dt>
+<dd class="calibre26">
+<p id="N11195" class="calibre5">
+<code class="cf1">__func</code> contains the code of the function we want to bind to the current context.
+            </p>
+</dd>
+<dt class="calibre1">③</dt>
+<dd class="calibre26">
+<p id="N111A0" class="calibre5">
+              The anonymous function defined here is what becomes <code class="cf1">callback</code>. So whenever <code class="cf1">callback</code> is called, its arguments are passed to <code class="cf1">__func</code>, which is run in the <code class="cf1">__this</code> scope, and <code class="cf1">__func</code>’s result is returned.
+            </p>
+</dd>
+</dl>
+<p id="N111B2" class="calibre5">
+          Notice that the context given to <code class="cf1">callback</code> itself is never used, and <code class="cf1">__func</code> is never exposed to the outside world, ensuring that it’s always called in the context in which <code class="cf1">callback</code> was defined.
+        </p>
+<p id="N111BE" class="calibre5">
+          In practice, CoffeeScript uses a helper function named <code class="cf1">__bind</code>, but the underlying technique is the same. <code class="cf1">=&gt;</code> may be CoffeeScript’s most powerful shorthand.
+        </p>
+</div>
+</div>
+<p id="N111C7" class="calibre5">
+        You might wonder why you shouldn’t just always use <code class="cf">=&gt;</code> instead of <code class="cf">-&gt;</code>. There are two reasons. First, the binding code leads to some small overhead in both file size and execution time and is usually unnecessary. But more importantly, while the chameleon-like nature of context is often confusing, it can also allow for very elegant code. For instance, many libraries pass critical information to callback functions through context. Here’s a simple example (one that will make more sense in Chapter 5, <a href="f_0045.html#chp.jquery">​<em class="emph">Web Interactivity with jQuery</em>​</a>):
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$(<em class="string">'#clickToHide'</em>).click <strong class="prompt">-&gt;</strong> $(<strong class="prompt">this</strong>).hide()</code>
+</td>
+</tr>
+</table>
+<p id="N111EA" class="calibre5">
+        Rather than strictly using either normal functions or bound functions, you need to think carefully each time you define a function that uses <code class="cf">this</code>/<code class="cf">@</code> about what the context should mean.
+      </p>
+<p id="N111F3" class="calibre5">
+      That’s it for scope and context—consider yourself a master of function semantics! The next couple of sections will cover some helpful syntactic sugars before we finally tackle the first iteration of our game project.
+    </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

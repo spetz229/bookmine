@@ -1,0 +1,42 @@
+---
+layout: page
+title: "Understanding the Linux Kernel, 3rd Edition"
+prev: understandlk-CHP-6-SECT-2.html
+next: understandlk-CHP-6-SECT-4.html
+book_path: books/understanding-the-linux-kernel-rd-edition_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a name="understandlk-CHP-6-SECT-3"></a>
+<h3 class="docSection1Title">6.3. Updating the Time and Date</h3><a name="IDX-CHP-6-1707"></a>
+<a name="IDX-CHP-6-1708"></a>
+<a name="IDX-CHP-6-1709"></a>
+<a name="IDX-CHP-6-1710"></a>
+<p class="docText1">User programs get the current time and date from the <tt class="calibre25">xtime</tt> variable. The kernel must periodically update this variable, so that its value is always reasonably accurate.</p>
+<p class="docText1">The <tt class="calibre25">update_times( )</tt> function, which is invoked by the global timer interrupt handler, updates the value of the <tt class="calibre25">xtime</tt> variable as follows:</p>
+<pre class="calibre27">
+    void update_times(void)
+    {
+        unsigned long ticks;
+        ticks = jiffies - wall_jiffies;
+        if (ticks) {
+            wall_jiffies += ticks;
+            update_wall_time(ticks);
+        }
+        calc_load(ticks);
+    }
+</pre><br class="calibre7"/>
+<p class="docText1">We recall from the previous description of the timer interrupt handler that when the code of this function is executed, the <tt class="calibre25">xtime_lock</tt> seqlock has already been acquired for writing.</p>
+<p class="docText1">The <tt class="calibre25">wall_jiffies</tt> variable stores the time of the last update of the <tt class="calibre25">xtime</tt> variable. Observe that the value of <tt class="calibre25">wall_jiffies</tt> can be smaller than <tt class="calibre25">jiffies-1</tt>, since a few timer interrupts can be lost, for instance when interrupts remain disabled for a long period of time; in other words, the kernel does not necessarily update the <tt class="calibre25">xtime</tt> variable at every tick. However, no tick is definitively lost, and in the long run, <tt class="calibre25">xtime</tt> stores the correct system time. The check for lost timer interrupts is done in the <tt class="calibre25">mark_offset</tt> method of <tt class="calibre25">cur_timer</tt>; see the earlier section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-6-SECT-2.html#understandlk-CHP-6-SECT-2.2">Timekeeping Architecture in Uniprocessor Systems</a>."</p>
+<p class="docText1">The <tt class="calibre25">update_wall_time( )</tt> function invokes the <tt class="calibre25">update_wall_time_one_tick( )</tt> function <tt class="calibre25">ticks</tt> consecutive times; normally, each invocation adds 1,000,000 to the <tt class="calibre25">xtime.tv_nsec</tt> field. If the value of <tt class="calibre25">xtime.tv_nsec</tt> becomes greater than 999,999,999, the <tt class="calibre25">update_wall_time( )</tt> function also updates the <tt class="calibre25">tv_sec</tt> field of <tt class="calibre25">xtime</tt>. If an <tt class="calibre25">adjtimex( )</tt> system call has been issued, for reasons explained in the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-6-SECT-6.html#understandlk-CHP-6-SECT-6.2">The adjtimex( ) System Call</a>" later in this chapter, the function might tune the value 1,000,000 slightly so the clock speeds up or slows down a little.</p>
+<p class="docText1">The <tt class="calibre25">calc_load( )</tt> function is described in the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-6-SECT-4.html#understandlk-CHP-6-SECT-4.2">Keeping Track of System Load</a>" later in this chapter.</p>
+<a href="31071535.html"><img src="pixel.jpg" alt="" border="0" class="calibre19"/></a>
+<br class="calibre7"/>
+
+</div>
+
+{% endraw %}
+

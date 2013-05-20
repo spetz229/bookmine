@@ -1,0 +1,24 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch01s04.html
+next: OEBPS/ch01s06.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Adding Functions to Classes"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect11_d1e921" class="calibre1"></a>Adding Functions to Classes</h1></div></div></div><p class="calibre3"><a id="I_indexterm1_d1e925" class="calibre1"></a><a id="I_indexterm1_d1e930" class="calibre1"></a><a id="I_indexterm1_d1e935" class="calibre1"></a>Adding class functions to a constructor function is the same
+    as adding a property onto any object in JavaScript:</p><pre class="screen">Person.find = function(id){ /*...*/ };
+
+var person = Person.find(1);</pre><p class="calibre3">To add instance functions to a constructor function, you need to use
+    the constructor’s <code class="literal">prototype</code>:</p><pre class="screen">Person.prototype.breath = function(){ /*...*/ };
+
+var person = new Person;
+person.breath();</pre><p class="calibre3">A common pattern is to alias a class’ <code class="literal">prototype</code> to <code class="literal">fn</code>, which is a bit less verbose:</p><pre class="screen">Person.fn = Person.prototype;
+
+Person.fn.run = function(){ /*...*/ };</pre><p class="calibre3">In fact, you’ll see this pattern throughout jQuery plug-ins, which
+    essentially just add functions to jQuery’s prototype, aliased to <code class="literal">jQuery.fn</code>.</p></div></div>
+
+{% endraw %}
+

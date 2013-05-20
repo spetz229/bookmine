@@ -1,0 +1,239 @@
+---
+layout: page
+title: "Unknown"
+prev: x20856.htm
+next: x21115.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="x20856.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 12. JDBC</td><td width="10%" valign="bottom" class="calibre5"><a href="x21115.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="AEN20921" class="calibre8">Using JDBC</a></h1><p class="calibre9">This section will be a brief introduction to JDBC,  addressing the basics of JDBC, issues, caveats, and so forth.  For
+    more detailed information, visit the JDBC website (<span><i class="EMPHASIS">http://java.sun.com/products/jdbc/</i></span> ), which
+    has many good resources and will always provide the most up to date information. Also, the API documentation included with
+    your JDK has detailed information on specific classes, methods, and fields. Look for the
+    <tt class="REPLACEABLE">java.sql</tt> package.</p><p class="calibre9">JDBC has classes to represent most of the basic pieces of a program's interaction with SQL.  The classes are:
+    <tt class="REPLACEABLE">Connection</tt>, <tt class="REPLACEABLE">Statement</tt>,
+    <tt class="REPLACEABLE">ResultSet</tt>, <tt class="REPLACEABLE">Blob</tt>, and <tt class="REPLACEABLE">Clob</tt>,
+    and they all map directly to some concept in SQL. JDBC also has helper classes, such as
+    <tt class="REPLACEABLE">ResultSetMetaData</tt> and <tt class="REPLACEABLE">DatabaseMetaData</tt>, that represent
+    meta-information. These are useful for when you'd like to get information about the capabilities of the database. They are
+    also useful for getting the types of results returned by a query, either for debugging, or because you don't know about the
+    data you are dealing with.</p><p class="calibre9">PostgreSQL's JDBC interface also provides classes to map to PostgreSQL's non-standard extensions to JDBC's SQL support.
+    These non-standard extensions include: <tt class="REPLACEABLE">Fastpath</tt>, geometric types, native large objects, and
+    a class that aids serialization of Java objects into the database.</p><div class="NAVHEADER"><h2 class="SECT"><a name="AEN20936" class="calibre8">Basic JDBC Usage</a></h2><p class="calibre9"><a href="x20856.htm#ASIMPLEJDBCCONNECTION">Example 12-2</a> used a <tt class="REPLACEABLE">Connection</tt> object, representing a
+      physical connection to the database.  Now you can use this <tt class="REPLACEABLE">Connection</tt> object to create
+      <tt class="REPLACEABLE">Statement</tt> objects. <tt class="REPLACEABLE">Statement</tt> objects are JDBC's way of
+      getting SQL statements to the database.</p><p class="calibre9">There are three main types of <tt class="REPLACEABLE">Statement</tt> objects: the base class
+      <tt class="REPLACEABLE">Statement</tt>, the <tt class="REPLACEABLE">PreparedStatement</tt>, and the
+      <tt class="REPLACEABLE">CallableStatement</tt>.</p><p class="calibre9">To create a <tt class="REPLACEABLE">Statement</tt> object, use the
+      <tt class="REPLACEABLE">createStatement</tt> method as shown in <a href="x20921.htm#AJDBCSTATEMENTOBJECT">Example 12-3</a>:</p><div class="NAVHEADER"><a name="AJDBCSTATEMENTOBJECT"></a><p class="calibre9"><b class="calibre10">Example 12-3. A JDBC statement object</b></p><pre class="SCREEN">Statement s = c.createStatement();</pre></div><p class="calibre9"><a href="x20921.htm#AJDBCSTATEMENTOBJECT">Example 12-3</a> creates a <tt class="REPLACEABLE">Statement</tt> object
+      named <tt class="REPLACEABLE">s</tt>, from the <tt class="REPLACEABLE">Connection</tt> object
+      <tt class="REPLACEABLE">c</tt>.  You can now use this <tt class="REPLACEABLE">Statement</tt> object to execute
+      queries and updates on the database.</p><p class="calibre9">There are two main methods in the <tt class="REPLACEABLE">Statement</tt> class that are important. The first is
+      <tt class="REPLACEABLE">executeQuery</tt>. This method takes one argument, the SQL statement to be executed, and
+      returns an object of type <tt class="REPLACEABLE">ResultSet</tt>, which is discussed later. This method is used for
+      executing queries which will return a set of data back, for instance, a <tt class="REPLACEABLE">SELECT</tt> statement.
+      The <tt class="REPLACEABLE">ResultSet</tt> object returned represents the data resulting from the query.</p><p class="calibre9"><a href="x20921.htm#ASIMPLEJDBCSELECT">Example 12-4</a> retrieves some data from the <tt class="REPLACEABLE">booktown</tt>
+      database:</p><div class="NAVHEADER"><a name="ASIMPLEJDBCSELECT"></a><p class="calibre9"><b class="calibre10">Example 12-4. A simple JDBC select</b></p><pre class="SCREEN">Statement s = null;
+try {
+  s = c.createStatement();
+} catch (SQLException se) {
+  System.out.println("We got an exception while creating a statement:" +
+                     "that probably means we're no longer connected.");
+  se.printStackTrace();
+  System.exit(1);
+}
+ResultSet rs = null;
+try {
+  rs = s.executeQuery("SELECT * FROM books");
+} catch (SQLException se) {
+  System.out.println("We got an exception while executing our query:" +
+                     "that probably means our SQL is invalid");
+  se.printStackTrace();
+  System.exit(1);
+}
+
+int index = 0;
+
+try {
+  while (rs.next()) {
+      System.out.println("Here's the result of row " + index++ + ":");
+      System.out.println(rs.getString(1));
+  }
+} catch (SQLException se) {
+  System.out.println("We got an exception while getting a result:this " +
+                     "shouldn't happen: we've done something really bad.");
+  se.printStackTrace();
+  System.exit(1);
+}</pre></div><p class="calibre9"><a href="x20921.htm#ASIMPLEJDBCSELECT">Example 12-4</a> creates a <tt class="REPLACEABLE">Statement</tt> object, and then uses that
+      <tt class="REPLACEABLE">Statement</tt> object's <tt class="REPLACEABLE">executeQuery</tt> method to execute the
+      query <tt class="REPLACEABLE">SELECT * FROM books</tt>. You get back a <tt class="REPLACEABLE">ResultSet</tt>, and
+      use that <tt class="REPLACEABLE">ResultSet</tt> to print out some of the information you got back.</p><p class="calibre9">The <tt class="REPLACEABLE">ResultSet</tt> object is our primary interface for fetching information from the
+      database. It has two main features. It can step through the set of rows returned, and it can return the value for a
+      specific column in that row. It works in a similar fashion to a standard Java Enumeration: it starts before the first
+      element, and you use the <tt class="REPLACEABLE">next</tt> method to step through the rest of the elements.</p><p class="calibre9"><tt class="REPLACEABLE">next</tt> returns true if the <tt class="REPLACEABLE">ResultSet</tt> was able to step
+      to the next results; that is to say, there are results to be read. The <tt class="REPLACEABLE">while</tt> loop in <a href="x20921.htm#ASIMPLEJDBCSELECT">Example 12-4</a> will print out the first column of each of the rows returned. If no rows were returned,
+      <tt class="REPLACEABLE">next</tt> will return false initially, representing this fact, and therefore nothing will be
+      printed.</p><p class="calibre9"><tt class="REPLACEABLE">ResultSet</tt> can return values of all sorts of different types; <a href="x20921.htm#ASIMPLEJDBCSELECT">Example 12-4</a> treats the first column as if it were a <tt class="REPLACEABLE">String</tt>. Fortunately,
+      all standard SQL data types can be represented as <tt class="REPLACEABLE">String</tt>, so regardless of the type of the
+      first column, you will be able to fetch the value of the first column and print it out. There are many other methods
+      available on <tt class="REPLACEABLE">ResultSet</tt>, including methods for fetching all of the various SQL data types
+      and converting them to native Java types.  Consult the API documentation on <tt class="REPLACEABLE">ResultSet</tt> for
+      more information.</p><p class="calibre9">The other important method is <tt class="REPLACEABLE">executeUpdate</tt>. This method, again, takes one argument,
+      which is the SQL statement to be executed. The difference between <tt class="REPLACEABLE">executeQuery</tt> and
+      <tt class="REPLACEABLE">executeUpdate</tt> is that <tt class="REPLACEABLE">executeUpdate</tt> is for executing
+      statements that change data in the database. For example, use <tt class="REPLACEABLE">executeUpdate</tt> to execute a
+      <tt class="REPLACEABLE">CREATE</tt> an <tt class="REPLACEABLE">INSERT</tt> or an
+      <tt class="REPLACEABLE">UPDATE</tt> statement. <tt class="REPLACEABLE">executeUpdate</tt> returns an
+      <tt class="REPLACEABLE">int</tt>, and the value of that <tt class="REPLACEABLE">int</tt> corresponds to the number
+      of records that were modified.</p><p class="calibre9"><a href="x20921.htm#ASIMPLEJDBCINSERT">Example 12-5</a> uses the <tt class="REPLACEABLE">executeUpdate</tt> method to insert a new row
+      into the <tt class="REPLACEABLE">books</tt> table.</p><div class="NAVHEADER"><a name="ASIMPLEJDBCINSERT"></a><p class="calibre9"><b class="calibre10">Example 12-5. A simple JDBC insert</b></p><pre class="SCREEN">Statement s = null;
+try {
+  s = c.createStatement();
+} catch (SQLException se) {
+  System.out.println("We got an exception while creating a statement:" +
+                     "that probably means we're no longer connected.");
+  se.printStackTrace();
+  System.exit(1);
+}
+
+int m = 0;
+
+try {
+  m = s.executeUpdate("INSERT INTO books VALUES " +
+                      "(41472, 'Practical PostgreSQL', 1212, 4)");
+} catch (SQLException se) {
+  System.out.println("We got an exception while executing our query:" +
+                     "that probably means our SQL is invalid");
+  se.printStackTrace();
+  System.exit(1);
+}
+
+System.out.println("Successfully modified " + m + " rows.\n");</pre></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN21018" class="calibre8">Using Advanced JDBC Features</a></h2><p class="calibre9">As mentioned earlier, besides the basic <tt class="REPLACEABLE">Statement</tt> object, there are two additional
+      types of statements available in JDBC: <tt class="REPLACEABLE">PreparedStatement</tt>s and
+      <tt class="REPLACEABLE">CallableStatement</tt>s. These two types are described later in this section.</p><p class="calibre9">In addition to these statements, this section also describes the use of the
+      <tt class="REPLACEABLE">ResultSetMetaData</tt> and <tt class="REPLACEABLE">DatabaseMetaData</tt> objects. You can
+      use these last two objects to interrogate JDBC for information about a given set of query results, or for information about
+      your database. The ability to get such information at run-time enables you to dynamically execute any SQL statement, even
+      one that is unknown when you write your program.</p><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN21027" class="calibre8">CallableStatement</a></h3><p class="calibre9">Callable statements are implemented by the <tt class="REPLACEABLE">CallableStatement</tt> object.  A
+        <tt class="REPLACEABLE">CallableStatement</tt> is a way to execute stored procedures in a JDBC-compatible database. 
+        The best reference for this is Sun's Javasoft web site (<span><i class="EMPHASIS">http://java.sun.com/products/jdbc/</i></span> ),
+        because callable statements represent a changing and evolving standard, and their application will depend greatly on your
+        version of Java, and JDBC.</p></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN21033" class="calibre8">PreparedStatement</a></h3><p class="calibre9">A <tt class="REPLACEABLE">PreparedStatement</tt>, in contrast to a
+        <tt class="REPLACEABLE">CallableStatement</tt>, is used for SQL statements that are executed multiple times with
+        different values.  For instance, you might want to insert several values into a table, one after another. The advantage
+        of the <tt class="REPLACEABLE">PreparedStatement</tt> is that it is pre-compiled, reducing the overhead of parsing
+        SQL statements on every execution. <a href="x20921.htm#AJDBCPREPAREDSTATEMENT">Example 12-6</a> is an example of how a
+        <tt class="REPLACEABLE">PreparedStatement</tt> might be used. </p><div class="NAVHEADER"><a name="AJDBCPREPAREDSTATEMENT"></a><p class="calibre9"><b class="calibre10">Example 12-6. A JDBC prepared statement</b></p><pre class="SCREEN">PreparedStatement ps = null;
+
+try {
+  ps = c.prepareStatement("INSERT INTO authors VALUES (?, ?, ?)");
+  ps.setInt(1, 495);
+  ps.setString(2, "Light-Williams");
+  ps.setString(3, "Corwin");
+} catch (SQLException se) {
+  System.out.println("We got an exception while preparing a statement:" +
+                     "Probably bad SQL.");
+  se.printStackTrace();
+  System.exit(1);
+}
+
+try {
+  ps.executeUpdate();
+} catch (SQLException se) {
+  System.out.println("We got an exception while executing an update:" +
+                     "possibly bad SQL, or check the connection.");
+  se.printStackTrace();
+  System.exit(1);
+}</pre></div><p class="calibre9">You can see that <a href="x20921.htm#AJDBCPREPAREDSTATEMENT">Example 12-6</a> prepares a statement in a similar fashion as before,
+        except it uses a question mark (<tt class="REPLACEABLE">?</tt>) character in place of each value that you want to
+        supply. Use the appropriate <tt class="REPLACEABLE">PreparedStatement</tt> set method (e.g.,
+        <tt class="REPLACEABLE">setInt</tt>, <tt class="REPLACEABLE">setString</tt>) to set each value. The specific set
+        method that you use for a column depends on the data type of the column.</p><p class="calibre9">The <tt class="REPLACEABLE">PreparedStatement</tt> approach is useful because it avoids manual conversion of
+        Java types to SQL types. For instance, the you do not have to worry about quoting or escaping when going to a
+        <tt class="REPLACEABLE">text</tt> type.</p><p class="calibre9">Notice that the first parameter passed to a set method indicates the specific placeholder parameter (the question
+        marks) that you are setting.  A value of 1 corresponds to the first question mark, a value of 2 corresponds to the second, and so on.</p><p class="calibre9">The other strength of the <tt class="REPLACEABLE">PreparedStatement</tt> is that you can use it over and over
+        again with new parameter values, rather than having to create a new <tt class="REPLACEABLE">Statement</tt> object for
+        each new set of parameters. This approach is obviously more efficient, as only one object is created.</p><p class="calibre9">Use the set methods each time to specify new parameter values.</p></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN21058" class="calibre8">ResultSetMetaData</a></h3><p class="calibre9">You can interrogate JDBC for detailed information about a query's result set using a
+        <tt class="REPLACEABLE">ResultSetMetaData</tt> object.  <tt class="REPLACEABLE">ResultSetMetaData</tt> is a class
+        that is used to find information about the <tt class="REPLACEABLE">ResultSet</tt> returned from a
+        <tt class="REPLACEABLE">executeQuery</tt> call.  It contains information about the number of columns, the types of
+        data they contain, the names of the columns, and so on.</p><p class="calibre9">Two of the most common methods in the <tt class="REPLACEABLE">ResultSetMetaData</tt> are
+        <tt class="REPLACEABLE">getColumnName</tt> and <tt class="REPLACEABLE">getColumnTypeName</tt>. These retrieve the
+        name of a column, and the name of its associated data type, respectively, each in the form of a
+        <tt class="REPLACEABLE">String</tt>.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>The <tt class="REPLACEABLE">getColumnType</tt> method is <span><i class="EMPHASIS">not</i></span> the same as the
+          <tt class="REPLACEABLE">getColumnTypeName</tt>. <tt class="REPLACEABLE">getColumnType</tt> returns an
+          <tt class="REPLACEABLE">int</tt> corresponding to a data type's internal JDBC identification code, whereas
+          <tt class="REPLACEABLE">getColumnTypeName</tt> returns the name as a
+          <tt class="REPLACEABLE">String</tt>.</p></blockquote></div><p class="calibre9"><a href="x20921.htm#JDBCRESULTSETMETADATA">Example 12-7</a> is an example of using the
+        <tt class="REPLACEABLE">ResultSetMetaData</tt> to get the name and data type of the first column in a
+        <tt class="REPLACEABLE">ResultSet</tt> called <tt class="REPLACEABLE">rs</tt>. This code could logically follow
+        the acquisition of the <tt class="REPLACEABLE">ResultSet</tt> named <tt class="REPLACEABLE">rs</tt> in <a href="x20921.htm#ASIMPLEJDBCSELECT">Example 12-4</a>.</p><p class="calibre9">Overall, the <tt class="REPLACEABLE">PreparedStatement</tt> mechanism is considerably more robust than the
+        <tt class="REPLACEABLE">Statement</tt> class.</p><div class="NAVHEADER"><a name="JDBCRESULTSETMETADATA"></a><p class="calibre9"><b class="calibre10">Example 12-7. JDBC ResultSetMetaData</b></p><pre class="SCREEN">ResultSetMetaData rsmd = null;
+try {
+  rsmd = rs.getMetaData();
+} catch (SQLException se) {
+  System.out.println("We got an exception while getting the metadata:" +
+                     "check the connection.");
+  se.printStackTrace();
+  System.exit(1);
+}
+
+String columnName = null,
+       columnType = null;
+try {
+  columnName = rsmd.getColumnName(1);
+  columnType = rsmd.getColumnTypeName(1);
+} catch (SQLException se) {
+  System.out.println("We got an exception while getting the column name:" +
+                     "check the connection.");
+  se.printStackTrace();
+  System.exit(1);
+}
+
+System.out.print("The name of the first column is: '");
+System.out.print(columnName);
+System.out.println("'");
+System.out.print("The data type of the first column is: ");
+System.out.println(columnType);</pre></div><p class="calibre9">There are many other useful methods in the <tt class="REPLACEABLE">ResultSetMetaData</tt> class, all of which
+        are well documented in the JDK API documentation.</p></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN21095" class="calibre8">DatabaseMetaData</a></h3><p class="calibre9">Finally, <tt class="REPLACEABLE">DatabaseMetaData</tt> is a class that can be used to fetch information about
+        the database you are using. Use it to answer questions such as:</p><p class="calibre9"> </p><p class="calibre9"></p><ul class="calibre21"><li class="calibre22"><p class="calibre9">What kind of catalogs are in the database?</p></li><li class="calibre22"><p class="calibre9">What brand of database am I working with?</p></li><li class="calibre22"><p class="calibre9">What username am I?</p></li></ul>
+<p class="calibre9"><a href="x20921.htm#DATABASEMETADATA">Example 12-8</a> uses <tt class="REPLACEABLE">DatabaseMetaData</tt> to query the JDBC driver
+        for the username used to establish the connection, and the database URL.</p><div class="NAVHEADER"><a name="DATABASEMETADATA"></a><p class="calibre9"><b class="calibre10">Example 12-8. JDBC DatabaseMetaData</b></p><pre class="SCREEN">DatabaseMetaData dbmd = null;
+
+try {
+    dbmd = c.getMetaData();
+} catch (SQLException se) {
+    System.out.println("We got an exception while getting the metadata:" +
+                       " check the connection.");
+    se.printStackTrace();
+    System.exit(1);
+}
+
+String username = null;
+try {
+    username = dbmd.getUserName();
+} catch (SQLException se) {
+  System.out.println("We got an exception while getting the username:" +
+                     "check the connection.");
+  se.printStackTrace();
+  System.exit(1);
+}
+
+String url = null;
+try {
+  url = dbmd.getURL();
+} catch (SQLException se) {
+  System.out.println("We got an exception while getting the URL:" +
+                     "check the connection.");
+  se.printStackTrace();
+  System.exit(1);
+}
+
+System.out.println("You are connected to '" + url +
+                   "' with user name '" + username + "'");</pre></div><p class="calibre9">Once again, the best source for the most current information about
+        <tt class="REPLACEABLE">DatabaseMetaData</tt>'s many other methods is in the JDK API documentation.</p></div></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="x20856.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x21115.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Using the PostgreSQL Driver</td><td width="34%" valign="top" class="calibre4"><a href="c20820.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Issues Specific to PostgreSQL and JDBC</td></tr></table></div></div>
+
+{% endraw %}
+

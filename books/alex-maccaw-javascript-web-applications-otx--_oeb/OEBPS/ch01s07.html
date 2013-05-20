@@ -1,0 +1,43 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch01s06.html
+next: OEBPS/ch01s08.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Class Inheritance Using Prototype"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect11_d1e1060" class="calibre1"></a>Class Inheritance Using Prototype</h1></div></div></div><p class="calibre3"><a id="I_indexterm1_d1e1064" class="calibre1"></a><a id="I_indexterm1_d1e1069" class="calibre1"></a><a id="I_indexterm1_d1e1074" class="calibre1"></a><a id="I_indexterm1_d1e1079" class="calibre1"></a>We’ve been using the <code class="literal">prototype</code> property a lot, but it hasn’t really
+    been explained yet. Let’s take a closer look at what it is exactly and how
+    to use it to implement a form of inheritance in our classes.</p><p class="calibre3">JavaScript is a prototype-based language and—rather than make
+    distinctions between classes and instances—it has the notions of a
+    <span class="calibre1"><em class="calibre4">prototypical object</em></span>: an object <a id="I_indexterm1_d1e1093" class="calibre1"></a>used as a template <a id="I_indexterm1_d1e1099" class="calibre1"></a>from which to get the initial properties <a id="I_indexterm1_d1e1105" class="calibre1"></a>for a new object. Any object can be associated as a
+    prototype of another object, sharing its properties. In practice, you can
+    look at this as a form of inheritance.</p><p class="calibre3">When you fetch a property on an object, JavaScript will search the
+    local object for the property. If it isn’t found, JavaScript will start
+    searching the object’s prototype and continue up the prototype tree,
+    eventually reaching <code class="literal">Object.prototype</code>.
+    If the property is found, its value is returned; otherwise, <code class="literal">undefined</code> will be returned.</p><p class="calibre3">In other words, if you start adding properties to <code class="literal">Array.prototype</code>, they’ll be reflected across
+    every JavaScript array.</p><p class="calibre3">To subclass a class and inherit its properties, you need to first
+    define a constructor function. Then, you need to assign a new instance of
+    the parent class as the prototype for your constructor function. It looks
+    like this:</p><pre class="screen">var Animal = function(){};
+
+Animal.prototype.breath = function(){ 
+  console.log('breath'); 
+};
+
+var Dog = function(){};
+
+// Dog inherits from Animal
+Dog.prototype = new Animal;
+
+Dog.prototype.wag = function(){
+  console.log('wag tail');
+};</pre><p class="calibre3">Now, we can check to see whether the inheritance works:</p><pre class="screen">var dog = new Dog;
+dog.wag();
+dog.breath(); // Inherited property</pre></div></div>
+
+{% endraw %}
+

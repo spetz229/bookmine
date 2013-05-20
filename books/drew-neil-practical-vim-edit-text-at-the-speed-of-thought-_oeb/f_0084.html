@@ -1,0 +1,126 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0083.html
+next: f_0085.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.change.list">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 56</td>
+<td class="arr-recipe-name">Traverse the Change List</td>
+</tr>
+</table>
+<p id="N15F21" class="calibre4">
+<span class="calibre5">
+        Vim records the location of our cursor after each change we make to a document. Traversing this change list is simple and can be the quickest way to get where we want to go.
+    </span>
+</p>
+<p id="N15F30" class="calibre4">
+      Have you ever used the undo command followed immediately by redo? The two commands cancel each other out, but they have the side effect of placing the cursor on the most recent change. That could be useful if we wanted to jump back to the part of the document that we edited most recently. It’s a hack, but <span class="calibre17">u&lt;C-r&gt;</span> gets us there.
+    </p>
+<p id="N15F36" class="calibre4">
+      It turns out that Vim maintains a list of the modifications we make to each buffer during the course of an editing session. It’s called the <span class="calibre5">change list</span> (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">changelist</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/motion.html#changelist">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>), and we can inspect its contents by running the following:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:changes</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​change line  col text​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​    3     1    8 Line one​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​    2     2    7 Line two​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​    1     3    9 Line three​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​&gt;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​Press ENTER or type command to continue​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N15F60" class="calibre4">
+      This example output shows that Vim records the line and column number for each change. Using the <span class="calibre17">g;</span> and <span class="calibre17">g,</span> commands, we can traverse backward and forward through the change list. As a memory aid for <span class="calibre17">g;</span> and <span class="calibre17">g,</span>, it may help to remember that the <span class="calibre17">;</span> and <span class="calibre17">,</span> commands can be used to repeat or reverse the <span class="calibre17">f{char}</span> command (see <a xmlns:str="http://exslt.org/strings" href="f_0076.html#sec.fchar">Tip 49</a>).
+    </p>
+<p id="N15F86" class="calibre4">
+	  To jump back to the most recent modification in the document, we press <span class="calibre17">g;</span>. That places the cursor back on the line and column where it ended up after the previous edit. The result is the same as if we had pressed <span class="calibre17">u&lt;C-r&gt;</span>, except that we don’t make any transitory changes to the document.
+    </p>
+<h3 class="calibre22">Marks for the Last Change</h3>
+<p id="N15F93" class="calibre4">
+        Vim automatically creates a couple of marks that complement the change list. The <span class="calibre17">✎.</span> mark always references the position of the last change (<strong xmlns:str="http://exslt.org/strings" class="calibre10">`.</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/motion.html#%60.">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>), while the <span class="calibre17">✎^</span> mark tracks the position of the cursor the last time that Insert mode was stopped (<strong xmlns:str="http://exslt.org/strings" class="calibre10">`^</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/motion.html#%60%5E">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>).
+      </p>
+<p id="N15FB3" class="calibre4">
+	  In most scenarios, jumping to the <span class="calibre17">✎.</span> mark has the same effect as the <span class="calibre17">g;</span> command. Whereas the mark can only refer to the position of the most recent change, the change list stores multiple locations. We can press <span class="calibre17">g;</span> again and again, and each time it takes us to a location that was recorded earlier in the change list. The <span class="calibre17">✎.</span>, on the other hand, will always take us to the last item in the change list.
+      </p>
+<p id="N15FC2" class="calibre4">
+        The <span class="calibre17">✎^</span> mark references the last <span class="calibre5">insertion</span>, which is slightly more specific than the last <span class="calibre5">change</span>. If we leave Insert mode and then scroll around the document, we can quickly carry on where we left off by pressing <span class="calibre17">gi</span> (<strong xmlns:str="http://exslt.org/strings" class="calibre10">gi</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/insert.html#gi">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). In a single move, that uses the <span class="calibre17">✎^</span> mark to restore the cursor position and then switches back into Insert mode. It’s a great little time saver!
+      </p>
+<p id="N15FE4" class="calibre4">
+        Vim maintains a change list for each individual buffer in an editing session. By contrast, a separate jump list is created for each window.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

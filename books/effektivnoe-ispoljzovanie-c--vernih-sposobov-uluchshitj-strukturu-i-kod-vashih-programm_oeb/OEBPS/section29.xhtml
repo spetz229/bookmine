@@ -1,0 +1,249 @@
+---
+layout: page
+title: "Эффективное использование C++. 55 верных способов улучшить структуру и код ваших программ"
+prev: OEBPS/section28.xhtml
+next: OEBPS/section30.xhtml
+book_path: books/effektivnoe-ispoljzovanie-c--vernih-sposobov-uluchshitj-strukturu-i-kod-vashih-programm_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <div class="calibre">
+      <div class="title1">
+        <h2 class="calibre3">Правило 12: Копируйте все части объекта</h2>
+      </div>
+      <p class="calibre2">В хорошо спроектированных объектно-ориентированных системах, которые инкапсулируют внутреннее устройство объектов, копированием занимаются только две функции: конструктор копирования и оператор присваивания. Назовем их <em class="calibre5">функциями копирования.</em> В правиле 5 я говорил, что компилятор генерирует копирующие функции при необходимости, и объяснял, что сгенерированные компилятором версии делают точно то, что вы ожидаете: копию всех данных исходного объекта.</p>
+      <p class="calibre2">Объявляя собственные копирующие функции, вы сообщаете компилятору, что реализация по умолчанию вам чем-то не нравится. Компилятор «обижается» и мстит оригинальным образом: он не сообщает, если в вашей реализации что-то неправильно.</p>
+      <p class="calibre2">Рассмотрим класс, представляющий заказчиков, в котором копирующие функции написаны вручную таким образом, что их вызовы протоколируются:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">void logCall(const std::string&amp; funcName); // делает запись в протокол</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class Customer {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Customer(const Customer&amp; rhs);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Customer&amp; operator=(const Customer&amp; rhs);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">private:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::string name;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Customer::Customer(const Customer&amp; rhs)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">: name(rhs.name) // копировать данные rhs</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">logCall(“Конструктор копирования Customer”);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Customer&amp; Customer::operator=(const Customer&amp; rhs)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">logCall(“Копирующий оператор присвоения Customer”);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">name = rhs.name; // копировать данные rhs</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">return *this; // см. правило 10</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Все здесь выглядит отлично, и на самом деле так оно и есть – до тех пор, пока в класс Customer не будет добавлен новый член:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Date {...}; // для даты и времени</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class Customer {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">... // как раньше</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">private:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::string name;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Date lastTransaction;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">С этого момента существующие функции копирования копируют только часть объекта, именно поле name, но не поле lastTransaction. Однако большинство компиляторов ничего не скажут об этом даже при установке максимального уровня диагностики (см. также правило 53). Вот к чему приводит самостоятельное написание функций копирования. Вы отвергаете функции, которые генерирует компилятор, поэтому он не сообщает, что ваш код не полон. Решение очевидно: если вы добавляете новый член в класс, то должны обновить и копирующие функции (а также все конструкторы [см. правила 4 и 45] и все нестандартные варианты operator= в классе [пример в правиле 10]; если вы забудете, то компилятор вряд ли напомнит).</p>
+      <p class="calibre2">Одним из наиболее коварных случаев проявления этой ситуации является наследование. Рассмотрим пример:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class PriorityCustomer: public Customer { // производный класс</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">PriorityCustomer(const PriorityCustomer&amp; rhs);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">PriorityCustomer&amp; operator=(const PriorityCustomer&amp; rhs);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">private:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">int priority;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">PriorityCustomer::PriorityCustomer(const PriorityCustomer&amp; rhs)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">: priority(rhs.priority)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">logCall(“Конструктор копирования PriorityCustomer”);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">PriorityCustomer&amp;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">PriorityCustomer::operator=(const PriorityCustomer&amp; rhs)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">logCall(“Оператор присваивания PriorityCustomer”);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">priority = rhs. Priority;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">return *this;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">На первый взгляд, копирующие функции в классе PriorityCustomer копируют все его члены, но приглядитесь внимательнее. Да, они копируют данные-члены, которые объявлены в PriorityCustomer, но каждый объект PriorityCustomer также содержит члены, унаследованные от Customer, а они-то не копируются вовсе! Конструктор копирования PriorityCustomer не специфицирует аргументы, которые должны быть переданы конструктору его базового класса (то есть не упоминает Customer в своем списке инициализации членов), поэтому часть Customer объекта PriorityCustomer будет инициализирована конструктором Customer, не принимающим аргументов, конструктором по умолчанию (если он отсутствует, то такой код просто не скомпилируется). Этот конструктор выполняет инициализацию по умолчанию членов name и lastTransaction.</p>
+      <p class="calibre2">Для оператора присваивания PriorityCustomer ситуация мало чем отличается. Он не выполняет никаких попыток модифицировать данные-члены базового класса, поэтому они остаются неизменными.</p>
+      <p class="calibre2">Всякий раз, когда вы самостоятельно пишете копирующие функции для производного класса, позаботьтесь о том, чтобы скопировать части базового класса. Обычно они находятся в закрытом разделе класса (см. правило 22), поэтому у вас нет прямого доступа к ним. Поэтому копирующие функции производного класса должны вызывать соответствующие функции базового класса:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">PriorityCustomer::PriorityCustomer(const PriorityCustomer&amp; rhs)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">: Customer(rhs), // вызвать копирующий конструктор</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// базового класса</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">priority(rhs.priority)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">logCall(“Конструктор копирования PriorityCustomer”);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">PriorityCustomer&amp;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">PriorityCustomer::operator=(const PriorityCustomer&amp; rhs)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">logCall(“Оператор присваивания PriorityCustomer”);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Customer::operator=(rhs); // присвоить значения данным-членам</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// базового класса</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">priority = rhs. Priority;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">return *this;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Значение фразы «копировать все части» в заголовке этого параграфа теперь должно быть понятно. Когда вы пишете копирующие функции, убедитесь, что (1) копируются все локальные данные-члены и (2) вызываются соответствующие копирующие функции всех базовых классов.</p>
+      <p class="calibre2">На практике эти две копирующие функции часто имеют похожие реализации, и у вас может возникнуть соблазн избежать дублирования кода за счет вызова одной функции из другой. Такое стремление похвально, но вызов одной копирующей функции из другой – неверный путь.</p>
+      <p class="calibre2">Нет смысла вызывать конструктор копирования из оператора присваивания, поскольку вы тем самым попытаетесь сконструировать объект, который уже существует. Это настолько бессмысленно, что даже не существует синтаксиса для такой операции. Есть синтаксис, который выглядит так, будто вы делаете это, хотя на самом деле он означает совсем иное. Есть также синтаксис, который позволяет это сделать, но совершенно неочевидным способом, причем при некоторых условиях ваш объект может быть поврежден. Поэтому я не покажу ни тот, ни другой. Просто примите как данность, что вызывать из оператора присваивания конструктор копирования не следует.</p>
+      <p class="calibre2">Попытка выполнить обратную операцию – из конструктора копирования вызвать оператор присваивания – также бессмысленна. Конструктор инициализирует новые объекты, а оператор присваивания работает с уже существующими и инициализированными объектами. Выполнять присваивание объекту, находящемуся в процессе конструирования, – значит делать с еще не инициализированным объектом что-то такое, что имеет смысл только для инициализированного объекта. Нонсенс! Даже не пытайтесь.</p>
+      <p class="calibre2">Но если вы обнаружите, что ваш конструктор копирования и оператор присваивания содержат похожий код, попробуйте избежать дублирования, создав функцию-член, которую будут вызывать оба. Такая функция обычно делается закрытой и часто называется init. Эта стратегия представляет безопасный, испытанный способ избежать дублирования кода в конструкторах копирования и операторах присваивания.</p>
+      <div class="subtitle">
+        <p class="subtitle1">
+          <strong class="calibre4">
+            <em class="calibre5">Что следует помнить</em>
+          </strong>
+        </p>
+      </div>
+      <p class="calibre2">• Копирующие функции должны гарантировать копирование всех членов-данных объекта и частей его базовых классов.</p>
+      <p class="calibre2">• Не пытайтесь реализовать одну из копирующих функций в терминах другой. Вместо этого поместите общую функциональность в третью функцию, которую вызовут обе.</p>
+    </div>
+  </div>
+
+{% endraw %}
+

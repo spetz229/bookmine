@@ -1,0 +1,41 @@
+---
+layout: page
+title: "Unknown"
+prev: r28031.htm
+next: r28464.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="r28031.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4"/><td width="10%" valign="bottom" class="calibre5"><a href="r28464.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><h1 class="calibre7"><a name="SQL-SELECTINTO" class="calibre8">SELECT INTO</a></h1><div class="NAVHEADER"><a name="AEN28394"></a><h2 class="SECT">Name</h2>SELECT INTO -- Construct a new table from the results of a SELECT.</div><div class="NAVHEADER"><a name="AEN28397"></a><h2 class="SECT">Synopsis</h2><pre class="SCREEN">SELECT [ ALL | DISTINCT [ ON ( <tt class="REPLACEABLE"><i class="EMPHASIS">distinct_expression</i></tt> [, ...] ) ] ]
+    <tt class="REPLACEABLE"><i class="EMPHASIS">target_expression</i></tt> [ AS <tt class="REPLACEABLE"><i class="EMPHASIS">output_name</i></tt> ] [, ...]
+    [ INTO [ TEMPORARY | TEMP ] [ TABLE ] <tt class="REPLACEABLE"><i class="EMPHASIS">new_table</i></tt> ]
+    [ FROM <tt class="REPLACEABLE"><i class="EMPHASIS">from_item</i></tt> [ { , | CROSS JOIN } ...] ]
+    [ WHERE <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> ]
+    [ GROUP BY <tt class="REPLACEABLE"><i class="EMPHASIS">aggregate_expression</i></tt> [, ...] ]
+    [ HAVING <tt class="REPLACEABLE"><i class="EMPHASIS">aggregate_condition</i></tt> [, ...] ]
+    [ { UNION | INTERSECT | EXCEPT [ALL] } <tt class="REPLACEABLE"><i class="EMPHASIS">select</i></tt> ]
+    [ ORDER BY <tt class="REPLACEABLE"><i class="EMPHASIS">order_expression</i></tt> [ ASC | DESC | USING <tt class="REPLACEABLE"><i class="EMPHASIS">operator</i></tt> ] [, ...] ]
+    [ FOR UPDATE [ OF <tt class="REPLACEABLE"><i class="EMPHASIS">update_table</i></tt> [, ...] ] ]
+    [ LIMIT { ALL | <tt class="REPLACEABLE"><i class="EMPHASIS">count</i></tt> } [ { OFFSET | , } <tt class="REPLACEABLE"><i class="EMPHASIS">start</i></tt> ] ]
+
+<tt class="REPLACEABLE"><i class="EMPHASIS">from_item</i></tt> ::= { [ ONLY ] <tt class="REPLACEABLE"><i class="EMPHASIS">table_name</i></tt> [ * ] 
+                  [ [ AS ] <tt class="REPLACEABLE"><i class="EMPHASIS">from_alias</i></tt> [ ( <tt class="REPLACEABLE"><i class="EMPHASIS">column_alias_list</i></tt> ) ] ] |
+                ( <tt class="REPLACEABLE"><i class="EMPHASIS">select</i></tt> ) [ [ AS ] <tt class="REPLACEABLE"><i class="EMPHASIS">alias</i></tt> [ ( <tt class="REPLACEABLE"><i class="EMPHASIS">column_alias_list</i></tt> ) ] ] |
+                <tt class="REPLACEABLE"><i class="EMPHASIS">from_item</i></tt> [ NATURAL ] <tt class="REPLACEABLE"><i class="EMPHASIS">join_type</i></tt> <tt class="REPLACEABLE"><i class="EMPHASIS">from_item</i></tt>
+                  [ ON ( <tt class="REPLACEABLE"><i class="EMPHASIS">join_condition</i></tt> ) | USING ( <tt class="REPLACEABLE"><i class="EMPHASIS">join_column_list</i></tt> ) ]
+              }
+
+<tt class="REPLACEABLE"><i class="EMPHASIS">join_type</i></tt> ::= [ INNER |
+                LEFT  [ OUTER ] |
+                RIGHT [ OUTER ] |
+                FULL  [ OUTER ]
+              ] JOIN</pre><div class="NAVHEADER"><a name="R2-SQL-SELECTINTO-1"></a><h3 class="AUTHOR">Parameters</h3><p class="calibre9">Most <tt class="REPLACEABLE">SELECT INTO</tt> parameters are the same as for the <tt class="REPLACEABLE">SELECT</tt> command. The following two are the only parameters unique to <tt class="REPLACEABLE">SELECT INTO</tt>:</p><p class="calibre9"> </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">TEMPORARY, TEMP</tt></dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE">TEMPORARY</tt> (or <tt class="REPLACEABLE">TEMP</tt>) keyword indicates that the table is for temporary use; it will be destroyed when the session has ended.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE"><i class="EMPHASIS">new_table</i></tt></dt><dd class="calibre16"><p class="calibre9">The name of the new table created to hold the resulting rows of the query. This table will be created automatically and must not already exist before you execute this command.  </p></dd></dl></div>
+</div><div class="NAVHEADER"><a name="R2-SQL-SELECTINTO-2"></a><h3 class="AUTHOR">Results</h3><p class="calibre9">Refer to <a href="r24978.htm">CREATE TABLE</a>" and <a href="r28031.htm">SELECT</a>" for a list of possible results.</p></div></div><div class="NAVHEADER"><a name="R1-SQL-SELECTINTO-1"></a><h2 class="SECT">Description</h2><p class="calibre9">Use <tt class="REPLACEABLE">SELECT INTO</tt> to execute a query and use the resulting rows to populate a new (automatically created) table. Each column's names and data type for the new table are derived from the rows resulting from the original query. This command is effectively the same as the <tt class="REPLACEABLE">CREATE TABLE AS</tt> command, and it is recommended that you use that syntax, due to the fact that <tt class="REPLACEABLE">SELECT INTO</tt> is non-standard and is also not interpreted correctly by PL/pgSQL.</p></div><div class="NAVHEADER"><a name="R1-SELECTINTO-2"></a><h2 class="SECT">Example</h2><p class="calibre9">The following example will create a temporary employee table for employees with an identification number below 105:</p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT * INTO TEMP TABLE old_emp</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">   FROM employees</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">   WHERE id &lt; 105;</b></tt>
+SELECT</pre></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="r28031.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="r28464.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">SELECT</td><td width="34%" valign="top" class="calibre4"><a href="c22759.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">SET</td></tr></table></div></div>
+
+{% endraw %}
+

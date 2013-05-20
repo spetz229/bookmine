@@ -1,0 +1,71 @@
+---
+layout: page
+title: "CoffeeScript (for jay muratore)"
+prev: f_0071.html
+next: f_0073.html
+book_path: books/coffeescript-accelerated-javascript-development-pragmatic--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 class="calibre13">A2.6 Rapid Websites with Middleman</h2>
+<p id="N149DA" class="calibre5">
+      Luckily, there’s Thomas Reynolds’s Middleman.<a id="FNPTR-60" href="f_0073.html#FOOTNOTE-60">[60]</a> If you’ve already got Ruby and RubyGems installed, then getting up and running with Middleman is as easy as doing this:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$ <strong class="prompt">gem install middleman</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$ <strong class="prompt">mm-init myProject</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$ <strong class="prompt">cd myProject</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$ <strong class="prompt">mm-server</strong>
+</code>
+</td>
+</tr>
+</table>
+<p id="N14A07" class="calibre5">
+      Now head to <a href="http://localhost:4567">http://localhost:4567</a>, where your site is up and running. Then modify the template files in the <code class="cf">view</code> directory and refresh your browser; repeat as needed until you’re ready to deploy.
+    </p>
+<p id="N14A13" class="calibre5">
+      Middleman expects CoffeeScript files to be saved anywhere in the <code class="cf">view</code> folder with the extension <code class="cf">js.coffee</code>. For instance, if you put <code class="cf">awesome.js.coffee</code> in <code class="cf">view/scripts</code>, then the corresponding <code class="cf">&lt;script&gt;</code> tag would refer to <code class="cf">scripts/awesome.js</code>. No such file exists, mind you—it’s generated automatically by the server on every request. This means that when you change your CoffeeScript code and refresh the browser, the page will always be served with the latest and greatest JavaScript.
+    </p>
+<p id="N14A28" class="calibre5">
+      When you’re ready to deploy, just run this:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$ <strong class="prompt">mm-build</strong>
+</code>
+</td>
+</tr>
+</table>
+<p id="N14A39" class="calibre5">
+      All the HTML/CSS/JavaScript you need will show up in the <code class="cf">build</code> folder. Upload that folder to a server, and your site is live!
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

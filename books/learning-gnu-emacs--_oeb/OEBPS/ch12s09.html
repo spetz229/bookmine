@@ -1,0 +1,76 @@
+---
+layout: page
+title: "Learning GNU Emacs, 3rd Edition"
+prev: OEBPS/ch12s08.html
+next: OEBPS/ch12s10.html
+book_path: books/learning-gnu-emacs--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h1 class="title"><a id="gnu3-CHP-12-SECT-9" class="calibre1"></a>Customizing VC</h1></div></div></div><p class="copyright">Some of the rules we've described earlier in
+<a id="gnu3-CHP-12-ITERM-2905" class="calibre2"></a>
+            <a id="gnu3-CHP-12-ITERM-2906" class="calibre2"></a>the chapter for VC's
+behavior can be changed by setting certain Emacs variables related to
+VC mode. We'll go over a few of the most important
+here.</p><div class="book"><dl class="copyright"><dt class="book"><span>
+                  <span><strong class="calibre5">vc-handled-backends</strong></span>
+               </span></dt><dd class="calibre20"><p class="copyright">This variable controls the set of version control systems used by VC,
+and the order in which they are found in the list controls the order
+in which they are attempted. It defaults to <code class="calibre21">(RCS CVS SVN
+MCVS SCCS)</code>. If you remove values from the list, they
+won't be considered valid version control systems to
+use. If the list is empty, VC is disabled entirely.</p></dd><dt class="book"><span>
+                  <span><strong class="calibre5">vc-display-status</strong></span>
+               </span></dt><dd class="calibre20"><p class="copyright">This variable displays a file's revision number and
+status on the mode line of each buffer visiting it, if this is
+non-<span><strong class="calibre5">nil</strong></span>. To avoid expensive queries
+of the master file, you may want to turn this variable off if you are
+running VC over very slow network links.</p></dd><dt class="book"><span>
+                  <span><strong class="calibre5">vc-</strong></span>
+                  <span><em class="calibre7">backend</em></span>
+                  <span><strong class="calibre5">-header</strong></span>
+               </span></dt><dd class="calibre20"><p class="copyright">These variables provides lists of the headers to be inserted by
+<span><strong class="calibre5">vc-insert-headers</strong></span> when using the
+specified version control system. For example, the headers for CVS
+are in the variable <span><strong class="calibre5">vc-cvs-header</strong></span>.
+You can customize these lists if you like a different format for your
+version number headers.</p></dd><dt class="book"><span>
+                  <span><strong class="calibre5">vc-keep-workfiles</strong></span>
+               </span></dt><dd class="calibre20"><p class="copyright">Normally, VC leaves a read-only copy of the work file in place
+whenever it performs a check-in. This feature is convenient because
+it means <span><strong class="calibre5">make</strong></span> and other tools always
+find work files where they expect to. If you're very
+tight on disk space, you can turn it off, but then you have to
+execute an explicit check-out every time a tool other than VC needs
+the work file. (Emacs itself knows about version control through a
+piece of VC code that's always resident; its visit
+commands perform a check-out if necessary, without locking the file.)</p></dd><dt class="book"><span>
+                  <span><strong class="calibre5">vc-mistrust-permissions</strong></span>
+               </span></dt><dd class="calibre20"><p class="copyright">This variable is normally <span><strong class="calibre5">nil</strong></span>. Make
+it <span><strong class="calibre5">t</strong></span> to tell VC not to trust a
+file's permissions or ownership as indicators of its
+version control state. This change slows VC down a lot, but it may be
+necessary if (for example) your development group is working in
+several different directories and accessing work files via symbolic
+links. In such a case, the permissions and ownership of the link
+convey nothing about the state of the work file.</p></dd><dt class="book"><span>
+                  <span><strong class="calibre5">vc-suppress-confirm</strong></span>
+               </span></dt><dd class="calibre20"><p class="copyright">This variable defaults to <span><strong class="calibre5">nil</strong></span>. If it
+is non-<span><strong class="calibre5">nil</strong></span>, it suppresses the
+confirmation prompt <span><strong class="calibre5">vc-revert-buffer</strong></span>
+normally gives you before discarding changes.</p></dd><dt class="book"><span>
+                  <span><strong class="calibre5">vc-initial-comment</strong></span>
+               </span></dt><dd class="calibre20"><p class="copyright">Most version control systems allow (but do not require) you to enter
+an initial comment when you register a file—a lead-off for the
+change history. If this variable is non-<span><strong class="calibre5">nil</strong></span>, VC pops up a buffer for this comment at
+registration time just as it normally does for change comments at
+check-in time.</p></dd><dt class="book"><span>
+                  <span><strong class="calibre5">diff-switches</strong></span>
+               </span></dt><dd class="calibre20"><p class="copyright">The Emacs <span><em class="calibre7">diff.el</em></span> mode takes command-line
+switches from this global variable to pass to <span><strong class="calibre5">diff</strong></span> when generating a change report. VC uses
+it the same way. It defaults to the single switch <span><strong class="calibre5">-c</strong></span> to force <span><strong class="calibre5">context-diff</strong></span> format; <span><strong class="calibre5">-u</strong></span> for <span><strong class="calibre5">unified-diff</strong></span> format is also fairly popular.</p></dd></dl></div><p class="copyright">A number of other, less important global variables are fully
+documented in the Emacs online help system.</p></div></div>
+
+{% endraw %}
+

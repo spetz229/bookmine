@@ -1,0 +1,195 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch13s04.html
+next: OEBPS/ch13s06.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="$.Controller: The jQuery Plug-in Factory"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect113_d1e14700" class="calibre1"></a>$.Controller: The jQuery Plug-in Factory</h1></div></div></div><p class="calibre3"><a id="index-728N684BD6G" class="calibre1"></a><a id="index-375N736UG5F" class="calibre1"></a>JavaScriptMVC’s controllers are many things. They are a
+    jQuery plug-in factory. They can be used as a traditional view, making
+    pagination widgets and grid controls. <span class="calibre1">They
+    can</span> also be used as a traditional controller, initializing
+    controllers and hooking them up to models. Mostly, controllers are a
+    really great way of organizing your application’s code.</p><p class="calibre3">Controllers provide a number of handy features, such as:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre3">jQuery plug-in creation</p></li><li class="listitem"><p class="calibre3">Automatic binding</p></li><li class="listitem"><p class="calibre3">Default options</p></li><li class="listitem"><p class="calibre3">Automatic determinism</p></li></ul></div><p class="calibre3">But the controller’s most important feature is not obvious to anyone
+    but the most hardcore JS ninjas. The following code creates a tooltip-like
+    widget that displays itself until the document is clicked:</p><pre class="screen">$.fn.tooltip = function(){
+  var el = this[0];
+
+  $(document).click(function(ev){
+    if (ev.target !== el)
+      $(el).remove();
+  });
+
+  $(el).show();
+  return this;
+});</pre><p class="calibre3">To use it, add the element to be displayed to the page, and then
+    call <code class="literal">tooltip</code><a id="I_indexterm13_d1e14741" class="calibre1"></a> on it:</p><pre class="screen">$("&lt;div class='tooltip'&gt;Some Info&lt;/div&gt;")
+    .appendTo(document.body)
+    .tooltip()</pre><p class="calibre3">But this code has a problem. Can you spot it? Here’s a hint: what if
+    your application is long-lived and lots of these tooltip elements are
+    created?</p><p class="calibre3">The problem is that this code leaks memory! Every tooltip
+    element<a id="I_indexterm13_d1e14751" class="calibre1"></a>, and any tooltip child elements, are kept in memory
+    forever. This is because the click handler is not removed from the
+    document, and it has a closure reference to the element.</p><p class="calibre3">This is a very easy mistake to make. jQuery removes all event
+    handlers from elements that are removed from the page, so developers often
+    don’t have to worry about unbinding event handlers. But in this case, we
+    bound to something outside the widget’s element—the document—and did not
+    unbind the event handler.</p><p class="calibre3">But within a Model-View-Controller architecture, controllers listen
+    to the view, and views listen to the model. You are constantly listening
+    to events outside the widget’s element. For example, the <code class="literal">nextPrev</code> widget from the <code class="literal">$.Model</code> section listens to updates in the
+    <code class="literal">paginate</code> model:</p><pre class="screen">paginate.bind('updated.attr', function(){
+  self.find('.prev')[this.canPrev() ? 'addClass' : 'removeClass']('enabled')
+  self.find('.next')[this.canNext() ? 'addClass' : 'removeClass']('enabled');
+})</pre><p class="calibre3">But it doesn’t unbind from <code class="literal">paginate</code>! Forgetting
+    to remove event handlers is potentially a source of errors. However, both
+    the <code class="literal">tooltip</code> and <code class="literal">nextPrev</code> will not
+    error. Instead, both will silently kill an application’s performance.
+    Fortunately, <code class="literal">$.Controller</code> makes this easy and
+    organized. Here’s how we can write <code class="literal">tooltip</code>:</p><pre class="screen">$.Controller('Tooltip',{
+  init: function(){
+    this.element.show()
+  },
+  "{document} click": function(el, ev){
+    if(ev.target !== this.element[0]){
+      this.element.remove()
+    }
+  }
+})</pre><p class="calibre3">When the document is clicked and the element is removed from the
+    DOM, <code class="literal">$.Controller</code> will unbind the document click
+    handler automatically.</p><p class="calibre3"><code class="literal">$.Controller</code> can do the same thing for the
+    <code class="literal">nextPrev</code> widget, binding to the
+    <code class="literal">Paginate</code> model:</p><pre class="screen">$.Controller('Nextprev',{
+  ".next click" : function(){
+    var paginate = this.options.paginate;
+    paginate.attr('offset', paginate.offset+paginate.limit);
+  },
+  ".prev click" : function(){
+    var paginate = this.options.paginate;
+    paginate.attr('offset', paginate.offset-paginate.limit );
+  },
+  "{paginate} updated.attr" : function(ev, paginate){
+    this.find('.prev')[paginate.canPrev() ? 'addClass' : 'removeClass']('enabled')
+    this.find('.next')[paginate.canNext() ? 'addClass' : 'removeClass']('enabled');
+  }
+})
+
+// create a nextprev control
+$('#pagebuttons').nextprev({ paginate: new Paginate() })</pre><p class="calibre3">If the element <code class="literal">#pagebuttons</code> is
+    removed from the page, the <code class="literal">NextPrev</code> controller instance
+    will automatically unbind from the <code class="literal">Paginate</code>
+    model.</p><p class="calibre3">Now that your appetite for error-free code is properly whetted, the
+    following details how <code class="literal">$.Controller</code> works.</p><div class="book" title="Overview"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2944981" class="calibre12"></a>Overview</h2></div></div></div><p class="calibre3"><span class="calibre1"><code class="literal">$.Controller</code>
+      inherits from <code class="literal">$.Class</code>. To create a controller class,
+      call <code class="literal">$.Controller</code></span><span class="calibre1"><code class="literal">( NAME, classProperties,
+      instanceProperties )</code> with the name of your
+      controller,</span> static methods, and instance methods. The following
+      is the start of a reusable list widget:<a id="I_indexterm13_d1e14843" class="calibre1"></a><a id="I_indexterm13_d1e14850" class="calibre1"></a></p><pre class="screen">$.Controller("List", {
+  defaults : {}
+},{
+  init : function(){  },
+  "li click" : function(){  }
+})</pre><p class="calibre3">When a controller class is created, it creates a jQuery helper
+      method of a similar name. The helper method is primarily used to create
+      new instances of controllers on elements in the page. The helper method
+      name is the controller’s name underscored, with any periods replaced
+      with underscores. For example, the helper for <code class="literal">$.Controller('App.FooBar')</code> is <code class="literal">$(el).app_foo_bar()</code>.</p></div><div class="book" title="Controller Instantiation"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2945074" class="calibre12"></a>Controller Instantiation</h2></div></div></div><p class="calibre3"><a id="I_indexterm13_d1e14871" class="calibre1"></a><a id="I_indexterm13_d1e14878" class="calibre1"></a><a id="I_indexterm13_d1e14885" class="calibre1"></a>To create a controller instance, you can call <code class="literal">new Controller(element, options)</code> with an HTML
+      element or jQuery-wrapped element, as well as an optional options object
+      to configure the controller. For example:</p><pre class="screen">new List($('ul#tasks'), {model : Task});</pre><p class="calibre3">You can also use the jQuery helper method to create a List
+      controller instance on the <code class="literal">#tasks</code>
+      element:</p><pre class="screen">$('ul#tasks').list({model : Task})</pre><p class="calibre3">When a controller is created, it calls the controller’s prototype
+      <code class="literal">init</code> method <a id="I_indexterm13_d1e14908" class="calibre1"></a>with:</p><div class="book"><dl class="book"><dt class="calibre8"><span class="calibre1"><code class="literal">this.element</code></span></dt><dd class="calibre9"><p class="calibre3">Set to the jQuery-wrapped HTML element</p></dd><dt class="calibre8"><span class="calibre1"><code class="literal">this.options</code></span></dt><dd class="calibre9"><p class="calibre3">Set to the options passed to the controller merged with the
+            class’ <code class="literal">defaults</code> object</p></dd></dl></div><p class="calibre3">The following code updates the List controller to request tasks
+      from the model and then render them with an optional template passed to
+      the list:</p><pre class="screen">$.Controller("List", {
+  defaults : {
+    template: "items.ejs"
+  }
+}, {
+  init : function(){
+    this.element.html( this.options.template, this.options.model.findAll() ); 
+  },
+  "li click" : function(){  }
+});</pre><p class="calibre3">We can now configure Lists to render tasks with a the provided
+      template. How flexible!</p><pre class="screen">$('#tasks').list({model: Task, template: "tasks.ejs"});
+$('#users').list({model: User, template: "users.ejs"})</pre><p class="calibre3">If we don’t provide a template, List will default to using
+      <em class="calibre4">items.ejs</em>.</p></div><div class="book" title="Event Binding"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2945229" class="calibre12"></a>Event Binding</h2></div></div></div><p class="calibre3"><a id="I_indexterm13_d1e14949" class="calibre1"></a><a id="I_indexterm13_d1e14956" class="calibre1"></a><a id="I_indexterm13_d1e14963" class="calibre1"></a>As mentioned in <code class="literal">$.Controller</code>’s
+      introduction, its most powerful feature is its ability to bind and
+      unbind event handlers.</p><p class="calibre3">When a controller is created, it looks for action methods. Action
+      methods are methods that look like event handlers—for example, <code class="literal">"li click"</code>. These actions are bound using
+      <code class="literal">jQuery.bind</code><a id="I_indexterm13_d1e14979" class="calibre1"></a> or <code class="literal">jQuery.delegate</code><a id="I_indexterm13_d1e14985" class="calibre1"></a>. When the controller is destroyed by removing the
+      controller’s element from the page or calling destroy on the controller,
+      these events are unbound, preventing memory leaks.</p><p class="calibre3">The following are examples of actions with descriptions of what
+      they listen for:</p><div class="book"><dl class="book"><dt class="calibre8"><span class="calibre1"><code class="literal">"li click"</code></span></dt><dd class="calibre9"><p class="calibre3">Clicks on or within <code class="literal">li</code>
+            elements within the controller element</p></dd><dt class="calibre8"><span class="calibre1"><code class="literal">"mousemove"</code></span></dt><dd class="calibre9"><p class="calibre3">Moves the mouse within the controller element</p></dd><dt class="calibre8"><span class="calibre1"><code class="literal">"{window} click"</code></span></dt><dd class="calibre9"><p class="calibre3">Clicks on or within the window</p></dd></dl></div><p class="calibre3">Action functions get called back with the jQuery-wrapped element
+      or object that the event happened on, as well as the event. For
+      example:</p><pre class="screen">"li click": function( el, ev ) {
+  assertEqual(el[0].nodeName, "li" )
+  assertEqual(ev.type, "click")
+}</pre></div><div class="book" title="Templated Actions"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2945384" class="calibre12"></a>Templated Actions</h2></div></div></div><p class="calibre3"><code class="literal">$.Controller</code> <a id="I_indexterm13_d1e15027" class="calibre1"></a><a id="I_indexterm13_d1e15034" class="calibre1"></a><a id="I_indexterm13_d1e15041" class="calibre1"></a>supports templated actions. Templated actions can be used
+      to bind to other objects, customize the event type, or customize the
+      selector.</p><p class="calibre3">Controller replaces the parts of your actions that look like
+      <code class="literal">{OPTION}</code> with a value in the
+      controller’s options or the window.</p><p class="calibre3">The following is a skeleton of a menu that lets you customize it
+      to show submenus on different events:</p><pre class="screen">$.Controller("Menu",{
+  "li {openEvent}" : function(){
+    // show subchildren
+  }
+});
+
+//create a menu that shows children on click
+$("#clickMenu").menu({openEvent: 'click'});
+
+//create a menu that shows children on mouseenter
+$("#hoverMenu").menu({openEvent: 'mouseenter'});</pre><p class="calibre3">We could enhance the menu further to allow customization of the
+      <code class="literal">menu</code> element tag:</p><pre class="screen">$.Controller("Menu",{
+  defaults : {menuTag : "li"}
+},{
+  "{menuTag} {openEvent}" : function(){
+    // show subchildren
+  }
+});
+
+$("#divMenu").menu({menuTag : "div"})</pre><p class="calibre3">Templated actions let you bind to elements or objects outside the
+      controller’s element. For example, the <code class="literal">Task</code> model
+      from the <code class="literal">$.Model</code> section produces a “created” event
+      when a new <code class="literal">Task</code> is created. We can make our list
+      widget listen to tasks being created, and then add these tasks to the
+      list automatically:</p><pre class="screen">$.Controller("List", {
+  defaults : {
+    template: "items.ejs"
+  }
+},{
+  init : function(){
+    this.element.html( this.options.template, this.options.model.findAll() ); 
+  },
+  "{Task} created" : function(Task, ev, newTask){
+    this.element.append(this.options.template, [newTask])
+  }
+})</pre><p class="calibre3">The <code class="literal">"{Task} create"</code> gets called
+      with the <code class="literal">Task</code> model, the created event, and the newly
+      created <code class="literal">Task</code>. The function uses the template to
+      render a list of tasks (in this case there is only one) and add the
+      resulting HTML to the element.</p><p class="calibre3">But it’s much better to make List work with any model. Instead of
+      hardcoding tasks, we’ll make the controller take a model as an
+      option:<a id="I_indexterm13_d1e15087" class="calibre1"></a><a id="I_indexterm13_d1e15088" class="calibre1"></a></p><pre class="screen">$.Controller("List", {
+  defaults : {
+    template: "items.ejs",
+    model: null
+  }
+},{
+  init : function(){
+    this.element.html( this.options.template, this.options.model.findAll() ); 
+  },
+  "{model} created" : function(Model, ev, newItem){
+    this.element.append(this.options.template, [newItem])
+  }
+});
+
+// create a list of tasks
+$('#tasks').list({model: Task, template: "tasks.ejs"});</pre></div></div></div>
+
+{% endraw %}
+

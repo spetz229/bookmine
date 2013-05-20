@@ -1,0 +1,304 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: fp_infix.html
+next: fp_lists_split_001.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="fp_infix.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="fp_loop_split_000.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="fp_lists" class="calibre27" id="fp_lists"></a><h3 id="title-IDAF525C" class="docSection1Title">4.5. Working with Lists</h3><a name="x_r6" class="calibre27" id="x_r6"></a><p class="docText">As <a name="ch04-listsworking" class="calibre27" id="ch04-listsworking"></a>the bread and butter of functional programming, lists
+    deserve some serious attention. The standard <tt class="calibre34">Prelude</tt>
+    defines dozens of functions for dealing with lists. Many of these will be
+    indispensable tools, so it's important that we learn them early on.</p><a name="x_PL" class="calibre27" id="x_PL"></a><p class="docText">For better or worse, this section is going to read a bit
+    like a laundry list of functions. Why present so many functions at once?
+    Because they are both easy to learn and absolutely ubiquitous. If we don't
+    have this toolbox at our fingertips, we'll end up wasting time by
+    reinventing simple functions that are already present in the standard
+    libraries. So bear with us as we go through the list; the effort you'll
+    save will be huge.</p><a name="x_s6" class="calibre27" id="x_s6"></a><p class="docText">The <tt class="calibre34">Data.List</tt> module is the
+    "real" logical home of all standard list functions. The
+    <tt class="calibre34">Prelude</tt> merely re-exports a large subset of the
+    functions exported by <tt class="calibre34">Data.List</tt>. Several useful functions in
+    <tt class="calibre34">Data.List</tt> are <span class="docEmphasis">not</span> re-exported by the
+    standard <tt class="calibre34">Prelude</tt>. As we walk through list functions in
+    the sections that follow, we will explicitly mention those that are only
+    in <tt class="calibre34">Data.List</tt>:</p><pre class="calibre39">        ghci&gt; 
+        <b class="calibre40">:module +Data.List</b></pre><a name="x_t6" class="calibre27" id="x_t6"></a><p class="docText">Because none of these functions is complex or takes more
+    than about three lines of Haskell to write, we'll be brief in our
+    descriptions of each. In fact, a quick and useful learning exercise is to
+    write a definition of each function after you've read about it.</p><a name="fp_lists_basic" class="calibre27" id="fp_lists_basic"></a><h4 id="title-IDA4A45C" class="docSection1Title">4.5.1. Basic List Manipulation</h4><a name="x_v6" class="calibre27" id="x_v6"></a><p class="docText">The <i class="docEmphasis">length</i>
+      function<a name="I_indexterm4_d1e9167" class="calibre27" id="I_indexterm4_d1e9167"></a> tells us how many elements are in a list:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type length</b>
+length :: [a] -&gt; Int
+ghci&gt; <b class="calibre40">length []</b>
+0
+ghci&gt; <b class="calibre40">length [1,2,3]</b>
+3
+ghci&gt; <b class="calibre40">length "strings are lists, too"</b>
+22</pre><a name="x_mC1" class="calibre27" id="x_mC1"></a><p class="docText">If you need to determine whether a list is empty, use
+      the<a name="I_indexterm4_d1e9194" class="calibre27" id="I_indexterm4_d1e9194"></a> <i class="docEmphasis">null</i>
+      function:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type null</b>
+null :: [a] -&gt; Bool
+ghci&gt; <b class="calibre40">null []</b>
+True
+ghci&gt; <b class="calibre40">null "plugh"</b>
+False</pre><a name="x_w6" class="calibre27" id="x_w6"></a><p class="docText">To access the first element of a list, use<a name="I_indexterm4_d1e9219" class="calibre27" id="I_indexterm4_d1e9219"></a> the <i class="docEmphasis">head</i>
+      function:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type head</b>
+head :: [a] -&gt; a
+ghci&gt; <b class="calibre40">head [1,2,3]</b>
+1</pre><a name="x_x6" class="calibre27" id="x_x6"></a><p class="docText">The converse, <i class="docEmphasis">tail</i>,
+      returns<a name="I_indexterm4_d1e9242" class="calibre27" id="I_indexterm4_d1e9242"></a> all <span class="docEmphasis">but</span> the head of a list:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type tail</b>
+tail :: [a] -&gt; [a]
+ghci&gt; <b class="calibre40">tail "foo"</b>
+"oo"</pre><a name="x_y6" class="calibre27" id="x_y6"></a><p class="docText">Another function, <i class="docEmphasis">last</i>, returns<a name="I_indexterm4_d1e9265" class="calibre27" id="I_indexterm4_d1e9265"></a> the very last element of a list:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type last</b>
+last :: [a] -&gt; a
+ghci&gt; <b class="calibre40">last "bar"</b>
+'r'</pre><a name="x_z6" class="calibre27" id="x_z6"></a><p class="docText">The converse of <i class="docEmphasis">last</i> is <i class="docEmphasis">init</i>, which<a name="I_indexterm4_d1e9289" class="calibre27" id="I_indexterm4_d1e9289"></a> returns a list of all but the last element of its
+      input:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type init</b>
+init :: [a] -&gt; [a]
+ghci&gt; <b class="calibre40">init "bar"</b>
+"ba"</pre><a name="x_A7" class="calibre27" id="x_A7"></a><p class="docText">Several of the preceding functions behave poorly on
+      empty lists, so be careful if you don't know whether or not a list is
+      empty. What form does their misbehavior take?</p><pre class="calibre39">ghci&gt; <b class="calibre40">head []</b>
+*** Exception: Prelude.head: empty list
+</pre><a name="x_nC1" class="calibre27" id="x_nC1"></a><p class="docText">Try each of the previous functions in <i class="docEmphasis">ghci</i>. Which ones crash when given an empty
+      list?</p><a name="fp_lists_safe" class="calibre27" id="fp_lists_safe"></a><h4 id="title-IDAWG45C" class="docSection1Title">4.5.2. Safely and Sanely Working with Crashy Functions</h4><a name="x_B7" class="calibre27" id="x_B7"></a><p class="docText">When we want to use a function such as<a name="I_indexterm4_d1e9322" class="calibre27" id="I_indexterm4_d1e9322"></a> <i class="docEmphasis">head</i>, where we know
+      that it might blow up on us if we pass in an empty list, there initially
+      might be a strong temptation to check the length of the list before we
+      call <i class="docEmphasis">head</i>. Let's construct an
+      artificial example to illustrate our point:</p><pre class="calibre39">-- file: ch04/EfficientList.hs
+myDumbExample xs = if length xs &gt; 0
+                   then head xs
+                   else 'Z'</pre><br class="calibre48"/>
+<a name="x_C7" class="calibre27" id="x_C7"></a><p class="docText">If we're coming from a language such as Perl or Python,
+      this might seem like a perfectly natural way to write this test. Behind
+      the scenes, Python lists are arrays, and Perl arrays are, well, arrays.
+      So we necessarily know how long they are, and calling
+      <tt class="calibre34">len(foo)</tt> or <tt class="calibre34">scalar(@foo)</tt> is a perfectly
+      natural thing to do. But as with many other things, it's not a good idea
+      to blindly transplant such an assumption into Haskell.</p><a name="x_D7" class="calibre27" id="x_D7"></a><p class="docText">We've already seen the definition of the list algebraic
+      data type many times, and we know that a list doesn't store its own
+      length explicitly. Thus, the only way that <i class="docEmphasis">length</i> can operate is to walk the entire
+      list.</p><a name="x_E7" class="calibre27" id="x_E7"></a><p class="docText">Therefore, when we care only whether or not a list is
+      empty, calling <i class="docEmphasis">length</i> isn't
+      a<a name="I_indexterm4_d1e9354" class="calibre27" id="I_indexterm4_d1e9354"></a> good strategy. It can potentially do a lot more work than
+      we want, if the list we're working with is finite. Since Haskell lets us
+      easily create infinite lists, a careless use of <i class="docEmphasis">length</i> may even result in an infinite
+      loop.</p><a name="x_F7" class="calibre27" id="x_F7"></a><p class="docText">A more appropriate function to call here instead is
+      <i class="docEmphasis">null</i>, which runs in constant time.
+      Better yet, using <i class="docEmphasis">null</i> makes our
+      code indicate what property of the list we really care about. Here are
+      two improved ways of expressing <i class="docEmphasis">myDumbExample</i>:</p><pre class="calibre39">-- file: ch04/EfficientList.hs
+mySmartExample xs = if not (null xs)
+                    then head xs
+                    else 'Z'
+
+myOtherExample (x:_) = x
+myOtherExample [] = 'Z'</pre><br class="calibre48"/>
+<a name="fp_listsd1e9437" class="calibre27" id="fp_listsd1e9437"></a><h4 id="title-IDADJ45C" class="docSection1Title">4.5.3. Partial and Total Functions</h4><a name="x_G7" class="calibre27" id="x_G7"></a><p class="docText">Functions that have only return values defined for a
+      subset of valid inputs are called<a name="I_indexterm4_d1e9379" class="calibre27" id="I_indexterm4_d1e9379"></a><a name="I_indexterm4_d1e9382" class="calibre27" id="I_indexterm4_d1e9382"></a> partial functions (calling <i class="docEmphasis">error</i> doesn't qualify as returning a value!).
+      We call functions that return valid results over their entire input
+      domains total functions.</p><a name="x_H7" class="calibre27" id="x_H7"></a><p class="docText">It's always a good idea to know whether a function
+      you're using is partial or total. Calling a partial function with an
+      input that it can't <a name="I_indexterm4_d1e9393" class="calibre27" id="I_indexterm4_d1e9393"></a>handle is probably the single biggest source of
+      straightforward, avoidable bugs in Haskell programs.</p><a name="x_I7" class="calibre27" id="x_I7"></a><p class="docText">Some Haskell programmers go so far as to give partial
+      functions names that begin with a prefix such as <tt class="calibre34">unsafe</tt> so
+      that they can't shoot themselves in the foot accidentally.</p><a name="x_J7" class="calibre27" id="x_J7"></a><p class="docText">It's arguably a deficiency of the standard
+      <tt class="calibre34">Prelude</tt> that it defines quite a few
+      "unsafe" partial functions, such as <i class="docEmphasis">head</i>, without also providing
+      "safe" total equivalents.</p><a name="fp_listsd1e9479" class="calibre27" id="fp_listsd1e9479"></a><h4 id="title-IDAUK45C" class="docSection1Title">4.5.4. More Simple List Manipulations</h4><a name="x_K7" class="calibre27" id="x_K7"></a><p class="docText">Haskell's <a name="I_indexterm4_d1e9421" class="calibre27" id="I_indexterm4_d1e9421"></a><a name="I_indexterm4_d1e9424" class="calibre27" id="I_indexterm4_d1e9424"></a><a name="I_indexterm4_d1e9427" class="calibre27" id="I_indexterm4_d1e9427"></a>name for the append function is <i class="docEmphasis">(++)</i>:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type (++)</b>
+(++) :: [a] -&gt; [a] -&gt; [a]
+ghci&gt; <b class="calibre40">"foo" ++ "bar"</b>
+"foobar"
+ghci&gt; <b class="calibre40">[] ++ [1,2,3]</b>
+[1,2,3]
+ghci&gt; <b class="calibre40">[True] ++ []</b>
+[True]</pre><a name="x_L7" class="calibre27" id="x_L7"></a><p class="docText">The <i class="docEmphasis">concat</i>
+      function<a name="I_indexterm4_d1e9460" class="calibre27" id="I_indexterm4_d1e9460"></a> takes a list of lists, all of the same type, and
+      concatenates them into a single list:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type concat</b>
+concat :: [[a]] -&gt; [a]
+ghci&gt; <b class="calibre40">concat [[1,2,3], [4,5,6]]</b>
+[1,2,3,4,5,6]</pre><a name="x_M7" class="calibre27" id="x_M7"></a><p class="docText">It removes one level of nesting:</p><pre class="calibre39">ghci&gt; <b class="calibre40">concat [[[1,2],[3]], [[4],[5],[6]]]</b>
+[[1,2],[3],[4],[5],[6]]
+ghci&gt; <b class="calibre40">concat (concat [[[1,2],[3]], [[4],[5],[6]]])</b>
+[1,2,3,4,5,6]</pre><a name="x_N7" class="calibre27" id="x_N7"></a><p class="docText">The <i class="docEmphasis">reverse</i>
+      function<a name="I_indexterm4_d1e9493" class="calibre27" id="I_indexterm4_d1e9493"></a> returns the elements of a list in reverse order:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type reverse</b>
+reverse :: [a] -&gt; [a]
+ghci&gt; <b class="calibre40">reverse "foo"</b>
+"oof"</pre><a name="x_O7" class="calibre27" id="x_O7"></a><p class="docText">For lists of <tt class="calibre34">Bool</tt>, the <i class="docEmphasis">and</i> and<a name="I_indexterm4_d1e9516" class="calibre27" id="I_indexterm4_d1e9516"></a><a name="I_indexterm4_d1e9519" class="calibre27" id="I_indexterm4_d1e9519"></a> <i class="docEmphasis">or</i> functions
+      generalize their two-argument<a name="I_indexterm4_d1e9526" class="calibre27" id="I_indexterm4_d1e9526"></a><a name="I_indexterm4_d1e9530" class="calibre27" id="I_indexterm4_d1e9530"></a> cousins,<i class="docEmphasis">
+      (&amp;&amp;)</i> and <i class="docEmphasis">(||)</i>,
+      over lists:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type and</b>
+and :: [Bool] -&gt; Bool
+ghci&gt; <b class="calibre40">and [True,False,True]</b>
+False
+ghci&gt; <b class="calibre40">and []</b>
+True
+ghci&gt; <b class="calibre40">:type or</b>
+or :: [Bool] -&gt; Bool
+ghci&gt; <b class="calibre40">or [False,False,False,True,False]</b>
+True
+ghci&gt; <b class="calibre40">or []</b>
+False</pre><a name="x_P7" class="calibre27" id="x_P7"></a><p class="docText">They have more useful cousins, <i class="docEmphasis">all</i> and <i class="docEmphasis">any</i>, which operate on lists of any type. Each
+      one takes a predicate as its first argument; <i class="docEmphasis">all</i> returns <tt class="calibre34">true</tt> if that
+      predicate succeeds on every element of the list, while <i class="docEmphasis">any</i> returns <tt class="calibre34">true</tt> if the
+      predicate succeeds on at least one element of the list:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type all</b>
+all :: (a -&gt; Bool) -&gt; [a] -&gt; Bool
+ghci&gt; <b class="calibre40">all odd [1,3,5]</b>
+True
+ghci&gt; <b class="calibre40">all odd [3,1,4,1,5,9,2,6,5]</b>
+False
+ghci&gt; <b class="calibre40">all odd []</b>
+True
+ghci&gt; <b class="calibre40">:type any</b>
+any :: (a -&gt; Bool) -&gt; [a] -&gt; Bool
+ghci&gt; <b class="calibre40">any even [3,1,4,1,5,9,2,6,5]</b>
+True
+ghci&gt; <b class="calibre40">any even []</b>
+False</pre><a name="fp_listsd1e9694" class="calibre27" id="fp_listsd1e9694"></a><h4 id="title-IDA2R45C" class="docSection1Title">4.5.5. Working with Sublists</h4><a name="x_Q7" class="calibre27" id="x_Q7"></a><p class="docText">The <i class="docEmphasis">take</i> function,
+      which we already discussed in <a class="docLink" href="funcstypes_calling.html#funcstypes_calling">Section 2.5</a>,
+      returns a sublist consisting of the first <span class="docEmphasis">k</span>
+      elements from a list. Its converse, <i class="docEmphasis">drop</i>, drops <span class="docEmphasis">k</span> elements
+      from the start of the list:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type take</b>
+take :: Int -&gt; [a] -&gt; [a]
+ghci&gt; <b class="calibre40">take 3 "foobar"</b>
+"foo"
+ghci&gt; <b class="calibre40">take 2 [1]</b>
+[1]
+ghci&gt; <b class="calibre40">:type drop</b>
+drop :: Int -&gt; [a] -&gt; [a]
+ghci&gt; <b class="calibre40">drop 3 "xyzzy"</b>
+"zy"
+ghci&gt; <b class="calibre40">drop 1 []</b>
+[]</pre><a name="x_R7" class="calibre27" id="x_R7"></a><p class="docText">The <i class="docEmphasis">splitAt</i>
+      function<a name="I_indexterm4_d1e9687" class="calibre27" id="I_indexterm4_d1e9687"></a> combines the functions <i class="docEmphasis">take</i> and <i class="docEmphasis">drop</i>, returning a pair of the input lists,
+      split at the given index:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type splitAt</b>
+splitAt :: Int -&gt; [a] -&gt; ([a], [a])
+ghci&gt; <b class="calibre40">splitAt 3 "foobar"</b>
+("foo","bar")</pre><a name="x_S7" class="calibre27" id="x_S7"></a><p class="docText">The <i class="docEmphasis">takeWhile</i> and
+      <i class="docEmphasis">dropWhile</i> functions<a name="I_indexterm4_d1e9716" class="calibre27" id="I_indexterm4_d1e9716"></a><a name="I_indexterm4_d1e9719" class="calibre27" id="I_indexterm4_d1e9719"></a> take predicates. <i class="docEmphasis">takeWhile</i> takes elements from the beginning
+      of a list as long as the predicate returns <tt class="calibre34">true</tt>, while
+      <i class="docEmphasis">dropWhile</i> drops elements from the
+      list as long as the predicate returns <tt class="calibre34">true</tt>:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type takeWhile</b>
+takeWhile :: (a -&gt; Bool) -&gt; [a] -&gt; [a]
+ghci&gt; <b class="calibre40">takeWhile odd [1,3,5,6,8,9,11]</b>
+[1,3,5]
+ghci&gt; <b class="calibre40">:type dropWhile</b>
+dropWhile :: (a -&gt; Bool) -&gt; [a] -&gt; [a]
+ghci&gt; <b class="calibre40">dropWhile even [2,4,6,7,9,10,12]</b>
+[7,9,10,12]</pre><a name="x_T7" class="calibre27" id="x_T7"></a><p class="docText">Just as <i class="docEmphasis">splitAt</i>
+      "tuples up" the results of <i class="docEmphasis">take</i> and <i class="docEmphasis">drop</i>, the functions <i class="docEmphasis">break</i> (which<a name="I_indexterm4_d1e9775" class="calibre27" id="I_indexterm4_d1e9775"></a> we already saw in <a class="docLink" href="fp_splitlines.html#fp_splitlines">Section 4.3</a>) and
+      <i class="docEmphasis">span</i> tuple up the results of
+      <i class="docEmphasis">takeWhile</i> and <i class="docEmphasis">dropWhile</i>.</p><a name="x_U7" class="calibre27" id="x_U7"></a><p class="docText">Each function takes a predicate; <i class="docEmphasis">break</i> consumes its input while its predicate
+      fails, and <i class="docEmphasis">span</i> consumes while its
+      predicate succeeds:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type span</b>
+span :: (a -&gt; Bool) -&gt; [a] -&gt; ([a], [a])
+ghci&gt; <b class="calibre40">span even [2,4,6,7,9,10,11]</b>
+([2,4,6],[7,9,10,11])
+ghci&gt; <b class="calibre40">:type break</b>
+break :: (a -&gt; Bool) -&gt; [a] -&gt; ([a], [a])
+ghci&gt; <b class="calibre40">break even [1,3,5,6,8,9,10]</b>
+([1,3,5],[6,8,9,10])</pre><a name="fp_list_search" class="calibre27" id="fp_list_search"></a><h4 id="title-IDATY45C" class="docSection1Title">4.5.6. Searching Lists</h4><a name="x_V7" class="calibre27" id="x_V7"></a><p class="docText">As we've already seen, the <i class="docEmphasis">elem</i> function<a name="I_indexterm4_d1e9828" class="calibre27" id="I_indexterm4_d1e9828"></a> indicates whether a value is present in a list. It has a
+      companion<a name="I_indexterm4_d1e9832" class="calibre27" id="I_indexterm4_d1e9832"></a> function, <i class="docEmphasis">notElem</i>:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type elem</b>
+elem :: (Eq a) =&gt; a -&gt; [a] -&gt; Bool
+ghci&gt; <b class="calibre40">2 `elem` [5,3,2,1,1]</b>
+True
+ghci&gt; <b class="calibre40">2 `notElem` [5,3,2,1,1]</b>
+False</pre><a name="x_W7" class="calibre27" id="x_W7"></a><p class="docText">For a more general search, <i class="docEmphasis">filter</i> <a name="I_indexterm4_d1e9860" class="calibre27" id="I_indexterm4_d1e9860"></a>takes a predicate and returns every element of the list on
+      which the predicate succeeds:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type filter</b>
+filter :: (a -&gt; Bool) -&gt; [a] -&gt; [a]
+ghci&gt; <b class="calibre40">filter odd [2,4,1,3,6,8,5,7]</b>
+[1,3,5,7]</pre><a name="x_X7" class="calibre27" id="x_X7"></a><p class="docText">In <tt class="calibre34">Data.List</tt>, three predicates—<i class="docEmphasis">isPrefixOf</i>, <i class="docEmphasis">isInfixOf</i>, and<a name="I_indexterm4_d1e9886" class="calibre27" id="I_indexterm4_d1e9886"></a><a name="I_indexterm4_d1e9889" class="calibre27" id="I_indexterm4_d1e9889"></a><a name="I_indexterm4_d1e9892" class="calibre27" id="I_indexterm4_d1e9892"></a> <i class="docEmphasis">isSuffixOf</i>—let us
+      test for the presence of sublists within a bigger list. The easiest way
+      to use them is with infix notation.</p><a name="x_Y7" class="calibre27" id="x_Y7"></a><p class="docText">The <i class="docEmphasis">isPrefixOf</i>
+      function tells us whether its left argument matches the beginning of its
+      right argument:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:module +Data.List</b>ghci&gt; <b class="calibre40">:type isPrefixOf</b>
+isPrefixOf :: (Eq a) =&gt; [a] -&gt; [a] -&gt; Bool
+ghci&gt; <b class="calibre40">"foo" `isPrefixOf` "foobar"</b>
+True
+ghci&gt; <b class="calibre40">[1,2] `isPrefixOf` []</b>
+False</pre><a name="x_Z7" class="calibre27" id="x_Z7"></a><p class="docText">The <i class="docEmphasis">isInfixOf</i>
+      function indicates whether its left argument is a sublist of its
+      right:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:module +Data.List</b>ghci&gt; <b class="calibre40">[2,6] `isInfixOf` [3,1,4,1,5,9,2,6,5,3,5,8,9,7,9]</b>
+True
+ghci&gt; <b class="calibre40">"funk" `isInfixOf` "sonic youth"</b>
+False</pre><a name="x_a7" class="calibre27" id="x_a7"></a><p class="docText">The operation of <i class="docEmphasis">isSuffixOf</i> shouldn't need any
+      explanation:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:module +Data.List</b>ghci&gt; <b class="calibre40">".c" `isSuffixOf` "crashme.c"</b>
+True</pre><a name="fp_listsd1e10024" class="calibre27" id="fp_listsd1e10024"></a><h4 id="title-IDAX345C" class="docSection1Title">4.5.7. Working with Several Lists at Once</h4><a name="x_b7" class="calibre27" id="x_b7"></a><p class="docText">The <i class="docEmphasis">zip</i>
+      function<a name="I_indexterm4_d1e9972" class="calibre27" id="I_indexterm4_d1e9972"></a> takes two lists and "zips" them into a
+      single list of pairs. The resulting list is the same length as the
+      shorter of the two inputs:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type zip</b>
+zip :: [a] -&gt; [b] -&gt; [(a, b)]
+ghci&gt; <b class="calibre40">zip [12,72,93] "zippity"</b>
+[(12,'z'),(72,'i'),(93,'p')]</pre><a name="x_c7" class="calibre27" id="x_c7"></a><p class="docText">More useful is <i class="docEmphasis">zipWith</i>, which<a name="I_indexterm4_d1e9995" class="calibre27" id="I_indexterm4_d1e9995"></a> takes two lists and applies a function to each pair of
+      elements, generating a list that is the same length as the shorter of
+      the two:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type zipWith</b>
+zipWith :: (a -&gt; b -&gt; c) -&gt; [a] -&gt; [b] -&gt; [c]
+ghci&gt; <b class="calibre40">zipWith (+) [1,2,3] [4,5,6]</b>
+[5,7,9]</pre><a name="x_d7" class="calibre27" id="x_d7"></a><p class="docText">Haskell's type system makes it an interesting challenge
+      to write functions that take variable numbers of arguments.<sup class="docFootnote"><a class="docLink1" href="#x_d7d1e10072">[8]</a></sup> So if we want to zip three lists together, we call
+      <i class="docEmphasis">zip3</i> or <i class="docEmphasis">zipWith3</i>, and so on, up to <i class="docEmphasis">zip7</i> and <i class="docEmphasis">zipWith7</i>.</p><blockquote class="calibre30"><p class="docFootnote1"><sup class="calibre50"><a name="x_d7d1e10072" class="calibre5" id="x_d7d1e10072">[8]</a></sup> Unfortunately, we do not have room to address that
+          challenge in this book.</p></blockquote><a name="fp_lists_strings" class="calibre27" id="fp_lists_strings"></a><h4 id="title-IDAKA55C" class="docSection1Title">4.5.8. Special String-Handling Functions</h4><a name="x_e7" class="calibre27" id="x_e7"></a><p class="docText">We've already <a name="I_indexterm4_d1e10033" class="calibre27" id="I_indexterm4_d1e10033"></a>encountered the standard <i class="docEmphasis">lines</i> function<a name="I_indexterm4_d1e10042" class="calibre27" id="I_indexterm4_d1e10042"></a> and its standard counterpart <i class="docEmphasis">unlines</i> in<a name="I_indexterm4_d1e10049" class="calibre27" id="I_indexterm4_d1e10049"></a> the section<a class="docLink" href="fp_splitlines.html#fp_splitlines">Section 4.3</a>. Notice that
+      <i class="docEmphasis">unlines</i> always places a newline on
+      the end of its result:</p><pre class="calibre39">ghci&gt; <b class="calibre40">lines "foo\nbar"</b>
+["foo","bar"]
+ghci&gt; <b class="calibre40">unlines ["foo", "bar"]</b>
+"foo\nbar\n"</pre><a name="x_f7" class="calibre27" id="x_f7"></a><p class="docText">The <i class="docEmphasis">words</i> function
+      splits an input string on any whitespace. Its counterpart, <i class="docEmphasis">unwords</i>, uses<a name="I_indexterm4_d1e10078" class="calibre27" id="I_indexterm4_d1e10078"></a> a single space to join a list of words:</p><pre class="calibre39">ghci&gt; <b class="calibre40">words "the  \r  quick \t  brown\n\n\nfox"</b>
+["the","quick","brown","fox"]
+ghci&gt; <b class="calibre40">unwords ["jumps", "over", "the", "lazy", "dog"]</b>
+"jumps over the lazy dog"</pre><a name="I_sidebar4_d1e10093" class="calibre27" id="I_sidebar4_d1e10093"></a></td>
+                    </tr>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

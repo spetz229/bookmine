@@ -1,0 +1,149 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0151.html
+next: f_0153.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.meet.auto.comp">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 111</td>
+<td class="arr-recipe-name">Meet Vim’s Keyword Autocompletion</td>
+</tr>
+</table>
+<p id="N1B99F" class="calibre4">
+<span class="calibre5">
+        With keyword autocompletion, Vim attempts to guess the word that we’re typing, which can save us from completing it by hand.
+    </span>
+</p>
+<p id="N1B9A9" class="calibre4">
+      Vim’s autocomplete functionality is triggered from Insert mode. When invoked, Vim builds a word list from the contents of each buffer in the current editing session and then examines the characters to the left of the cursor, looking for a partial word. If one is found, the word list is filtered to exclude anything that doesn’t begin with that partial word. The resulting word list is presented in a menu from which we can select our match.
+    </p>
+<p id="N1B9B1" class="calibre4">
+      This figure shows two screenshots, one taken before and one after triggering Vim’s keyword autocompletion:
+    </p>
+<div xmlns:str="http://exslt.org/strings" class="calibre1">
+<img src="images/she_sells_sea_shells.png" alt="images/she_sells_sea_shells.png" class="calibre21"/>
+</div>
+<p id="N1B9B9" class="calibre4">
+      In this case, the letter “s” is used to filter the word list, giving us three choices: “sells,” “sea,” and “shells.” If you’re wondering why “She” isn’t in the list, see <a xmlns:str="http://exslt.org/strings" href="f_0151.html#sidebar.ignorecase.autocomplete">​<em class="calibre5">Autocompletion and Case Sensitivity</em>​</a>.
+    </p>
+<h3 class="calibre22">Trigger Autocompletion</h3>
+<p id="N1B9C4" class="calibre4">
+        Vim’s autocompletion can be triggered from Insert mode with the <span class="calibre17">&lt;C-p&gt;</span> and <span class="calibre17">&lt;C-n&gt;</span> chords, which select the <span class="calibre5">previous</span> and <span class="calibre5">next</span> items in the word list, respectively. 
+      </p>
+<p id="N1B9EB" class="calibre4">
+        The <span class="calibre17">&lt;C-p&gt;</span> and <span class="calibre17">&lt;C-n&gt;</span> commands both invoke generic keyword autocompletion. There are several variant forms of autocompletion, all of which are prefixed with the <span class="calibre17">&lt;C-x&gt;</span> chord. In this chapter, we’ll discuss the methods listed in <a xmlns:str="http://exslt.org/strings" href="#table.autocomplete.types">Table 29, ​<em class="calibre5">A Summary of Vim’s Autocomplete Methods</em>​</a> (you can view the complete list at <strong xmlns:str="http://exslt.org/strings" class="calibre10">ins-completion</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/insert.html#ins-completion">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>).
+		</p>
+<hr class="calibre37"/>
+<div class="figurecaption" id="table.autocomplete.types">Table 29. A Summary of Vim’s Autocomplete Methods</div>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Command</th>
+<th class="hlines">Type of Completion</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;C-n&gt;</span>
+</p>
+</td>
+<td class="calibre24">
+<p class="last-para-in-cell">Generic keywords</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;C-x&gt;&lt;C-n&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Current buffer keywords</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;C-x&gt;&lt;C-i&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Included file keywords</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;C-x&gt;&lt;C-]&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">tags</code> file keywords</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;C-x&gt;&lt;C-k&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Dictionary lookup</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;C-x&gt;&lt;C-l&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Whole line completion</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;C-x&gt;&lt;C-f&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Filename completion</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;C-x&gt;&lt;C-o&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Omni-completion</p>
+</td>
+</tr>
+</tbody>
+</table>
+<hr class="calibre37"/>
+<p id="N1BA62" class="calibre4">
+        If you use <span class="calibre17">&lt;C-x&gt;&lt;C-n&gt;</span> on the “She sells sea shells” example, then you should get the same word list as is shown in the illustration. But <span class="calibre17">&lt;C-n&gt;</span> may produce more suggestions, because the word list is populated from sources beyond the current buffer. We’ll take an in-depth look at how the word list for generic keywords is populated in <a xmlns:str="http://exslt.org/strings" href="f_0154.html#sec.keyword.origins">Tip 113</a>.
+      </p>
+<p id="N1BA6F" class="calibre4">
+        No matter which form of autocompletion is triggered, the commands for interacting with the suggestions menu are the same. We’ll explore these in the next tip.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

@@ -1,0 +1,107 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0149.html
+next: f_0151.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.vimgrep">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 110</td>
+<td class="arr-recipe-name">Grep with Vim’s Internal Search Engine</td>
+</tr>
+</table>
+<p id="N1B86D" class="calibre4">
+<span class="calibre5">
+        The <code class="cf">:vimgrep</code> command allows us to search through multiple files using Vim’s native regular expression engine.
+    </span>
+</p>
+<p id="N1B87F" class="calibre4">
+        Vim provides a command called <code class="cf">:vimgrep</code>, which uses Vim’s built-in search engine. (The command can be abbreviated to <code class="cf">:vim</code>.) The syntax looks like this:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​:<strong class="prompt">vim</strong>[<strong class="prompt">grep</strong>][!] /{pattern}/[g][j] {<strong class="prompt">file</strong>} ...​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1B89D" class="calibre4">
+        When multiple matches are on the same line, the presence of the <code class="cf">g</code> flag creates a match for each one of them. Without it, only a single record is created for the entire line. By default, Vim will jump straight to the first match, but you can prevent this by including the <code class="cf">j</code> flag. 
+      </p>
+<p id="N1B8A6" class="calibre4">
+        The <code class="cf">{file}</code> argument must not be blank. It can accept the same parameters as the <code class="cf">:args</code> command (discussed in detail in <a xmlns:str="http://exslt.org/strings" href="f_0061.html#sec.populate.args">​<em class="calibre5">Populate the Argument List</em>​</a>), including filenames, wildcards, backtick expressions, and combinations of all of the above. The <code class="cf">*</code> wildcard will match any file in a directory. The <code class="cf">**</code> wildcard matches any file in the specified directory or any of its subdirectories. Additionally, we can use the <code class="cf">##</code> symbol, which is expanded to represent the names of each file in the argument list (<strong xmlns:str="http://exslt.org/strings" class="calibre10">:_##</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/cmdline.html#:_##">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>).
+      </p>
+<h3 class="calibre22">Search in File, Then Search in Project</h3>
+<p id="N1B8C4" class="calibre4">
+        The main advantage to using <code class="cf">:vimgrep</code> is that it understands the same patterns as Vim’s search command, so we can compose a regular expression by searching in the current file. When we’re satisfied that it matches where it should, we execute <code class="cf">:vimgrep</code> using the exact same pattern. Here, we’ll use the pattern that we constructed in <a xmlns:str="http://exslt.org/strings" href="f_0119.html#sec.search.iterate">Tip 85</a>:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">/\v'(([^']|'\w)+)'</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:vim /&lt;C-r&gt;// **</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1B8F1" class="calibre4">
+        If we wanted to use <code class="cf">:grep</code> to do a project-wide search for the same pattern, we would first have to translate it into a POSIX regular expression.
+      </p>
+<h3 class="calibre22">Search History and :vimgrep</h3>
+<p id="N1B8FB" class="calibre4">
+        In the previous example, we used <span class="calibre17">&lt;C-r&gt;/</span> to paste the contents of the last search register into the pattern field of the <code class="cf">:vimgrep</code> command. If you’ve read <a xmlns:str="http://exslt.org/strings" href="f_0125.html#sec.substitute.lastpat">Tip 90</a>, then you might be wondering what happens if we leave the pattern field empty.
+      </p>
+<p id="N1B90F" class="calibre4">
+        Not what you would expect, sadly. If we leave the pattern field empty, the <code class="cf">:vimgrep</code> command matches every line in every file that it looks inside.
+      </p>
+<p id="N1B915" class="calibre4">
+        The <code class="cf">:substitute</code> and <code class="cf">:global</code> commands are both tightly integrated with Vim’s search history. If we run either of these commands, leaving the pattern field empty, Vim uses the current search pattern. Whereas, if we supply a pattern to either of these commands, Vim updates the current search pattern. The <code class="cf">:vimgrep</code> command does not have this level of integration with Vim’s search history. So if we want to reuse the last search pattern, we have to paste it directly into the search field using <span class="calibre17">&lt;C-r&gt;/</span>.
+	</p>
+
+<div class="footnotes">
+<h4 class="calibre20">Footnotes</h4>
+<table cellspacing="3" class="table-of-contents">
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-34" href="f_0149.html#FNPTR-34">[34]</a>
+</td>
+<td class="calibre8">
+<p id="N1B803" class="calibre4">
+<a href="https://github.com/mileszs/ack.vim">https://github.com/mileszs/ack.vim</a> and <a href="https://github.com/tpope/vim-fugitive">https://github.com/tpope/vim-fugitive</a>, respectively.</p>
+</td>
+</tr>
+</table>
+</div>
+<div class="copyright">Copyright © 2012, The Pragmatic Bookshelf.</div>
+
+
+
+
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

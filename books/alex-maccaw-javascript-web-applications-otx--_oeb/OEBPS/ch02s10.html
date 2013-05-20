@@ -1,0 +1,111 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch02s09.html
+next: OEBPS/ch03.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Non-DOM Events"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect12_d1e2423" class="calibre1"></a>Non-DOM Events</h1></div></div></div><p class="calibre3"><a id="index-631I384OF4B" class="calibre1"></a><a id="index-065B770AR3W" class="calibre1"></a>Event-based programming is very powerful because it
+    decouples your application’s architecture, leading to better
+    self-containment and maintainability. Events aren’t restricted to the DOM
+    though, so you can easily write your own event handler library. The
+    pattern is called <a class="ulink" href="http://en.wikipedia.org/wiki/Publish/subscribe">Publish/Subscribe</a><a id="I_indexterm2_d1e2438" class="calibre1"></a>, and it’s a good one to be familiar with.</p><p class="calibre3">Publish/Subscribe, or Pub/Sub, is a messaging pattern with two
+    actors, publishers, and subscribers. Publishers publish messages to a
+    particular channel, and subscribers subscribe to channels, receiving
+    notifications when new messages are published. The key here is that
+    publishers and subscribers are completely decoupled—they have no idea of
+    each other’s existence. The only thing the two share is the channel
+    name.</p><p class="calibre3">The decoupling of publishers and subscribers allows your application
+    to grow without introducing a lot of interdependency and coupling,
+    improving the ease of maintenance, as well as adding extra
+    features.</p><p class="calibre3">So, how do you actually go about using Pub/Sub in an application?
+    All you need to do is record handlers associated with an event name and
+    then have a way of invoking them. Here’s an example <code class="literal">PubSub</code> object, which we can use for adding and
+    triggering event listeners:</p><pre class="screen">var PubSub = {  
+  subscribe: function(ev, callback) {
+    // Create _callbacks object, unless it already exists
+    var calls = this._callbacks || (this._callbacks = {});
+
+    // Create an array for the given event key, unless it exists, then
+    // append the callback to the array
+    (this._callbacks[ev] || (this._callbacks[ev] = [])).push(callback);
+    return this;
+  },
+
+  publish: function() {
+    // Turn arguments object into a real array
+    var args = Array.prototype.slice.call(arguments, 0);
+
+    // Extract the first argument, the event name
+    var ev   = args.shift();
+
+    // Return if there isn't a _callbacks object, or
+    // if it doesn't contain an array for the given event
+    var list, calls, i, l;
+    if (!(calls = this._callbacks)) return this;
+    if (!(list  = this._callbacks[ev])) return this;
+
+    // Invoke the callbacks
+    for (i = 0, l = list.length; i &lt; l; i++)
+      list[i].apply(this, args);
+    return this;
+  }
+};
+
+// Example usage
+PubSub.subscribe("wem", function(){
+  alert("Wem!");
+});
+
+PubSub.publish("wem");</pre><p class="calibre3">You can namespace events by using a separator, such as a colon
+    (:).</p><pre class="screen">PubSub.subscribe("user:create", function(){ /* ... */ });</pre><p class="calibre3">If you’re using jQuery, there’s an <a class="ulink" href="https://gist.github.com/799721/c119783954e1b10551c4afef53b2c04fefcb7465">even
+    easier library</a> by <a class="ulink" href="http://benalman.com">Ben
+    Alman</a>. It’s so simple, in fact, that we can put it inline:</p><pre class="screen">/*!
+ * jQuery Tiny Pub/Sub - v0.3 - 11/4/2010
+ * http://benalman.com/
+ * 
+ * Copyright (c) 2010 "Cowboy" Ben Alman
+ * Dual licensed under the MIT and GPL licenses.
+ * http://benalman.com/about/license/
+ */
+
+(function($){
+  var o = $({});
+
+  $.subscribe = function() {
+    o.bind.apply( o, arguments );
+  };
+
+  $.unsubscribe = function() {
+    o.unbind.apply( o, arguments );
+  };
+
+  $.publish = function() {
+    o.trigger.apply( o, arguments );
+  };
+})(jQuery);</pre><p class="calibre3">The API takes the same arguments as jQuery’s <code class="literal">bind()</code> and <code class="literal">trigger()</code> functions. The only difference is that
+    the functions reside directly on the <code class="literal">jQuery</code> object, and they are called <code class="literal">publish()</code> and <code class="literal">subscribe()</code>:</p><pre class="screen">$.subscribe( "/some/topic", function( event, a, b, c ) {
+  console.log( event.type, a + b + c );
+});
+
+$.publish( "/some/topic", "a", "b", "c" );</pre><p class="calibre3">We’ve been using Pub/Sub for global events, but it’s just as easy to
+    scope it. Let’s take the <code class="literal">PubSub</code> object
+    we created previously and scope it to an object:</p><pre class="screen">var Asset = {};
+
+// Add PubSub
+jQuery.extend(Asset, PubSub);
+
+// We now have publish/subscribe functions
+Asset.subscribe("create", function(){
+  // ...
+});</pre><p class="calibre3">We’re using jQuery’s <code class="literal">extend()</code> to
+    copy <code class="literal">PubSub</code>’s properties onto our
+    <code class="literal">Asset</code> object. <span class="calibre1">Now, all</span> calls to <code class="literal">publish()</code> and <code class="literal">subscribe()</code> are scoped by <code class="literal">Asset</code>. This is useful in lots of scenarios,
+    including events in an object-relational mapping (ORM), changes in a state
+    machine, or callbacks once an Ajax request has finished.<a id="I_indexterm2_d1e2519" class="calibre1"></a><a id="I_indexterm2_d1e2520" class="calibre1"></a><a id="I_indexterm2_d1e2521" class="calibre1"></a></p></div></div>
+
+{% endraw %}
+

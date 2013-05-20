@@ -1,0 +1,63 @@
+---
+layout: page
+title: "Understanding the Linux Kernel, 3rd Edition"
+prev: understandlk-CHP-19-SECT-3.html
+next: understandlk-CHP-20.html
+book_path: books/understanding-the-linux-kernel-rd-edition_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a name="understandlk-CHP-19-SECT-4"></a>
+<h3 class="docSection1Title">19.4. POSIX Message Queues</h3><a name="IDX-CHP-19-4681"></a>
+<a name="IDX-CHP-19-4682"></a>
+<a name="IDX-CHP-19-4683"></a>
+<a name="IDX-CHP-19-4684"></a>
+<a name="IDX-CHP-19-4685"></a>
+<a name="IDX-CHP-19-4686"></a>
+<p class="docText1">The POSIX standard (IEEE Std 1003.1-2001) defines an IPC mechanism based on message queues, which is usually known as <span class="docEmphasis">POSIX message queues</span><a name="IDX-CHP-19-4687"></a> 
+. They are much like the System V IPC's message queues already examined in the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-19-SECT-3.html#understandlk-CHP-19-SECT-3.4">IPC Messages</a>" earlier in this chapter. However, POSIX message queues sport a number of advantages over the older queues:</p>
+<ul class="calibre11"><li class="calibre12"><p class="docText1">A much simpler file-based interface to the applications</p></li><li class="calibre12"><p class="docText1">Native support for message priorities (the priority ultimately determines the position of the message in the queue)</p></li><li class="calibre12"><p class="docText1">Native support for asynchronous notification of message arrivals, either by means of signals or thread creation</p></li><li class="calibre12"><p class="docText1">Timeouts for blocking send and receive operations</p></li></ul>
+<p class="docText1">POSIX message queues are handled by means of a set of library functions, which are shown in <a class="pcalibre5 docLink pcalibre1" href="#understandlk-CHP-19-TABLE-15">Table 19-15</a>.</p>
+<a name="understandlk-CHP-19-TABLE-15"></a><p class="calibre14"><table cellspacing="0" frame="hsides" rules="all" cellpadding="4" width="100%" class="calibre15"><caption class="calibre33"><h5 class="docFigureTitle">Table 19-15. Library functions for POSIX message queues</h5></caption><colgroup class="calibre16"><col class="calibre17"/><col class="calibre17"/></colgroup><thead class="calibre18"><tr class="calibre34"><th class="thead" scope="col"><p class="docText1"><span class="calibre5">Function names</span></p></th><th class="thead" scope="col"><p class="docText1"><span class="calibre5">Description</span></p></th></tr></thead><tr class="calibre2"><td class="docTableCell"><p class="docText2"><tt class="calibre25">mq_open( )</tt><a name="IDX-CHP-19-4688"></a>
+</p></td><td class="docTableCell"><p class="docText2">Open (optionally creating) a POSIX message queue</p></td></tr><tr class="calibre2"><td class="docTableCell"><p class="docText2"><tt class="calibre25">mq_close( )</tt><a name="IDX-CHP-19-4689"></a>
+</p></td><td class="docTableCell"><p class="docText2">Close a POSIX message queue (without destroying it)</p></td></tr><tr class="calibre2"><td class="docTableCell"><p class="docText2"><tt class="calibre25">mq_unlink( )</tt><a name="IDX-CHP-19-4690"></a>
+</p></td><td class="docTableCell"><p class="docText2">Destroy a POSIX message queue</p></td></tr><tr class="calibre2"><td class="docTableCell"><p class="docText2"><tt class="calibre25">mq_send( )</tt><a name="IDX-CHP-19-4691"></a> 
+,</p><p class="docText2"><tt class="calibre25">mq_timedsend( )</tt><a name="IDX-CHP-19-4692"></a>
+</p></td><td class="docTableCell"><p class="docText2">Send a message to a POSIX message queue; the latter function defines a time limit for the operation</p></td></tr><tr class="calibre2"><td class="docTableCell"><p class="docText2"><tt class="calibre25">mq_receive( )</tt><a name="IDX-CHP-19-4693"></a> 
+,</p><p class="docText2"><tt class="calibre25">mq_timedreceive( )</tt><a name="IDX-CHP-19-4694"></a>
+</p></td><td class="docTableCell"><p class="docText2">Fetch a message from a POSIX message queue; the latter function defines a time limit for the operation</p></td></tr><tr class="calibre2"><td class="docTableCell"><p class="docText2"><tt class="calibre25">mq_notify( )</tt><a name="IDX-CHP-19-4695"></a>
+</p></td><td class="docTableCell"><p class="docText2">Establish an asynchronous notification mechanism for the arrival of messages in an empty POSIX message queue</p></td></tr><tr class="calibre2"><td class="docTableCell"><p class="docText2"><tt class="calibre25">mq_getattr( )</tt><a name="IDX-CHP-19-4696"></a> 
+,</p><p class="docText2"><tt class="calibre25">mq_setattr( )</tt><a name="IDX-CHP-19-4697"></a>
+</p></td><td class="docTableCell"><p class="docText2">Respectively get and set attributes of a POSIX message queue (essentially, whether the send and receive operations should be blocking or nonblocking)</p></td></tr></table></p><br class="calibre7"/>
+<p class="docText1">Let's see how an application typically makes use of these functions. As a first step, the application invokes the <tt class="calibre25">mq_open( )</tt> library function to open a POSIX message queue. The first argument of the function is a string specifying the name of the queue; it is similar to a filename, and indeed it must start with a slash (<i class="docEmphasis">/</i>). The library function accepts a subset of the flags of the <tt class="calibre25">open( )</tt><a name="IDX-CHP-19-4698"></a> 
+ system call: <tt class="calibre25">O_RDONLY</tt>, <tt class="calibre25">O_WRONLY</tt>, <tt class="calibre25">O_RDWR</tt>, <tt class="calibre25">O_CREAT</tt>, <tt class="calibre25">O_EXCL</tt>, and <tt class="calibre25">O_NONBLOCK</tt> (for nonblocking send and receive operations). Notice that the application may create a new POSIX message queue by specifying the <tt class="calibre25">O_CREAT</tt> flag. The <tt class="calibre25">mq_open( )</tt> function returns a descriptor for the queuemuch like the file descriptor returned by the <tt class="calibre25">open( )</tt> system call.</p>
+<p class="docText1">Once a POSIX message queue has been opened, the application may send and receive messages by using the library functions <tt class="calibre25">mq_send( )</tt> and <tt class="calibre25">mq_receive( )</tt>, passing to them the queue descriptor returned by <tt class="calibre25">mq_open( )</tt><a name="IDX-CHP-19-4699"></a> 
+. The application may also make use of <tt class="calibre25">mq_timedsend( )</tt><a name="IDX-CHP-19-4700"></a>
+<a name="IDX-CHP-19-4701"></a> 
+ and <tt class="calibre25">mq_timedreceive( )</tt><a name="IDX-CHP-19-4702"></a>
+<a name="IDX-CHP-19-4703"></a> 
+ to specify the maximum time that the application will spend waiting for the send or receive operation to complete.</p>
+<p class="docText1">Rather than blocking in <tt class="calibre25">mq_receive( )</tt>or continuously polling the message queue if the <tt class="calibre25">O_NONBLOCK</tt> flag was specifiedthe application might also establish an asynchronous notification mechanism by executing the <tt class="calibre25">mq_notify( )</tt><a name="IDX-CHP-19-4704"></a>
+<a name="IDX-CHP-19-4705"></a> 
+ library function. Essentially, the application may require that when a message is inserted in an empty queue, either a signal is sent to a selected process, or a new thread is created.</p>
+<p class="docText1">Finally, when the application has finished using the message queue, it invokes the <tt class="calibre25">mq_close( )</tt><a name="IDX-CHP-19-4706"></a> 
+ library function; passing to it the queue descriptor. Notice that this function does not destroy the queue, exactly as the <tt class="calibre25">close( )</tt><a name="IDX-CHP-19-4707"></a> 
+ system call does not remove a file. To destroy a queue, the application makes use of the <tt class="calibre25">mq_unlink( )</tt><a name="IDX-CHP-19-4708"></a>
+<a name="IDX-CHP-19-4709"></a> 
+ function.</p>
+<p class="docText1">The implementation of POSIX message queues in Linux 2.6 is simple and straightforward. A special filesystem named <span class="docEmphasis">mqueue</span><a name="IDX-CHP-19-4710"></a> 
+ (see the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-12-SECT-3.html#understandlk-CHP-12-SECT-3.1">Special Filesystems</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-12.html#understandlk-CHP-12">Chapter 12</a>) has been introduced, which contains an inode for each existing queue. The kernel offers a few system calls, which roughly correspond to the library functions listed in <a class="pcalibre5 docLink pcalibre1" href="#understandlk-CHP-19-TABLE-15">Table 19-15</a> earlier: <tt class="calibre25">mq_open( )</tt>, <tt class="calibre25">mq_unlink( )</tt>, <tt class="calibre25">mq_timedsend( )</tt>, <tt class="calibre25">mq_timedreceive( )</tt>, <tt class="calibre25">mq_notify( )</tt>, and <tt class="calibre25">mq_getsetattr( )</tt><a name="IDX-CHP-19-4711"></a> 
+. These system calls act transparently on the files of the <span class="docEmphasis">mqueue</span> filesystem, thus much of the job is done by the VFS layer. For example, notice that the kernel does not offer a <tt class="calibre25">mq_close( )</tt> function: in fact, the queue descriptor returned to the application is effectively a file descriptor, therefore the <tt class="calibre25">mq_close( )</tt> library function can simply execute the <tt class="calibre25">close( )</tt> system call to do its job.</p>
+<p class="docText1">The <span class="docEmphasis">mqueue</span> special filesystem must not necessarily be mounted over the system directory tree. However, if it is mounted, a user can create a POSIX message queue by touching a file in the root directory of the filesystem; she can also get information about the queue by reading the corresponding file. Finally, an application can use <tt class="calibre25">select( )</tt> and <tt class="calibre25">poll( )</tt> to be notified about changes in the queue state.</p>
+<p class="docText1">Each queue is described by an <tt class="calibre25">mqueue_inode_info</tt> descriptor, which embodies the inode object associated with the file in the <span class="docEmphasis">mqueue</span> special filesystem. When a POSIX message queue system call receives a queue descriptor as parameter, it invokes the VFS's <tt class="calibre25">fget( )</tt> function to derive the address of the corresponding file object; next, the system call gets the inode object of the file in the <span class="docEmphasis">mqueue</span> filesystem, and finally the address of the <tt class="calibre25">mqueue_inode_info</tt> descriptor that contains the inode object.</p>
+<p class="docText1">The pending messages in a queue are collected in a singly linked list rooted at the <tt class="calibre25">mqueue_inode_info</tt> descriptor; each message is represented by a descriptor of type <tt class="calibre25">msg_msg</tt>exactly the same descriptor used for the System V IPC's messages described in the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-19-SECT-3.html#understandlk-CHP-19-SECT-3.4">IPC Messages</a>" earlier in this chapter.</p>
+<a href="31071535.html"><img src="pixel.jpg" alt="" border="0" class="calibre19"/></a>
+<br class="calibre7"/>
+
+</div>
+
+{% endraw %}
+

@@ -1,0 +1,40 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch11s02.html
+next: OEBPS/ch11s04.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="FastCGI"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect111_d1e6125" class="calibre1"></a>FastCGI</h1></div></div></div><p class="calibre7">Some people may prefer using FastCGI for deployment. In this case, you’ll need to add an
+      extra tool to the mix. FastCGI works by receiving new connections from a file descriptor. The
+      C library assumes that this file descriptor will be 0 (standard input), so you need to use the
+      spawn-fcgi program to bind your application’s standard input to the correct socket.</p><p class="calibre7">It can be very convenient to use Unix named sockets for this instead of binding to a port, especially when hosting multiple applications on a single host. A possible script to load up your app could be:</p><a id="I_programlisting11_d1e6135" class="firstname"></a><pre class="programlistinghaskell">spawn-fcgi \
+    -d /home/michael/sites/mysite \
+    -s /tmp/mysite.socket \
+    -n \
+    -M 511 \
+    -u michael \
+    -- /home/michael/sites/mysite/dist/build/mysite-fastcgi/mysite-fastcgi</pre><p class="calibre7">You will also need to configure your frontend server to speak to your app over FastCGI. This is relatively painless in Nginx:</p><a id="I_programlisting11_d1e6139" class="firstname"></a><pre class="programlistinghaskell">server {
+    listen 80;
+    server_name www.myserver.com;
+    location / {
+        fastcgi_pass unix:/tmp/mysite.socket;
+    }
+}</pre><p class="calibre7">That should look pretty familiar from above. The only last trick is that, with Nginx, you need to manually specify all of the FastCGI variables. It is recommended to store these in a separate file (say, fastcgi.conf) and then add <code class="literal">include fastcgi.conf;</code> to the end of your http block. The contents of the file, to work with WAI, should be:</p><a id="I_programlisting11_d1e6146" class="firstname"></a><pre class="programlistinghaskell">fastcgi_param  QUERY_STRING       $query_string;
+fastcgi_param  REQUEST_METHOD     $request_method;
+fastcgi_param  CONTENT_TYPE       $content_type;
+fastcgi_param  CONTENT_LENGTH     $content_length;
+fastcgi_param  PATH_INFO          $fastcgi_script_name;
+fastcgi_param  SERVER_PROTOCOL    $server_protocol;
+fastcgi_param  GATEWAY_INTERFACE  CGI/1.1;
+fastcgi_param  SERVER_SOFTWARE    nginx/$nginx_version;
+fastcgi_param  REMOTE_ADDR        $remote_addr;
+fastcgi_param  SERVER_ADDR        $server_addr;
+fastcgi_param  SERVER_PORT        $server_port;
+fastcgi_param  SERVER_NAME        $server_name;</pre></div></div>
+
+{% endraw %}
+

@@ -1,0 +1,757 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0140.html
+next: f_0142.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.ctags.navigation">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 103</td>
+<td class="arr-recipe-name">Navigate Keyword Definitions with Vim’s Tag Navigation Commands</td>
+</tr>
+</table>
+<p id="N1ABBE" class="calibre4">
+<span class="calibre5">Vim’s <code class="cf">ctags</code> integration turns the keywords in our code into a kind of hyperlink, allowing us to jump rapidly to a definition. We’ll see how to use the Normal mode <span class="calibre17">&lt;C-]&gt;</span> and <span class="calibre17">g&lt;C-]&gt;</span> commands as well as their complementary Ex commands.
+    </span>
+</p>
+<h3 class="calibre22">Jump to a Keyword Definition</h3>
+<p id="N1ABDB" class="calibre4">
+        Pressing <span class="calibre17">&lt;C-]&gt;</span> makes our cursor jump from the keyword under the cursor to the definition. Here it is in action:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">{start}</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​require './speaker.rb'​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​class Anglophone &lt; Speaker​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  def speak​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    puts "Hello, my name is #{@name}"​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  end​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​end​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">A</span>nglophone.new('Jack').speak​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;C-]&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​require './speaker.rb'​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">c</span>lass Anglophone &lt; Speaker​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  def speak​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    puts "Hello, my name is #{@name}"​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  end​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​end​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Anglophone.new('Jack').speak​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N1AC46" class="calibre4">
+        In this case, the definition of the <code class="cf">Anglophone</code> class happens to be in the same buffer, but if we move our cursor onto the <code class="cf">Speaker</code> keyword and invoke the same command, we’ll switch to the buffer where that class is defined:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">fS</span>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​require './speaker.rb'​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​class Anglophone &lt; <span class="shade-fg-white">S</span>peaker​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  def speak​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    puts "Hello, my name is #{@name}"​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  end​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​end​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Anglophone.new('Jack').speak​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;C-]&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">c</span>lass Speaker​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  def initialize(name)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    @name = name​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  end​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  def speak​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    puts "#{name}"​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  end​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​end​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N1ACAC" class="calibre4">
+        As we navigate our codebase in this fashion, Vim maintains a history of the tags we’ve visited. The <span class="calibre17">&lt;C-t&gt;</span> command acts as the back button for our tag history. If we pressed it now, we would jump from the <code class="cf">Speaker</code> definition back to the <code class="cf">Francophone</code> definition, and if we pressed it a second time, it would take us back to where we started. For more information on interacting with the tag jump list, look up <strong xmlns:str="http://exslt.org/strings" class="calibre10">tag-stack</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/tagsrch.html#tag-stack">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>.
+      </p>
+<h3 class="calibre22">Specify Where to Jump to When a Keyword Has Multiple Matches</h3>
+<p id="N1ACCC" class="calibre4">
+        Our previous example was straightforward because the demo codebase contains only one definition for the <code class="cf">Speaker</code> and <code class="cf">Anglophone</code> keywords. But suppose that our cursor was positioned on an invocation of the <code class="cf">speak</code> method, like this:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​Anglophone.new('Jack').<span class="shade-fg-white">s</span>peak​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1ACED" class="calibre4">
+        The <code class="cf">Speaker</code>, <code class="cf">Francophone</code>, and <code class="cf">Anglophone</code> classes all define a function called <code class="cf">speak</code>, so which one will Vim jump to if we invoke the <span class="calibre17">&lt;C-]&gt;</span> command now? Try it yourself.
+      </p>
+<p id="N1ACFF" class="calibre4">
+        If a tag in the current buffer matches the keyword, it gets the highest priority. So in this case, we would jump to the definition of the <code class="cf">speak</code> function in the <code class="cf">Anglophone</code> class. Look up <strong xmlns:str="http://exslt.org/strings" class="calibre10">tag-priority</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/tagsrch.html#tag-priority">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a> if you want to know more about how Vim ranks matching tags.
+      </p>
+<p id="N1AD0C" class="calibre4">
+        Instead of <span class="calibre17">&lt;C-]&gt;</span>, we could use the <span class="calibre17">g&lt;C-]&gt;</span> command. Both of these commands behave identically in the case when the current keyword has only a single match. But if it has multiple matches, then the <span class="calibre17">g&lt;C-]&gt;</span> command presents us with a list of choices from the tag match list:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​# pri kind tag               file​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​1 F C f    speak             anglophone.rb​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​             class:Anglophone​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​             def speak​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​2 F   f    speak             francophone.rb​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​             class:Francophone​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​             def speak​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​3 F   f    speak             speaker.rb​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​             class:Speaker​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​             def speak​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​Type number and &lt;Enter&gt; (empty cancels): <span class="shade-fg-white"> </span>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1AD48" class="calibre4">
+        As the prompt indicates, we can choose which destination we want to jump to by typing its number and pressing <span class="calibre17">&lt;CR&gt;</span>.
+      </p>
+<p id="N1AD4E" class="calibre4">
+       
+        Suppose that we invoked <span class="calibre17">&lt;C-]&gt;</span> and found ourselves on the wrong definition. We could use the <code class="cf">:tselect</code> command to retrospectively pull up the menu of the tag match list. Or we could use the <code class="cf">:tnext</code> command to jump to the next matching tag without showing a prompt. As you might expect, this command is complemented with <code class="cf">:tprev</code>, <code class="cf">:tfirst</code>, and <code class="cf">:tlast</code>. Refer to <a xmlns:str="http://exslt.org/strings" href="f_0060.html#sidebar.unimpaired">​<em class="calibre5">Create Mappings to Quickly Traverse Vim’s Lists</em>​</a>, for a suggested set of mappings for these commands.
+      </p>
+<h3 class="calibre22">Use Ex Commands</h3>
+<p id="N1AD75" class="calibre4">
+        We don’t have to move the cursor on top of a keyword to jump to its tag. We could just as well call an Ex command. For example, <code class="cf">:tag {keyword}</code> and <code class="cf">:tjump {keyword}</code> behave like the <span class="calibre17">&lt;C-]&gt;</span> and <span class="calibre17">g&lt;C-]&gt;</span> commands, respectively (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">:tag</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/tagsrch.html#:tag">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a> and <strong xmlns:str="http://exslt.org/strings" class="calibre10">:tjump</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/tagsrch.html#:tjump">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>).
+      </p>
+<p id="N1ADA0" class="calibre4">
+        At times, typing these commands can be quicker than maneuvering the cursor onto a keyword in the document—especially since Vim provides tab-completion for all keywords in the <code class="cf">tags</code> file. For example, we could type <code class="cf">:tag Fran&lt;Tab&gt;</code>, and Vim would expand our fragment to <code class="cf">Francophone</code>.
+      </p>
+<p id="N1ADAC" class="calibre4">
+        Also, these Ex commands can accept a regular expression when used in the form <code class="cf">:tag /{pattern}</code> or <code class="cf">:tjump /{pattern}</code> (note the leading <code class="cf">/</code> before <code class="cf">{pattern}</code>). For example, to navigate between any definitions whose keywords end with <code class="cf">phone</code>, we could invoke the following:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:tjump /phone$</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​# pri kind tag​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​1 F C c    Anglophone        anglophone.rb​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​             class Anglophone &lt; Speaker​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​2 F   c    Francophone       francophone.rb​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​             class Francophone &lt; Speaker​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​Type number and &lt;Enter&gt; (empty cancels):​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1ADE3" class="calibre4">
+        This table summarizes the commands that we can use to navigate our codebase using tags:
+		</p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Command</th>
+<th class="hlines">Effect</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;C-]&gt;</span>
+</p>
+</td>
+<td class="calibre24">
+<p class="last-para-in-cell">Jump to the first tag that matches the word under the cursor</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">g&lt;C-]&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Prompt user to select from multiple matches for the word under the cursor. If only one match exists, jump to it without prompting.</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">:tag {keyword}</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Jump to the first tag that matches <code class="cf">{keyword}</code>
+</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">:tjump {keyword}</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Prompt user to select from multiple matches for <code class="cf">{keyword}</code>. If only one match exists, jump to it without prompting.</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">:pop</code> or <span class="calibre17">&lt;C-t&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+              Reverse through tag history
+            </p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">:tag</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+              Advance through tag history
+            </p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">:tnext</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+              Jump to next matching tag
+            </p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">:tprev</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+              Jump to previous matching tag
+            </p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">:tfirst</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+              Jump to first matching tag
+            </p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">:tlast</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+              Jump to last matching tag
+            </p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">:tselect</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+              Prompt user to choose an item from the tag match list
+             
+            </p>
+</td>
+</tr>
+</tbody>
+</table>
+
+<div class="footnotes">
+<h4 class="calibre20">Footnotes</h4>
+<table cellspacing="3" class="table-of-contents">
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-27" href="f_0139.html#FNPTR-27">[27]</a>
+</td>
+<td class="calibre8">
+<p id="N1A981" class="calibre4">
+<a href="https://github.com/mozilla/doctorjs">https://github.com/mozilla/doctorjs</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-28" href="f_0139.html#FNPTR-28">[28]</a>
+</td>
+<td class="calibre8">
+<p id="N1AA3F" class="calibre4">
+<a href="http://ctags.sourceforge.net/FORMAT">http://ctags.sourceforge.net/FORMAT</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-29" href="f_0140.html#FNPTR-29">[29]</a>
+</td>
+<td class="calibre8">
+<p id="N1AB92" class="calibre4">
+<a href="http://tbaggery.com/2011/08/08/effortless-ctags-with-git.html">http://tbaggery.com/2011/08/08/effortless-ctags-with-git.html</a>
+</p>
+</td>
+</tr>
+</table>
+</div>
+<div class="copyright">Copyright © 2012, The Pragmatic Bookshelf.</div>
+
+
+
+
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

@@ -1,0 +1,126 @@
+---
+layout: page
+title: "Эффективное использование C++. 55 верных способов улучшить структуру и код ваших программ"
+prev: OEBPS/section26.xhtml
+next: OEBPS/section28.xhtml
+book_path: books/effektivnoe-ispoljzovanie-c--vernih-sposobov-uluchshitj-strukturu-i-kod-vashih-programm_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <div class="calibre">
+      <div class="title1">
+        <h2 class="calibre3">Правило 10: Операторы присваивания должны возвращать ссылку на *this</h2>
+      </div>
+      <p class="calibre2">Одно из интересных свойств присваивания состоит в том, что такие операции можно выполнять последовательно:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">int x,y,z;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">x = y = z = 15; // цепочка присваиваний</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Также интересно, что оператор присваивания правоассоциативен, поэтому приведенный выше пример присваивания интерпретируется следующим образом:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">x = (y = (z = 15));</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Здесь переменной z присваивается значение 15, затем результат присваивания (новое значение z) присваивается переменной y, после чего результат (новое значение y) присваивается переменной x.</p>
+      <p class="calibre2">Достигается это за счет того, что оператор присваивания возвращает ссылку на свой левый аргумент, и этому соглашению вы должны следовать при реализации операторов присваивания в своих классах:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Widget {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Widget&amp; operator=(const Widget&amp; rhs) // возвращаемый тип – ссылка</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{ // на текущий класс</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">return *this; // вернуть объект из левой части</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">} // выражения</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Это соглашение касается всех операторов присваивания, а не только стандартной формы, показанной выше. Следовательно:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Widget {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Widget&amp; operator+=(const Widget&amp; rhs) // соглашение распространяется на</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{ // +=, -=, *=, и т. д.</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">return *this;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Widget&amp; operator=(int rhs) // это относится даже</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{ // к параметрам разных типов</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">return *this;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Это всего лишь соглашение. Если программа его не придерживается, она тем не менее скомпилируется. Однако ему следуют все встроенные типы, как и все типы (см. правило 54) стандартной библиотеки (то есть string, vector, complex, tr1::shared_ptr и т. д.). Если у вас нет веской причины нарушать соглашение, не делайте этого.</p>
+      <div class="subtitle">
+        <p class="subtitle1">
+          <strong class="calibre4">
+            <em class="calibre5">Что следует помнить</em>
+          </strong>
+        </p>
+      </div>
+      <p class="calibre2">• Пишите операторы присваивания так, чтобы они возвращали ссылку на *this.</p>
+    </div>
+  </div>
+
+{% endraw %}
+

@@ -1,0 +1,23 @@
+---
+layout: page
+title: "Java Concurrency in Practice"
+prev: ch13lev1sec6.html
+next: ch14lev1sec1.html
+book_path: books/brian-goetz-tim-peierls-joshua-bloch-joseph-bowbeer-david-holmes-doug-lea-java-concurrency-in-practice--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a name="ch14" class="calibre18" id="ch14"></a>
+<div class="calibre32" id="calibre_pb_0"></div><div class="calibre32"></div><h2 id="title-IDA0RQFL" class="docPrefaceTitle">Chapter 14. Building Custom Synchronizers</h2>
+<p class="docText1"><a name="iddle1228" class="calibre18" id="iddle1228"></a><a name="iddle18731" class="calibre18" id="iddle18731"></a><a name="iddle1873" class="calibre18" id="iddle1873"></a><a name="iddle1874" class="calibre18" id="iddle1874"></a><a name="iddle1875" class="calibre18" id="iddle1875"></a><a name="iddle1876" class="calibre18" id="iddle1876"></a><a name="iddle1877" class="calibre18" id="iddle1877"></a><a name="iddle3645" class="calibre18" id="iddle3645"></a><a name="iddle3646" class="calibre18" id="iddle3646"></a><a name="iddle4387" class="calibre18" id="iddle4387"></a><a name="iddle4388" class="calibre18" id="iddle4388"></a><a name="iddle4389" class="calibre18" id="iddle4389"></a><a name="iddle4391" class="calibre18" id="iddle4391"></a><a name="iddle4393" class="calibre18" id="iddle4393"></a><a name="iddle4594" class="calibre18" id="iddle4594"></a>The class libraries include a number of <span class="docEmphasis">state-dependent</span> classesthose having operations with <span class="docEmphasis">state-based preconditions</span>such as <tt class="calibre25">FutureTask</tt>, <tt class="calibre25">Semaphore</tt>, and <tt class="calibre25">BlockingQueue</tt>. For example, you cannot remove an item from an empty queue or retrieve the result of a task that has not yet finished; before these operations can proceed, you must wait until the queue enters the "nonempty" state or the task enters the "completed" state.</p>
+<p class="docText1">The easiest way to construct a state-dependent class is usually to build on top of an existing state-dependent library class; we did this in <tt class="calibre25">ValueLatch</tt> on page <a class="calibre2" href="ch08lev1sec5.html#ch08list15">187</a>, using a <tt class="calibre25">CountDownLatch</tt> to provide the required blocking behavior. But if the library classes do not provide the functionality you need, you can also build your own synchronizers using the low-level mechanisms provided by the language and libraries, including intrinsic <span class="docEmphasis">condition queues</span>, explicit <tt class="calibre25">Condition</tt> objects, and the <tt class="calibre25">AbstractQueuedSynchronizer</tt> framework. This chapter explores the various options for implementing state dependence and the rules for using the state dependence mechanisms provided by the platform.</p>
+
+<p class="calibre1"> </p>
+
+</div>
+
+{% endraw %}
+

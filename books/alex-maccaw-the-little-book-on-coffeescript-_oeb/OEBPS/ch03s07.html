@@ -1,0 +1,29 @@
+---
+layout: page
+title: "The Little Book on CoffeeScript"
+prev: OEBPS/ch03s06.html
+next: OEBPS/ch03s08.html
+book_path: books/alex-maccaw-the-little-book-on-coffeescript-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Multiple Arguments"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect13_d1e1367" class="calibre2"></a>Multiple Arguments</h1></div></div></div><p class="calibre8">In the <code class="literal">Math.max</code> example above,
+    we’re using <code class="literal">...</code> to de-structure the
+    array and passing it as multiple arguments to <code class="literal">max</code>. Behind the scenes, CoffeeScript is
+    converting the function call to use <code class="literal">apply()</code>, ensuring the array is passed as
+    multiple arguments to <code class="literal">max</code>. We can use
+    this feature in other ways too, such as proxying function calls:</p><pre class="screen">Log =
+  log: -&gt;
+    console?.log(arguments...)</pre><p class="calibre8">Or you can alter the arguments before they’re passed onwards:</p><pre class="screen">Log =
+  logPrefix: "(App)"
+
+  log: (args...) -&gt;
+    args.unshift(@logPrefix) if @logPrefix
+    console?.log(args...)</pre><p class="calibre8">Bear in mind though that CoffeeScript will automatically set the
+    function invocation context to the object the function is being invoked
+    on. In the example above, that would be <code class="literal">console</code>. If you want to set the context
+    specifically, then you’ll need to call <code class="literal">apply()</code> manually.</p></div></div>
+
+{% endraw %}
+

@@ -1,0 +1,93 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0161.html
+next: f_0163.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.spellfile">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 120</td>
+<td class="arr-recipe-name">Add Words to the Spell File</td>
+</tr>
+</table>
+<p id="N1C175" class="calibre4">
+<span class="calibre5">
+        Vim’s spelling dictionaries are not comprehensive, but we can augment them by adding words to a spell file.
+    </span>
+</p>
+<p id="N1C185" class="calibre4">
+      Sometimes Vim will incorrectly mark something as misspelled because the word doesn’t appear in the dictionary. We can teach Vim to recognize words with the <span class="calibre17">zg</span> command (<strong xmlns:str="http://exslt.org/strings" class="calibre10">zg</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/spell.html#zg">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>), which adds the word under the cursor to a spell file.
+    </p>
+<p id="N1C194" class="calibre4">
+      Vim also provides a complementary <span class="calibre17">zw</span> command, which marks the word under the cursor as a misspelled word. In effect, this command allows us to remove words from the spell file. If we were to trigger the <span class="calibre17">zg</span> or <span class="calibre17">zw</span> command unintentionally, we could end up adding or removing words from our spell file by accident. Vim provides a dedicated undo command for just such an occasion, <span class="calibre17">zug</span>, which reverts the <span class="calibre17">zg</span> or <span class="calibre17">zw</span> command for the word under the cursor.
+    </p>
+<p id="N1C1AE" class="calibre4">
+	Vim records words added to the dictionary in a spell file so that they persist from one session to another. The name of the spell file is derived from the language and file encoding.</p>
+<p id="N1C1B6" class="calibre4">
+      For example, if we were working with a UTF-8 encoded file and the spell checker was using an English dictionary, any words added with the <span class="calibre17">zg</span> command would be recorded in a file called <code class="cf">~/.vim/spell/en.utf-8.add</code>.
+    </p>
+<h3 class="calibre22">Create a Spell File for Specialist Jargon</h3>
+<p id="N1C1C4" class="calibre4">
+    With the <code class="cf">‘spellfile’</code> option, we can specify the path of the file where Vim tracks words added or removed using the <span class="calibre17">zg</span> and <span class="calibre17">zw</span> commands (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">'spellfile'</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/options.html#'spellfile'">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). Vim allows us to specify more than one spell file simultaneously, which means we can maintain multiple word lists.
+      </p>
+<p id="N1C1DE" class="calibre4">
+        This book contains many strings of text that don’t count as words in English, including Vim commands (such as <span class="calibre17">ciw</span>) and settings (such as <code class="cf">‘spelllang’</code>). I don’t want Vim to keep flagging these as misspelled, but neither do I want to tell Vim to consider them as valid English words. As a compromise, I maintain a separate word list of Vim terminology. I can load this as a spell file any time that I’m writing about Vim.
+      </p>
+<p id="N1C1E7" class="calibre4">
+        When I’m ready to check the spelling in a chapter of this book, I source a file containing these lines of configuration:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/spell_check/spellfile.vim">spell_check/spellfile.vim</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">setlocal</strong> <strong class="prompt">spelllang</strong>=en_us​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">setlocal</strong> <strong class="prompt">spellfile</strong>=~/.<strong class="prompt">vim</strong>/<strong class="prompt">spell</strong>/<strong class="prompt">en</strong>.utf-8.add​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">setlocal</strong> <strong class="prompt">spellfile</strong>+=~/books/practical_vim/jargon.utf-8.add​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1C215" class="calibre4">
+<code class="cf">~/.vim/spell/en.utf-8.add</code> is the default path, where Vim saves words added with the <span class="calibre17">zg</span> command. The <code class="cf">~/books/practical_vim/jargon.utf-8.add</code> path points to a file within the repository for my book, where I keep a list of Vim terminology. 
+      </p>
+<p id="N1C220" class="calibre4">
+        For each word that the spell checker flags incorrectly, I now have a choice. I could press <span class="calibre17">2zg</span> to add it to my list of Vim terminology, or <span class="calibre17">1zg</span> to add it to the default word list.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

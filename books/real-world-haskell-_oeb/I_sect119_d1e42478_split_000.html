@@ -1,0 +1,173 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: errors_exceptions_split_001.html
+next: I_sect119_d1e42478_split_001.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="errors_exceptions_split_000.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="systems_split_000.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect119_d1e42478" class="calibre27" id="I_sect119_d1e42478"></a><h3 id="title-IDAO2NTE" class="docSection1Title">19.3. Error Handling in Monads</h3><a name="x_E31" class="calibre27" id="x_E31"></a><p class="docText">Because<a name="I_indexterm19_d1e42483" class="calibre27" id="I_indexterm19_d1e42483"></a><a name="I_indexterm19_d1e42484" class="calibre27" id="I_indexterm19_d1e42484"></a><a name="I_indexterm19_d1e42485" class="calibre27" id="I_indexterm19_d1e42485"></a><a name="ch19-monadserror" class="calibre27" id="ch19-monadserror"></a><a name="ch19-errorhandingmon" class="calibre27" id="ch19-errorhandingmon"></a> we must catch exceptions in the IO monad, if
+    we try to use them inside a monad, or in a stack of monad transformers,
+    we'll get bounced out to the IO monad. This is almost never
+    what we would actually like.</p><a name="x_F31" class="calibre27" id="x_F31"></a><p class="docText">We defined<a name="I_indexterm19_d1e42507" class="calibre27" id="I_indexterm19_d1e42507"></a> a MaybeT transformer in <a class="docLink" href="monadtrans_maybet_split_000.html#monadtrans_maybet">Section 18.6</a>, but it is more useful as an aid to
+    understanding than a programming tool. Fortunately, a dedicated—and more
+    useful—monad transformer already exists: ErrorT, which is
+    defined in <a name="I_indexterm19_d1e42519" class="calibre27" id="I_indexterm19_d1e42519"></a>the <tt class="calibre34">Control.Monad.Error</tt> module.</p><a name="x_G31" class="calibre27" id="x_G31"></a><p class="docText">The ErrorT transformer<a name="I_indexterm19_d1e42532" class="calibre27" id="I_indexterm19_d1e42532"></a> lets us add exceptions to a monad, but it uses its own
+    special exception machinery, separate from that provided the
+    <tt class="calibre34">Control.Exception</tt> module. It gives us some interesting
+    capabilities:</p><ul class="calibre18"><li class="calibre19"><p class="docText">If we stick with the ErrorT interfaces,
+        we can both throw and catch exceptions within this monad.</p></li><li class="calibre19"><p class="docText">Following the naming pattern of other monad
+        transformers, the execution function is named <i class="docEmphasis">runErrorT</i>. An uncaught ErrorT
+        exception will stop propagating upwards when it reaches <i class="docEmphasis">runErrorT</i>. We will not be kicked out to the
+        IO monad.</p></li><li class="calibre19"><p class="docText">We control the type that our exceptions will
+        have.</p></li></ul><a name="I_sect119_d1e42478d1e42882" class="calibre27" id="I_sect119_d1e42478d1e42882"></a><div class="docNote"><p class="docNormalTitle">NOTE</p><p class="calibre37"><a name="x_eJ1" class="calibre27" id="x_eJ1"></a></p><p class="docText">If we use the <i class="docEmphasis">throw</i> function from
+      <tt class="calibre34">Control.Exception</tt> inside ErrorT (or if we use
+      <i class="docEmphasis">error</i> or <tt class="calibre34">undefined</tt>),
+      we will <span class="docEmphasis">still</span> be bounced out to the IO
+      monad.</p></div><a name="x_J31" class="calibre27" id="x_J31"></a><p class="docText">As with other <tt class="calibre34">mtl</tt> monads, the interface that
+    ErrorT provides is defined by a typeclass:</p><pre class="calibre39">-- file: ch19/MonadError.hs
+class (Monad m) =&gt; MonadError e m | m -&gt; e where
+    throwError :: e             -- error to throw
+               -&gt; m a
+
+    catchError :: m a           -- action to execute
+               -&gt; (e -&gt; m a)    -- error handler
+               -&gt; m a</pre><br class="calibre48"/>
+<a name="x_K31" class="calibre27" id="x_K31"></a><p class="docText">The type variable <span class="docMonofont">e</span>
+    represents the error type that we want to use. Whatever our error type is,
+    we must make it an instance of the Error typeclass:</p><pre class="calibre39">-- file: ch19/MonadError.hs
+class Error a where
+    -- create an exception with no message
+    noMsg  :: a
+
+    -- create an exception with a message
+    strMsg :: String -&gt; a</pre><br class="calibre48"/>
+<a name="x_L31" class="calibre27" id="x_L31"></a><p class="docText">ErrorT's implementation of <i class="docEmphasis">fail</i> uses the <i class="docEmphasis">strMsg</i> function. It throws <i class="docEmphasis">strMsg</i> as an exception, passing it the string
+    argument that it received. As for <i class="docEmphasis">noMsg</i>, it is used to provide an <i class="docEmphasis">mzero</i> implementation for the
+    MonadPlus typeclass.</p><a name="x_M31" class="calibre27" id="x_M31"></a><p class="docText">To support the <i class="docEmphasis">strMsg</i> and <i class="docEmphasis">noMsg</i> functions, our ParseError
+    type will have a <tt class="calibre34">Chatty</tt> constructor. This will be used as the
+    constructor if, for example, someone calls <i class="docEmphasis">fail</i> in our monad.</p><a name="x_N31" class="calibre27" id="x_N31"></a><p class="docText">One last piece of plumbing that we need to know about is
+    the type of the execution function runErrorT:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:t runErrorT</b>
+runErrorT :: ErrorT e m a -&gt; m (Either e a)
+</pre><a name="I_sect119_d1e42478d1e42981" class="calibre27" id="I_sect119_d1e42478d1e42981"></a><h4 id="title-IDADLQZC" class="docSection1Title">19.3.1. A Tiny Parsing Framework</h4><a name="x_O31" class="calibre27" id="x_O31"></a><p class="docText">To illustrate the use of ErrorT, let's
+      develop the bare bones of a parsing library similar to Parsec:</p><pre class="calibre39">-- file: ch19/ParseInt.hs
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
+import Control.Monad.Error
+import Control.Monad.State
+import qualified Data.ByteString.Char8 as B
+
+data ParseError = NumericOverflow
+                | EndOfInput
+                | Chatty String
+                  deriving (Eq, Ord, Show)
+
+instance Error ParseError where
+    noMsg  = Chatty "oh noes!"
+    strMsg = Chatty</pre><br class="calibre48"/>
+<a name="x_P31" class="calibre27" id="x_P31"></a><p class="docText">For our parser's state, we will create a very small
+      monad transformer stack. A State monad<a name="I_indexterm19_d1e42678" class="calibre27" id="I_indexterm19_d1e42678"></a> carries around the ByteString to parse, and
+      ErrorT is stacked on top to provide error handling:</p><pre class="calibre39">-- file: ch19/ParseInt.hs
+newtype Parser a = P {
+      runP :: ErrorT ParseError (State B.ByteString) a
+    } deriving (Monad, MonadError ParseError)</pre><br class="calibre48"/>
+<a name="x_Q31" class="calibre27" id="x_Q31"></a><p class="docText">As usual, we have wrapped our monad stack in a
+      <tt class="calibre34">newtype</tt>. This costs us nothing in performance but adds type
+      safety. We deliberately avoided deriving an instance of MonadState
+      B.ByteString. This means that users of the Parser
+      monad will not be able to use <i class="docEmphasis">get</i>
+      or <i class="docEmphasis">put</i> to query or modify the
+      parser's state. As a result, we force ourselves to do some manual
+      lifting to get at the State monad in our stack. This is,
+      however, very easy to do:</p><pre class="calibre39">-- file: ch19/ParseInt.hs
+liftP :: State B.ByteString a -&gt; Parser a
+liftP m = P (lift m)
+
+satisfy :: (Char -&gt; Bool) -&gt; Parser Char
+satisfy p = do
+  s &lt;- liftP get
+  case B.uncons s of
+    Nothing         -&gt; throwError EndOfInput
+    Just (c, s')
+        | p c       -&gt; liftP (put s') &gt;&gt; return c
+        | otherwise -&gt; throwError (Chatty "satisfy failed")</pre><br class="calibre48"/>
+<a name="x_R31" class="calibre27" id="x_R31"></a><p class="docText">The <i class="docEmphasis">catchError</i>
+      function<a name="I_indexterm19_d1e42718" class="calibre27" id="I_indexterm19_d1e42718"></a> is useful for tasks beyond simple error handling. For
+      instance, we can easily defang an exception, turning it into a more
+      friendly form:</p><pre class="calibre39">-- file: ch19/ParseInt.hs
+optional :: Parser a -&gt; Parser (Maybe a)
+optional p = (Just `liftM` p) `catchError` \_ -&gt; return Nothing</pre><br class="calibre48"/>
+<a name="x_S31" class="calibre27" id="x_S31"></a><p class="docText">Our execution function merely plugs together the
+      various layers and rearranges the result into a tidier form:</p><pre class="calibre39">-- file: ch19/ParseInt.hs
+runParser :: Parser a -&gt; B.ByteString
+          -&gt; Either ParseError (a, B.ByteString)
+runParser p bs = case runState (runErrorT (runP p)) bs of
+                   (Left err, _) -&gt; Left err
+                   (Right r, bs) -&gt; Right (r, bs)</pre><br class="calibre48"/>
+<a name="x_T31" class="calibre27" id="x_T31"></a><p class="docText">If we load this into <i class="docEmphasis">ghci</i>, we can put it through its <a name="I_indexterm19_d1e42734" class="calibre27" id="I_indexterm19_d1e42734"></a><a name="I_indexterm19_d1e42735" class="calibre27" id="I_indexterm19_d1e42735"></a>paces:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:m +Data.Char</b>ghci&gt; <b class="calibre40">let p = satisfy isDigit</b>
+Loading package array-0.1.0.0 ... linking ... done.
+Loading package bytestring-0.9.0.1.1 ... linking ... done.
+Loading package mtl-1.1.0.1 ... linking ... done.
+ghci&gt; <b class="calibre40">runParser p (B.pack "x")</b>
+Left (Chatty "satisfy failed")
+ghci&gt; <b class="calibre40">runParser p (B.pack "9abc")</b>
+Right ('9',"abc")
+ghci&gt; <b class="calibre40">runParser (optional p) (B.pack "x")</b>
+Right (Nothing,"x")
+ghci&gt; <b class="calibre40">runParser (optional p) (B.pack "9a")</b>
+Right (Just '9',"a")</pre><a name="I_sidebar19_d1e42770" class="calibre27" id="I_sidebar19_d1e42770"></a></td>
+                    </tr>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

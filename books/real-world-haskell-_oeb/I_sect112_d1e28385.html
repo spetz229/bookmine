@@ -1,0 +1,256 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect112_d1e27986.html
+next: I_sect112_d1e28808.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect112_d1e27986.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect112_d1e28808.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect112_d1e28385" class="calibre27" id="I_sect112_d1e28385"></a><h3 id="title-IDAERXSB" class="docSection1Title">12.9. Life Without Arrays or Hash Tables</h3><a name="x_EV" class="calibre27" id="x_EV"></a><p class="docText">In an<a name="ch12-arrays001" class="calibre27" id="ch12-arrays001"></a><a name="ch12-hashtable" class="calibre27" id="ch12-hashtable"></a><a name="ch12-tableshash" class="calibre27" id="ch12-tableshash"></a> imperative language, the array is as much a "bread
+    and butter" type as a list or tuple in Haskell. We take it for
+    granted that an array in an imperative language is usually mutable; we can
+    change an element of an array whenever it suits us.</p><a name="x_FV" class="calibre27" id="x_FV"></a><p class="docText">As we mentioned in <a class="docLink" href="barcode_array_split_000.html#barcode_array_mutable">Section 12.2.3</a>, Haskell arrays are
+    <span class="docEmphasis">not</span> mutable. This means that to "modify"
+    a single array element, a copy of the entire array is made, with that
+    single element set to its new value. Clearly, this approach is not a
+    winner for performance.</p><a name="x_GV" class="calibre27" id="x_GV"></a><p class="docText">The mutable array is<a name="I_indexterm12_d1e28415" class="calibre27" id="I_indexterm12_d1e28415"></a> a building block for another ubiquitous imperative data
+    structure, the hash table. In the typical implementation, an array acts as
+    the "spine" of the table, with each element containing a list
+    of elements. To add an element to a hash table, we hash the element to
+    find the array offset and modify the list at that offset to add the
+    element to it.</p><a name="x_HV" class="calibre27" id="x_HV"></a><p class="docText">If arrays aren't mutable for updating a hash table, we
+    must create a new one. We copy the array, putting a new list at the offset
+    indicated by the element's hash. We don't need to copy the lists at other
+    offsets, but we've already dealt performance a fatal blow simply by having
+    to copy the spine.</p><a name="x_IV" class="calibre27" id="x_IV"></a><p class="docText">At a single stroke, then, immutable arrays have eliminated
+    <span class="docEmphasis">two</span> canonical imperative data structures from our
+    toolbox. Arrays are somewhat less useful in pure Haskell code than in many
+    other languages. Still, many array codes update an array only during a
+    build phase, and subsequently use it in a read-only manner.</p><a name="I_sect112_d1e28385d1e28771" class="calibre27" id="I_sect112_d1e28385d1e28771"></a><h4 id="title-IDA2SXSB" class="docSection1Title">12.9.1. A Forest of Solutions</h4><a name="x_JV" class="calibre27" id="x_JV"></a><p class="docText">This is not the calamitous situation that it might seem,
+      though. Arrays and hash tables are often used as collections indexed by
+      a key, and in Haskell we use <span class="docEmphasis">trees</span> for this
+      purpose.</p><a name="x_KV" class="calibre27" id="x_KV"></a><p class="docText">Implementing a naive tree type is particularly easy in
+      Haskell. Beyond that, more useful tree types are also unusually easy to
+      implement. Self-balancing structures, such as red-black trees, have
+      struck fear into generations of undergraduate computer science students,
+      because the balancing algorithms are notoriously hard to get
+      right.</p><a name="x_LV" class="calibre27" id="x_LV"></a><p class="docText">Haskell's combination of algebraic data types, pattern
+      matching, and guards reduce even the hairiest of balancing operations to
+      a few lines of code. We'll bite back our enthusiasm for building trees,
+      however, and focus on why they're particularly useful in a pure
+      functional language.</p><a name="x_MV" class="calibre27" id="x_MV"></a><p class="docText">The attraction of a tree to a functional programmer
+      is<a name="I_indexterm12_d1e28443" class="calibre27" id="I_indexterm12_d1e28443"></a> <span class="docEmphasis">cheap modification</span>. We don't break
+      the immutability rule: trees are immutable just like everything else.
+      However, when we modify a tree, thus creating a new tree, we can share
+      most of the structure between the old and new versions. For example, in
+      a tree containing 10,000 nodes, we might expect that the old and new
+      versions will share about 9,985 elements when we add or remove one. In
+      other words, the number of elements modified per update depends on the
+      height of the tree or the logarithm of the size of the tree.</p><a name="x_NV" class="calibre27" id="x_NV"></a><p class="docText">Haskell's standard libraries provide two collection
+      types that are implemented using balanced trees behind the scenes:
+      <tt class="calibre34">Data.Map</tt> for key/value pairs and <tt class="calibre34">Data.Set</tt> for
+      sets of values. As we'll be using <tt class="calibre34">Data.Map</tt> in the sections
+      that follow, we'll give a quick introduction to it next.
+      <tt class="calibre34">Data.Set</tt> is sufficiently similar that you should be able to
+      pick it up quickly.</p><a name="idd1e28806" class="calibre27" id="idd1e28806"></a><div class="docNote"><p class="docNormalTitle">NOTE</p><p class="calibre37"><a name="x_OV" class="calibre27" id="x_OV"></a></p><p class="docText">Compared to a hash table, a well-implemented purely
+        functional tree data structure will perform competitively. You should
+        not approach trees with the assumption that your code will pay a
+        performance penalty.</p></div><a name="I_sect112_d1e28385d1e28811" class="calibre27" id="I_sect112_d1e28385d1e28811"></a><h4 id="title-IDAGUXSB" class="docSection1Title">12.9.2. A Brief Introduction to Maps</h4><a name="x_PV" class="calibre27" id="x_PV"></a><p class="docText">The <tt class="calibre34">Data.Map</tt> module<a name="I_indexterm12_d1e28477" class="calibre27" id="I_indexterm12_d1e28477"></a><a name="ch12-maps" class="calibre27" id="ch12-maps"></a> provides a parameterized type, Map k a, that
+      maps from a key type <span class="docMonofont">k</span> to a value type
+      <span class="docMonofont">a</span>. Although it is internally a
+      size-balanced binary tree, the <span class="docEmphasis">implementation</span> is not visible to
+      us.</p><a name="x_QV" class="calibre27" id="x_QV"></a><p class="docText">Map is strict in its keys, but nonstrict in
+      its values. In other words, <a name="I_indexterm12_d1e28501" class="calibre27" id="I_indexterm12_d1e28501"></a>the <span class="docEmphasis">spine</span>, or structure, of the map
+      is always kept up-to-date, but values in the map aren't evaluated unless
+      we force them to be.</p><a name="x_RV" class="calibre27" id="x_RV"></a><p class="docText">It is very important to remember this, as
+      Map's laziness over values is a frequent source of space
+      leaks among coders who are not expecting it.</p><a name="x_SV" class="calibre27" id="x_SV"></a><p class="docText">Because the <tt class="calibre34">Data.Map</tt> module contains a
+      number of names that clash with <tt class="calibre34">Prelude</tt> names, it's
+      usually imported in qualified form. Earlier in this chapter, we imported
+      it using the prefix <tt class="calibre34">M</tt>.</p><a name="idd1e28866" class="calibre27" id="idd1e28866"></a><h5 id="title-IDACWXSB" class="docSection3Title">12.9.2.1. Type constraints</h5><a name="x_TV" class="calibre27" id="x_TV"></a><p class="docText">The Map type<a name="I_indexterm12_d1e28532" class="calibre27" id="I_indexterm12_d1e28532"></a> doesn't place any explicit constraints on its key type,
+        but most of the module's useful functions require that keys be
+        instances of <tt class="calibre34">Ord</tt>. This is noteworthy, as it's an example
+        of a common design pattern in Haskell code: type constraints are
+        pushed out to where they're actually needed, not necessarily applied
+        at the point where they'd result in the least typing for a library's
+        author.</p><a name="x_UV" class="calibre27" id="x_UV"></a><p class="docText">Neither the Map type nor any functions in
+        the module constrain the types that can be used as values.</p><a name="barcode_map_partial" class="calibre27" id="barcode_map_partial"></a><h5 id="title-IDAXWXSB" class="docSection3Title">12.9.2.2. Partial application awkwardness</h5><a name="x_VV" class="calibre27" id="x_VV"></a><p class="docText">For some reason, the type signatures of the functions
+        in <tt class="calibre34">Data.Map</tt> are not generally friendly to partial
+        application. The <tt class="calibre34">map</tt> parameter always comes last,
+        whereas it would be easier to partially apply if it were first. As a
+        result, code that uses partially applied map functions almost always
+        contains adapter functions to fiddle with argument <span class="docEmphasis">ordering</span>.</p><a name="idd1e28900" class="calibre27" id="idd1e28900"></a><h5 id="title-IDAIXXSB" class="docSection3Title">12.9.2.3. Getting started with the API</h5><a name="x_WV" class="calibre27" id="x_WV"></a><p class="docText">The <tt class="calibre34">Data.Map</tt> module has a large
+        "surface area": it exports dozens of functions. Just a
+        handful of these comprise the most frequently used core of the
+        module.</p><a name="x_XV" class="calibre27" id="x_XV"></a><p class="docText">To create an empty map, we use <i class="docEmphasis">empty</i>. For a map containing one key/value
+        pair, we use <i class="docEmphasis">singleton</i>:</p><pre class="calibre39">ghci&gt; <b class="calibre40">M.empty</b>
+Loading package array-0.1.0.0 ... linking ... done.
+Loading package containers-0.1.0.2 ... linking ... done.
+fromList []
+ghci&gt; <b class="calibre40">M.singleton "foo" True</b>
+fromList [("foo",True)]</pre><a name="x_YV" class="calibre27" id="x_YV"></a><p class="docText">Since the implementation is abstract, we can't pattern
+        match on Map values. Instead, it provides a number of
+        lookup functions, of which two are particularly widely used. The
+        <i class="docEmphasis">lookup</i> function<a name="I_indexterm12_d1e28596" class="calibre27" id="I_indexterm12_d1e28596"></a> has a slightly tricky type signature,<sup class="docFootnote"><a class="docLink1" href="#x_YVd1e28942">[31]</a></sup> but don't worry—all will become clear in <a class="docLink" href="monads_split_000.html#monads">Chapter 14</a>:</p><blockquote class="calibre30"><p class="docFootnote1"><sup class="calibre50"><a name="x_YVd1e28942" class="calibre5" id="x_YVd1e28942">[31]</a></sup> Starting with GHC 6.10.1, the type of this function has been
+            simplified to <tt class="calibre34">k -&gt; M.Map k a -&gt; Maybe
+            a</tt>.</p></blockquote><pre class="calibre39">ghci&gt; <b class="calibre40">:type M.lookup</b>
+M.lookup :: (Ord k, Monad m) =&gt; k -&gt; M.Map k a -&gt; m a
+</pre><a name="x_ZV" class="calibre27" id="x_ZV"></a><p class="docText">Most often, the type parameter <span class="docMonofont">m</span> in the result is Maybe. In other
+        words, if the map contains a value for the given key, <i class="docEmphasis">lookup</i> will return the value wrapped in
+        <tt class="calibre34">Just</tt>. <span class="docEmphasis">Otherwise</span>, it
+        will return <tt class="calibre34">Nothing</tt>:</p><pre class="calibre39">ghci&gt; <b class="calibre40">let m = M.singleton "foo" 1 :: M.Map String Int</b>ghci&gt; <b class="calibre40">case M.lookup "bar" m of { Just v -&gt; "yay"; Nothing -&gt; "boo" }</b>
+"boo"</pre><a name="x_aV" class="calibre27" id="x_aV"></a><p class="docText">The <i class="docEmphasis">findWithDefault</i> function takes a value to
+        return if the key isn't in the map.</p><p class="calibre37"><table border="0" cellspacing="0" cellpadding="1" width="90%" class="calibre41"><tr class="calibre16"><td class="v3"><table width="100%" border="0" cellspacing="0" cellpadding="6" class="calibre42"><tr class="calibre16"><td width="60" valign="top" class="v3"><img src="warning_yellow.gif" alt="" class="calibre44"/></td><td valign="top" class="v3"><p class="docCautionsTitle">Beware the partial functions!</p><a name="x_bV" class="calibre27" id="x_bV"></a><p class="docText">There exists a <i class="docEmphasis">(!)</i> operator<a name="I_indexterm12_d1e28660" class="calibre27" id="I_indexterm12_d1e28660"></a> that performs a lookup and returns the unadorned
+          value associated with a key (i.e., not wrapped in <tt class="calibre34">Maybe</tt>
+          or whatever). Unfortunately, it is not a total function: it calls
+          <i class="docEmphasis">error</i> if the key is not present
+          in the map.</p></td></tr></table></td></tr></table></p><br class="calibre48"/><a name="x_dV" class="calibre27" id="x_dV"></a><p class="docText">To add a key/value pair to the map, the most useful
+        functions are <i class="docEmphasis">insert</i> and
+        <i class="docEmphasis">insertWith'</i>. The<a name="I_indexterm12_d1e28678" class="calibre27" id="I_indexterm12_d1e28678"></a> <tt class="calibre34">insert</tt> function simply inserts a value
+        into the map, overwriting any matching value that may already have
+        been present.</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type M.insert</b>
+M.insert :: (Ord k) =&gt; k -&gt; a -&gt; M.Map k a -&gt; M.Map k a
+ghci&gt; <b class="calibre40">M.insert "quux" 10 m</b>
+fromList [("foo",1),("quux",10)]
+ghci&gt; <b class="calibre40">M.insert "foo" 9999 m</b>
+fromList [("foo",9999)]</pre><a name="x_eV" class="calibre27" id="x_eV"></a><p class="docText">The <i class="docEmphasis">insertWith'</i>
+        function takes<a name="I_indexterm12_d1e28707" class="calibre27" id="I_indexterm12_d1e28707"></a><a name="I_indexterm12_d1e28710" class="calibre27" id="I_indexterm12_d1e28710"></a> a further <span class="docEmphasis">combining function</span> as
+        its argument. If no matching key was present in the map, the new value
+        is inserted verbatim. Otherwise, the combining function is called on
+        the new and old values, and its result is inserted into the
+        map:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type M.insertWith'</b>
+M.insertWith' :: (Ord k) =&gt; (a -&gt; a -&gt; a) -&gt; k -&gt; a -&gt; M.Map k a -&gt; M.Map k a
+ghci&gt; <b class="calibre40">M.insertWith' (+) "zippity" 10 m</b>
+fromList [("foo",1),("zippity",10)]
+ghci&gt; <b class="calibre40">M.insertWith' (+) "foo" 9999 m</b>
+fromList [("foo",10000)]</pre><a name="x_fV" class="calibre27" id="x_fV"></a><p class="docText">As the tick at the end of its name suggests, <i class="docEmphasis">insertWith'</i> evaluates the combining
+        function strictly, allowing us to avoid space leaks. While there
+        exists a lazy variant (<i class="docEmphasis">insertWith</i>
+        without the trailing tick in the name), it's rarely what we'll
+        actually want.</p><a name="x_gV" class="calibre27" id="x_gV"></a><p class="docText">The <i class="docEmphasis">delete</i>
+        function<a name="I_indexterm12_d1e28746" class="calibre27" id="I_indexterm12_d1e28746"></a> deletes the given key from the map. It returns the map
+        unmodified if the key is not present:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type M.delete</b>
+M.delete :: (Ord k) =&gt; k -&gt; M.Map k a -&gt; M.Map k a
+ghci&gt; <b class="calibre40">M.delete "foo" m</b>
+fromList []</pre><a name="x_hV" class="calibre27" id="x_hV"></a><p class="docText">Finally, there are several efficient functions for
+        performing set-like operations on maps. Of these, we'll be using
+        <i class="docEmphasis">union</i>. This function is
+        <span class="docEmphasis">left-biased</span>—if<a name="I_indexterm12_d1e28769" class="calibre27" id="I_indexterm12_d1e28769"></a> two maps contain the same key, the result will contain
+        the value from the left map:</p><pre class="calibre39">ghci&gt; <b class="calibre40">m `M.union` M.singleton "quux" 1</b>
+fromList [("foo",1),("quux",1)]
+ghci&gt; <b class="calibre40">m `M.union` M.singleton "foo" 0</b>
+fromList [("foo",1)]</pre><a name="x_iV" class="calibre27" id="x_iV"></a><p class="docText">We have barely covered ten percent of the
+        <tt class="calibre34">Data.Map</tt> API. We will cover maps and similar data
+        structures in greater detail in <a class="docLink" href="data_split_000.html#data">Chapter 13</a>. For further
+        inspiration, we encourage you to browse the module documentation. The
+        module is impressively thorough.</p><a name="I_sect112_d1e28385d1e29132" class="calibre27" id="I_sect112_d1e28385d1e29132"></a><h4 id="title-IDA25YWD" class="docSection1Title">12.9.3. Further Reading</h4><a name="x_jV" class="calibre27" id="x_jV"></a><p class="docText"><a name="I_indexterm12_d1e28795" class="calibre27" id="I_indexterm12_d1e28795"></a><span class="docEmphasis">Purely Functional Data
+      Structures</span> by Chris Okasaki (Cambridge University Press)
+      gives a wonderful and thorough implementor's tour of many pure
+      functional data structures, including several kinds of balanced trees.
+      It also provides valuable insight into reasoning about the performance
+      of purely functional data structures and lazy evaluation.</p><a name="x_kV" class="calibre27" id="x_kV"></a><p class="docText">We recommend Okasaki's book as essential reading for
+      functional programmers. If you're not convinced, Okasaki's Ph.D. thesis,
+      ), is a less
+      complete and polished version of the book, and it is available for free
+      online.<span class="docEmphasis">Purely Functional Data Structures</span> (see </p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect112_d1e27986.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect112_d1e28808.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

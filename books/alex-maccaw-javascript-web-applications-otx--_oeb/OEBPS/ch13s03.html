@@ -1,0 +1,285 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch13s02.html
+next: OEBPS/ch13s04.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Model"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect113_d1e13664" class="calibre1"></a>Model</h1></div></div></div><p class="calibre3"><a id="index-285P518CV2F" class="calibre1"></a><a id="index-366R802ID0U" class="calibre1"></a>JavaScriptMVC’s model and its associated plug-ins provide
+    lots of tools around organizing model data, such as validations,
+    associations, lists, and more. But the core functionality is centered
+    around service encapsulation, type conversion, and events.</p><div class="book" title="Attributes and Observables"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2942437" class="calibre12"></a>Attributes and Observables</h2></div></div></div><p class="calibre3"><a id="index-317A086VO5C" class="calibre1"></a><a id="index-325Q811JA3H" class="calibre1"></a><a id="index-520L177EC4S" class="calibre1"></a>Of absolute importance to a model layer is the ability to
+      get and set properties on the modeled data, and to listen for changes on
+      a model instance. This is the Observer pattern, and it lies at the heart
+      of the MVC approach—views listen to changes in the model.</p><p class="calibre3">Fortunately, with JavaScriptMVC, it is easy to make any data
+      observable. A great example is pagination. It’s very common for multiple
+      pagination controls to exist on the page. For example, one control might
+      provide Next and Previous page buttons; another control might detail the
+      items the current page is viewing (e.g., “Showing items 1-20”). All
+      pagination controls <a id="I_indexterm13_d1e13705" class="calibre1"></a>need the exact same data:</p><div class="book"><dl class="book"><dt class="calibre8"><span class="calibre1"><code class="literal">offset</code></span></dt><dd class="calibre9"><p class="calibre3">The index of the first item to display</p></dd><dt class="calibre8"><span class="calibre1"><code class="literal">limit</code></span></dt><dd class="calibre9"><p class="calibre3">The number of items to display</p></dd><dt class="calibre8"><span class="calibre1"><code class="literal">count</code></span></dt><dd class="calibre9"><p class="calibre3">The total number of items</p></dd></dl></div><p class="calibre3">We can model this data with JavaScriptMVC’s
+      <code class="literal">$.Model</code>:</p><pre class="screen">var paginate = new $.Model({
+  offset: 0,
+  limit: 20,
+  count: 200
+});</pre><p class="calibre3">The <code class="literal">paginate</code> variable is now observable. We can
+      pass it to pagination controls that can read from, write to, and listen
+      for property changes. You can read properties like normal or by using
+      the <code class="literal">model.attr(NAME)</code> method:</p><pre class="screen">assertEqual( paginate.offset, 0 );
+assertEqual( paginate.attr('limit') , 20 );</pre><p class="calibre3">If we click the next button, we need to increment the offset.
+      Change property values with <code class="literal">model.attr(NAME,
+      VALUE)</code>. The following moves the offset to the next
+      page:</p><pre class="screen">paginate.attr('offset', 20);</pre><p class="calibre3">When <code class="literal">paginate</code>’s state is changed by one
+      control, the other controls need to be notified. You can bind to a
+      specific attribute change with <code class="literal">model.bind(ATTR,
+      success( ev, newVal ) )</code> and update the control:</p><pre class="screen">paginate.bind('offset', function(ev, newVal){
+  $('#details').text( 'Showing items ' + (newVal + 1 ) + '-' + this.count )
+})</pre><p class="calibre3">You can also listen to any attribute change by binding to the
+      <code class="literal">'updated.attr'</code> event:</p><pre class="screen">paginate.bind('updated.attr', function(ev, newVal){
+  $('#details').text( 'Showing items ' + (newVal+1 )+ '-' + this.count )
+})</pre><p class="calibre3">The following is a next-previous jQuery plug-in that accepts
+      <code class="literal">paginate</code> data:</p><pre class="screen">$.fn.nextPrev = function(paginate){
+   this.delegate('.next','click', function(){
+     var nextOffset = paginate.offset + paginate.limit;
+     if( nextOffset &lt; paginate.count){
+       paginate.attr('offset', nextOffset );
+     }
+   });
+
+   this.delegate('.prev','click', function(){
+     var nextOffset = paginate.offset-paginate.limit;
+     if( 0 &lt; paginate.offset ){
+       paginate.attr('offset', Math.max(0, nextOffset) );
+     }
+   });
+
+   var self = this;
+   paginate.bind('updated.attr', function(){
+     var next = self.find('.next'),
+         prev = self.find('.prev');
+     if( this.offset == 0 ){
+       prev.removeClass('enabled');
+     } else { 
+       prev.removeClass('disabled');
+     }
+     if( this.offset &gt; this.count - this.limit ){
+       next.removeClass('enabled');
+     } else { 
+       next.removeClass('disabled');
+     }
+   });
+};</pre><p class="calibre3">There are a few problems with this plug-in. First, if the control
+      is removed from the page, it is not unbinding itself from
+      <code class="literal">paginate</code>. We’ll address this when we discuss <span class="calibre1">controllers</span>.</p><p class="calibre3">Second, the logic protecting a negative offset or offset above the
+      total count is done in the plug-in. This logic should be done in the
+      model. To fix this problem, we’ll need to create a pagination class,
+      where we can add additional constraints to limit what values
+      <code class="literal">limit</code>, <code class="literal">offset</code>, and
+      <code class="literal">count</code> can be.<a id="I_indexterm13_d1e13799" class="calibre1"></a><a id="I_indexterm13_d1e13800" class="calibre1"></a><a id="I_indexterm13_d1e13801" class="calibre1"></a></p></div><div class="book" title="Extending Models"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2942752" class="calibre12"></a>Extending Models</h2></div></div></div><p class="calibre3"><a id="I_indexterm13_d1e13806" class="calibre1"></a><a id="I_indexterm13_d1e13813" class="calibre1"></a><a id="I_indexterm13_d1e13820" class="calibre1"></a>JavaScriptMVC’s model inherits from
+      <code class="literal">$.Class</code>. Thus, you create a model class by inheriting
+      from <code class="literal">$.Model(NAME, [STATIC,] PROTOTYPE)</code>:</p><pre class="screen">$.Model('Paginate',{
+  staticProperty: 'foo'
+},{
+  prototypeProperty: 'bar'
+})</pre><p class="calibre3">There are a few ways to make the <code class="literal">Paginate</code> model
+      more useful. By adding setter methods, discussed next, we can limit what
+      values count and offsets can be set to.</p></div><div class="book" title="Setters"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2942823" class="calibre12"></a>Setters</h2></div></div></div><p class="calibre3"><a id="I_indexterm13_d1e13841" class="calibre1"></a><a id="I_indexterm13_d1e13848" class="calibre1"></a><a id="I_indexterm13_d1e13855" class="calibre1"></a>Setter methods are model prototype methods that are named
+      <code class="literal">setNAME</code>. They get called with the val
+      passed to <code class="literal">model.attr(NAME, val)</code>, as
+      well as a success and error callback. Typically, the method should
+      return the value that should be set on the model instance, or call an
+      error with an error message. Success is used for asynchronous
+      setters.</p><p class="calibre3">The <code class="literal">Paginate</code> model uses setters to prevent
+      invalid counts and offsets values from being set. For example, we make
+      sure the value isn’t negative:</p><pre class="screen">$.Model('Paginate',{
+  setCount : function(newCount, success, error){
+    return newCount &lt; 0 ? 0 : newCount;
+  },
+
+  setOffset : function(newOffset, success, error){
+    return newOffset &lt; 0 ? 0 : 
+Math.min(newOffset, !isNaN(this.count - 1) ? this.count : Infinity )
+  }
+});</pre><p class="calibre3">Now, the <code class="literal">nextPrev</code> plug-in can set offsets with
+      reckless abandon:</p><pre class="screen">this.delegate('.next','click', function(){
+  paginate.attr('offset', paginate.offset+paginate.limit);
+});
+
+this.delegate('.prev','click', function(){
+    paginate.attr('offset', paginate.offset-paginate.limit );
+});</pre></div><div class="book" title="Defaults"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2942923" class="calibre12"></a>Defaults</h2></div></div></div><p class="calibre3"><a id="I_indexterm13_d1e13883" class="calibre1"></a><a id="I_indexterm13_d1e13890" class="calibre1"></a><a id="I_indexterm13_d1e13897" class="calibre1"></a>We can add default values to <code class="literal">Paginate</code>
+      instances by setting the static <code class="literal">defaults</code> property. When a new
+      <code class="literal">paginate</code> instance is created, if no value is
+      provided, it initializes with the default value:</p><pre class="screen">$.Model('Paginate',{
+  defaults : {
+    count: Infinity,
+    offset: 0,
+    limit: 100
+  }
+},{
+  setCount : function(newCount, success, error){ ... },
+  setOffset : function(newOffset, success, error){ ... }
+});
+
+var paginate = new Paginate({count: 500});
+assertEqual(paginate.limit, 100);
+assertEqual(paginate.count, 500);</pre><p class="calibre3">The <code class="literal">Paginate</code> model can make it even easier to
+      move to the next or previous page and know whether it’s possible by
+      adding helper methods.</p></div><div class="book" title="Helper Methods"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2943006" class="calibre12"></a>Helper Methods</h2></div></div></div><p class="calibre3"><a id="I_indexterm13_d1e13923" class="calibre1"></a><a id="I_indexterm13_d1e13930" class="calibre1"></a><a id="I_indexterm13_d1e13937" class="calibre1"></a>These are prototype methods that help set or get useful
+      data on model instances. The following, completed
+      <code class="literal">Paginate</code> model includes <code class="literal">next</code> and <code class="literal">prev</code> methods <a id="I_indexterm13_d1e13952" class="calibre1"></a>that will move to the next and previous pages, if
+      possible. It also provides a <code class="literal">canNext</code>
+      and <code class="literal">canPrev</code> method that returns
+      whether or not the instance can move to the next page:</p><pre class="screen">$.Model('Paginate',{
+  defaults : {
+    count: Infinity,
+    offset: 0,
+    limit: 100
+  }
+},{
+  setCount : function( newCount ){
+    return Math.max(0, newCount  );
+  },
+  setOffset : function( newOffset ){
+    return Math.max( 0 , Math.min(newOffset, this.count ) )
+  },
+  next : function(){
+    this.attr('offset', this.offset+this.limit);
+  },
+  prev : function(){
+    this.attr('offset', this.offset - this.limit )
+  },
+  canNext : function(){
+    return this.offset &gt; this.count - this.limit
+  },
+  canPrev : function(){
+    return this.offset &gt; 0
+  }
+})</pre><p class="calibre3">Thus, our jQuery widget becomes much more refined:</p><pre class="screen">$.fn.nextPrev = function(paginate){
+   this.delegate('.next','click', function(){
+     paginate.attr('offset', paginate.offset+paginate.limit);
+   })
+   this.delegate('.prev','click', function(){
+     paginate.attr('offset', paginate.offset-paginate.limit );
+   });
+   var self = this;
+   paginate.bind('updated.attr', function(){
+     self.find('.prev')[paginate.canPrev() ? 'addClass' : 'removeClass']('enabled')
+     self.find('.next')[paginate.canNext() ? 'addClass' : 'removeClass']('enabled');
+   })
+};</pre></div><div class="book" title="Service Encapsulation"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2943133" class="calibre12"></a>Service Encapsulation</h2></div></div></div><p class="calibre3"><a id="index-424J206QV0R" class="calibre1"></a><a id="index-611O877JC5J" class="calibre1"></a>We’ve just seen how <code class="literal">$.Model</code> is useful
+      for modeling client-side state. However, for most applications, the
+      critical data is on the server, not on the client. The client needs to
+      create, retrieve, update, and delete (CRUD) data on the server.
+      Maintaining the duality of data on the client and server is tricky
+      business; <code class="literal">$.Model</code> simplifies this problem.</p><p class="calibre3"><code class="literal">$.Model</code> is extremely flexible. It can be made
+      to work with all sorts of service and data types. This book covers only
+      how <code class="literal">$.Model</code> works with the most common and popular
+      service and data types: Representational State Transfer (REST) and
+      JSON.</p><p class="calibre3">A REST service uses URLs and the HTTP verbs POST, GET, PUT, and
+      DELETE to create, retrieve, update, and delete data, respectively. For
+      example, a task service that allows you to create, retrieve, update, and
+      delete tasks might look like:</p><pre class="screen">create   → POST   /tasks
+read all → GET    /tasks
+read     → GET    /tasks/2
+update   → PUT    /tasks/2
+delete   → DELETE /tasks/2</pre><p class="calibre3">The following connects to task services, letting us create,
+      retrieve, update, and delete tasks from the server:</p><pre class="screen">$.Model("Task",{
+  create  : "POST /tasks.json",
+  findOne : "GET /tasks/{id}.json",
+  findAll : "GET /tasks.json",
+  update  : "PUT /tasks/{id}.json",
+  destroy : "DELETE /tasks/{id}.json"
+},{ });</pre><p class="calibre3">Let’s go through every step needed to use the <code class="literal">Task</code> model to CRUD tasks.</p><div class="book" title="Create a task"><div class="book"><div class="book"><div class="book"><h3 class="title5"><a id="id2943240" class="calibre12"></a>Create a task</h3></div></div></div><pre class="screen">new Task({ name: 'do the dishes'}).save( 
+  success( task, data ), 
+  error( jqXHR) 
+) //=&gt; taskDeferred</pre><p class="calibre3">To create an instance of a model on the server,
+        first create an instance with <code class="literal">new
+        Model(attributes)</code>. Then call <code class="literal">save()</code><a id="I_indexterm13_d1e14026" class="calibre1"></a><a id="I_indexterm13_d1e14029" class="calibre1"></a>. <code class="literal">save()</code> checks as to whether the
+        task has an ID. In this case it does not, so <code class="literal">save()</code>
+        makes a create request with the task’s attributes. It takes two
+        parameters:</p><div class="book"><dl class="book"><dt class="calibre8"><span class="calibre1"><code class="literal">success</code></span></dt><dd class="calibre9"><p class="calibre3">A function that gets called if the save is successful.
+              Success gets called with the <code class="literal">task</code> instance and the <code class="literal">data</code> returned by the server.</p></dd><dt class="calibre8"><span class="calibre1"><code class="literal">error</code></span></dt><dd class="calibre9"><p class="calibre3">A function that gets called if there is an error with the
+              request. It gets called with jQuery’s wrapped XHR object.</p></dd></dl></div><p class="calibre3"><code class="literal">save()</code> returns a deferred
+        that resolves to the created task.</p></div><div class="book" title="Get a task"><div class="book"><div class="book"><div class="book"><h3 class="title5"><a id="id2943344" class="calibre12"></a>Get a task</h3></div></div></div><pre class="screen">Task.findOne(params, 
+  success( task ), 
+  error( jqXHR) 
+) //=&gt; taskDeferred</pre><p class="calibre3">Retrieves a single task from the server. It takes three
+        parameters:</p><div class="book"><dl class="book"><dt class="calibre8"><span class="calibre1"><code class="literal">params</code></span></dt><dd class="calibre9"><p class="calibre3">The data to pass to the server; typically, an ID like
+              <code class="literal">{id: 2}</code>.</p></dd><dt class="calibre8"><span class="calibre1"><code class="literal">success</code></span></dt><dd class="calibre9"><p class="calibre3">A function that gets called if the request is successful.
+              Success gets called with the <code class="literal">task</code> instance.</p></dd><dt class="calibre8"><span class="calibre1"><code class="literal">error</code></span></dt><dd class="calibre9"><p class="calibre3">A function that gets called if there is an error with the
+              request.</p></dd></dl></div><p class="calibre3"><code class="literal">findOne()</code> returns a deferred
+        that resolves to the task.</p></div><div class="book" title="Get tasks"><div class="book"><div class="book"><div class="book"><h3 class="title5"><a id="id2943411" class="calibre12"></a>Get tasks</h3></div></div></div><pre class="screen">Task.findAll(params, 
+  success( tasks ), 
+  error( jqXHR) 
+) //=&gt; tasksDeferred</pre><p class="calibre3">Retrieves an array of tasks from the server. It takes three
+        parameters:</p><div class="book"><dl class="book"><dt class="calibre8"><span class="calibre1"><code class="literal">params</code></span></dt><dd class="calibre9"><p class="calibre3">The data to pass to the server. Typically, it’s an empty
+              object (<code class="literal">{}</code>) or filters
+              <code class="literal">{limit: 20, offset:
+              100}</code>.</p></dd><dt class="calibre8"><span class="calibre1"><code class="literal">success</code></span></dt><dd class="calibre9"><p class="calibre3">A function that gets called if the request is successful.
+              Success gets called with an array of <code class="literal">task</code>
+              instances.</p></dd><dt class="calibre8"><span class="calibre1"><code class="literal">error</code></span></dt><dd class="calibre9"><p class="calibre3">A function that gets called if there is an error with the
+              request.</p></dd></dl></div><p class="calibre3"><code class="literal">findAll()</code> returns a deferred
+        that resolves to an array of tasks.</p></div><div class="book" title="Update a task"><div class="book"><div class="book"><div class="book"><h3 class="title5"><a id="id2943486" class="calibre12"></a>Update a task</h3></div></div></div><pre class="screen">task.attr('name','take out recycling');
+task.save( 
+  success( task, data ), 
+  error( jqXHR) 
+) //=&gt; taskDeferred</pre><p class="calibre3">To update the server, first change the attributes of a model
+        instance with <code class="literal">attr</code>. Then call
+        <code class="literal">save()</code>. <code class="literal">save()</code> takes the same arguments and returns
+        the same deferred as the create task case.</p></div><div class="book" title="Destroy a task"><div class="book"><div class="book"><div class="book"><h3 class="title5"><a id="id2943520" class="calibre12"></a>Destroy a task</h3></div></div></div><pre class="screen">task.destroy( 
+  success( task, data ), 
+  error( jqXHR) 
+) //=&gt; taskDeferred</pre><p class="calibre3"><code class="literal">destroy()</code> deletes a task on
+        the server. <code class="literal">destroy()</code> takes two
+        parameters:</p><div class="book"><dl class="book"><dt class="calibre8"><span class="calibre1"><code class="literal">success</code></span></dt><dd class="calibre9"><p class="calibre3">A function that gets called if the save is successful.
+              Success gets called with the <code class="literal">task</code> instance and the <code class="literal">data</code> returned by the server.</p></dd><dt class="calibre8"><span class="calibre1"><code class="literal">error</code></span></dt><dd class="calibre9"><p class="calibre3">A function that gets called if there is an error with the
+              request.</p></dd></dl></div><p class="calibre3">Like with <code class="literal">save()</code>, <code class="literal">destroy()</code> returns a deferred that resolves
+        to the destroyed task. The <code class="literal">Task</code>
+        model has essentially become a contract to our services!<a id="I_indexterm13_d1e14212" class="calibre1"></a><a id="I_indexterm13_d1e14213" class="calibre1"></a></p></div></div><div class="book" title="Type Conversion"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2943621" class="calibre12"></a>Type Conversion</h2></div></div></div><p class="calibre3"><a id="I_indexterm13_d1e14218" class="calibre1"></a><a id="I_indexterm13_d1e14225" class="calibre1"></a><a id="I_indexterm13_d1e14232" class="calibre1"></a>Did you notice how the server responded with
+      <code class="literal">createdAt</code> values as numbers like <code class="literal">1303173531164</code>? This number is actually April
+      18th, 2011. Instead of getting a number back from <code class="literal">task.createdAt</code>, it would be much more useful
+      if it returned a JavaScript date created with <code class="literal">new Date(1303173531164)</code>. We could do this with
+      a <code class="literal">setCreatedAt</code> setter, but if we have
+      lots of date types, this will get repetitive quickly.</p><p class="calibre3">To make this easy, <code class="literal">$.Model</code> lets you define the
+      type of an attribute as well as a converter function for those types.
+      Set the type of attributes on the static <code class="literal">attributes</code> object, and set the converter
+      methods on the static <code class="literal">convert</code>
+      object:</p><pre class="screen">$.Model('Task',{
+  attributes : {
+    createdAt : 'date'
+  },
+
+  convert : {
+    date : function(date){
+      return typeof date == 'number' ? new Date(date) : date;
+    }
+  }
+},{});</pre><p class="calibre3"><code class="literal">Task</code> now converts <code class="literal">createdAt</code>
+      to a <code class="literal">Date</code> type. To list the year of each task,
+      write:</p><pre class="screen">Task.findAll({}, function(tasks){
+  $.each(tasks, function(){
+    console.log( "Year = "+this.createdAt.fullYear() )
+  })
+});</pre></div><div class="book" title="CRUD Events"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2943753" class="calibre12"></a>CRUD Events</h2></div></div></div><p class="calibre3"><a id="I_indexterm13_d1e14283" class="calibre1"></a><a id="I_indexterm13_d1e14290" class="calibre1"></a><a id="I_indexterm13_d1e14297" class="calibre1"></a>The model publishes events when an instance has been
+      created, updated, or <span class="calibre1">destroyed.
+      You</span> can listen to these events globally on the model or on an
+      individual model instance. Use <code class="literal">MODEL.bind(EVENT, callback( ev, instance ) )</code>
+      to listen for created, updated, or destroyed events.</p><p class="calibre3">Let’s say we want to know when a task is created, so we can then
+      add it to the page. After it’s been added, we’ll listen for updates on
+      that task to make sure we are showing its name correctly. Here’s how we
+      can do this:<a id="I_indexterm13_d1e14309" class="calibre1"></a><a id="I_indexterm13_d1e14310" class="calibre1"></a></p><pre class="screen">Task.bind('created', function(ev, task){
+  var el = $('&lt;li&gt;').html(todo.name);
+  el.appendTo($('#todos'));
+
+  task.bind('updated', function(){
+    el.html(this.name);
+  }).bind('destroyed', function(){
+    el.remove();
+  })
+});</pre></div></div></div>
+
+{% endraw %}
+

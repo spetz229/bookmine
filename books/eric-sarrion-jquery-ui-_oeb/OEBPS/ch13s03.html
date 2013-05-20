@@ -1,0 +1,115 @@
+---
+layout: page
+title: "jQuery UI"
+prev: OEBPS/ch13s02.html
+next: OEBPS/ch13s04.html
+book_path: books/eric-sarrion-jquery-ui-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="The resizable () Method"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="the_resizable_open_parenthesis_close_par" class="calibre1"></a>The resizable () Method</h1></div></div></div><p class="calibre7">The <code class="literal">resizable ()</code> method can be
+    used under the following two forms:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7"><code class="literal">$(selector, context).resizable
+        (options)</code></p></li><li class="listitem"><p class="calibre7"><code class="literal">$(selector, context).resizable
+        ("action", params)</code></p></li></ul></div><div class="book" title="The resizable (options) Method"><div class="book"><div class="book"><div class="book"><h2 class="title5"><a id="the_resizable_open_parenthesis_options_c" class="calibre1"></a>The resizable (options) Method</h2></div></div></div><p class="calibre7">The <code class="literal">resizable (options)</code> method
+      declares that an HTML element is resizable. The <code class="literal">options</code> parameter is an object that specifies
+      behavior when resizing.</p><div class="book" title="Managing resizable elements"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="managing_resizable_elements" class="calibre1"></a>Managing resizable elements</h3></div></div></div><p class="calibre7">We begin with the options to manage the process of resizing
+        (<a class="ulink" href="ch13s03.html#options_for_managing_resizable_elements" title="Table 13-1. Options for managing resizable elements">Table 13-1</a>), to
+        indicate which items to resize (<a class="ulink" href="ch13s03.html#options_for_indicating_which_elements_to" title="Table 13-2. Options for indicating which elements to resize">Table 13-2</a>), how to resize
+        (<a class="ulink" href="ch13s03.html#options_for_indicating_how_to_resize" title="Table 13-3. Options for indicating how to resize">Table 13-3</a>), and specify
+        constraints (<a class="ulink" href="ch13s03.html#options_for_specifying_resizing_constrai" title="Table 13-4. Options for specifying resizing constraints">Table 13-4</a>).</p><div class="table"><a id="options_for_managing_resizable_elements" class="firstname"></a><p class="title7">Table 13-1. Options for managing resizable elements</p><div class="book"><table summary="Options for managing resizable elements" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.disabled</code></p></td><td valign="top" class="calibre21"><p class="calibre7">When set to <code class="literal">true</code>, disables the resizing
+                mechanism. The mouse no longer resizes elements, until the
+                mechanism is enabled (using the <code class="literal">resizable ("enable")</code>
+                instruction).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.autoHide</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Hides the magnification
+                icon, except when the mouse is over the item.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.delay</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Delay (in milliseconds)
+                before which the first movement of the mouse is taken into
+                account. The displacement will begin thereafter. The default
+                is 0.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.distance</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Distance (in pixels)
+                the mouse must move for resizing to begin. The default is 1
+                pixel.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.grid</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Array <code class="literal">[x, y]</code> indicating the number of
+                pixels that the element expands horizontally and vertically
+                during movement of the mouse.</p></td></tr></tbody></table></div></div><div class="table"><a id="options_for_indicating_which_elements_to" class="firstname"></a><p class="title7">Table 13-2. Options for indicating which elements to resize</p><div class="book"><table summary="Options for indicating which elements to resize" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.alsoResize</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Selector, jQuery class
+                object, or DOM element representing elements that also resize
+                when resizing the original object. The corresponding elements
+                can be anywhere on the page. The default value is <code class="literal">false</code> (no other element
+                resizes).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.cancel</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Selector indicating
+                non-resizable elements.</p></td></tr></tbody></table></div></div><div class="table"><a id="options_for_indicating_how_to_resize" class="firstname"></a><p class="title7">Table 13-3. Options for indicating how to resize</p><div class="book"><table summary="Options for indicating how to resize" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><span class="firstname"><code class="literal">options.aspectRatio</code></span></p></td><td valign="top" class="calibre21"><p class="calibre7">Indicates whether to
+                keep the height and width ratio for the item.</p>
+                <p class="calibre7">When set to <code class="literal">true</code>, the
+                item retains the original ratio of height to width. Otherwise,
+                it indicates a value corresponding to the ratio of the width
+                to the height. For example, 0.5 (one half) indicates that the
+                item must constantly keep a proportion of 1 in width and 2 in
+                height, so that it is always twice as high as it is
+                wide.</p> <p class="calibre7">The default value is <code class="literal">false</code> (no proportion
+                kept).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.handles</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Character string
+                indicating which sides or angles of the element can be
+                resized. The possible values are: <code class="literal">n</code>, <code class="literal">e</code>, <code class="literal">s</code>, and <code class="literal">w</code> for the four sides, and <code class="literal">ne</code>, <code class="literal">se</code>, <code class="literal">nw</code>, and <code class="literal">sw</code> for the four corners. The letters
+                n, s, e, and w represent the four cardinal points (North,
+                South, East, and West).</p> <p class="calibre7">The default is <code class="literal">"e, s, se"</code>, making it possible to
+                resize the right and bottom, as well as the bottom right
+                corner.</p></td></tr></tbody></table></div></div><div class="table"><a id="options_for_specifying_resizing_constrai" class="firstname"></a><p class="title7">Table 13-4. Options for specifying resizing constraints</p><div class="book"><table summary="Options for specifying resizing constraints" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><span class="firstname"><code class="literal">options.containement</code></span></p></td><td valign="top" class="calibre21"><p class="calibre7">Indicates an element
+                within which the resizing will occur. The item will be
+                represented by a selector (only the first item in the list
+                will be taken into account) or a DOM element, or the string
+                <code class="literal">"parent"</code> (parent element).
+                The default value is <code class="literal">false</code>
+                (no constraints).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.maxHeight</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Maximum height of the
+                element when resizing. The default is <code class="literal">null</code> (no
+                constraints).</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.maxWidth</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Maximum width of the
+                element when resizing. The default is <code class="literal">null</code> (no
+                constraints).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.minHeight</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Minimum height of the
+                element when resizing. The default is <code class="literal">null</code> (no
+                constraints).</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.minWidth</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Minimum width of the
+                element when resizing. The default is <code class="literal">null</code> (no
+                constraints).</p></td></tr></tbody></table></div></div></div><div class="book" title="Managing resizing effects"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="managing_resizing_effects" class="calibre1"></a>Managing resizing effects</h3></div></div></div><p class="calibre7">The options listed in <a class="ulink" href="ch13s03.html#options_for_managing_resizing_effects" title="Table 13-5. Options for managing resizing effects">Table 13-5</a> allow you to manage
+        visual effects during resizing, either by producing an effect or
+        duplicating the resized element.</p><div class="table"><a id="options_for_managing_resizing_effects" class="firstname"></a><p class="title7">Table 13-5. Options for managing resizing effects</p><div class="book"><table summary="Options for managing resizing effects" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.animate</code></p></td><td valign="top" class="calibre21"><p class="calibre7">When set to <code class="literal">true</code>, enables a visual effect during
+                resizing when the mouse button is released. The default value
+                is <code class="literal">false</code> (no
+                effect).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><span class="firstname"><code class="literal">options.animateDuration</code></span></p></td><td valign="top" class="calibre21"><p class="calibre7">Duration (in
+                milliseconds) of the resizing effect. Only used if <code class="literal">options.animate</code> is <code class="literal">true</code>.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.ghost</code></p></td><td valign="top" class="calibre21"><p class="calibre7">When set to <code class="literal">true</code>, does not show resizing of the
+                element itself during the resizing operation, but of a less
+                visible ghost element (with a lower opacity). This ghost item
+                will be deleted when the mouse is released.</p> <p class="calibre7">The
+                default value is <code class="literal">false</code> (the
+                element itself is resized).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.helper</code></p></td><td valign="top" class="calibre21"><p class="calibre7">CSS class to style the
+                element to be resized. In this case, a new <code class="literal">&lt;div&gt;</code> element is created,
+                which is the one that is scaled (<code class="literal">ui-resizable-helper</code> class), then
+                disappears when the mouse button is released.</p> <p class="calibre7">The
+                default value is <code class="literal">false</code> (no
+                new <code class="literal">&lt;div&gt;</code> element is
+                created).</p></td></tr></tbody></table></div></div></div><div class="book" title="Managing events on resized elements"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="managing_events_on_resized_elements" class="calibre1"></a>Managing events on resized elements</h3></div></div></div><p class="calibre7">Events associated with resizable elements are used to manage the
+        beginning and end of the resizing as well as the resizing in progress.
+        Each of the methods associated with these events (listed in <a class="ulink" href="ch13s03.html#options_for_managing_events-id1" title="Table 13-6. Options for managing events">Table 13-6</a>) has two parameters:
+        <code class="literal">event</code> corresponds to the mouse
+        event, and <code class="literal">ui</code> is a <code class="literal">{helper, originalPosition, originalSize, position,
+        size}</code> object whose properties are described in the <a class="ulink" href="ch13s03.html#properties_of_the_ui_open_curly_help" title="Table 13-7. Properties of the ui {helper, originalPosition, originalSize, position, size} object">Table 13-7</a>.</p><div class="table"><a id="options_for_managing_events-id1" class="firstname"></a><p class="title7">Table 13-6. Options for managing events</p><div class="book"><table summary="Options for managing events" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.start</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">start (event, ui)</code> method is called
+                when the mouse starts resizing.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.stop</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">stop (event, ui)</code> method is called
+                when the mouse is released. This is the end of the
+                resizing.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.resize</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">resize (event, ui)</code> method is called
+                for every mouse movement during resizing.</p></td></tr></tbody></table></div></div><div class="table"><a id="properties_of_the_ui_open_curly_help" class="firstname"></a><p class="title7">Table 13-7. Properties of the ui {helper, originalPosition, originalSize,
+          position, size} object</p><div class="book"><table summary="Properties of the ui {helper, originalPosition, originalSize,           position, size} object" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Property</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">helper</code></p></td><td valign="top" class="calibre21"><p class="calibre7">jQuery class object
+                associated with the element that actually resizes (the element
+                that is clicked, or one created by jQuery UI if you specify a
+                value in <code class="literal">options.helper</code>).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><span class="firstname"><code class="literal">originalPosition</code></span></p></td><td valign="top" class="calibre21"><p class="calibre7">A <code class="literal">{top, left}</code> object representing the
+                original position of the element.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">originalSize</code></p></td><td valign="top" class="calibre21"><p class="calibre7">A <code class="literal">{width, height}</code> object representing
+                the original dimensions of the element.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">position</code></p></td><td valign="top" class="calibre21"><p class="calibre7">A <code class="literal">{top, left}</code> object representing the
+                current position of the element.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">size</code></p></td><td valign="top" class="calibre21"><p class="calibre7">A <code class="literal">{width, height}</code> object representing
+                the current dimensions of the element.</p></td></tr></tbody></table></div></div></div></div><div class="book" title="The resizable (“action”, params) Method"><div class="book"><div class="book"><div class="book"><h2 class="title5"><a id="the_resizable_open_parenthesis_quotation" class="calibre1"></a>The resizable (“action”, params) Method</h2></div></div></div><p class="calibre7">The <code class="literal">resizable ("action",
+      params)</code> method can perform an action on the resizable
+      elements, such as allowing or preventing resizing. The action is
+      specified as a string in the first argument (e.g., <code class="literal">"disable"</code> to inhibit the operation). These
+      actions are listed in <a class="ulink" href="ch13s03.html#the_resizable_open_parenthesis_actionr_c" title="Table 13-8. The resizable (action”, params) method actions">Table 13-8</a>.</p><div class="table"><a id="the_resizable_open_parenthesis_actionr_c" class="firstname"></a><p class="title7">Table 13-8. The resizable (action”, params) method actions</p><div class="book"><table summary="The resizable (action”, params) method actions" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Action</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">resizable ("disable")</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Disable the resizing
+              operation.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">resizable ("enable")</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Reactivate the resizing
+              operation.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">resizable ("option",
+              param)</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Retrieve the value of the
+              specified <code class="literal">param</code> option. This
+              option corresponds to one of those used with <code class="literal">resizable (options)</code>.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><span class="firstname"><code class="literal">resizable ("option",
+              param, value)</code></span></p></td><td valign="top" class="calibre21"><p class="calibre7">Change the value of the
+              <code class="literal">param</code> option. This option
+              corresponds to one of those used with <code class="literal">resizable (options)</code>.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">resizable ("destroy")</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Remove the management of
+              resizing.</p></td></tr></tbody></table></div></div></div></div></div>
+
+{% endraw %}
+

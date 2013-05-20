@@ -1,0 +1,32 @@
+---
+layout: page
+title: "The Little Book on CoffeeScript"
+prev: OEBPS/ch02s03.html
+next: OEBPS/ch02s05.html
+book_path: books/alex-maccaw-the-little-book-on-coffeescript-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Mixins"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect12_d1e1106" class="calibre2"></a>Mixins</h1></div></div></div><p class="calibre8"><a class="ulink" href="http://en.wikipedia.org/wiki/Mixin">Mixins</a> are
+    not something supported natively by CoffeeScript, for the good reason that
+    they can be trivially implemented yourself. For example, here’s two
+    functions, <code class="literal">extend()</code> and <code class="literal">include()</code>, that’ll add class and instance
+    properties respectively to a class:</p><pre class="screen">extend = (obj, mixin) -&gt;
+  obj[name] = method for name, method of mixin        
+  obj
+
+include = (klass, mixin) -&gt;
+  extend klass.prototype, mixin
+
+# Usage
+include Parrot,
+  isDeceased: true
+
+(new Parrot).isDeceased</pre><p class="calibre8">Mixins are a great pattern for sharing common logic between modules
+    when inheritance is not suitable. The advantage of mixins is that you can
+    include multiple ones, compared to inheritance where only one class can be
+    inherited from.</p></div></div>
+
+{% endraw %}
+

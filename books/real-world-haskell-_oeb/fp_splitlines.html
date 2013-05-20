@@ -1,0 +1,243 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: fp_framework.html
+next: fp_infix.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="fp_framework.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="fp_infix.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="fp_splitlines" class="calibre27" id="fp_splitlines"></a><h3 id="title-IDATONVC" class="docSection1Title">4.3. Warming Up: Portably Splitting Lines of Text</h3><a name="x_Y6" class="calibre27" id="x_Y6"></a><p class="docText">Haskell<a name="ch04-textsplitting" class="calibre27" id="ch04-textsplitting"></a> provides a built-in function, <i class="docEmphasis">lines</i>,<a name="I_indexterm4_d1e8596" class="calibre27" id="I_indexterm4_d1e8596"></a> that lets us split a text string on line boundaries. It
+    returns a list of strings with line termination characters omitted:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type lines</b>
+lines :: String -&gt; [String]
+ghci&gt; <b class="calibre40">lines "line 1\nline 2"</b>
+["line 1","line 2"]
+ghci&gt; <b class="calibre40">lines "foo\n\nbar\n"</b>
+["foo","","bar"]</pre><a name="x_Z6" class="calibre27" id="x_Z6"></a><p class="docText">While <i class="docEmphasis">lines</i> looks
+    useful, it relies on us reading a file in "text mode"
+    <a name="I_indexterm4_d1e8624" class="calibre27" id="I_indexterm4_d1e8624"></a>in order to work. Text mode is a feature common to many
+    programming languages; it provides a special behavior when we read and
+    write files on Windows. When we read a file in text mode, the file I/O
+    library translates the line-ending sequence <tt class="calibre34">"\r\n"</tt> (carriage
+    return followed by newline)<a name="I_indexterm4_d1e8631" class="calibre27" id="I_indexterm4_d1e8631"></a><a name="I_indexterm4_d1e8634" class="calibre27" id="I_indexterm4_d1e8634"></a><a name="I_indexterm4_d1e8638" class="calibre27" id="I_indexterm4_d1e8638"></a><a name="I_indexterm4_d1e8641" class="calibre27" id="I_indexterm4_d1e8641"></a> to <tt class="calibre34">"\n"</tt> (newline alone), and it does the
+    reverse when we write a file. On Unix-like systems, text mode does not
+    perform any translation. As a result of this difference, if we read a file
+    on one platform that was written on the other, the line endings are likely
+    to become a mess. (Both <i class="docEmphasis">readFile</i> and
+    <i class="docEmphasis">writeFile</i> operate in text
+    mode.)</p><pre class="calibre39">ghci&gt; <b class="calibre40">lines "a\r\nb"</b>
+["a\r","b"]
+</pre><a name="x_a6" class="calibre27" id="x_a6"></a><p class="docText">The <i class="docEmphasis">lines</i> function
+    splits only on newline characters, leaving carriage returns dangling at
+    the ends of lines. If we read a Windows-generated text file on a Linux or
+    Unix box, we'll get trailing carriage returns at the end of each
+    line.</p><a name="x_b6" class="calibre27" id="x_b6"></a><p class="docText">We have comfortably used Python's "universal
+    newline" <a name="I_indexterm4_d1e8670" class="calibre27" id="I_indexterm4_d1e8670"></a><a name="I_indexterm4_d1e8673" class="calibre27" id="I_indexterm4_d1e8673"></a>support for years; this transparently handles Unix and
+    Windows line-ending conventions for us. We would like to provide something
+    similar in Haskell.</p><a name="x_d6" class="calibre27" id="x_d6"></a><p class="docText">Since we are still early in our career of reading Haskell
+    code, we will discuss our Haskell implementation in some detail:</p><pre class="calibre39">-- file: ch04/SplitLines.hs
+splitLines :: String -&gt; [String]</pre><br class="calibre48"/>
+<a name="x_aC1" class="calibre27" id="x_aC1"></a><p class="docText">Our function's type signature indicates that it accepts a
+    single string, the contents of a file with some unknown line-ending
+    convention. It returns a list of strings, representing each line from the
+    file:</p><pre class="calibre39">-- file: ch04/SplitLines.hs
+splitLines [] = []
+splitLines cs =
+    let (pre, suf) = break isLineTerminator cs
+    in  pre : case suf of 
+                ('\r':'\n':rest) -&gt; splitLines rest
+                ('\r':rest)      -&gt; splitLines rest
+                ('\n':rest)      -&gt; splitLines rest
+                _                -&gt; []
+
+isLineTerminator c = c == '\r' || c == '\n'</pre><br class="calibre48"/>
+<a name="x_bC1" class="calibre27" id="x_bC1"></a><p class="docText">Before we dive into detail, notice first how we organized
+    our code. We presented the important pieces of code first, keeping the
+    definition of <i class="docEmphasis">isLineTerminator</i> until
+    later. Because we have given the helper function a readable name, we can
+    guess what it does even before we've read it, which eases the smooth
+    "flow" of reading the code.</p><a name="x_e6" class="calibre27" id="x_e6"></a><p class="docText">The <tt class="calibre34">Prelude</tt> defines a function named
+    <i class="docEmphasis">break</i> that we can use to partition a
+    list into two parts. It takes a function as its first parameter. That
+    function must examine an element of the list and return a
+    Bool to indicate whether to break the list at that point. The
+    <i class="docEmphasis">break</i> function<a name="I_indexterm4_d1e8710" class="calibre27" id="I_indexterm4_d1e8710"></a> returns a pair, which consists of the sublist consumed
+    before the predicate returned <tt class="calibre34">true</tt> (the
+    <span class="docEmphasis">prefix</span>) and the rest of the list (the
+    <span class="docEmphasis">suffix</span>):</p><pre class="calibre39">ghci&gt; <b class="calibre40">break odd [2,4,5,6,8]</b>
+([2,4],[5,6,8])
+ghci&gt; <b class="calibre40">:module +Data.Char</b>
+ghci&gt; <b class="calibre40">break isUpper "isUpper"</b>
+("is","Upper")</pre><a name="x_g6" class="calibre27" id="x_g6"></a><p class="docText">Since we need only to match a single carriage return or
+    newline at a time, examining each element of the list one by one is good
+    enough for our needs.</p><a name="x_cC1" class="calibre27" id="x_cC1"></a><p class="docText">The first equation of <i class="docEmphasis">splitLines</i> indicates that if we match an empty
+    string, we have no further work to do.</p><a name="x_h6" class="calibre27" id="x_h6"></a><p class="docText">In the second equation, we first apply <i class="docEmphasis">break</i> to our input string. The prefix is the
+    substring before a line terminator, and the suffix is the remainder of the
+    string. The suffix will include the line terminator, if any is
+    present.</p><a name="x_dC1" class="calibre27" id="x_dC1"></a><p class="docText">The <tt class="calibre34">pre :</tt> expression tells us that we should
+    add the <span class="docMonofont">pre</span> value to the front of the list of lines. We
+    then use a <tt class="calibre34">case</tt> expression to inspect
+    the suffix, so we can decide what to do next. The result of the <tt class="calibre34">case</tt> expression will be used as the second
+    argument to<a name="I_indexterm4_d1e8766" class="calibre27" id="I_indexterm4_d1e8766"></a> the <i class="docEmphasis">(:)</i> list
+    constructor.</p><a name="x_i6" class="calibre27" id="x_i6"></a><p class="docText">The first pattern matches a string that begins with a
+    carriage return, followed by a newline. The variable
+    <span class="docMonofont">rest</span> is bound to the remainder of the string. The other
+    patterns are similar, so they ought to be easy to follow.</p><a name="x_k6" class="calibre27" id="x_k6"></a><p class="docText">A prose description of a Haskell function isn't
+    necessarily easy to follow. We can gain a better understanding by stepping
+    into <i class="docEmphasis">ghci</i> and observing the behavior of
+    the function in different circumstances.</p><a name="x_l6" class="calibre27" id="x_l6"></a><p class="docText">Let's start by partitioning a string that doesn't contain
+    any line terminators:</p><pre class="calibre39">ghci&gt; <b class="calibre40">splitLines "foo"</b>
+["foo"]
+</pre><a name="x_m6" class="calibre27" id="x_m6"></a><p class="docText">Here, our application of <i class="docEmphasis">break</i> never finds a line terminator, so the
+    suffix it returns is empty:</p><pre class="calibre39">ghci&gt; <b class="calibre40">break isLineTerminator "foo"</b>
+("foo","")
+</pre><a name="x_n6" class="calibre27" id="x_n6"></a><p class="docText">The <tt class="calibre34">case</tt> expression in
+    <i class="docEmphasis">splitLines</i> must thus be matching on
+    the fourth branch, and we're finished. What about a slightly more
+    interesting case?</p><pre class="calibre39">ghci&gt; <b class="calibre40">splitLines "foo\r\nbar"</b>
+["foo","bar"]
+</pre><a name="x_o6" class="calibre27" id="x_o6"></a><p class="docText">Our first application of <i class="docEmphasis">break</i> gives us a nonempty suffix:</p><pre class="calibre39">ghci&gt; <b class="calibre40">break isLineTerminator "foo\r\nbar"</b>
+("foo","\r\nbar")
+</pre><a name="x_p6" class="calibre27" id="x_p6"></a><p class="docText">Because the suffix begins with a carriage return followed
+    by a newline, we match on the first branch of the <tt class="calibre34">case</tt> expression. This gives us
+    <span class="docMonofont">pre</span> bound to <tt class="calibre34">"foo"</tt>, and
+    <span class="docMonofont">suf</span> bound to <tt class="calibre34">"bar"</tt>. We apply <i class="docEmphasis">splitLines</i> recursively, this time on
+    <tt class="calibre34">"bar"</tt> alone:</p><pre class="calibre39">ghci&gt; <b class="calibre40">splitLines "bar"</b>
+["bar"]
+</pre><a name="x_q6" class="calibre27" id="x_q6"></a><p class="docText">The result is that we construct a list whose head is
+    <tt class="calibre34">"foo"</tt> and whose tail is <tt class="calibre34">["bar"]</tt>:</p><pre class="calibre39">ghci&gt; <b class="calibre40">"foo" : ["bar"]</b>
+["foo","bar"]
+</pre><a name="x_eC1" class="calibre27" id="x_eC1"></a><p class="docText">This sort of experimenting with <i class="docEmphasis">ghci</i> is a helpful way to understand and debug
+    the behavior of a piece of code. It has an even more important benefit
+    that is almost accidental in nature. It can be tricky to test complicated
+    code from <i class="docEmphasis">ghci</i>, so we will tend to
+    write smaller functions, which can further help the readability of our
+    code.</p><a name="x_fC1" class="calibre27" id="x_fC1"></a><p class="docText">This style of creating and reusing small, powerful pieces
+    of code is a fundamental part of functional programming.</p><a name="fp_splitlinesd1e8951" class="calibre27" id="fp_splitlinesd1e8951"></a><h4 id="title-IDAA0NVC" class="docSection1Title">4.3.1. A Line-Ending Conversion Program</h4><a name="x_gC1" class="calibre27" id="x_gC1"></a><p class="docText">Let's hook our <i class="docEmphasis">splitLines</i> function into the little framework
+      that we wrote earlier. Make a copy of the <i class="docEmphasis">Interact.hs</i> source file; let's call the new
+      file <i class="docEmphasis">FixLines.hs</i>. Add the <i class="docEmphasis">splitLines</i> function to the new source file.
+      Since our function must produce a single <tt class="calibre34">String</tt>, we must
+      stitch the list of lines back together. The <tt class="calibre34">Prelude</tt>
+      provides an <i class="docEmphasis">unlines</i>
+      function<a name="I_indexterm4_d1e8913" class="calibre27" id="I_indexterm4_d1e8913"></a> that concatenates a list of strings, adding a newline to
+      the end of each:</p><pre class="calibre39">-- file: ch04/SplitLines.hs
+fixLines :: String -&gt; String
+fixLines input = unlines (splitLines input)</pre><br class="calibre48"/>
+<a name="x_hC1" class="calibre27" id="x_hC1"></a><p class="docText">If we replace the <i class="docEmphasis">id</i> function with <i class="docEmphasis">fixLines</i>, we can compile an executable that
+      will convert a text file to our system's native line ending:</p><pre class="calibre39">$<b class="calibre40">ghc --make FixLines</b>
+[1 of 1] Compiling Main             ( FixLines.hs, FixLines.o )
+Linking FixLines ...</pre><a name="x_iC1" class="calibre27" id="x_iC1"></a><p class="docText">If you are on a Windows system, find and download a
+      text file that was created on a Unix system (for example,
+      ]). Open it in the
+      standard Notepad text editor. The lines should all run together, making
+      the file almost unreadable. Process the file using the
+      <i class="docEmphasis">gpl-3.0.txt</i> [<tt class="calibre34">FixLines</tt> command you just created, and open the
+      output file in Notepad. The line endings should now be fixed up.</p><a name="x_jC1" class="calibre27" id="x_jC1"></a><p class="docText">On Unix-like systems, the standard pagers and editors
+      hide Windows line endings, making it more difficult to verify that
+      <tt class="calibre34">FixLines</tt> is actually eliminating them. Here are a few
+      commands that should help:</p><pre class="calibre39">$<b class="calibre40">file gpl-3.0.txt</b>
+gpl-3.0.txt: ASCII English text
+$ <b class="calibre40">unix2dos gpl-3.0.txt</b>
+unix2dos: converting file gpl-3.0.txt to DOS format ...
+$ <b class="calibre40">file gpl-3.0.txt</b>
+gpl-3.0.txt: ASCII English text, with CRLF line terminators</pre>
+<a href="21061538.html" class="calibre2"><img src="pixel.gif" alt="" border="0" class="calibre31"/></a><ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="fp_framework.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="fp_infix.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

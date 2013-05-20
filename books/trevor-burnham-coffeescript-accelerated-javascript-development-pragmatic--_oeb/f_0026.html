@@ -1,0 +1,138 @@
+---
+layout: page
+title: "CoffeeScript (for jay muratore)"
+prev: f_0025.html
+next: f_0027.html
+book_path: books/trevor-burnham-coffeescript-accelerated-javascript-development-pragmatic--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="sec.functionsExercises" class="calibre13">2.9 Exercises</h2>
+<ol class="calibre24">
+<li class="calibre3">
+<p id="N117A5" class="calibre5">
+          The following function will remove all elements from the given array and return the result of the <code class="cf">splice</code>, which in this case will be a copy of the original array. (We’ll learn more about that particular function in <a href="f_0029.html#sec.sliceSplice">​<em class="emph">Slicing and Splicing</em>​</a>.)
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">clearArray = (arr) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  arr.splice 0, arr.length</code>
+</td>
+</tr>
+</table>
+<p id="N117BE" class="calibre5">
+           How would I make <code class="cf">clearArray</code> return the cleared array instead? How would I make it return nothing at all?
+        </p>
+<p id="N117C4" class="calibre5">
+          (While this is a trivial example, marking functions as returning nothing often allows the CoffeeScript compiler to generate more efficient output, especially when loops are involved.)
+        </p>
+</li>
+<li class="calibre3">
+<p id="N117C8" class="calibre5">
+          Write a function called <code class="cf">run</code> that takes a function as its first argument and passes all additional arguments to the called function. That is, <code class="cf">run func, a, b</code> should be equivalent to <code class="cf">func(a, b)</code>. Hint: This shouldn’t take more than one line.
+        </p>
+</li>
+<li class="calibre3">
+<p id="N117D5" class="calibre5">
+          Implicit parentheses always go to the end of the expression but not necessarily to the end of the line. Find a case where implicit parentheses fall short of the end of the line.
+        </p>
+</li>
+<li class="calibre3">
+<p id="N117D9" class="calibre5">
+          When you use explicit parentheses in a function call, CoffeeScript doesn’t allow any whitespace after the function name. For instance, <code class="cf">f (a, b)</code> is a syntax error. Can you think of a reason why this rule is in place? (Hint: What does <code class="cf">f (g) h</code> mean?)
+        </p>
+</li>
+<li class="calibre3">
+<p id="N117E3" class="calibre5">
+          What is the context of the function call <code class="cf">foo.bar.baz()</code>? What about <code class="cf">@hoo()</code>? <code class="cf">@hoo.rah()</code>?
+        </p>
+</li>
+<li class="calibre3">
+<p id="N117F0" class="calibre5">
+<code class="cf">x</code> refers to a variable that obeys scoping rules, while <code class="cf">@x</code> refers to a variable that obeys context rules. The two will never be equivalent—they may reference the same object, but writing <code class="cf">x = y</code> would not affect <code class="cf">@x</code> and vice versa.) But <code class="cf">what.x</code> and <code class="cf">@x</code>
+<span class="emph">can</span> be equivalent. If they are, then what is <code class="cf">what</code>?
+        </p>
+<p id="N11809" class="calibre5">
+          To find the answer, add a very short line to this code that will generate the output “quantum entanglement”:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">xInContext = <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  console.log @x</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">what = {x: <em class="string">'quantum entanglement'</em>}</code>
+</td>
+</tr>
+</table>
+</li>
+<li class="calibre3">
+<p id="N11823" class="calibre5">
+          Will this code work?
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">x = <strong class="prompt">true</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">showAnswer = (x = x) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  console.log <strong class="prompt">if</strong> x <strong class="prompt">then</strong> <em class="string">'It works!'</em> <strong class="prompt">else</strong> <em class="string">'Nope.'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">showAnswer()</code>
+</td>
+</tr>
+</table>
+<p id="N1184C" class="calibre5">
+          Explain why or why not.
+        </p>
+</li>
+</ol>
+
+<div class="copyright">Copyright © 2011, The Pragmatic Bookshelf.</div>
+
+
+
+
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

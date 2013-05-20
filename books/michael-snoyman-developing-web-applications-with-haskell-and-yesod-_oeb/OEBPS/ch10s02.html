@@ -1,0 +1,164 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch10.html
+next: OEBPS/ch10s03.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Solving the Boundary Issue"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect110_d1e4824" class="calibre1"></a>Solving the Boundary Issue</h1></div></div></div><p class="calibre7">Suppose you are storing information on people in a SQL database. Your table might look
+            something like:</p><a id="I_programlisting10_d1e4829" class="firstname"></a><pre class="programlistinghaskell">CREATE TABLE Person(id SERIAL PRIMARY KEY, name VARCHAR NOT NULL, age INTEGER)</pre><p class="calibre7">And if you are using a database like PostgreSQL, you can be guaranteed that the database
+      will never store some arbitrary text in your age field. (The same cannot be said of SQLite,
+      but let’s forget about that for now.) To mirror this database table, you would likely create a
+      Haskell data type that looks something like:</p><a id="I_programlisting10_d1e4833" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">data</code> <code class="kt">Person</code> <code class="ow">=</code> <code class="kt">Person</code>
+    <code class="p">{</code> <code class="n">personName</code> <code class="ow">::</code> <code class="kt">Text</code>
+    <code class="p">,</code> <code class="n">personAge</code> <code class="ow">::</code> <code class="kt">Int</code>
+    <code class="p">}</code>
+</pre><p class="calibre7">It looks like everything is type safe: the database schema matches our Haskell data types, the database ensures that invalid data can never make it into our data store, and everything is generally awesome. Well, until:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">You want to pull data from the database, and the database layer gives you the data in an untyped format.</p></li><li class="listitem"><p class="calibre7">You want to find everyone older than 32, and you accidently write
+          “thirtytwo” in your SQL statement. Guess what: that will compile just fine,
+          and you won’t find out you have a problem until runtime.</p></li><li class="listitem"><p class="calibre7">You decide you want to find the first 10 people alphabetically. No problem…until
+          you make a typo in your SQL. Once again, you don’t find out until runtime.</p></li></ul></div><p class="calibre7">In dynamic languages, the answers to these issues is unit testing. For everything that
+        <span class="firstname"><em class="calibre4">can</em></span> go wrong, make sure you write a test case. But as I am sure you are
+      aware by now, that doesn’t jive well with the Yesod approach to things. We like to take
+      advantage of Haskell’s strong typing to save us wherever possible, and data storage is no
+      exception.</p><p class="calibre7">So the question remains: how can we use Haskell’s type system to save the day?</p><div class="book" title="Types"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3085888" class="calibre1"></a>Types</h2></div></div></div><p class="calibre7">Like routing, there is nothing intrinsically difficult about type-safe data access. It
+        just requires a lot of monotonous, error prone, boiler plate code. As usual, this means we
+        can use the type system to keep us honest. And to avoid some of the drudgery, we’ll use a
+        sprinkling of Template Haskell.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">Earlier versions of Persistent made much heavier usage of Template Haskell. Starting
+            with 0.6, there is a new architecture inspired by the <code class="function">groundhog</code>
+            package. This approach uses phantom types to carry a lot of the burden.</p></div><p class="calibre7"><code class="literal">PersistValue</code> is the basic building block of Persistent. It is a
+            sum type that can represent data that gets sent to and from a database. Its definition
+            is:</p><a id="I_programlisting10_d1e4869" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">data</code> <code class="kt">PersistValue</code> <code class="ow">=</code> <code class="kt">PersistText</code> <code class="kt">Text</code>
+                  <code class="o">|</code> <code class="kt">PersistByteString</code> <code class="kt">ByteString</code>
+                  <code class="o">|</code> <code class="kt">PersistInt64</code> <code class="kt">Int64</code>
+                  <code class="o">|</code> <code class="kt">PersistDouble</code> <code class="kt">Double</code>
+                  <code class="o">|</code> <code class="kt">PersistBool</code> <code class="kt">Bool</code>
+                  <code class="o">|</code> <code class="kt">PersistDay</code> <code class="kt">Day</code>
+                  <code class="o">|</code> <code class="kt">PersistTimeOfDay</code> <code class="kt">TimeOfDay</code>
+                  <code class="o">|</code> <code class="kt">PersistUTCTime</code> <code class="kt">UTCTime</code>
+                  <code class="o">|</code> <code class="kt">PersistNull</code>
+                  <code class="o">|</code> <code class="kt">PersistList</code> <code class="p">[</code><code class="kt">PersistValue</code><code class="p">]</code>
+                  <code class="o">|</code> <code class="kt">PersistMap</code> <code class="p">[(</code><code class="kt">T</code><code class="o">.</code><code class="kt">Text</code><code class="p">,</code> <code class="kt">PersistValue</code><code class="p">)]</code>
+                  <code class="o">|</code> <code class="kt">PersistForeignKey</code> <code class="kt">ByteString</code> <code class="cm">-- ^ intended especially for MongoDB backend</code>
+</pre><p class="calibre7">Each Persistent backend needs to know how to translate the relevant values into
+        something the database can understand. However, it would be awkward to have to express all
+        of our data simply in terms of these basic types. The next layer is the <code class="literal">PersistField</code> typeclass, which defines how an arbitrary Haskell
+        data type can be marshaled to and from a <code class="literal">PersistValue</code>. A
+          <code class="literal">PersistField</code> correlates to a column in a SQL database.
+        In our person example above, name and age would be our <code class="literal">PersistField</code>s.</p><p class="calibre7">To tie up the user side of the code, our last typeclass is <code class="literal">PersistEntity</code>. An instance of PersistEntity correlates with a table in a
+            SQL database. This typeclass defines a number of functions and some associated types. To
+            review, we have the following correspondence between Persistent and SQL:</p><div class="informaltable"><table class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th class="calibre19">SQL</th><th class="calibre20">Persistent</th></tr></thead><tbody class="calibre21"><tr class="calibre18"><td class="calibre22">Data types (VARCHAR, INTEGER, etc)</td><td class="calibre23">PersistValue</td></tr><tr class="calibre24"><td class="calibre22">Column</td><td class="calibre23">PersistField</td></tr><tr class="calibre18"><td class="calibre25">Table</td><td class="calibre26">PersistEntity</td></tr></tbody></table></div></div><div class="book" title="Code Generation"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3086018" class="calibre1"></a>Code Generation</h2></div></div></div><p class="calibre7">In order to ensure that the PersistEntity instances match up properly with your Haskell
+        data types, Persistent takes responsibility for both. This is also good from a DRY (don’t
+        repeat yourself) perspective: you only need to define your entities once. Let’s see a quick
+        example:</p><a id="I_programlisting10_d1e4922" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE QuasiQuotes, TypeFamilies, GeneralizedNewtypeDeriving, TemplateHaskell, OverloadedStrings, GADTs #-}</code>
+<code class="kr">import</code> <code class="nn">Database.Persist</code>
+<code class="kr">import</code> <code class="nn">Database.Persist.TH</code>
+<code class="kr">import</code> <code class="nn">Database.Persist.Sqlite</code>
+<code class="kr">import</code> <code class="nn">Control.Monad.IO.Class</code> <code class="p">(</code><code class="nf">liftIO</code><code class="p">)</code>
+
+<code class="nf">mkPersist</code> <code class="n">sqlSettings</code> <code class="p">[</code><code class="n">persist</code><code class="o">|</code>
+<code class="kt">Person</code>
+    <code class="n">name</code> <code class="kt">String</code>
+    <code class="n">age</code> <code class="kt">Int</code>
+<code class="o">|</code><code class="p">]</code>
+</pre><p class="calibre7">We use a combination of Template Haskell and Quasi-Quotation (like when defining
+        routes): <code class="function">persist</code> is a quasi-quoter that converts a
+        whitespace-sensitive syntax into a list of entity definitions. (You can also declare your
+        entities in a separate file using <code class="function">persistFile</code>.)
+          <code class="function">mkPersist</code> takes that list of entities and
+        declares:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">One Haskell data type for each entity.</p></li><li class="listitem"><p class="calibre7">A <code class="literal">PersistEntity</code> instance for each data type defined.</p></li></ul></div><p class="calibre7">The example above generates code that looks like the following:</p><a id="I_programlisting10_d1e4947" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE TypeFamilies, GeneralizedNewtypeDeriving, OverloadedStrings, GADTs #-}</code>
+<code class="kr">import</code> <code class="nn">Database.Persist</code>
+<code class="kr">import</code> <code class="nn">Database.Persist.Store</code>
+<code class="kr">import</code> <code class="nn">Database.Persist.Sqlite</code>
+<code class="kr">import</code> <code class="nn">Database.Persist.EntityDef</code>
+<code class="kr">import</code> <code class="nn">Control.Monad.IO.Class</code> <code class="p">(</code><code class="nf">liftIO</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Control.Applicative</code>
+
+<code class="kr">data</code> <code class="kt">Person</code> <code class="ow">=</code> <code class="kt">Person</code>
+    <code class="p">{</code> <code class="n">personName</code> <code class="ow">::</code> <code class="kt">String</code>
+    <code class="p">,</code> <code class="n">personAge</code> <code class="ow">::</code> <code class="kt">Int</code>
+    <code class="p">}</code>
+  <code class="kr">deriving</code> <code class="p">(</code><code class="kt">Show</code><code class="p">,</code> <code class="kt">Read</code><code class="p">,</code> <code class="kt">Eq</code><code class="p">)</code>
+
+<code class="kr">type</code> <code class="kt">PersonId</code> <code class="ow">=</code> <code class="kt">Key</code> <code class="kt">SqlPersist</code> <code class="kt">Person</code>
+
+<code class="kr">instance</code> <code class="kt">PersistEntity</code> <code class="kt">Person</code> <code class="kr">where</code>
+    <code class="cm">-- A Generalized Algebraic Data Type (GADT).</code>
+    <code class="cm">-- This gives us a type-safe approach to matching fields with</code>
+    <code class="cm">-- their data types.</code>
+    <code class="kr">data</code> <code class="kt">EntityField</code> <code class="kt">Person</code> <code class="n">typ</code> <code class="kr">where</code>
+        <code class="kt">PersonId</code>   <code class="ow">::</code> <code class="kt">EntityField</code> <code class="kt">Person</code> <code class="kt">PersonId</code>
+        <code class="kt">PersonName</code> <code class="ow">::</code> <code class="kt">EntityField</code> <code class="kt">Person</code> <code class="kt">String</code>
+        <code class="kt">PersonAge</code>  <code class="ow">::</code> <code class="kt">EntityField</code> <code class="kt">Person</code> <code class="kt">Int</code>
+
+    <code class="kr">type</code> <code class="kt">PersistEntityBackend</code> <code class="kt">Person</code> <code class="ow">=</code> <code class="kt">SqlPersist</code>
+
+    <code class="n">toPersistFields</code> <code class="p">(</code><code class="kt">Person</code> <code class="n">name</code> <code class="n">age</code><code class="p">)</code> <code class="ow">=</code>
+        <code class="p">[</code> <code class="kt">SomePersistField</code> <code class="n">name</code>
+        <code class="p">,</code> <code class="kt">SomePersistField</code> <code class="n">age</code>
+        <code class="p">]</code>
+
+    <code class="n">fromPersistValues</code> <code class="p">[</code><code class="n">nameValue</code><code class="p">,</code> <code class="n">ageValue</code><code class="p">]</code> <code class="ow">=</code> <code class="kt">Person</code>
+        <code class="o">&lt;$&gt;</code> <code class="n">fromPersistValue</code> <code class="n">nameValue</code>
+        <code class="o">&lt;*&gt;</code> <code class="n">fromPersistValue</code> <code class="n">ageValue</code>
+    <code class="n">fromPersistValues</code> <code class="kr">_</code> <code class="ow">=</code> <code class="kt">Left</code> <code class="s">"Invalid fromPersistValues input"</code>
+
+    <code class="cm">-- Information on each field, used internally to generate SQL statements</code>
+    <code class="n">persistFieldDef</code> <code class="kt">PersonId</code> <code class="ow">=</code> <code class="kt">FieldDef</code>
+        <code class="p">(</code><code class="kt">HaskellName</code> <code class="s">"Id"</code><code class="p">)</code>
+        <code class="p">(</code><code class="kt">DBName</code> <code class="s">"id"</code><code class="p">)</code>
+        <code class="p">(</code><code class="kt">FTTypeCon</code> <code class="kt">Nothing</code> <code class="s">"PersonId"</code><code class="p">)</code>
+        <code class="kt">[]</code>
+    <code class="n">persistFieldDef</code> <code class="kt">PersonName</code> <code class="ow">=</code> <code class="kt">FieldDef</code>
+        <code class="p">(</code><code class="kt">HaskellName</code> <code class="s">"name"</code><code class="p">)</code>
+        <code class="p">(</code><code class="kt">DBName</code> <code class="s">"name"</code><code class="p">)</code>
+        <code class="p">(</code><code class="kt">FTTypeCon</code> <code class="kt">Nothing</code> <code class="s">"String"</code><code class="p">)</code>
+        <code class="kt">[]</code>
+    <code class="n">persistFieldDef</code> <code class="kt">PersonAge</code> <code class="ow">=</code> <code class="kt">FieldDef</code>
+        <code class="p">(</code><code class="kt">HaskellName</code> <code class="s">"age"</code><code class="p">)</code>
+        <code class="p">(</code><code class="kt">DBName</code> <code class="s">"age"</code><code class="p">)</code>
+        <code class="p">(</code><code class="kt">FTTypeCon</code> <code class="kt">Nothing</code> <code class="s">"Int"</code><code class="p">)</code>
+        <code class="kt">[]</code>
+</pre><p class="calibre7">As you might expect, our <code class="literal">Person</code> data type closely
+        matches the definition we gave in the original Template Haskell version. We also have a
+        Generalized Algebraic Data Type (GADT) that gives a separate constructor for each field. This
+        GADT encodes both the type of the entity and the type of the field. We use its constructors
+        throughout Persistent, such as to ensure that when we apply a filter, the types of the
+        filtering value match the field.</p><p class="calibre7">We can use the generated <code class="literal">Person</code> type like any other Haskell type, and
+            then pass it off to other Persistent functions.</p><a id="I_programlisting10_d1e4962" class="firstname"></a><pre class="programlistinghaskell"><code class="nf">main</code> <code class="ow">=</code> <code class="n">withSqliteConn</code> <code class="s">":memory:"</code> <code class="o">$</code> <code class="n">runSqlConn</code> <code class="o">$</code> <code class="kr">do</code>
+    <code class="n">michaelId</code> <code class="ow">&lt;-</code> <code class="n">insert</code> <code class="o">$</code> <code class="kt">Person</code> <code class="s">"Michael"</code> <code class="mi">26</code>
+    <code class="n">michael</code> <code class="ow">&lt;-</code> <code class="n">get</code> <code class="n">michaelId</code>
+    <code class="n">liftIO</code> <code class="o">$</code> <code class="n">print</code> <code class="n">michael</code>
+</pre><p class="calibre7">We start off with some standard database connection code. In this case, we used the single-connection functions. Persistent also comes built in with connection pool functions, which we will generally want to use in production.</p><p class="calibre7">In this example, we have seen two functions: <code class="literal">insert</code>
+        creates a new record in the database and returns its ID. Like everything else in Persistent,
+        IDs are type safe. We’ll get into more details of how these IDs work later. So when you call
+          <code class="literal">insert $ Person "Michael" 25</code>, it gives you a value back
+        of type <code class="literal">PersonId</code>.</p><p class="calibre7">The next function we see is <code class="literal">get</code>, which attempts to load a value from
+            the database using an <code class="literal">Id</code>. In Persistent, you never need to
+            worry that you are using the key from the wrong table: trying to load up a different
+            entity (like <code class="literal">House</code>) using a <code class="literal">PersonId</code> will
+            never compile.</p></div><div class="book" title="PersistStore"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3086224" class="calibre1"></a>PersistStore</h2></div></div></div><p class="calibre7">One last detail is left unexplained from the previous example: what are those
+                <code class="literal">withSqliteConn</code> and <code class="literal">runSqlConn</code> functions doing, and
+            what is that monad that our database actions are running in?</p><p class="calibre7">All database actions need to occur within an instance of <code class="literal">PersistStore</code>. As its name implies, every data store (PostgreSQL, SQLite,
+            MongoDB) has an instance of <code class="literal">PersistStore</code>. This is where all the
+            translations from <code class="literal">PersistValue</code> to database-specific values
+            occur, where SQL query generation happens, and so on.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">As you can imagine, even though <code class="literal">PersistStore</code> provides a safe,
+                well-typed interface to the outside world, there are a lot of database interactions
+                that could go wrong. However, by testing this code automatically and thoroughly in a
+                single location, we can centralize our error-prone code and make sure it is as
+                bug-free as possible.</p></div><p class="calibre7"><code class="literal">withSqliteConn</code> creates a single connection to a database using its
+            supplied connection string. For our test cases, we will use <code class="literal">:memory:</code>,
+            which uses an in-memory database. <code class="literal">runSqlConn</code> uses that connection to
+            run the inner action. Both SQLite and PostgreSQL share the same instance of
+                <code class="literal">PersistStore</code>: <code class="literal">SqlPersist</code>.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">There are actually a few other typeclasses: <code class="literal">PersistUpdate</code> and <code class="literal">PersistQuery</code>. Different
+          typeclasses provide different functionality, which allows us to write backends that use
+          simpler data stores (e.g., Redis) even though they can’t provide us all the high-level
+          functionality available in Persistent.</p></div><p class="calibre7">One important thing to note is that everything that occurs inside a single call to
+          <code class="literal">runSqlConn</code> runs in a single transaction. This has two
+        important implications:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">For many databases, committing a transaction can be a costly activity. By putting multiple steps into a single transaction, you can speed up code dramatically.</p></li><li class="listitem"><p class="calibre7">If an exception is thrown anywhere inside a single call to <code class="literal">runSqlConn</code>,
+                all actions will be rolled back (assuming your backend has rollback support).</p></li></ul></div></div></div></div>
+
+{% endraw %}
+

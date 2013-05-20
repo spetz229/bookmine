@@ -1,0 +1,34 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/apcs07.html
+next: OEBPS/apcs09.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Selectors"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect1_d1e16552" class="calibre1"></a>Selectors</h1></div></div></div><p class="calibre3"><a id="I_indexterm_d1e16556" class="calibre1"></a><a id="I_indexterm_d1e16561" class="calibre1"></a>CSS3 gives you a bunch of new selectors for targeting
+    elements:</p><div class="book"><dl class="book"><dt class="calibre8"><span class="calibre1">:<code class="literal">first-child</code></span></dt><dd class="calibre9"><p class="calibre3">Selects the first item in the selector</p></dd><dt class="calibre8"><span class="calibre1">:<code class="literal">last-child</code></span></dt><dd class="calibre9"><p class="calibre3">Selects the last item in the selector</p></dd><dt class="calibre8"><span class="calibre1">:<code class="literal">only-child</code></span></dt><dd class="calibre9"><p class="calibre3">Selects elements with only one child</p></dd><dt class="calibre8"><span class="calibre1">:<code class="literal">target</code></span></dt><dd class="calibre9"><p class="calibre3">Selects elements targeted in the current URL’s hash</p></dd><dt class="calibre8"><span class="calibre1">:<code class="literal">checked</code></span></dt><dd class="calibre9"><p class="calibre3">Selects checked checkboxes</p></dd></dl></div><p class="calibre3">Selectors I want to cover in greater detail are listed below.</p><div class="book" title="Nth Child"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2949159" class="calibre12"></a>Nth Child</h2></div></div></div><p class="calibre3"><code class="literal">:nth-child</code> <a id="I_indexterm_d1e16617" class="calibre1"></a>lets you alternate styling for every
+      <em class="calibre4">n</em> children. For example, this selects every third
+      child:</p><pre class="screen">#example:nth-child( 3n ) { /* ... */ }</pre><p class="calibre3">You can use this to select even or odd children:</p><pre class="screen">/* Even children */
+#example:nth-child( 2n )   { /* ... */ }
+#example:nth-child( even ) { /* ... */ }
+
+/* Odd children */
+#example:nth-child( 2n+1 ) { /* ... */ }
+#example:nth-child( odd )  { /* ... */ }</pre><p class="calibre3">You can also reverse the selector:</p><pre class="screen"> /* Last child */
+ #example:nth-last-child( 1 )</pre><p class="calibre3">In fact, <code class="literal">:first-child</code> is equivalent to
+      <code class="literal">:nth-child(1)</code>, and <code class="literal">:last-child</code> is
+      equivalent to <code class="literal">:nth-last-child(1)</code>.</p></div><div class="book" title="Direct Descendants"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2949237" class="calibre12"></a>Direct Descendants</h2></div></div></div><p class="calibre3"><a id="I_indexterm_d1e16653" class="calibre1"></a><a id="I_indexterm_d1e16656" class="calibre1"></a>You can limit the selector to only directly descendant
+      children by using the greater-than symbol,
+      <code class="literal">&gt;</code>:<code class="literal"></code></p><pre class="screen">/* Only directly descendant divs */
+#example &gt; div { }</pre></div><div class="book" title="Selector Negation"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2949276" class="calibre12"></a>Selector Negation</h2></div></div></div><p class="calibre3"><a id="I_indexterm_d1e16670" class="calibre1"></a>You can negate selectors by using <code class="literal">:not</code>, which you can pass a simple selector. At
+      the moment, negation doesn’t support the more complex selectors, like
+      <code class="literal">p:not(h1 + p)</code>:</p><pre class="screen">/* Only directly descendant children, except ones with the "current" class */
+#example &gt; *:not(.current) {
+  display: none
+}</pre><p class="calibre3">Browser support:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre3">Firefox: full support</p></li><li class="listitem"><p class="calibre3">Chrome: full support</p></li><li class="listitem"><p class="calibre3">Safari: full support</p></li><li class="listitem"><p class="calibre3">IE &gt;= 9.0: full support</p></li><li class="listitem"><p class="calibre3">Opera: full support</p></li></ul></div></div></div></div>
+
+{% endraw %}
+

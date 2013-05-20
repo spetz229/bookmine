@@ -1,0 +1,77 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch10s07.html
+next: OEBPS/ch10s09.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Relations"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect110_d1e5696" class="calibre1"></a>Relations</h1></div></div></div><p class="calibre7">Persistent allows references between your data types in a manner that is consistent with
+            supporting non-SQL databases. We do this by embedding an ID in the related entity. So if
+            a person has many cars:</p><a id="I_programlisting10_d1e5701" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE QuasiQuotes, TypeFamilies, GeneralizedNewtypeDeriving, TemplateHaskell,</code>
+<code class="cm">             OverloadedStrings, GADTs, FlexibleContexts #-}</code>
+<code class="kr">import</code> <code class="nn">Database.Persist</code>
+<code class="kr">import</code> <code class="nn">Database.Persist.Sqlite</code>
+<code class="kr">import</code> <code class="nn">Database.Persist.TH</code>
+<code class="kr">import</code> <code class="nn">Control.Monad.IO.Class</code> <code class="p">(</code><code class="nf">liftIO</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Data.Time</code>
+
+<code class="nf">share</code> <code class="p">[</code><code class="n">mkPersist</code> <code class="n">sqlSettings</code><code class="p">,</code> <code class="n">mkMigrate</code> <code class="s">"migrateAll"</code><code class="p">]</code> <code class="p">[</code><code class="n">persist</code><code class="o">|</code>
+<code class="kt">Person</code>
+    <code class="n">name</code> <code class="kt">String</code>
+<code class="kt">Car</code>
+    <code class="n">ownerId</code> <code class="kt">PersonId</code> <code class="kt">Eq</code>
+    <code class="n">name</code> <code class="kt">String</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">withSqliteConn</code> <code class="s">":memory:"</code> <code class="o">$</code> <code class="n">runSqlConn</code> <code class="o">$</code> <code class="kr">do</code>
+    <code class="n">runMigration</code> <code class="n">migrateAll</code>
+    <code class="n">bruce</code> <code class="ow">&lt;-</code> <code class="n">insert</code> <code class="o">$</code> <code class="kt">Person</code> <code class="s">"Bruce Wayne"</code>
+    <code class="n">insert</code> <code class="o">$</code> <code class="kt">Car</code> <code class="n">bruce</code> <code class="s">"Bat Mobile"</code>
+    <code class="n">insert</code> <code class="o">$</code> <code class="kt">Car</code> <code class="n">bruce</code> <code class="s">"Porsche"</code>
+    <code class="cm">-- this could go on a while</code>
+    <code class="n">cars</code> <code class="ow">&lt;-</code> <code class="n">selectList</code> <code class="p">[</code><code class="kt">CarOwnerId</code> <code class="o">==.</code> <code class="n">bruce</code><code class="p">]</code> <code class="kt">[]</code>
+    <code class="n">liftIO</code> <code class="o">$</code> <code class="n">print</code> <code class="n">cars</code>
+</pre><p class="calibre7">Using this technique, you can define one-to-many relationships. To define many-to-many
+            relationships, we need a join entity, which has a one-to-many relationship with each of
+            the original tables. It is also a good idea to use uniqueness constraints on these. For
+            example, to model a situation where we want to track which people have shopped in which
+            stores:</p><a id="I_programlisting10_d1e5705" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE QuasiQuotes, TypeFamilies, GeneralizedNewtypeDeriving, TemplateHaskell,</code>
+<code class="cm">             OverloadedStrings, GADTs, FlexibleContexts #-}</code>
+<code class="kr">import</code> <code class="nn">Database.Persist</code>
+<code class="kr">import</code> <code class="nn">Database.Persist.Sqlite</code>
+<code class="kr">import</code> <code class="nn">Database.Persist.TH</code>
+<code class="kr">import</code> <code class="nn">Data.Time</code>
+
+<code class="nf">share</code> <code class="p">[</code><code class="n">mkPersist</code> <code class="n">sqlSettings</code><code class="p">,</code> <code class="n">mkMigrate</code> <code class="s">"migrateAll"</code><code class="p">]</code> <code class="p">[</code><code class="n">persist</code><code class="o">|</code>
+<code class="kt">Person</code>
+    <code class="n">name</code> <code class="kt">String</code>
+<code class="kt">Store</code>
+    <code class="n">name</code> <code class="kt">String</code>
+<code class="kt">PersonStore</code>
+    <code class="n">personId</code> <code class="kt">PersonId</code>
+    <code class="n">storeId</code> <code class="kt">StoreId</code>
+    <code class="kt">UniquePersonStore</code> <code class="n">personId</code> <code class="n">storeId</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">withSqliteConn</code> <code class="s">":memory:"</code> <code class="o">$</code> <code class="n">runSqlConn</code> <code class="o">$</code> <code class="kr">do</code>
+    <code class="n">runMigration</code> <code class="n">migrateAll</code>
+
+    <code class="n">bruce</code> <code class="ow">&lt;-</code> <code class="n">insert</code> <code class="o">$</code> <code class="kt">Person</code> <code class="s">"Bruce Wayne"</code>
+    <code class="n">michael</code> <code class="ow">&lt;-</code> <code class="n">insert</code> <code class="o">$</code> <code class="kt">Person</code> <code class="s">"Michael"</code>
+
+    <code class="n">target</code> <code class="ow">&lt;-</code> <code class="n">insert</code> <code class="o">$</code> <code class="kt">Store</code> <code class="s">"Target"</code>
+    <code class="n">gucci</code> <code class="ow">&lt;-</code> <code class="n">insert</code> <code class="o">$</code> <code class="kt">Store</code> <code class="s">"Gucci"</code>
+    <code class="n">sevenEleven</code> <code class="ow">&lt;-</code> <code class="n">insert</code> <code class="o">$</code> <code class="kt">Store</code> <code class="s">"7-11"</code>
+
+    <code class="n">insert</code> <code class="o">$</code> <code class="kt">PersonStore</code> <code class="n">bruce</code> <code class="n">gucci</code>
+    <code class="n">insert</code> <code class="o">$</code> <code class="kt">PersonStore</code> <code class="n">bruce</code> <code class="n">sevenEleven</code>
+
+    <code class="n">insert</code> <code class="o">$</code> <code class="kt">PersonStore</code> <code class="n">michael</code> <code class="n">target</code>
+    <code class="n">insert</code> <code class="o">$</code> <code class="kt">PersonStore</code> <code class="n">michael</code> <code class="n">sevenEleven</code>
+</pre></div></div>
+
+{% endraw %}
+

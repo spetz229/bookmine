@@ -1,0 +1,2989 @@
+---
+layout: page
+title: "Seven Databases in Seven Weeks (for Greg Kennedy)"
+prev: f_0030.html
+next: f_0032.html
+book_path: books/seven-databases-in-seven-weeks--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="N141FF" class="calibre18">4.3 Day 2: Working with Big Data</h2>
+<p id="N14203" class="calibre5">
+With Day 1’s table creation and manipulation under our belts, it’s time to start adding some serious data to our wiki table.  Today, we’ll script against the HBase APIs, ultimately streaming Wikipedia content right into our wiki!  Along the way, we’ll pick up some performance tricks for making faster import jobs.  Finally, we’ll poke around in HBase’s internals to see how it partitions data into regions, achieving both performance and disaster recovery goals.
+    </p>
+<h3 class="calibre20">Importing Data, Invoking Scripts</h3>
+<p id="N1420A" class="calibre5">
+One common problem people face when trying a new database system is how to migrate data into it.  Handcrafting <code class="cf">Put</code> operations with static strings, like we did in Day 1, is all well and good, but we can do better.
+      </p>
+<p id="N1422C" class="calibre5">
+Fortunately, pasting commands into the shell is not the only way to execute them.  When you start the HBase shell from the command line, you can specify the name of a JRuby script to run.  HBase will execute that script as though it were entered directly into the shell.  The syntax looks like this:
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​${HBASE_HOME}/bin/hbase shell &lt;your_script&gt; [&lt;optional_arguments&gt; ...]​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1423B" class="calibre5">
+Since we’re interested specifically in “Big Data,” let’s create a script for importing Wikipedia articles into our wiki table.  The WikiMedia Foundation—which oversees Wikipedia, Wictionary, and other projects—periodically publishes data dumps we can use.  These dumps are in the form of enormous XML files.  Here’s an example record from the English Wikipedia:
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">&lt;page&gt;</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">&lt;title&gt;</strong>Anarchism<strong class="prompt">&lt;/title&gt;</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">&lt;id&gt;</strong>12<strong class="prompt">&lt;/id&gt;</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">&lt;revision&gt;</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">&lt;id&gt;</strong>408067712<strong class="prompt">&lt;/id&gt;</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">&lt;timestamp&gt;</strong>2011-01-15T19:28:25Z<strong class="prompt">&lt;/timestamp&gt;</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">&lt;contributor&gt;</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      <strong class="prompt">&lt;username&gt;</strong>RepublicanJacobite<strong class="prompt">&lt;/username&gt;</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      <strong class="prompt">&lt;id&gt;</strong>5223685<strong class="prompt">&lt;/id&gt;</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">&lt;/contributor&gt;</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">&lt;comment&gt;</strong>Undid revision 408057615 by [[Special:Contributions...<strong class="prompt">&lt;/comment&gt;</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">&lt;text</strong> xml:space=<em class="string">"preserve"</em>
+<strong class="prompt">&gt;</strong>{{Redirect|Anarchist|the fictional character|​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​[[bat-smg:Anarkėzmos]]​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">&lt;/text&gt;</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">&lt;/revision&gt;</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">&lt;/page&gt;</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N142BB" class="calibre5">
+Because we were so smart, this contains all the information we’ve already accounted for in our schema: title (row key), text, timestamp, and author. So, we ought to be able to write a script to import revisions without too much trouble.
+</p>
+<h3 class="calibre20">Streaming XML</h3>
+<p id="N142CE" class="calibre5">
+First things first.  We’ll need to parse the huge XML files in a streaming (SAX) fashion, so let’s start with that.  The basic outline for parsing an XML file in JRuby, record by record, looks like this:
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td colspan="2" class="calibre34">
+<a href="http://media.pragprog.com/titles/rwdata/code/hbase/basic_xml_parsing.rb">hbase/basic_xml_parsing.rb</a>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​import <em class="string">'javax.xml.stream.XMLStreamConstants'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​factory = javax.xml.stream.XMLInputFactory.newInstance​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​reader = factory.createXMLStreamReader(java.lang.System.in)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">while</strong> reader.has_next​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  type = reader.next​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">if</strong> type == XMLStreamConstants::START_ELEMENT​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    tag = reader.local_name​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <em class="comment"># do something with tag</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">elsif</strong> type == XMLStreamConstants::CHARACTERS​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    text = reader.text​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <em class="comment"># do something with text</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">elsif</strong> type == XMLStreamConstants::END_ELEMENT​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <em class="comment"># same as START_ELEMENT</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1432D" class="calibre5">
+Breaking this down, there are a few parts worth mentioning.  First, we produce an <code class="cf">XMLStreamReader</code> and wire it up to <code class="cf">java.lang.System.in</code>, which means it’ll be reading from standard input.
+      </p>
+<p id="N14336" class="calibre5">
+Next, we set up a <code class="cf">while</code> loop, which will continuously pull out tokens from the XML stream until there are none left.  Inside the <code class="cf">while</code> loop, we process the current token.  What to do depends on whether the token is the start of an XML tag, the end of a tag, or the text in between.
+      </p>
+<h3 class="calibre20">Streaming Wikipedia</h3>
+<p id="N14343" class="calibre5">
+Now we can combine this basic XML processing framework with our previous exploration of the <code class="cf">HTable</code> and <code class="cf">Put</code> interfaces.  Here’s the resultant script.  Most of it should look familiar, and we’ll discuss a few novel parts.
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td colspan="2" class="calibre34">
+<a href="http://media.pragprog.com/titles/rwdata/code/hbase/import_from_wikipedia.rb">hbase/import_from_wikipedia.rb</a>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​require <em class="string">'time'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​import <em class="string">'org.apache.hadoop.hbase.client.HTable'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​import <em class="string">'org.apache.hadoop.hbase.client.Put'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​import <em class="string">'javax.xml.stream.XMLStreamConstants'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">def</strong> jbytes( *args )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  args.map { |arg| arg.to_s.to_java_bytes }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​factory = javax.xml.stream.XMLInputFactory.newInstance​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​reader = factory.createXMLStreamReader(java.lang.System.in)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span>① </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​document = nil ​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​buffer = nil​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​count = 0​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​table = HTable.new( @hbase.configuration, <em class="string">'wiki'</em> )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span>② </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​table.setAutoFlush( false ) ​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">while</strong> reader.has_next​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  type = reader.next​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span>③ </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">if</strong> type == XMLStreamConstants::START_ELEMENT ​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">case</strong> reader.local_name​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">when</strong> <em class="string">'page'</em> <strong class="prompt">then</strong> document = {}​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">when</strong> /title|timestamp|username|comment|text/ <strong class="prompt">then</strong> buffer = []​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span>④ </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">elsif</strong> type == XMLStreamConstants::CHARACTERS ​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    buffer &lt;&lt; reader.text <strong class="prompt">unless</strong> buffer.nil?​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span>⑤ </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">elsif</strong> type == XMLStreamConstants::END_ELEMENT ​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">case</strong> reader.local_name​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">when</strong> /title|timestamp|username|comment|text/​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      document[reader.local_name] = buffer.join​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">when</strong> <em class="string">'revision'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      key = document[<em class="string">'title'</em>].to_java_bytes​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      ts = ( Time.parse document[<em class="string">'timestamp'</em>] ).to_i​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      p = Put.new( key, ts )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      p.add( *jbytes( <em class="string">"text"</em>, <em class="string">""</em>, document[<em class="string">'text'</em>] ) )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      p.add( *jbytes( <em class="string">"revision"</em>, <em class="string">"author"</em>, document[<em class="string">'username'</em>] ) )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      p.add( *jbytes( <em class="string">"revision"</em>, <em class="string">"comment"</em>, document[<em class="string">'comment'</em>] ) )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      table.put( p )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      count += 1​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      table.flushCommits() <strong class="prompt">if</strong> count % 10 == 0​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      <strong class="prompt">if</strong> count % 500 == 0​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        puts <em class="string">"</em>#{count}<em class="string"> records inserted (</em>#{document[<em class="string">'title'</em>]}<em class="string">)"</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      <strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​table.flushCommits()​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​exit​</code>​</div>
+</td>
+</tr>
+</table>
+<dl class="calibre39">
+<dt class="calibre2">①</dt>
+<dd class="calibre40">
+<p id="N14498" class="calibre5">
+The first difference of note is the introduction of a few variables:
+          </p>
+<ul class="calibre41">
+<li class="calibre23">
+<p id="N1449E" class="calibre5">
+<code class="cf">document</code>: Holds the current article and revision data</p>
+</li>
+<li class="calibre23">
+<p id="N144A4" class="calibre5">
+<code class="cf">buffer</code>: Holds character data for the current field within the document (text, title, author, and so on)</p>
+</li>
+<li class="calibre23">
+<p id="N144AA" class="calibre5">
+<code class="cf">count</code>: Keeps track of how many articles we’ve imported so far</p>
+</li>
+</ul>
+</dd>
+<dt class="calibre2">②</dt>
+<dd class="calibre40">
+<p id="N144B5" class="calibre5">
+Pay special attention to the use of <code class="cf">table</code>.<code class="cf">setAutoFlush(false)</code>.  In HBase, data is <span class="calibre6">automatically flushed</span> to disk periodically.  This is preferred in most applications.          
+By disabling autoflush in our script, any <code class="cf">put</code> operations we execute will be buffered until we call <code class="cf">table</code>.<code class="cf">flushCommits</code>.  This allows us to batch up writes and execute them when it’s convenient for us.
+          </p>
+</dd>
+<dt class="calibre2">③</dt>
+<dd class="calibre40">
+<p id="N144D1" class="calibre5">
+Next, let’s look at what happens in parsing. If the start tag is a <code class="cf">&lt;page&gt;</code>, then reset <code class="cf">document</code> to an empty hash.  Otherwise, if it’s another tag we care about, reset <code class="cf">buffer</code> for storing its text.
+          </p>
+</dd>
+<dt class="calibre2">④</dt>
+<dd class="calibre40">
+<p id="N144E3" class="calibre5">
+We handle character data by appending it to the buffer.
+          </p>
+</dd>
+<dt class="calibre2">⑤</dt>
+<dd class="calibre40">
+<p id="N144EC" class="calibre5">
+For most closing tags, we just stash the buffered contents into the <code class="cf">document</code>.  If the closing tag is a <code class="cf">&lt;/revision&gt;</code>, however, we create a new <code class="cf">Put</code> instance, fill it with the <code class="cf">document</code>’s fields, and submit it to the table.  After that, we use <code class="cf">flushCommits</code> if we haven’t done so in a while and report progress to standard out (<code class="cf">puts</code>).
+</p>
+</dd>
+</dl>
+<h3 id="hbase.bloom" class="calibre20">Compression and Bloom Filters</h3>
+<p id="N14512" class="calibre5">
+We’re almost ready to run the script; we just have one more bit of housecleaning to do first.  The <code class="cf">text</code> column family is going to contain big blobs of text content; it would benefit from some compression. Let’s enable compression and fast lookups:
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​hbase&gt;<strong class="prompt"> alter 'wiki', {NAME=&gt;'text', COMPRESSION=&gt;'GZ', BLOOMFILTER=&gt;'ROW'}</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​0 row(s) in 0.0510 seconds​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14532" class="calibre5">
+HBase supports two compression algorithms: Gzip (GZ) and Lempel-Ziv-Oberhumer (LZO).  The HBase community highly recommends using LZO over Gzip, pretty much unilaterally, but here we’re using GZ. 
+      </p>
+<p id="N1453F" class="calibre5">
+The problem with LZO is the implementation’s license.  While open source, it’s not compatible with Apache’s licensing philosophy, so LZO can’t be bundled with HBase.  Detailed instructions are available online for installing and configuring LZO support.  If you want high-performance compression, get LZO.
+      </p>
+<p id="N14542" class="calibre5">
+A Bloom filter is a really cool data structure that efficiently answers the question, “Have I ever seen this thing before?”  Originally developed by Burton Howard Bloom in 1970 for use in spell-checking applications, Bloom filters have become popular in data storage applications for determining quickly whether a key exists.  If you’re unfamiliar with Bloom filters, they’re explained briefly in <a href="#sb.hbase.bloomfilters">​<em class="calibre6">How Do Bloom Filters Work?</em>​</a>.
+      </p>
+<div class="sidebar" id="sb.hbase.bloomfilters">
+<div class="sidebar-title">How Do Bloom Filters Work?</div>
+<div class="calibre2">
+<p id="N14551" class="calibre5">
+Without going too deep into implementation details, a Bloom filter manages a statically sized array of bits initially set to 0. Each time a new blob of data is presented to the filter, some of the bits are flipped to 1. Determining which bits to flip depends on generating a hash from the data and turning that hash into a set of bit positions.
+        </p>
+<p id="N14559" class="calibre5">
+Later, to test whether the filter has been presented with a particular blob in the past, the filter figures out which bits would have to be 1 and checks them. If any are 0, then the filter can unequivocally say “no.” If all of the bits are 1, then it reports “yes”; chances are it has been presented with that blob before, but false positives are increasingly likely as more blobs are entered.
+        </p>
+<p id="N1455C" class="calibre5">
+This is the trade-off of using a Bloom filter as opposed to a simple hash. A hash will never produce a false positive, but the space needed to store that data is unbounded. Bloom filters use a constant amount of space but will occasionally produce false positives at a predictable rate based on saturation.
+        </p>
+</div>
+</div>
+<p id="N1455F" class="calibre5">
+HBase supports using Bloom filters to determine whether a particular column exists for a given row key (<code class="cf">BLOOMFILTER=&gt;’ROWCOL’</code>) or just whether a given row key exists at all (<code class="cf">BLOOMFILTER=&gt;’ROW’</code>).  The number of columns within a column family and the number of rows are both potentially unbounded.  Bloom filters offer a fast way of determining whether data exists before incurring an expensive disk read.
+      </p>
+<h3 class="calibre20">Engage!</h3>
+<p id="N1456C" class="calibre5">
+Now we’re ready to kick off the script.  Remember that these files are enormous, so downloading and unzipping them is pretty much out of the question.  So, what are we going to do?
+      </p>
+<p id="N1457B" class="calibre5">
+Fortunately, through the magic of *nix pipes, we can download, extract, and feed the XML into the script all at once.  The command looks like this:
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​curl &lt;dump_url&gt; | bzcat | \​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​${HBASE_HOME}/bin/hbase shell import_from_wikipedia.rb​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14591" class="calibre5">
+Note that you should replace <code class="cf">&lt;dump_url&gt;</code> with the URL of a WikiMedia Foundation dump file of some kind.<a id="FNPTR-27" href="f_0033.html#FOOTNOTE-27">[27]</a>  You should use <code class="cf">[project]-latest-pages-articles.xml.bz2</code> for either the English Wikipedia (~6GB)<a id="FNPTR-28" href="f_0033.html#FOOTNOTE-28">[28]</a> or the English Wiktionary (~185MB).<a id="FNPTR-29" href="f_0033.html#FOOTNOTE-29">[29]</a>  These files contain all the most recent revisions of pages in the <code class="cf">Main</code> namespace.  That is, they omit user pages, discussion pages, and so on.
+      </p>
+<p id="N145AF" class="calibre5">
+Plug in the URL and run it!  You should see output like this (eventually):
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​500 records inserted (Ashmore and Cartier Islands)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​1000 records inserted (Annealing)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​1500 records inserted (Ajanta Caves)​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N145C4" class="calibre5">
+It’ll happily chug along as long as you let it or until it encounters an error, but you’ll probably want to shut it off after a while.  When you’re ready to kill the script, press <span class="calibre35">Ctrl</span>+<span class="calibre35">C</span>.  For now, though, let’s leave it running so we can take a peek under the hood and learn about how HBase achieves its horizontal scalability.
+</p>
+<h3 class="calibre20">Introduction to Regions and Monitoring Disk Usage</h3>
+<p id="N145DD" class="calibre5">
+In HBase, rows are kept in order, sorted by the row key.  A region is a chunk of rows, identified by the starting key (inclusive) and ending key (exclusive). Regions never overlap, and each is assigned to a specific region server in the cluster.  In our simplistic stand-alone server, there is only one region server, which will always be responsible for all regions. A fully distributed cluster would consist of many region servers.
+</p>
+<p id="N145F2" class="calibre5">
+So, let’s take a look at your HBase server’s disk usage, which will give us insight into how the data is laid out.  You can inspect HBase’s disk usage by opening a command prompt to the <code class="cf">hbase.rootdir</code> location you specified earlier and executing the <code class="cf">du</code> command. <code class="cf">du</code> is a standard *nix command-line utility that tells you how much space is used by a directory and its children, recursively.  The <code class="cf">-h</code> option tells <code class="cf">du</code> to report numbers in human-readable form.
+      </p>
+<p id="N1460A" class="calibre5">
+Here’s what ours looked like after about 12,000 pages had been inserted and the import was still running:
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">du -h</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​231M    ./.logs/localhost.localdomain,38556,1300092965081​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​231M    ./.logs​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​4.0K    ./.META./1028785192/info​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​12K     ./.META./1028785192/.oldlogs​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​28K     ./.META./1028785192​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​32K     ./.META.​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​12K     ./-ROOT-/70236052/info​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​12K     ./-ROOT-/70236052/.oldlogs​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​36K     ./-ROOT-/70236052​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​40K     ./-ROOT-​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​72M     ./wiki/517496fecabb7d16af7573fc37257905/text​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​1.7M    ./wiki/517496fecabb7d16af7573fc37257905/revision​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​61M     ./wiki/517496fecabb7d16af7573fc37257905/.tmp​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​12K     ./wiki/517496fecabb7d16af7573fc37257905/.oldlogs​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​134M    ./wiki/517496fecabb7d16af7573fc37257905​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​134M    ./wiki​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​4.0K    ./.oldlogs​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​365M    .​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14652" class="calibre5">
+This output tells us a lot about how much space HBase is using and how it’s allocated.  The lines starting with <code class="cf">/wiki</code> describe the space usage for the <code class="cf">wiki</code> table.  The long-named subdirectory  <code class="cf">517496fecabb7d16af7573fc37257905</code> represents an individual region (the only region so far).  Under that, the directories <code class="cf">/text</code> and <code class="cf">/revision</code> correspond to the <code class="cf">text</code> and <code class="cf">revision</code> column families, respectively.  Finally, the last line sums up all these values, telling us that HBase is using 365MB of disk space.
+      </p>
+<p id="N1466A" class="calibre5">
+One more thing.  The first two lines at the top of output, starting with <code class="cf">/.logs</code>, show us the space used by the write-ahead log (WAL) files.  HBase uses write-ahead logging to provide protection against node failures.  This is a fairly typical disaster recovery technique.  For instance, write-ahead logging in file systems is called <span class="calibre6">journaling</span>. In HBase, logs are appended to the WAL before any edit operations (put and increment) are persisted to disk.
+</p>
+<p id="N14683" class="calibre5">
+For performance reasons, edits are not necessarily written to disk immediately.  The system does much better when I/O is buffered and written to disk in chunks.  If the <span class="calibre6">region server</span> responsible for the affected region were to crash during this limbo period, HBase would use the WAL to determine which operations were successful and take corrective action.
+      </p>
+<p id="N14689" class="calibre5">
+Writing to the WAL is optional and enabled by default.  Edit classes like <code class="cf">Put</code> and <code class="cf">Increment</code> have a setter method called <code class="cf">setWriteToWAL</code> that can be used to exclude the operation from being written to the WAL.  Generally you’ll want to keep the default option, but in some instances it might make sense to change it.  For example, if you’re running an import job that you can rerun any time, like our Wikipedia import script, you might want to take the performance benefit of disabling WAL writes over the disaster recovery protection.
+</p>
+<h3 class="calibre20">Regional Interrogation</h3>
+<p id="N1469F" class="calibre5">
+If you let the script run long enough, you’ll see HBase split the table into multiple regions.  Here’s our <code class="cf">du</code> output again, after about 150,000 pages have been added:
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">du -h</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​40K     ./.logs/localhost.localdomain,55922,1300094776865​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​44K     ./.logs​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​24K     ./.META./1028785192/info​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​4.0K    ./.META./1028785192/recovered.edits​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​4.0K    ./.META./1028785192/.tmp​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​12K     ./.META./1028785192/.oldlogs​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​56K     ./.META./1028785192​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​60K     ./.META.​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​4.0K    ./.corrupt​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​12K     ./-ROOT-/70236052/info​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​4.0K    ./-ROOT-/70236052/recovered.edits​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​4.0K    ./-ROOT-/70236052/.tmp​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​12K     ./-ROOT-/70236052/.oldlogs​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​44K     ./-ROOT-/70236052​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​48K     ./-ROOT-​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​138M    ./wiki/0a25ac7e5d0be211b9e890e83e24e458/text​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​5.8M    ./wiki/0a25ac7e5d0be211b9e890e83e24e458/revision​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​4.0K    ./wiki/0a25ac7e5d0be211b9e890e83e24e458/.tmp​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​144M    ./wiki/0a25ac7e5d0be211b9e890e83e24e458​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​149M    ./wiki/15be59b7dfd6e71af9b828fed280ce8a/text​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​6.5M    ./wiki/15be59b7dfd6e71af9b828fed280ce8a/revision​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​4.0K    ./wiki/15be59b7dfd6e71af9b828fed280ce8a/.tmp​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​155M    ./wiki/15be59b7dfd6e71af9b828fed280ce8a​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​145M    ./wiki/0ef3903982fd9478e09d8f17b7a5f987/text​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​6.3M    ./wiki/0ef3903982fd9478e09d8f17b7a5f987/revision​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​4.0K    ./wiki/0ef3903982fd9478e09d8f17b7a5f987/.tmp​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​151M    ./wiki/0ef3903982fd9478e09d8f17b7a5f987​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​135M    ./wiki/a79c0f6896c005711cf6a4448775a33b/text​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​6.0M    ./wiki/a79c0f6896c005711cf6a4448775a33b/revision​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​4.0K    ./wiki/a79c0f6896c005711cf6a4448775a33b/.tmp​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​141M    ./wiki/a79c0f6896c005711cf6a4448775a33b​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​591M    ./wiki​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​4.0K    ./.oldlogs​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​591M    .​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14726" class="calibre5">
+The biggest change is that the old region (<code class="cf">517496fecabb7d16af7573fc37257905</code>) is now gone, replaced by four new ones.  In our stand-alone server, all the regions are served by our singular server, but in a distributed environment, these would be parceled out to the various region servers.
+      </p>
+<p id="N1472C" class="calibre5">
+This raises a few questions, such as “How do the region servers know which regions they’re responsible for serving?” and “How can you find which region (and, by extension, which region server) is serving a given row?”
+      </p>
+<p id="N1472F" class="calibre5">
+If we drop back into the HBase shell, we can query the <code class="cf">.META.</code> table to find out more about the current regions.  <code class="cf">.META.</code> is a special table whose sole purpose is to keep track of all the user tables and which region servers are responsible for serving the regions of those tables.
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​hbase&gt;<strong class="prompt"> scan '.META.', { COLUMNS =&gt; [ 'info:server', 'info:regioninfo' ] }</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14747" class="calibre5">
+Even for a small number of regions, you should get a lot of output.  Here’s a fragment of ours, formatted and truncated for readability:
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ROW​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ wiki,,1300099733696.a79c0f6896c005711cf6a4448775a33b.​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​COLUMN+CELL​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  column=info:server, timestamp=1300333136393, value=localhost.localdomain:3555​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  column=info:regioninfo, timestamp=1300099734090, value=REGION =&gt; {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    NAME =&gt; 'wiki,,1300099733696.a79c0f6896c005711cf6a4448775a33b.',​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    STARTKEY =&gt; '',​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    ENDKEY =&gt; 'Demographics of Macedonia',​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    ENCODED =&gt; a79c0f6896c005711cf6a4448775a33b,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    TABLE =&gt; {{...}}​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ROW​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  wiki,Demographics of Macedonia,1300099733696.0a25ac7e5d0be211b9e890e83e24e458.​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​COLUMN+CELL​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  column=info:server, timestamp=1300333136402, value=localhost.localdomain:35552​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  column=info:regioninfo, timestamp=1300099734011, value=REGION =&gt; {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    NAME =&gt; 'wiki,Demographics of Macedonia,1300099733696.0a25...e458.',​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    STARTKEY =&gt; 'Demographics of Macedonia',​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    ENDKEY =&gt; 'June 30',​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    ENCODED =&gt; 0a25ac7e5d0be211b9e890e83e24e458,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    TABLE =&gt; {{...}}​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14795" class="calibre5">
+Both of the regions listed previously are served by the same server, <code class="cf">localhost.localdomain:35552</code>.  The first region starts at the empty string row (<code class="cf">”</code>) and ends with <code class="cf">’Demographics of Macedonia’</code>.  The second region starts at <code class="cf">’Demographics of Macedonia’</code> and goes to <code class="cf">’June 30’</code>.
+      </p>
+<p id="N147A7" class="calibre5">
+<code class="cf">STARTKEY</code> is inclusive, while <code class="cf">ENDKEY</code> is exclusive.  So, if we were looking for the <code class="cf">’Demographics of Macedonia’</code> row, we’d find it in the second region.
+      </p>
+<p id="N147B2" class="calibre5">
+Since rows are kept in sorted order, we can use the information stored in  <code class="cf">.META.</code> to look up the region and server where any given row should be found.  But where is the <code class="cf">.META.</code> table stored?
+      </p>
+<p id="N147BB" class="calibre5">
+It turns out that the <code class="cf">.META.</code> table is split into regions and served by region servers just like any other table would be.  To find out which servers have which parts of the <code class="cf">.META.</code> table, we have to scan <code class="cf">-ROOT-</code>.
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​hbase&gt;<strong class="prompt"> scan '-ROOT-', { COLUMNS =&gt; [ 'info:server', 'info:regioninfo' ] }</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ROW​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  .META.,,1​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​COLUMN+CELL​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  column=info:server, timestamp=1300333135782, value=localhost.localdomain:35552​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  column=info:regioninfo, timestamp=1300092965825, value=REGION =&gt; {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    NAME =&gt; '.META.,,1',​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    STARTKEY =&gt; '',​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    ENDKEY =&gt; '',​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    ENCODED =&gt; 1028785192,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    TABLE =&gt; {{...}}​</code>​</div>
+</td>
+</tr>
+</table>
+<div class="sidebar">
+<div class="sidebar-title">Where's My TABLE Schema?</div>
+<div class="calibre2">
+<p id="N14800" class="calibre5">
+          The <code class="cf2">TABLE</code> schema has been removed from the example output of <code class="cf2">regioninfo</code> scans.  This reduces clutter, and we’ll be talking about performance-tuning options later.  If you’re dying to see the schema definition for a table, use the <code class="cf2">describe</code> command. Here’s an example:
+        </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre36">
+​<code class="calibre37">​hbase&gt;<strong class="prompt"> describe 'wiki'</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre36">
+​<code class="calibre37">​hbase&gt;<strong class="prompt"> describe '.META.'</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre36">
+​<code class="calibre37">​hbase&gt;<strong class="prompt"> describe '-ROOT-'</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<p id="N1482F" class="calibre5">
+The assignment of regions to region servers, including <code class="cf">.META.</code> regions, is handled by the <span class="calibre6">master</span> node, often referred to as <code class="cf">HBaseMaster</code>.  The master server can also be a region server, performing both duties simultaneously. 
+      </p>
+<p id="N1483E" class="calibre5">
+When a region server fails, the master server steps in and reassigns responsibility for regions previously assigned to the failed node.  The new stewards of those regions would look to the WAL to see what, if any, recovery steps are needed.  If the master server fails, responsibility defers to any of the other region servers that step up to become the master.
+</p>
+<h3 class="calibre20">Scanning One Table to Build Another</h3>
+<p id="N1484D" class="calibre5">
+Providing you’ve stopped the import script from running, we can move on to the next task: extracting information from the imported wiki contents.
+      </p>
+<p id="N1485C" class="calibre5">
+Wiki syntax is filled with links, some of which link internally to other articles and some of which link to external resources.  This interlinking contains a wealth of topological data.  Let’s capture it!
+      </p>
+<p id="N1485F" class="calibre5">
+Our goal is to capture the relationships between articles as directional links, pointing one article <span class="calibre6">to</span> another or receiving a link <span class="calibre6">from</span> another.  An internal article link in wikitext looks like this: <code class="cf1">[[&lt;target name&gt;|&lt;alt text&gt;]]</code>, where <code class="cf1">&lt;target name&gt;</code> is the article to link to, and <code class="cf1">&lt;alt text&gt;</code> is the alternative text to display (optional).
+      </p>
+<p id="N14871" class="calibre5">
+For example, if the text of the article on <span class="calibre6">Star Wars</span> contains the string <code class="cf1">"[[Yoda|jedi master]]"</code>, we want to store that relationship twice—once as an outgoing link from <span class="calibre6">Star Wars</span> and once as an incoming link to Yoda.  Storing the relationship twice means that it’s fast to look up both a page’s outgoing links and its incoming links.
+      </p>
+<p id="N1487D" class="calibre5">
+To store this additional link data, we’ll create a new table.  Head over to the shell and enter this:
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​hbase&gt;<strong class="prompt"> create 'links', {</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  NAME =&gt; 'to', VERSIONS =&gt; 1, BLOOMFILTER =&gt; 'ROWCOL'​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​},{​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  NAME =&gt; 'from', VERSIONS =&gt; 1, BLOOMFILTER =&gt; 'ROWCOL'​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​}​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N148A5" class="calibre5">
+In principle, we could have chosen to shove the link data into an existing column family or merely added one or more additional column families to the <code class="cf">wiki</code> table, rather than create a new one.  Creating a separate table has the advantage that the tables have separate regions.  This means that the cluster can more effectively split regions as necessary.
+      </p>
+<p id="N148B7" class="calibre5">
+The general guidance for column families in the HBase community is to try to keep the number of families per table down.  You can do this  either by combining more columns into the same families or by putting families in different tables entirely.  The choice is largely decided by whether and how often clients will need to get an entire row of data (as opposed to  needing just a few column values).
+      </p>
+<p id="N148BA" class="calibre5">
+In our wiki case, we need the <code class="cf">text</code> and <code class="cf">revision</code> column families to be on the same table so that when we put new revisions in, the metadata and the text share the same timestamp.  The <code class="cf">links</code> content, by contrast, will never have the same timestamp as the article from which the data came.  Further, most client actions will  be interested either in the article text or in the extracted information about article links but probably not in both at the same time.  So, splitting out the <code class="cf">to</code> and <code class="cf">from</code> column families into a separate table makes sense.
+</p>
+<h3 class="calibre20">Constructing the Scanner</h3>
+<p id="N148DC" class="calibre5">
+With the <code class="cf">links</code> table created, we’re ready to implement a script that will scan all the rows of the <code class="cf">wiki</code> table.  Then, for each row, retrieve the wikitext and parse out the links.  Finally, for each link found, create incoming and outgoing <code class="cf">link</code> table records.  The bulk of this script should be pretty familiar to you by now. Most of the pieces are recycled, and we’ll discuss the few novel bits.
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td colspan="2" class="calibre34">
+<a href="http://media.pragprog.com/titles/rwdata/code/hbase/generate_wiki_links.rb">hbase/generate_wiki_links.rb</a>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​import <em class="string">'org.apache.hadoop.hbase.client.HTable'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​import <em class="string">'org.apache.hadoop.hbase.client.Put'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​import <em class="string">'org.apache.hadoop.hbase.client.Scan'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​import <em class="string">'org.apache.hadoop.hbase.util.Bytes'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">def</strong> jbytes( *args )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">return</strong> args.map { |arg| arg.to_s.to_java_bytes }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​wiki_table = HTable.new( @hbase.configuration, <em class="string">'wiki'</em> )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​links_table = HTable.new( @hbase.configuration, <em class="string">'links'</em> )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​links_table.setAutoFlush( false )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span>① </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​scanner = wiki_table.getScanner( Scan.new ) ​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​linkpattern = /\[\[([^\[\]\|\:\#][^\[\]\|:]*)(?:\|([^\[\]\|]+))?\]\]/​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​count = 0​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">while</strong> (result = scanner.next())​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span>② </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  title = Bytes.toString( result.getRow() ) ​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  text = Bytes.toString( result.getValue( *jbytes( <em class="string">'text'</em>, <em class="string">''</em> ) ) )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">if</strong> text​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    put_to = nil​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span>③ </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    text.scan(linkpattern) <strong class="prompt">do</strong> |target, label| ​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      <strong class="prompt">unless</strong> put_to​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        put_to = Put.new( *jbytes( title ) )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        put_to.setWriteToWAL( false )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      <strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      target.strip!​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      target.capitalize!​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      label = <em class="string">''</em> <strong class="prompt">unless</strong> label​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      label.strip!​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      put_to.add( *jbytes( <em class="string">"to"</em>, target, label ) )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      put_from = Put.new( *jbytes( target ) )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      put_from.add( *jbytes( <em class="string">"from"</em>, title, label ) )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      put_from.setWriteToWAL( false )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span>④ </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      links_table.put( put_from ) ​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span>⑤ </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    links_table.put( put_to ) <strong class="prompt">if</strong> put_to ​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    links_table.flushCommits()​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  count += 1​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  puts <em class="string">"</em>#{count}<em class="string"> pages processed (</em>#{title}<em class="string">)"</em> <strong class="prompt">if</strong> count % 500 == 0​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​links_table.flushCommits()​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​exit​</code>​</div>
+</td>
+</tr>
+</table>
+<dl class="calibre39">
+<dt class="calibre2">①</dt>
+<dd class="calibre40">
+<p id="N149F5" class="calibre5">
+First, we grab a <code class="cf">Scan</code> object, which we’ll use to scan through the <code class="cf">wiki</code> table.
+          </p>
+</dd>
+<dt class="calibre2">②</dt>
+<dd class="calibre40">
+<p id="N14A04" class="calibre5">
+Extracting row and column data requires some byte wrangling but generally isn’t too bad either.
+          </p>
+</dd>
+<dt class="calibre2">③</dt>
+<dd class="calibre40">
+<p id="N14A0D" class="calibre5">
+Each time the <code class="cf">linkpattern</code> appears in the page text, we extract the target article and text of the link and then use those values to add to our <code class="cf">Put</code> instances.
+          </p>
+</dd>
+<dt class="calibre2">④⑤</dt>
+<dd class="calibre40">
+<p id="N14A1E" class="calibre5">
+Finally, we tell the table to execute our accumulated <code class="cf">Put</code> operations.  It’s possible (though unlikely) for an article to contain no links at all, which is the reason for the <code class="cf">if put_to</code> clause.
+          </p>
+<p id="N14A27" class="calibre5">
+Using <code class="cf">setWriteToWAL(false)</code> for these puts is a judgment call.  Since this exercise is for educational purposes and since we could simply rerun the script if anything went wrong, we’ll take the speed bonus and accept our fate should the node fail.
+</p>
+</dd>
+</dl>
+<h3 class="calibre20">Running the Script</h3>
+<p id="N14A3E" class="calibre5">
+If you’re ready to throw caution to the wind with reckless abandon, kick off the script.
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​${HBASE_HOME}/bin/hbase shell generate_wiki_links.rb​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14A52" class="calibre5">
+It should produce output like this:
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​500 pages processed (10 petametres)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​1000 pages processed (1259)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​1500 pages processed (1471 BC)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​2000 pages processed (1683)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​...​</code>​</div>
+</td>
+</tr>
+</table>
+<div class="xxxsays" id="joeasks.mapreduce">
+<div class="heading">
+<div class="persons-picture">
+<img src="images/joe.jpg" alt="Joe asks:" class="calibre27"/>
+</div>
+<div class="label">Joe asks:</div>
+<div class="title">Couldn’t We Have Done This with Mapreduce?</div>
+</div>
+<div class="calibre2">
+<p id="N14A81" class="calibre5">
+In the introduction, we explained that our examples would be in (J)Ruby and JavaScript. JRuby does not play nice with Hadoop, but if you wanted to use mapreduce using Java, you’d have written this scanner code as a mapreduce job and sent it off to Hadoop.
+        </p>
+<p id="N14A84" class="calibre5">
+Generally speaking, tasks like this are ideally suited for a mapreduce implementation. There’s a bulk of input in a regular format to be handled by a mapper (scanning an HBase table) and a bulk of output operations to be executed in batches by a reducer (writing rows out to an HBase table).
+        </p>
+<p id="N14A87" class="calibre5">
+The Hadoop architecture expects <code class="cf3">Job</code> instances to be written in Java and wholly encapsulated (including all dependencies) into a jar file that can be sent out to all the nodes of the cluster. Newer versions of JRuby can extend Java classes, but the version that ships with HBase can’t.
+        </p>
+<p id="N14A8D" class="calibre5">
+There are a few open source projects that provide a bridge for running JRuby on Hadoop but nothing yet that specifically works well with HBase. There are rumors that in the future the HBase infrastructure will contain abstractions to make JRuby MR (mapreduce) jobs possible.  So, there’s hope for the future.
+        </p>
+</div>
+</div>
+<p id="N14A90" class="calibre5">
+As with the previous script, you can let it run as long as you like, even to completion.  If you want to stop it, press <span class="calibre35">Ctrl</span>+<span class="calibre35">C</span>.
+      </p>
+<p id="N14A99" class="calibre5">
+You can monitor the disk usage of the script using <code class="cf">du</code> as we’ve done before.  You’ll see new entries for the <code class="cf">links</code> table we just created, and the size counts will increase as the script runs.
+      </p>
+<h3 class="calibre20">Examining the Output</h3>
+<p id="N14AA6" class="calibre5">
+We just created a scanner programmatically to perform a sophisticated task. Now we’ll use the shell’s <code class="cf">scan</code> command to simply dump part of a table’s contents to the console.
+For each link the script finds in a <code class="cf">text:</code> blob, it will indiscriminately create both <code class="cf">to</code> and <code class="cf">from</code> entries in the <code class="cf">links</code> table.  To see the kinds of links being created, head over to the shell and <code class="cf">scan</code> the table.
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​hbase&gt;<strong class="prompt"> scan 'links', STARTROW =&gt; "Admiral Ackbar", ENDROW =&gt; "It's a Trap!"</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14AD3" class="calibre5">
+You should get a whole bunch of output.  Of course, you can use the <code class="cf">get</code> command to see the links for just a single article.
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​hbase&gt;<strong class="prompt"> get 'links', 'Star Wars'</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​COLUMN CELL​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ ...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ links:from:Admiral Ackbar           timestamp=1300415922636, value=​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ links:from:Adventure                timestamp=1300415927098, value=​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ links:from:Alamogordo, New Mexico   timestamp=1300415953549, value=​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ links:to:"weird al" yankovic        timestamp=1300419602350, value=​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ links:to:20th century fox           timestamp=1300419602350, value=​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ links:to:3-d film                   timestamp=1300419602350, value=​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ links:to:Aayla secura               timestamp=1300419602350, value=​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​ ...​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14B08" class="calibre5">
+In the <code class="cf">wiki</code> table, the rows are very regular with respect to columns.  As you recall, each row has <code class="cf">text:</code>, <code class="cf">revision:author</code>, and <code class="cf">revision:comment</code> columns.  The <code class="cf">links</code> table has no such regularity.  Each row may have one column or hundreds.  And the variety of column names is as diverse as the row keys themselves (titles of Wikipedia articles). That’s OK!  HBase is a so-called  sparse data store for exactly this reason.
+      </p>
+<p id="N14B1A" class="calibre5">
+To find out just how many rows are now in your table, you can use the <code class="cf">count</code> command.
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​hbase&gt;<strong class="prompt"> count 'wiki', INTERVAL =&gt; 100000, CACHE =&gt; 10000</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​Current count: 100000, row: Alexander wilson (vauxhall)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​Current count: 200000, row: Bachelor of liberal studies​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​Current count: 300000, row: Brian donlevy​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​Current count: 2000000, row: Thomas Hobbes​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​Current count: 2100000, row: Vardousia​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​Current count: 2200000, row: Wörrstadt (verbandsgemeinde)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​2256081 row(s) in 173.8120 seconds​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14B47" class="calibre5">
+Because of its distributed architecture, HBase doesn’t immediately know how many rows are in each table.  To find out, it has to count them (by performing a table scan).  Fortunately, HBase’s region-based storage architecture lends itself to fast distributed scanning.  So, even if the operation at hand requires a table scan, we don’t have to worry quite as much as we would with other databases.
+</p>
+<h3 class="calibre20">Day 2 Wrap-Up</h3>
+<p id="N14B51" class="calibre5">
+Whew, that was a pretty big day!  We learned how to write an import script for HBase that parses data out of a stream of XML.  Then we used those techniques to stream Wikipedia dumps directly into our <code class="cf">wiki</code> table.
+      </p>
+<p id="N14B57" class="calibre5">
+We learned more of the HBase API, including some client-controllable performance levers such as <code class="cf">setAutoFlush</code>, <code class="cf">flushCommits</code>, and <code class="cf">setWriteToWAL</code>.  Along those lines, we discussed some HBase architectural features such as disaster recovery, provided via the write-ahead log.
+      </p>
+<p id="N14B63" class="calibre5">
+Speaking of architecture, we discovered table regions and how HBase divvies up responsibility for them among the region servers in the cluster.  We scanned the <code class="cf">.META.</code> and <code class="cf">-ROOT-</code> tables to get a feel for HBase internals.
+      </p>
+<p id="N14B6C" class="calibre5">
+Finally, we discussed some of the performance implications of HBase’s sparse design.  In so doing, we touched on some community best practices regarding the use of columns, families, and tables.
+      </p>
+<h3 class="calibre20">Day 2 Homework</h3>
+<h4 class="calibre21">Find</h4>
+<ol class="calibre33">
+<li class="calibre23">
+<p id="N14B7A" class="calibre5">
+Find a discussion or article describing the pros and cons of compression in HBase.
+            </p>
+</li>
+<li class="calibre23">
+<p id="N14B7E" class="calibre5">
+Find an article explaining how Bloom filters work in general and how they benefit HBase.
+            </p>
+</li>
+<li class="calibre23">
+<p id="N14B82" class="calibre5">
+Aside from which algorithm to use, what other column family options relate to compression?
+            </p>
+</li>
+<li class="calibre23">
+<p id="N14B86" class="calibre5">
+How does the type of data and expected usage patterns inform column family compression options?
+            </p>
+</li>
+</ol>
+<h4 class="calibre21">Do</h4>
+<p id="N14B8D" class="calibre5">
+Expanding on the idea of data import, let’s build a database containing nutrition facts.
+        </p>
+<p id="N14B90" class="calibre5">
+Download the MyPyramid Raw Food Data set from Data.gov.<a id="FNPTR-30" href="f_0033.html#FOOTNOTE-30">[30]</a>  Extract the zipped contents to find <code class="cf">Food_Display_Table.xml</code>.
+        </p>
+<p id="N14B9C" class="calibre5">
+This data consists of many pairs of <code class="cf">&lt;Food_Display_Row&gt;</code> tags.  Inside these, each row has a <code class="cf">&lt;Food_Code&gt;</code> (integer value), <code class="cf">&lt;Display_Name&gt;</code> (string), and other facts about the food in appropriately named tags.
+        </p>
+<ol class="calibre33">
+<li class="calibre23">
+<p id="N14BAB" class="calibre5">
+Create a new table called <code class="cf">foods</code> with a single column family to store the facts.  What should you use for the row key?  What column family options make sense for this data?
+            </p>
+</li>
+<li class="calibre23">
+<p id="N14BB2" class="calibre5">
+Create a new JRuby script for importing the food data.  Use the SAX parsing style we used earlier for the Wikipedia import script and tailor it for the food data.
+            </p>
+</li>
+<li class="calibre23">
+<p id="N14BB6" class="calibre5">
+Pipe the food data into your import script on the command line to populate the table. 
+            </p>
+</li>
+<li class="calibre23">
+<p id="N14BBA" class="calibre5">
+Finally, using the HBase shell, query the <code class="cf">foods</code> table for information about your favorite foods.
+            </p>
+</li>
+</ol>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre3"/>
+</div>
+
+{% endraw %}
+

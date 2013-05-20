@@ -1,0 +1,29 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch08.html
+next: OEBPS/ch08s03.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Kinds of Forms"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect18_d1e3733" class="calibre1"></a>Kinds of Forms</h1></div></div></div><p class="calibre7">Before jumping into the types themselves, we should begin with an overview of the different
+   kinds of forms. There are three categories:</p><div class="book"><dl class="book"><dt class="calibre9"><span class="firstname">Applicative</span></dt><dd class="calibre10"><p class="calibre7">These are the most commonly used (it’s what appeared in the synopsis). Applicative
+            gives us some nice properties of letting error messages coalesce together and keep a
+            very high-level, declarative approach. (For more information on applicative code, see
+              <a class="ulink" href="http://www.haskell.org/haskellwiki/Applicative_functor">the Haskell
+              wiki</a>.)</p></dd><dt class="calibre9"><span class="firstname">Monadic</span></dt><dd class="calibre10"><p class="calibre7">A more powerful alternative to applicative. While this allows you more flexibility,
+            it does so at the cost of being more verbose. Useful if you want to create forms that
+            don’t fit into the standard two-column look.</p></dd><dt class="calibre9"><span class="firstname">Input</span></dt><dd class="calibre10"><p class="calibre7">Used only for receiving input. Does not generate any HTML for receiving the user input.
+     Useful for interacting with existing forms.</p></dd></dl></div><p class="calibre7">In addition, there are a number of different variables that come into play for each form and
+   field you will want to set up:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">Is the field required or optional?</p></li><li class="listitem"><p class="calibre7">Should it be submitted with GET or POST?</p></li><li class="listitem"><p class="calibre7">Does it have a default value, or not?</p></li></ul></div><p class="calibre7">An overriding goal is to minimize the number of field definitions and let them work in as
+      many contexts as possible. One result of this is that we end up with a few extra words for
+      each field. In the synopsis, you may have noticed things like <code class="literal">areq</code> and that extra <code class="literal">Nothing</code> parameter. We’ll
+      cover why all of those exist in the course of this chapter, but for now realize that by making
+      these parameters explicit, we are able to reuse the individual fields (like <code class="function">intField</code>) in many different ways.</p><p class="calibre7">A quick note on naming conventions. Each form type has a one-letter prefix (A, M, and I)
+      that is used in a few places, such as saying MForm. We also use req and opt to mean required
+      and optional. Combining these, we create a required applicative field with <code class="literal">areq</code>, or an optional input field with <code class="literal">iopt</code>.</p></div></div>
+
+{% endraw %}
+

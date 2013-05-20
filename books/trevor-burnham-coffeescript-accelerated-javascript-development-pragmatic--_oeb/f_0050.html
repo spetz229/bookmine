@@ -1,0 +1,1039 @@
+---
+layout: page
+title: "CoffeeScript (for jay muratore)"
+prev: f_0049.html
+next: f_0051.html
+book_path: books/trevor-burnham-coffeescript-accelerated-javascript-development-pragmatic--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="sec.jquery.project" class="calibre13">5.5 Project: Browser-Based 5x5</h2>
+<p id="N1356E" class="calibre5">
+      We’re going to create a browser-based version of the game from the last chapter using the same three class files: <code class="cf">Grid.coffee</code>, <code class="cf">Dictionary.coffee</code>, and <code class="cf">Player.coffee</code>. These encapsulate our game state and logic. We’ll add one new CoffeeScript file, <code class="cf">jq5x5.coffee</code>, which will define our interface in conjunction with <code class="cf">index.html</code> and <code class="cf">style.css</code>.
+    </p>
+<h3 id="sec.jqIndexHTML" class="calibre14">index.html</h3>
+<p id="N1358F" class="calibre5">
+        For a production deployment, we’d want to compile our CoffeeScript files to JavaScript, then minify and concatenate that code into a single tidy package. However, for our purposes, in-browser compilation will do fine. We’ll use the <code class="cf">coffee-script.js</code> from <a href="http://jashkenas.github.com/coffee-script/extras/coffee-script.js">http://jashkenas.github.com/coffee-script/extras/coffee-script.js</a> to do just that. Let’s include it, and let’s throw in the old OWL2 word list and jQuery while we’re at it:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/jQuery/5x5/index.html" class="calibre23">jQuery/5x5/index.html</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">&lt;script</strong> type=<em class="string">"text/javascript"</em> src=<em class="string">"coffee-script.js"</em>
+<strong class="prompt">&gt;</strong>
+<strong class="prompt">&lt;/script&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">&lt;script</strong> type=<em class="string">"text/javascript"</em> src=<em class="string">"OWL2.js"</em>
+<strong class="prompt">&gt;</strong>
+<strong class="prompt">&lt;/script&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">&lt;script</strong> type=<em class="string">"text/javascript"</em> src=<em class="string">"jquery-1.5.2.min.js"</em>
+<strong class="prompt">&gt;</strong>
+<strong class="prompt">&lt;/script&gt;</strong>
+</code>
+</td>
+</tr>
+</table>
+<p id="N135CB" class="calibre5">
+        And now let’s include the source files using the special <code class="cf">type="text/coffeescript"</code> attribute:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/jQuery/5x5/index.html" class="calibre23">jQuery/5x5/index.html</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">&lt;script</strong> type=<em class="string">"text/coffeescript"</em> src=<em class="string">"Grid.coffee"</em>
+<strong class="prompt">&gt;</strong>
+<strong class="prompt">&lt;/script&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">&lt;script</strong> type=<em class="string">"text/coffeescript"</em> src=<em class="string">"Dictionary.coffee"</em>
+<strong class="prompt">&gt;</strong>
+<strong class="prompt">&lt;/script&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">&lt;script</strong> type=<em class="string">"text/coffeescript"</em> src=<em class="string">"Player.coffee"</em>
+<strong class="prompt">&gt;</strong>
+<strong class="prompt">&lt;/script&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">&lt;script</strong> type=<em class="string">"text/coffeescript"</em> src=<em class="string">"jq5x5.coffee"</em>
+<strong class="prompt">&gt;</strong>
+<strong class="prompt">&lt;/script&gt;</strong>
+</code>
+</td>
+</tr>
+</table>
+<p id="N13612" class="calibre5">
+        Oh, and we’ll want to include our <code class="cf">style.css</code>:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/jQuery/5x5/index.html" class="calibre23">jQuery/5x5/index.html</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">&lt;link</strong> rel=<em class="string">"stylesheet"</em> type=<em class="string">"text/css"</em> href=<em class="string">"./style.css"</em> <strong class="prompt">/&gt;</strong>
+</code>
+</td>
+</tr>
+</table>
+<p id="N13631" class="calibre5">
+        That’s it for the <code class="cf">head</code> of the page. Now we just need a <code class="cf">body</code> with three elements—a <code class="cf">p</code> named <code class="cf">message</code> (to show messages to the players), a <code class="cf">div</code> named <code class="cf">grid</code> (to contain the tiles), and a <code class="cf">table</code> named <code class="cf">scores</code> (guess):
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/jQuery/5x5/index.html" class="calibre23">jQuery/5x5/index.html</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">&lt;body&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">&lt;p</strong> id=<em class="string">"message"</em>
+<strong class="prompt">&gt;</strong>
+<strong class="prompt">&lt;/p&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">&lt;div</strong> id=<em class="string">"grid"</em>
+<strong class="prompt">&gt;</strong>
+<strong class="prompt">&lt;/div&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">&lt;table</strong> id=<em class="string">"scores"</em>
+<strong class="prompt">&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    <strong class="prompt">&lt;tr&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">      <strong class="prompt">&lt;th</strong> id=<em class="string">"p1name"</em>
+<strong class="prompt">&gt;</strong>
+<strong class="prompt">&lt;/th&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">      <strong class="prompt">&lt;th</strong> id=<em class="string">"p2name"</em>
+<strong class="prompt">&gt;</strong>
+<strong class="prompt">&lt;/th&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    <strong class="prompt">&lt;/tr&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    <strong class="prompt">&lt;tr&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">      <strong class="prompt">&lt;td</strong> id=<em class="string">"p1score"</em>
+<strong class="prompt">&gt;</strong>
+<strong class="prompt">&lt;/td&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">      <strong class="prompt">&lt;td</strong> id=<em class="string">"p2score"</em>
+<strong class="prompt">&gt;</strong>
+<strong class="prompt">&lt;/td&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    <strong class="prompt">&lt;/tr&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">&lt;/table&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">&lt;/body&gt;</strong>
+</code>
+</td>
+</tr>
+</table>
+<p id="N136C8" class="calibre5">
+        Now open up <code class="cf">index.html</code> in your favorite browser. (If that happens to be Chrome, you’ll have to start the browser using the <code class="cf">-allow-file-access-from-files</code> flag; otherwise, Chrome’s strict security policies will prevent the CoffeeScript files from being loaded. This issue only occurs when loading local files directly in the browser, such as URLs starting with <code class="cf">file://</code>. In the next chapter, we’ll use Node.js to serve our site from <code class="cf">localhost://</code> instead.)
+      </p>
+<h3 id="sec.jqStyleCSS" class="calibre14">style.css</h3>
+<p id="N136DF" class="calibre5">
+        In principle, everything that can be done in a CSS file can be done from code by using jQuery’s <code class="cf">css</code> method, for example. However, it’s often much more efficient to use static styles. For instance, if we want all of the text on the page to be dark gray, we can simply write this:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">body</strong> { color: #333 }</code>
+</td>
+</tr>
+</table>
+<p id="N136F2" class="calibre5">
+        In order to do this without a stylesheet, we’d have to call <code class="cf">$elem.css ’color’, ’#333’</code> every single time we created a new element with text. Ugh.
+      </p>
+<p id="N136F8" class="calibre5">To save us that trouble, let’s decide now how we’re going to lay out our page. We’ll represent our 5x5 grid of tiles as 5 <code class="cf">ul</code> rows, each with 5 <code class="cf">li</code>s, within the <code class="cf">#grid</code> div. We want <code class="cf">#grid</code> to be centered and have a large, monospaced font:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/jQuery/5x5/style.css" class="calibre23">jQuery/5x5/style.css</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">#grid {</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  position: relative;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  text-align: center;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  width: 480px;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  margin: 16px auto;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  padding: 32px 0;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  border: 2px solid #555;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  font-size: 64px;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  font-family: Monaco, <em class="string">"DejaVu Sans Mono"</em>, <em class="string">"Lucida Console"</em>, monospace;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">}</code>
+</td>
+</tr>
+</table>
+<p id="N1373B" class="calibre5">
+        To display each row horizontally, we set the <code class="cf">ul</code> elements to have <code class="cf">list-style: none</code> and the <code class="cf">li</code> elements to have <code class="cf">display: inline</code>. We also set <code class="cf">cursor: pointer</code>, so that the mouse cursor reacts to the tiles as if they were links, and provide a <code class="cf">hover</code> style, so that the tile being hovered over changes color. Oh, and tiles also change color if they have the <code class="cf">selected</code> class.
+      </p>
+<p id="N13753" class="calibre5">
+        Other CSS elements that we’ll need include a <code class="cf">#message</code> to prompt the next move, a <code class="cf">.notice</code> div to display the result of each move, and a <code class="cf">#scores</code> table:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/jQuery/5x5/style.css" class="calibre23">jQuery/5x5/style.css</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">#message {</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  position: relative;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  text-align: center;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  margin: 32px;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  font-size: 24px;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">}</code>
+</td>
+</tr>
+</table>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/jQuery/5x5/style.css" class="calibre23">jQuery/5x5/style.css</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">.notice {</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  position: relative;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  text-align: center;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  width: 486px;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  margin: 0 auto;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  padding: 16px 0;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  background: #eb4;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  font-size: 18px;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">}</code>
+</td>
+</tr>
+</table>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/jQuery/5x5/style.css" class="calibre23">jQuery/5x5/style.css</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">#scores {</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  position: relative;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  text-align: center;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  width: 484px;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  margin: 16px auto;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  border: 1px solid #555;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  font-size: 24px;</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">}</code>
+</td>
+</tr>
+</table>
+<h3 id="sec.jq5x5Coffee" class="calibre14">jq5x5.coffee</h3>
+<p id="N137C4" class="calibre5">
+        Now for the meat of the project! We’ll start by defining some variables that we want to have module-level scope:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/jQuery/5x5/jq5x5.coffee" class="calibre23">jQuery/5x5/jq5x5.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">grid = dictionary = currPlayer = player1 = player2 = selectedCoordinates = <strong class="prompt">null</strong>
+</code>
+</td>
+</tr>
+</table>
+<p id="N137D8" class="calibre5">
+        Most of those variables will be given real values in our new <code class="cf">newGame</code> function:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/jQuery/5x5/jq5x5.coffee" class="calibre23">jQuery/5x5/jq5x5.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">newGame = <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  grid = <strong class="prompt">new</strong> Grid</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  dictionary = <strong class="prompt">new</strong> Dictionary(OWL2, grid)</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  currPlayer = player1 = <strong class="prompt">new</strong> Player(<em class="string">'Player 1'</em>, dictionary)</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  player2 = <strong class="prompt">new</strong> Player(<em class="string">'Player 2'</em>, dictionary)</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  drawTiles()</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  player1.num = 1</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  player2.num = 2</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">for</strong> player <strong class="prompt">in</strong> [player1, player2]</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    $(<em class="string">"#p</em>#{player.num}<em class="string">name"</em>).html player.name</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    $(<em class="string">"#p</em>#{player.num}<em class="string">score"</em>).html 0</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  showMessage <em class="string">'firstTile'</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N13835" class="calibre5">
+        Now, because this function refers to HTML on the page, we want to ensure that it isn’t called until the document is ready. Hence, it’s called from a <code class="cf">$(document).ready</code> callback:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/jQuery/5x5/jq5x5.coffee" class="calibre23">jQuery/5x5/jq5x5.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$(document).ready <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  newGame()</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  $(<em class="string">'#grid li'</em>).live <em class="string">'click'</em>, tileClick</code>
+</td>
+</tr>
+</table>
+<p id="N13856" class="calibre5">
+        You might be wondering about the <code class="cf">drawTiles</code> function in <code class="cf">newGame</code>. Here it is:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/jQuery/5x5/jq5x5.coffee" class="calibre23">jQuery/5x5/jq5x5.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">drawTiles = <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    gridHtml = <em class="string">''</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    <strong class="prompt">for</strong> x <strong class="prompt">in</strong> [0...grid.tiles.length]</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">      gridHtml += <em class="string">'&lt;ul&gt;'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">      <strong class="prompt">for</strong> y <strong class="prompt">in</strong> [0...grid.tiles.length]</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">        gridHtml += <em class="string">"&lt;li id='tile</em>#{x}<em class="string">_</em>#{y}<em class="string">'&gt;</em>#{grid.tiles[x][y]}<em class="string">&lt;/li&gt;"</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">      gridHtml += <em class="string">'&lt;/ul&gt;'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    $(<em class="string">'#grid'</em>).html gridHtml</code>
+</td>
+</tr>
+</table>
+<p id="N138A2" class="calibre5">
+        We could’ve used jQuery to generate and insert each tile individually, but there’s nothing wrong with creating a big ol’ HTML string when you need to add a whole lot of stuff at once to a document. In fact, it’s often the most efficient approach, since it’s less expensive to manipulate a string than to manipulate the DOM.
+      </p>
+<p id="N138A5" class="calibre5">
+        Now, it’s not much of a game until we take some input—we need to define <code class="cf">tileClick</code>, which we bound to the <code class="cf">li</code> elements within <code class="cf">#grid</code> using jQuery’s <code class="cf">live</code> function. Why <code class="cf">live</code> rather than <code class="cf">bind</code>? Well, <code class="cf">live</code> events are triggered no matter what happens to the elements they’re bound to—the elements can be burned down to the ground then built back up from nothing, and those trusty <code class="cf">live</code> events will still be there. There’s also an efficiency advantage—<code class="cf">live</code> only creates a single event handler, while <code class="cf">bind</code> would create twenty-five of them.
+      </p>
+<p id="N138C6" class="calibre5">
+        Anyway, here’s what happens when you click a tile:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/jQuery/5x5/jq5x5.coffee" class="calibre23">jQuery/5x5/jq5x5.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">tileClick = <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  $tile = $(<strong class="prompt">this</strong>)</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">if</strong> $tile.hasClass <em class="string">'selected'</em>
+<em class="comment"></em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<em class="comment">    # undo</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    selectedCoordinates = <strong class="prompt">null</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    $tile.removeClass <em class="string">'selected'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    showMessage <em class="string">'firstTile'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">else</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    $tile.addClass <em class="string">'selected'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    [x, y] = @id.match(/(\d+)_(\d+)/)[1..]</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    selectTile x, y</code>
+</td>
+</tr>
+</table>
+<p id="N13909" class="calibre5">
+        The context of a jQuery event callback is the DOM element that triggered the event—in this case, the <code class="cf">li</code> that was clicked. We wrap that element to get a jQuery object, which we call <code class="cf">$tile</code>. If the tile is already selected, we unselect it and go back to asking players to select their first tile. If it’s a bona fide selection, we proceed to <code class="cf">selectTile</code>:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/jQuery/5x5/jq5x5.coffee" class="calibre23">jQuery/5x5/jq5x5.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">selectTile = (x, y) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">if</strong> selectedCoordinates is <strong class="prompt">null</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    selectedCoordinates = {x1: x, y1: y}</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    showMessage <em class="string">'secondTile'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">else</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    selectedCoordinates.x2 = x</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    selectedCoordinates.y2 = y</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    $(<em class="string">'#grid li'</em>).removeClass <em class="string">'selected'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    doMove()</code>
+</td>
+</tr>
+</table>
+<p id="N13949" class="calibre5">
+        If <code class="cf">selectedCoordinates</code> is <code class="cf">null</code>, then this is the player’s first tile selection, so we just store the coordinates. Otherwise, the player has chosen both tiles for this turn, so we go on to <code class="cf">doMove</code>, which has the <code class="cf">Player</code> instance move the tiles around and tabulate score, then displays the results in a notice box:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/jQuery/5x5/jq5x5.coffee" class="calibre23">jQuery/5x5/jq5x5.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">doMove = <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  {moveScore, newWords} = currPlayer.makeMove selectedCoordinates</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">if</strong> moveScore is 0</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    $notice = $(<em class="string">"</em>#{currPlayer.name}<em class="string"> formed no words this turn."</em>)</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">else</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    $notice = $(<em class="string">"""</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<em class="string">    &lt;p class="notice"&gt;</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<em class="string"></em>#{currPlayer}<em class="string"> formed the following </em>#{newWords.length}<em class="string"> word(s):&lt;br /&gt;</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<em class="string">      &lt;b&gt;</em>#{newWords.join(<em class="string">', '</em>)}<em class="string">&lt;/b&gt;&lt;br /&gt;</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<em class="string">      earning &lt;b&gt;</em>#{moveScore / newWords.length}<em class="string">x</em>#{newWords.length}<em class="string"> =</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<em class="string"></em>#{moveScore}<em class="string">&lt;/b&gt; points!</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<em class="string">    &lt;/p&gt;</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<em class="string">    """</em>)</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  showThenFade $notice</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  endTurn()</code>
+</td>
+</tr>
+</table>
+<p id="N139B8" class="calibre5">
+<code class="cf">showThenFade</code> is a bit of eye candy that adds a yellow box below the grid, then fades and squashes it before removing it from the DOM entirely:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/jQuery/5x5/jq5x5.coffee" class="calibre23">jQuery/5x5/jq5x5.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">showThenFade = ($elem) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  $elem.insertAfter $(<em class="string">'#grid'</em>)</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  animationTarget = opacity: 0, height: 0, padding: 0</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  $elem.delay(5000).animate animationTarget, 500, <strong class="prompt">-&gt;</strong> $elem.remove()</code>
+</td>
+</tr>
+</table>
+<p id="N139DA" class="calibre5">
+        Finally, <code class="cf">endTurn</code> updates the tile grid and the score table and then tells the next player that they’re up to bat.
+      </p>
+<p id="N139E0" class="calibre5">
+      To see how the game looks when it all comes together, take a look at Figure 5, <a href="#fig.jq5x5">​<em class="emph">5x5, powered by jQuery</em>​</a>.
+    </p>
+<table class="figure" id="fig.jq5x5">
+<tr class="calibre8">
+<td class="calibre10">
+<img xmlns:str="http://exslt.org/strings" src="images/jq5x5.png" alt="images/jq5x5.png" class="calibre18"/>
+</td>
+</tr>
+<tr class="calibre8">
+<td class="calibre19">
+<hr class="calibre20"/>
+<b class="calibre21">Figure 5. 5x5, powered by jQuery</b>
+</td>
+</tr>
+</table>
+<p id="N139F6" class="calibre5">
+      There are, of course, plenty more features we could add—for instance, a list of words that have already been used, a time limit for each turn, and a “game over” screen after each player has taken a certain number of turns (or after a certain time limit), not to mention fancier animations and interface elements (like drag-and-drop, a feature that’s a snap to implement with jQuery UI.)<a id="FNPTR-42" href="f_0052.html#FOOTNOTE-42">[42]</a> But I’ll leave those avenues for you to explore on your own.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

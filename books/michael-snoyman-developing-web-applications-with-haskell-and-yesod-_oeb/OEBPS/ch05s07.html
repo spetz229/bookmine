@@ -1,0 +1,71 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch05s06.html
+next: OEBPS/ch05s08.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Using Widgets"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect15_d1e2333" class="calibre1"></a>Using Widgets</h1></div></div></div><p class="calibre7">It’s all well and good that we have these beautiful Widget data types, but how exactly do
+      we turn them into something the user can interact with? The most commonly used function is
+        <code class="literal">defaultLayout</code>, which essentially has the type signature
+        <code class="literal">Widget -&gt; Handler RepHtml</code>. (I say “essentially”
+      because of the whole <code class="literal">GHandler</code> issue.) <code class="literal">RepHtml</code> is a data type containing some raw HTML output ready to be
+      sent over the wire.</p><p class="calibre7"><code class="literal">defaultLayout</code> is actually a typeclass method, which can
+      be overridden for each application. This is how Yesod apps are themed. So we’re still left
+      with the question: when we’re inside <code class="literal">defaultLayout</code>, how do
+      we unwrap a <code class="literal">Widget</code>? The answer is <code class="literal">widgetToPageContent</code>. Let’s look at some (simplified) types:</p><a id="I_programlisting5_d1e2366" class="firstname"></a><pre class="programlistinghaskell"><code class="nf">widgetToPageContent</code> <code class="ow">::</code> <code class="kt">Widget</code> <code class="ow">-&gt;</code> <code class="kt">Handler</code> <code class="p">(</code><code class="kt">PageContent</code> <code class="n">url</code><code class="p">)</code>
+<code class="kr">data</code> <code class="kt">PageContent</code> <code class="n">url</code> <code class="ow">=</code> <code class="kt">PageContent</code>
+    <code class="p">{</code> <code class="n">pageTitle</code> <code class="ow">::</code> <code class="kt">Html</code>
+    <code class="p">,</code> <code class="n">pageHead</code> <code class="ow">::</code> <code class="kt">HtmlUrl</code> <code class="n">url</code>
+    <code class="p">,</code> <code class="n">pageBody</code> <code class="ow">::</code> <code class="kt">HtmlUrl</code> <code class="n">url</code>
+    <code class="p">}</code>
+</pre><p class="calibre7">This is getting closer to what we need. We now have direct access to the HTML making up
+      the head and body, as well as the title. At this point, we can use Hamlet to combine them all
+      together into a single document, along with our site layout, and we use <code class="literal">hamletToRepHtml</code> to render that Hamlet result into actual HTML
+      that’s ready to be shown to the user. The next figure demonstrates this process.</p><div class="example"><a id="using-widgets-x6" class="firstname"></a><p class="title6">Example 5-3. Using widgetToPageContent</p><div class="book"><pre class="programlistinghaskell"><code class="nf">myLayout</code> <code class="ow">::</code> <code class="kt">GWidget</code> <code class="n">s</code> <code class="kt">MyApp</code> <code class="nb">()</code> <code class="ow">-&gt;</code> <code class="kt">GHandler</code> <code class="n">s</code> <code class="kt">MyApp</code> <code class="kt">RepHtml</code>
+<code class="nf">myLayout</code> <code class="n">widget</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="n">pc</code> <code class="ow">&lt;-</code> <code class="n">widgetToPageContent</code> <code class="n">widget</code>
+    <code class="n">hamletToRepHtml</code> <code class="p">[</code><code class="n">hamlet</code><code class="o">|</code>
+<code class="o">$</code><code class="n">doctype</code> <code class="mi">5</code>
+<code class="o">&lt;</code><code class="n">html</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">head</code><code class="o">&gt;</code>
+        <code class="o">&lt;</code><code class="n">title</code><code class="o">&gt;#</code><code class="p">{</code><code class="n">pageTitle</code> <code class="n">pc</code><code class="p">}</code>
+        <code class="o">&lt;</code><code class="n">meta</code> <code class="n">charset</code><code class="ow">=</code><code class="n">utf</code><code class="o">-</code><code class="mi">8</code><code class="o">&gt;</code>
+        <code class="o">&lt;</code><code class="n">style</code><code class="o">&gt;</code><code class="n">body</code> <code class="p">{</code> <code class="n">font</code><code class="o">-</code><code class="n">family</code><code class="kt">:</code> <code class="n">verdana</code> <code class="p">}</code>
+        <code class="o">^</code><code class="p">{</code><code class="n">pageHead</code> <code class="n">pc</code><code class="p">}</code>
+    <code class="o">&lt;</code><code class="n">body</code><code class="o">&gt;</code>
+        <code class="o">&lt;</code><code class="n">article</code><code class="o">&gt;</code>
+            <code class="o">^</code><code class="p">{</code><code class="n">pageBody</code> <code class="n">pc</code><code class="p">}</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="kr">instance</code> <code class="kt">Yesod</code> <code class="kt">MyApp</code> <code class="kr">where</code>
+    <code class="n">defaultLayout</code> <code class="ow">=</code> <code class="n">myLayout</code>
+</pre></div></div><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">You may have noticed that we used <code class="literal">GWidget</code> and
+          <code class="literal">GHandler</code> instead of <code class="literal">Widget</code> and <code class="literal">Handler</code>. That’s because <code class="literal">defaultLayout</code> is a method that can be called by subsites to
+        ensure that they get the same styling as the master site. Therefore, we need to keep our
+        types flexible here.</p></div><p class="calibre7">This is all well and good, but there’s one thing that bothers me: that <code class="literal">style</code> tag. There are a few problems with it:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">Unlike Lucius or Cassius, it doesn’t get compile-time checked for correctness.</p></li><li class="listitem"><p class="calibre7">Granted that the current example is very simple, but in something more complicated we could
+    get into character escaping issues.</p></li><li class="listitem"><p class="calibre7">We’ll now have two style tags instead of one: the one produced by <code class="literal">myLayout</code>, and the one generated in the <code class="literal">pageHead</code> based on the styles set in the widget.</p></li></ul></div><p class="calibre7">We have one more trick in our bag to address this: we apply some last-minute adjustments
+      to the widget itself before calling <code class="literal">widgetToPageContent</code>.
+      It’s actually very easy to do: we just use do-notation again, as in <a class="ulink" href="ch05s07.html#using-widgets-last-minute-widget-adjustment" title="Example 5-4. Last-Minute Widget Adjustment">Example 5-4</a>.</p><div class="example"><a id="using-widgets-last-minute-widget-adjustment" class="firstname"></a><p class="title6">Example 5-4. Last-Minute Widget Adjustment</p><div class="book"><pre class="programlistinghaskell"><code class="nf">myLayout</code> <code class="ow">::</code> <code class="kt">GWidget</code> <code class="n">s</code> <code class="kt">MyApp</code> <code class="nb">()</code> <code class="ow">-&gt;</code> <code class="kt">GHandler</code> <code class="n">s</code> <code class="kt">MyApp</code> <code class="kt">RepHtml</code>
+<code class="nf">myLayout</code> <code class="n">widget</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="n">pc</code> <code class="ow">&lt;-</code> <code class="n">widgetToPageContent</code> <code class="o">$</code> <code class="kr">do</code>
+        <code class="n">widget</code>
+        <code class="n">toWidget</code> <code class="p">[</code><code class="n">lucius</code><code class="o">|</code> <code class="n">body</code> <code class="p">{</code> <code class="n">font</code><code class="o">-</code><code class="n">family</code><code class="kt">:</code> <code class="n">verdana</code> <code class="p">}</code> <code class="o">|</code><code class="p">]</code>
+    <code class="n">hamletToRepHtml</code> <code class="p">[</code><code class="n">hamlet</code><code class="o">|</code>
+<code class="o">$</code><code class="n">doctype</code> <code class="mi">5</code>
+<code class="o">&lt;</code><code class="n">html</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">head</code><code class="o">&gt;</code>
+        <code class="o">&lt;</code><code class="n">title</code><code class="o">&gt;#</code><code class="p">{</code><code class="n">pageTitle</code> <code class="n">pc</code><code class="p">}</code>
+        <code class="o">&lt;</code><code class="n">meta</code> <code class="n">charset</code><code class="ow">=</code><code class="n">utf</code><code class="o">-</code><code class="mi">8</code><code class="o">&gt;</code>
+        <code class="o">^</code><code class="p">{</code><code class="n">pageHead</code> <code class="n">pc</code><code class="p">}</code>
+    <code class="o">&lt;</code><code class="n">body</code><code class="o">&gt;</code>
+        <code class="o">&lt;</code><code class="n">article</code><code class="o">&gt;</code>
+            <code class="o">^</code><code class="p">{</code><code class="n">pageBody</code> <code class="n">pc</code><code class="p">}</code>
+<code class="o">|</code><code class="p">]</code>
+</pre></div></div></div></div>
+
+{% endraw %}
+

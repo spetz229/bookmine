@@ -1,0 +1,221 @@
+---
+layout: page
+title: "Developing Backbone.js Applications"
+prev: OEBPS/ch04.html
+next: OEBPS/ch04s03.html
+book_path: books/developing-backbone-js-applications-addy-osmani--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Organizing modules with RequireJS and AMD"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="organizing-modules-with-requirejs-and-amd" class="calibre1"></a>Organizing modules with RequireJS
+    and AMD</h1></div></div></div><p class="calibre6">
+      In case you haven’t used it before,
+      <a class="ulink" href="http://requirejs.org">RequireJS</a> is a popular
+      script loader written by James Burke - a developer who has been
+      quite instrumental in helping shape the AMD module format, which
+      we’ll discuss more shortly. Some of RequireJS’s capabilities
+      include helping to load multiple script files, helping define
+      modules with or without dependencies and loading in non-script
+      dependencies such as text files.
+    </p><p class="calibre6">
+      So, why use RequireJS with Backbone? Although Backbone is
+      excellent when it comes to providing a sanitary structure to your
+      applications, there are a few key areas where some additional help
+      could be used:
+    </p><div class="book"><ol class="orderedlist"><li class="listitem"><p class="calibre6">
+          Backbone doesn’t endorse a particular approach to
+          modular-development. Although this means it’s quite open-ended
+          for developers to opt for classical patterns like the
+          module-pattern or Object Literals for structuring their apps
+          (which both work fine), it also means developers aren’t sure
+          of what works best when other concerns come into play, such as
+          dependency management.
+        </p></li></ol></div><p class="calibre6">
+      RequireJS is compatible with the AMD (Asynchronous Module
+      Definition) format, a format which was born from a desire to write
+      something better than the <span class="firstname">“<span class="firstname">write lots of script tags with
+      implicit dependencies and manage them manually</span>”</span> approach to
+      development. In addition to allowing you to clearly declare
+      dependencies, AMD works well in the browser, supports string IDs
+      for dependencies, declaring multiple modules in the same file and
+      gives you easy-to-use tools to avoid polluting the global
+      namespace.
+    </p><div class="book"><ol class="orderedlist"><li class="listitem"><p class="calibre6">
+          Let’s discuss dependency management a little more as it can
+          actually be quite challenging to get right if you’re doing it
+          by hand. When we write modules in JavaScript, we ideally want
+          to be able to handle the reuse of code units intelligently and
+          sometimes this will mean pulling in other modules at run-time
+          whilst at other times you may want to do this dynamically to
+          avoid a large pay-load when the user first hits your
+          application.
+        </p></li></ol></div><p class="calibre6">
+      Think about the GMail web-client for a moment. When users
+      initially load up the page on their first visit, Google can simply
+      hide widgets such as the chat module until a user has indicated
+      (by clicking <span class="firstname">“<span class="firstname">expand</span>”</span>) that they wish to use it.
+      Through dynamic dependency loading, Google could load up the chat
+      module only then, rather than forcing all users to load it when
+      the page first initializes. This can improve performance and load
+      times and can definitely prove useful when building larger
+      applications.
+    </p><p class="calibre6">
+      I’ve previously written
+      <a class="ulink" href="http://addyosmani.com/writing-modular-js">a detailed
+      article</a> covering both AMD and other module formats and
+      script loaders in case you’d like to explore this topic further.
+      The takeaway is that although it’s perfectly fine to develop
+      applications without a script loader or clean module format in
+      place, it can be of significant benefit to consider using these
+      tools in your application development.
+    </p><div class="book" title="Writing AMD modules with RequireJS"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="writing-amd-modules-with-requirejs" class="calibre1"></a>Writing AMD modules with RequireJS</h2></div></div></div><p class="calibre6">
+        As discussed above, the overall goal for the AMD format is to
+        provide a solution for modular JavaScript that developers can
+        use today. The two key concepts you need to be aware of when
+        using it with a script-loader are a <code class="literal">define()</code>
+        method for facilitating module definition and a
+        <code class="literal">require()</code> method for handling dependency
+        loading. <code class="literal">define()</code> is used to define named or
+        unnamed modules based on the proposal using the following
+        signature:
+      </p><pre class="programlistingjavascript"><code class="nx">define</code><code class="p">(</code>
+    <code class="nx">module_id</code> <code class="c">/*optional*/</code><code class="p">,</code> 
+    <code class="p">[</code><code class="nx">dependencies</code><code class="p">]</code> <code class="c">/*optional*/</code><code class="p">,</code> 
+    <code class="nx">definition</code> <code class="kd">function</code> <code class="c">/*function for instantiating the module or object*/</code>
+<code class="p">);</code>
+</pre><p class="calibre6">
+        As you can tell by the inline comments, the
+        <code class="literal">module_id</code> is an optional argument which is
+        typically only required when non-AMD concatenation tools are
+        being used (there may be some other edge cases where it’s useful
+        too). When this argument is left out, we call the module
+        <span class="firstname">“<span class="firstname">anonymous</span>”</span>. When working with anonymous modules,
+        the idea of a module’s identity is DRY, making it trivial to
+        avoid duplication of filenames and code.
+      </p><p class="calibre6">
+        Back to the define signature, the dependencies argument
+        represents an array of dependencies which are required by the
+        module you are defining and the third argument
+        (<span class="firstname">“<span class="firstname">definition function</span>”</span>) is a function that’s
+        executed to instantiate your module. A barebone module
+        (compatible with RequireJS) could be defined using
+        <code class="literal">define()</code> as follows:
+      </p><pre class="programlistingjavascript"><code class="c">// A module ID has been omitted here to make the module anonymous</code>
+
+<code class="nx">define</code><code class="p">([</code><code class="s">'foo'</code><code class="p">,</code> <code class="s">'bar'</code><code class="p">],</code> 
+    <code class="c">// module definition function</code>
+    <code class="c">// dependencies (foo and bar) are mapped to function parameters</code>
+    <code class="kd">function</code> <code class="p">(</code> <code class="nx">foo</code><code class="p">,</code> <code class="nx">bar</code> <code class="p">)</code> <code class="p">{</code>
+        <code class="c">// return a value that defines the module export</code>
+        <code class="c">// (i.e the functionality we want to expose for consumption)</code>
+
+        <code class="c">// create your module here</code>
+        <code class="kd">var</code> <code class="nx">myModule</code> <code class="o">=</code> <code class="p">{</code>
+            <code class="nx">doStuff</code><code class="o">:</code><code class="kd">function</code><code class="p">(){</code>
+                <code class="nx">console</code><code class="p">.</code><code class="nx">log</code><code class="p">(</code><code class="s">'Yay! Stuff'</code><code class="p">);</code>
+            <code class="p">}</code>
+        <code class="p">}</code>
+
+        <code class="kd">return</code> <code class="nx">myModule</code><code class="p">;</code>
+<code class="p">});</code>
+</pre><div class="book" title="Alternate syntax"><div class="book"><div class="book"><div class="book"><h3 class="title4"><a id="alternate-syntax" class="calibre1"></a>Alternate syntax</h3></div></div></div><p class="calibre6">
+          There is also a
+          <a class="ulink" href="http://requirejs.org/docs/whyamd.html#sugar">sugared
+          version</a> of <code class="literal">define()</code> available that
+          allows you to declare your dependencies as local variables
+          using <code class="literal">require()</code>. This will feel familiar to
+          anyone who’s used node, and can be easier to add or remove
+          dependencies. Here is the previous snippet using the alternate
+          syntax:
+        </p><pre class="programlistingjavascript"><code class="c">// A module ID has been omitted here to make the module anonymous</code>
+
+<code class="nx">define</code><code class="p">(</code><code class="kd">function</code><code class="p">(</code><code class="nx">require</code><code class="p">){</code>
+        <code class="c">// module definition function</code>
+    <code class="c">// dependencies (foo and bar) are defined as local vars</code>
+    <code class="kd">var</code> <code class="nx">foo</code> <code class="o">=</code> <code class="nx">require</code><code class="p">(</code><code class="s">'foo'</code><code class="p">),</code>
+        <code class="nx">bar</code> <code class="o">=</code> <code class="nx">require</code><code class="p">(</code><code class="s">'bar'</code><code class="p">);</code>
+
+        <code class="c">// return a value that defines the module export</code>
+        <code class="c">// (i.e the functionality we want to expose for consumption)</code>
+
+        <code class="c">// create your module here</code>
+        <code class="kd">var</code> <code class="nx">myModule</code> <code class="o">=</code> <code class="p">{</code>
+            <code class="nx">doStuff</code><code class="o">:</code><code class="kd">function</code><code class="p">(){</code>
+                <code class="nx">console</code><code class="p">.</code><code class="nx">log</code><code class="p">(</code><code class="s">'Yay! Stuff'</code><code class="p">);</code>
+            <code class="p">}</code>
+        <code class="p">}</code>
+
+        <code class="kd">return</code> <code class="nx">myModule</code><code class="p">;</code>
+<code class="p">});</code>
+</pre><p class="calibre6">
+          The <code class="literal">require()</code> method is typically used to
+          load code in a top-level JavaScript file or within a module
+          should you wish to dynamically fetch dependencies. An example
+          of its usage is:
+        </p><pre class="programlistingjavascript"><code class="c">// Consider 'foo' and 'bar' are two external modules</code>
+<code class="c">// In this example, the 'exports' from the two modules loaded are passed as</code>
+<code class="c">// function arguments to the callback (foo and bar)</code>
+<code class="c">// so that they can similarly be accessed</code>
+
+<code class="nx">require</code><code class="p">([</code><code class="s">'foo'</code><code class="p">,</code> <code class="s">'bar'</code><code class="p">],</code> <code class="kd">function</code> <code class="p">(</code> <code class="nx">foo</code><code class="p">,</code> <code class="nx">bar</code> <code class="p">)</code> <code class="p">{</code>
+        <code class="c">// rest of your code here</code>
+        <code class="nx">foo</code><code class="p">.</code><code class="nx">doSomething</code><code class="p">();</code>
+<code class="p">});</code>
+</pre><p class="calibre6">
+          <span class="firstname"><strong class="calibre8">Wrapping modules, views and other
+          components with AMD</strong></span>
+        </p><p class="calibre6">
+          Now that we’ve taken a look at how to define AMD modules,
+          let’s review how to go about wrapping components like views
+          and collections so that they can also be easily loaded as
+          dependencies for any parts of your application that require
+          them. At it’s simplest, a Backbone model may just require
+          Backbone and Underscore.js. These are considered it’s
+          dependencies and so, to write an AMD model module, we would
+          simply do this:
+        </p><pre class="programlistingjavascript"><code class="nx">define</code><code class="p">([</code><code class="s">'underscore'</code><code class="p">,</code> <code class="s">'backbone'</code><code class="p">],</code> <code class="kd">function</code><code class="p">(</code><code class="nx">_</code><code class="p">,</code> <code class="nx">Backbone</code><code class="p">)</code> <code class="p">{</code>
+  <code class="kd">var</code> <code class="nx">myModel</code> <code class="o">=</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">Model</code><code class="p">.</code><code class="nx">extend</code><code class="p">({</code>
+
+    <code class="c">// Default attributes </code>
+    <code class="nx">defaults</code><code class="o">:</code> <code class="p">{</code>
+      <code class="nx">content</code><code class="o">:</code> <code class="s">"hello world"</code><code class="p">,</code>
+    <code class="p">},</code>
+
+    <code class="c">// A dummy initialization method</code>
+    <code class="nx">initialize</code><code class="o">:</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+    <code class="p">},</code>
+
+    <code class="nx">clear</code><code class="o">:</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+      <code class="kd">this</code><code class="p">.</code><code class="nx">destroy</code><code class="p">();</code>
+      <code class="kd">this</code><code class="p">.</code><code class="nx">view</code><code class="p">.</code><code class="nx">remove</code><code class="p">();</code>
+    <code class="p">}</code>
+
+  <code class="p">});</code>
+  <code class="kd">return</code> <code class="nx">myModel</code><code class="p">;</code>
+<code class="p">});</code>
+</pre><p class="calibre6">
+          Note how we alias Underscore.js’s instance to
+          <code class="literal">_</code> and Backbone to just
+          <code class="literal">Backbone</code>, making it very trivial to convert
+          non-AMD code over to using this module format. For a view
+          which might require other dependencies such as jQuery, this
+          can similarly be done as follows:
+        </p><pre class="programlistingjavascript"><code class="nx">define</code><code class="p">([</code>
+  <code class="s">'jquery'</code><code class="p">,</code>
+  <code class="s">'underscore'</code><code class="p">,</code> 
+  <code class="s">'backbone'</code><code class="p">,</code>
+  <code class="s">'collections/mycollection'</code><code class="p">,</code>
+  <code class="s">'views/myview'</code>
+  <code class="p">],</code> <code class="kd">function</code><code class="p">(</code><code class="nx">$</code><code class="p">,</code> <code class="nx">_</code><code class="p">,</code> <code class="nx">Backbone</code><code class="p">,</code> <code class="nx">myCollection</code><code class="p">,</code> <code class="nx">myView</code><code class="p">){</code>
+
+  <code class="kd">var</code> <code class="nx">AppView</code> <code class="o">=</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">View</code><code class="p">.</code><code class="nx">extend</code><code class="p">({</code>
+  <code class="p">...</code>
+</pre><p class="calibre6">
+          Aliasing to the dollar-sign (<code class="literal">$</code>), once again
+          makes it very easy to encapsulate any part of an application
+          you wish using AMD.
+        </p></div></div></div></div>
+
+{% endraw %}
+

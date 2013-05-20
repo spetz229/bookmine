@@ -1,0 +1,432 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect117_d1e37921.html
+next: I_sect117_d1e38933.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect117_d1e37921.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect117_d1e38933.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect117_d1e38308" class="calibre27" id="I_sect117_d1e38308"></a><h3 id="title-IDAQIQ0E" class="docSection1Title">17.3. Passing String Data Between Haskell and C</h3><a name="x_BI1" class="calibre27" id="x_BI1"></a><p class="docText">The<a name="I_indexterm17_d1e38313" class="calibre27" id="I_indexterm17_d1e38313"></a><a name="ch17-stringpassingdata" class="calibre27" id="ch17-stringpassingdata"></a> next task is to write a binding to the PCRE regular
+    expression <tt class="calibre34">compile</tt> function. Let's look at its type,
+    straight<a name="I_indexterm17_d1e38323" class="calibre27" id="I_indexterm17_d1e38323"></a> from the <i class="docEmphasis">pcre.h</i> header file:</p><pre class="calibre39">pcre *pcre_compile(const char *pattern,
+                   int options,
+                   const char **errptr,
+                   int *erroffset,
+                   const unsigned char *tableptr);</pre><br class="calibre48"/>
+<a name="x_CI1" class="calibre27" id="x_CI1"></a><p class="docText">This function compiles a regular expression pattern into
+    some internal format, taking the pattern as an argument, along with some
+    flags and some variables for returning status information.</p><a name="x_DI1" class="calibre27" id="x_DI1"></a><p class="docText">We need to work out what Haskell types to represent each
+    argument with. Most of these types are covered by equivalents defined for
+    us by the FFI standard and are available in <tt class="calibre34">Foreign.C.Types</tt>.
+    The<a name="I_indexterm17_d1e38339" class="calibre27" id="I_indexterm17_d1e38339"></a> first argument, the regular expression itself, is passed as
+    a null-terminated <tt class="calibre34">char</tt> pointer to C, equivalent to the
+    Haskell <tt class="calibre34">CString</tt> type. We've already chosen PCRE compile-time
+    options to represent the abstract <tt class="calibre34">PCREOption</tt>
+    newtype, whose runtime representation is a <tt class="calibre34">CInt</tt>.
+    As the representations are guaranteed to be identical, we can pass the
+    <tt class="calibre34">newtype</tt> safely. The other arguments are a little more
+    complicated and require some work to construct and take apart.</p><a name="x_EI1" class="calibre27" id="x_EI1"></a><p class="docText">The third argument, a pointer to a C string, will be used
+    as a reference to any error message generated when compiling the
+    expression. The value of the pointer will be modified by the C function to
+    point to a custom error string. We can represent this with a <tt class="calibre34">Ptr
+    CString</tt> type. Pointers in Haskell are heap-allocated containers for
+    raw addresses and can be created and operated on with a number of
+    allocation primitives in the FFI library. For example, we can represent a
+    pointer to a C <tt class="calibre34">int</tt> as <tt class="calibre34">Ptr CInt</tt>, and a pointer to
+    an unsigned char as a <tt class="calibre34">Ptr Word8</tt>.</p><a name="I_sect117_d1e38308d1e38707" class="calibre27" id="I_sect117_d1e38308d1e38707"></a><div class="docNote"><p class="docNormalTitle">NOTE</p><p class="calibre37"><a name="x_FI1" class="calibre27" id="x_FI1"></a></p><p class="docText">Once we have<a name="I_indexterm17_d1e38381" class="calibre27" id="I_indexterm17_d1e38381"></a> a Haskell <tt class="calibre34">Ptr</tt> value<a name="I_indexterm17_d1e38388" class="calibre27" id="I_indexterm17_d1e38388"></a> handy, we can do various pointer-like things with it. We
+      can compare it for equality with the null pointer, represented with the
+      special <tt class="calibre34">nullPtr</tt> constant. <a name="I_indexterm17_d1e38395" class="calibre27" id="I_indexterm17_d1e38395"></a>We can cast a pointer from one type to a pointer to
+      another, or we can advance a pointer by an offset in bytes with
+      <tt class="calibre34">plusPtr</tt>. <a name="I_indexterm17_d1e38403" class="calibre27" id="I_indexterm17_d1e38403"></a>We can even modify the value pointed to, using
+      <tt class="calibre34">poke</tt>, and, of course, dereference a pointer yielding that
+      which it points to, <a name="I_indexterm17_d1e38410" class="calibre27" id="I_indexterm17_d1e38410"></a><a name="I_indexterm17_d1e38413" class="calibre27" id="I_indexterm17_d1e38413"></a>with <tt class="calibre34">peek</tt>. In the majority of circumstances,
+      a Haskell programmer doesn't need to operate on pointers directly, but
+      when they are needed, these tools come in handy.</p></div><a name="x_GI1" class="calibre27" id="x_GI1"></a><p class="docText">The question then is how to represent the abstract
+    <tt class="calibre34">pcre</tt> pointer returned when we compile the regular expression.
+    We need to find a Haskell type that is as abstract as the C type. Since
+    the C type is treated abstractly, we can assign any heap-allocated Haskell
+    type to the data, as long as it has few or no operations on it. This is a
+    common trick for arbitrarily typed foreign data. The idiomatic simple type
+    to use to represent unknown foreign data is a pointer to the
+    <tt class="calibre34">()</tt> type. We can use a type synonym to remember the
+    binding:</p><pre class="calibre39">-- file: ch17/PCRE-compile.hs
+type PCRE = ()</pre><br class="calibre48"/>
+<a name="x_HI1" class="calibre27" id="x_HI1"></a><p class="docText">That is, the foreign data is some unknown, opaque object,
+    and we'll just treat it as a pointer to <tt class="calibre34">()</tt>, knowing full well
+    that we'll never actually dereference that pointer. This gives us the
+    following foreign import binding for <tt class="calibre34">pcre_compile</tt>, which must
+    be in <tt class="calibre34">IO</tt>, as the pointer returned will vary on each call,
+    even if the returned object is functionally equivalent:</p><pre class="calibre39">-- file: ch17/PCRE-compile.hs
+foreign import ccall unsafe "pcre.h pcre_compile"
+    c_pcre_compile  :: CString
+                    -&gt; PCREOption
+                    -&gt; Ptr CString
+                    -&gt; Ptr CInt
+                    -&gt; Ptr Word8
+                    -&gt; IO (Ptr PCRE)</pre><br class="calibre48"/>
+<a name="I_sect117_d1e38308d1e38775" class="calibre27" id="I_sect117_d1e38308d1e38775"></a><h4 id="title-IDA1MQ0E" class="docSection1Title">17.3.1. Typed Pointers</h4><a name="x_II1" class="calibre27" id="x_II1"></a><p class="docText">We<a name="I_indexterm17_d1e38449" class="calibre27" id="I_indexterm17_d1e38449"></a><a name="I_indexterm17_d1e38454" class="calibre27" id="I_indexterm17_d1e38454"></a><a name="I_indexterm17_d1e38457" class="calibre27" id="I_indexterm17_d1e38457"></a> can increase safety in the binding futher by using a
+      <span class="docEmphasis">typed</span> pointer, instead of using the <tt class="calibre34">()</tt>
+      type. That is, a unique type, distinct from the unit type, that has no
+      meaningful runtime representation. A type for which no data can be
+      constructed, making dereferencing it a type error. One good way to build
+      such provably uninspectable data types is with a nullary data
+      type:</p><pre class="calibre39">-- file: ch17/PCRE-nullary.hs
+data PCRE</pre><br class="calibre48"/>
+<a name="idd1e38802" class="calibre27" id="idd1e38802"></a><div class="docNote"><p class="docNormalTitle">NOTE</p><p class="calibre37"></p><p class="docText">When making a foreign import declaration, we can optionally
+        specify a <span class="docEmphasis">safety</span> level to use when making the
+        call, using either the <tt class="calibre34">safe</tt> or <tt class="calibre34">unsafe</tt>
+        keyword.<a name="I_indexterm17_d1e38485" class="calibre27" id="I_indexterm17_d1e38485"></a><a name="I_indexterm17_d1e38488" class="calibre27" id="I_indexterm17_d1e38488"></a> A safe call is less efficient but guarantees that the
+        Haskell system can be safely called into from C. An unsafe call has
+        far less overhead, but the C code that is called must not call back
+        into Haskell. By default, foreign imports are safe, but in practice it
+        is rare for C code to call back into Haskell, so for efficiency we
+        mostly use unsafe calls.</p></div><a name="x_JI1" class="calibre27" id="x_JI1"></a><p class="docText">This requires the <tt class="calibre34">EmptyDataDecls</tt> language
+      extension.<a name="I_indexterm17_d1e38497" class="calibre27" id="I_indexterm17_d1e38497"></a><a name="I_indexterm17_d1e38502" class="calibre27" id="I_indexterm17_d1e38502"></a> This type clearly contains no values! We can only ever
+      construct pointers to such values, as there are no concrete values
+      (other than bottom) that have this type.</p><a name="x_KI1" class="calibre27" id="x_KI1"></a><p class="docText">We can also achieve the same thing, without requiring a
+      language extension, using a recursive <tt class="calibre34">newtype</tt>:</p><pre class="calibre39">-- file: ch17/PCRE-recursive.hs
+newtype PCRE = PCRE (Ptr PCRE)</pre><br class="calibre48"/>
+<a name="x_LI1" class="calibre27" id="x_LI1"></a><p class="docText">Again, we can't really do anything with a value of this
+      type, as it has no runtime representation. Using typed pointers in these
+      ways is just another way to add safety to a Haskell layer over what C
+      provides. What would require discipline on the part of the C programmer
+      (remembering never to dereference a PCRE pointer) can be enforced
+      statically in the type system of the Haskell binding. If this code
+      compiles, the type checker has given us a proof that the PCRE objects
+      returned by C are never dereferenced on the Haskell side.</p><a name="x_MI1" class="calibre27" id="x_MI1"></a><p class="docText">We have the foreign import declaration sorted out now,
+      and the next step is to marshal data into the right form so that we can
+      finally call the C code.</p><a name="I_sect117_d1e38308d1e38850" class="calibre27" id="I_sect117_d1e38308d1e38850"></a><h4 id="title-IDANPQ0E" class="docSection1Title">17.3.2. Memory Management: Let the Garbage Collector Do the Work</h4><a name="x_NI1" class="calibre27" id="x_NI1"></a><p class="docText">One question<a name="I_indexterm17_d1e38524" class="calibre27" id="I_indexterm17_d1e38524"></a><a name="I_indexterm17_d1e38527" class="calibre27" id="I_indexterm17_d1e38527"></a> that isn't resolved yet is how to manage the memory
+      associated with the abstract <tt class="calibre34">PCRE</tt> structure returned by the
+      C library. The caller didn't have to allocate it—the library took care
+      of that by allocating memory on the C side. At some point, though, we'll
+      need to deallocate it. This, again, is an opportunity to abstract the
+      tedium of using the C library by hiding the complexity inside the
+      Haskell binding.</p><a name="x_OI1" class="calibre27" id="x_OI1"></a><p class="docText">We'll use the Haskell garbage collector to
+      automatically deallocate the C structure once it is no longer in use. To
+      do this, we'll make use of Haskell garbage collector finalizers and
+      <a name="I_indexterm17_d1e38538" class="calibre27" id="I_indexterm17_d1e38538"></a>the <tt class="calibre34">ForeignPtr</tt> type.</p><a name="x_PI1" class="calibre27" id="x_PI1"></a><p class="docText">We don't want users to have to manually deallocate the
+      <tt class="calibre34">Ptr PCRE</tt> value returned by the foreign call. The PCRE
+      library specifically states that structures are allocated on the C side
+      with <tt class="calibre34">malloc</tt> and need to be freed when no longer in use, or
+      we risk leaking memory. The Haskell garbage collector already goes to
+      great lengths to automate the task of managing memory for Haskell
+      values. Cleverly, we can also assign our hardworking garbage collector
+      the task of looking after C's memory for us. The trick is to associate a
+      piece of Haskell data with the foreign allocator data and to give the
+      Haskell garbage collector an arbitrary function that is to deallocate
+      the C resource once it notices that the Haskell data is finished.</p><a name="x_QI1" class="calibre27" id="x_QI1"></a><p class="docText">We have two tools at our disposal here—the opaque
+      <tt class="calibre34">ForeignPtr</tt> data type and the <tt class="calibre34">newForeignPtr</tt>
+      function, which has type:</p><pre class="calibre39">-- file: ch17/ForeignPtr.hs
+newForeignPtr :: FinalizerPtr a -&gt; Ptr a -&gt; IO (ForeignPtr a)</pre><br class="calibre48"/>
+<a name="x_RI1" class="calibre27" id="x_RI1"></a><p class="docText">The function takes two arguments: a finalizer to run
+      when the data goes out of scope and a pointer to the associated C data.
+      It returns a new managed pointer, which will have its finalizer run once
+      the garbage collector decides the data is no longer in use. What a
+      lovely abstraction!</p><a name="x_SI1" class="calibre27" id="x_SI1"></a><p class="docText">These finalizable pointers are appropriate whenever a C
+      library requires the user to explicitly deallocate, or otherwise clean
+      up a resource, when it is no longer in use. It is a simple piece of
+      equipment that goes a long way towards making the C library binding more
+      natural, more functional, and in flavor.</p><a name="x_TI1" class="calibre27" id="x_TI1"></a><p class="docText">So with this in mind, we can hide the manually managed
+      <tt class="calibre34">Ptr PCRE</tt> type inside an <span class="docEmphasis">automatically</span> managed data structure. This
+      yields us the data type used to represent regular expressions that users
+      will see:</p><pre class="calibre39">-- file: ch17/PCRE-compile.hs
+data Regex = Regex !(ForeignPtr PCRE)
+                   !ByteString
+        deriving (Eq, Ord, Show)</pre><br class="calibre48"/>
+<a name="x_UI1" class="calibre27" id="x_UI1"></a><p class="docText">This new <tt class="calibre34">Regex</tt> data type consists of two
+      parts. The first is an abstract <tt class="calibre34">ForeignPtr</tt>, which we'll use
+      to manage the underlying <tt class="calibre34">PCRE</tt> data allocated in C. The
+      second component is a strict <tt class="calibre34">ByteString</tt>, which is the
+      string representation of the regular expression that we compiled. By
+      keeping the user-level representation of the regular expression handy
+      inside the <tt class="calibre34">Regex</tt> type, it'll be easier to print friendly
+      error messages and show the <tt class="calibre34">Regex</tt> itself in a meaningful
+      way.</p><a name="I_sect117_d1e38308d1e38929" class="calibre27" id="I_sect117_d1e38308d1e38929"></a><h4 id="title-IDABSQ0E" class="docSection1Title">17.3.3. A High-Level Interface: Marshaling Data</h4><a name="x_VI1" class="calibre27" id="x_VI1"></a><p class="docText">The challenge<a name="I_indexterm17_d1e38603" class="calibre27" id="I_indexterm17_d1e38603"></a><a name="I_indexterm17_d1e38608" class="calibre27" id="I_indexterm17_d1e38608"></a> when writing FFI bindings, once the Haskell types have
+      been decided upon, is to convert regular data types that a Haskell
+      programmer will be familiar with into low-level pointers to arrays and
+      other C types. What would an ideal Haskell <span class="docEmphasis">interface</span> to regular expression
+      compilation look like? We have some design intuitions to guide
+      us.</p><a name="x_WI1" class="calibre27" id="x_WI1"></a><p class="docText">For starters, the act of compilation should be a
+      referentially transparent operation: passing the same regex string will
+      yield functionally the same compiled pattern each time, although the C
+      library will give us observably different pointers to functionally
+      identical expressions. If we can hide these memory management details,
+      we should be able to represent the binding as a pure function. The
+      ability to represent a C function in Haskell as a pure operation is a
+      key step towards flexibility, and an indicator that the interface will
+      be easy to use (as it won't require complicated state to be initialized
+      before it can be used).</p><a name="x_XI1" class="calibre27" id="x_XI1"></a><p class="docText">Despite being pure, the function can still fail. If the
+      regular expression input the user provides is ill-formed, an error
+      string is returned. A good data type to represent optional failure with
+      an error value is <tt class="calibre34">Either</tt>. That is, either we return a valid
+      compiled regular expression or we return an error string. Encoding the
+      results of a C function in a familiar, foundational Haskell type such as
+      this is another useful step to make the binding more idiomatic.</p><a name="x_YI1" class="calibre27" id="x_YI1"></a><p class="docText">For the user-supplied parameters, we've already decided
+      to pass compilation flags in as a list. We can choose to pass the input
+      regular expression either as an efficient <tt class="calibre34">ByteString</tt> or as
+      a regular <tt class="calibre34">String</tt>. An appropriate type signature, then, for
+      referentially transparent compilation success with a value or failure
+      with an error string would be:</p><pre class="calibre39">-- file: ch17/PCRE-compile.hs
+compile :: ByteString -&gt; [PCREOption] -&gt; Either String Regex</pre><br class="calibre48"/>
+<a name="x_ZI1" class="calibre27" id="x_ZI1"></a><p class="docText">The input is a <tt class="calibre34">ByteString</tt>, available from
+      the <tt class="calibre34">Data.ByteString.Char8</tt> module (and we'll import this
+      <tt class="calibre34">qualified</tt> to avoid name clashes), containing the regular
+      expression and a list of flags (or the empty list if there are no flags
+      to pass). The result is either an error string, or a new, compiled
+      regular expression.</p><a name="I_sect117_d1e38308d1e38974" class="calibre27" id="I_sect117_d1e38308d1e38974"></a><h4 id="title-IDASTQ0E" class="docSection1Title">17.3.4. Marshaling ByteStrings</h4><a name="x_aI1" class="calibre27" id="x_aI1"></a><p class="docText">Given this type, we can<a name="I_indexterm17_d1e38648" class="calibre27" id="I_indexterm17_d1e38648"></a> sketch out the <tt class="calibre34">compile</tt> function: the
+      high-level interface to the raw C binding. At its heart, it will call
+      <tt class="calibre34">c_pcre_compile</tt>. Before it does that, it has to marshal the
+      input <tt class="calibre34">ByteString</tt> into a <tt class="calibre34">CString</tt>. This is done
+      with the <tt class="calibre34">ByteString</tt> library's <tt class="calibre34">useAsCString</tt>
+      function, which copies the input <tt class="calibre34">ByteString</tt> into a
+      null-terminated C array (there is also an unsafe, zero copy variant,
+      which assumes the <tt class="calibre34">ByteString</tt> is already
+      null-terminated):</p><pre class="calibre39">-- file: ch17/ForeignPtr.hs
+useAsCString :: ByteString -&gt; (CString -&gt; IO a) -&gt; IO a</pre><br class="calibre48"/>
+<a name="x_bI1" class="calibre27" id="x_bI1"></a><p class="docText">This function takes a <tt class="calibre34">ByteString</tt> as input.
+      The second argument is a user-defined function that will run with the
+      resulting <tt class="calibre34">CString</tt>. We see here another useful idiom: data
+      marshaling functions that are naturally scoped via closures. Our
+      <tt class="calibre34">useAsCString</tt> function will convert the input data to a C
+      string, which we can then pass to C as a pointer. Our burden then is to
+      supply it with a chunk of code to call C.</p><a name="x_cI1" class="calibre27" id="x_cI1"></a><p class="docText">Code in this style is often written in a dangling
+      <tt class="calibre34">do-block</tt> notation. The following <span class="docEmphasis">pseudocode</span> illustrates this
+      structure:</p><pre class="calibre39">-- file: ch17/DoBlock.hs
+useAsCString str $ \cstr -&gt; do
+   ... operate on the C string
+   ... return a result</pre><br class="calibre48"/>
+<a name="x_dI1" class="calibre27" id="x_dI1"></a><p class="docText">The second argument here is an anonymous function, a
+      lambda, with a monadic <tt class="calibre34">do</tt> block for a body. It is
+      common to use the simple <tt class="calibre34">($)</tt> application operator to avoid
+      the need for parentheses when delimiting the code block argument. This
+      is a useful idiom to remember when dealing with code block parameters
+      such as this.</p><a name="I_sect117_d1e38308d1e39041" class="calibre27" id="I_sect117_d1e38308d1e39041"></a><h4 id="title-IDAUVQ0E" class="docSection1Title">17.3.5. Allocating Local C Data: The Storable Class</h4><a name="x_eI1" class="calibre27" id="x_eI1"></a><p class="docText">We can happily marshal
+      <tt class="calibre34">ByteString</tt><a name="I_indexterm17_d1e38717" class="calibre27" id="I_indexterm17_d1e38717"></a> data to C-compatible types, but<a name="I_indexterm17_d1e38723" class="calibre27" id="I_indexterm17_d1e38723"></a> the <tt class="calibre34">pcre_compile</tt>
+      function also needs some pointers and arrays in which to place its other
+      return values. These should only exist briefly, so we don't need
+      complicated allocation strategies. Such short-lifetime C data can be
+      created with the <tt class="calibre34">alloca</tt> function:</p><pre class="calibre39">-- file: ch17/ForeignPtr.hs
+alloca :: Storable a =&gt; (Ptr a -&gt; IO b) -&gt; IO b</pre><br class="calibre48"/>
+<a name="x_fI1" class="calibre27" id="x_fI1"></a><p class="docText">This function takes a code block accepting a pointer to
+      some C type as an argument and arranges to call that function with the
+      unitialized data of the right shape, allocated freshly. The allocation
+      mechanism mirrors local stack variables in other languages. The
+      allocated memory is released once the argument function exits. In this
+      way, we get lexically scoped allocation of low-level data types, which
+      are guaranteed to be released once the scope is exited. We can use it to
+      allocate any data types that have an instance of the
+      <tt class="calibre34">Storable</tt> typeclass. An implication of overloading the
+      allocation operator such as this is that the data type allocated can be
+      inferred from type information, based on use! Haskell will know what to
+      allocate based on the functions we use on that data.</p><a name="x_gI1" class="calibre27" id="x_gI1"></a><p class="docText">To allocate a pointer to a <tt class="calibre34">CString</tt>, for
+      example, which will be updated to point to a particular
+      <tt class="calibre34">CString</tt> by the called function, we would call
+      <tt class="calibre34">alloca</tt>, in pseudocode as:</p><pre class="calibre39">-- file: ch17/DoBlock.hs
+alloca $ \stringptr -&gt; do
+   ... call some Ptr CString function
+   peek stringptr</pre><br class="calibre48"/>
+<a name="x_hI1" class="calibre27" id="x_hI1"></a><p class="docText">This locally allocates a <tt class="calibre34">Ptr CString</tt> and
+      applies the code block to that pointer, which then calls a C function to
+      modify the pointer contents. Finally, we dereference the pointer with
+      the <tt class="calibre34">Storable</tt> class <tt class="calibre34">peek</tt> function, yielding a
+      <tt class="calibre34">CString</tt>.</p><a name="x_iI1" class="calibre27" id="x_iI1"></a><p class="docText">We can now put it all together, to complete our
+      high-level PCRE compilation wrapper.</p><a name="I_sect117_d1e38308d1e39100" class="calibre27" id="I_sect117_d1e38308d1e39100"></a><h4 id="title-IDARXQ0E" class="docSection1Title">17.3.6. Putting It All Together</h4><a name="x_jI1" class="calibre27" id="x_jI1"></a><p class="docText">We've decided what Haskell type to represent the C
+      function with, what the result data will be represented by, and how its
+      memory will be managed. We've chosen a representation for flags to the
+      <tt class="calibre34">pcre_compile</tt> function and worked out how to get C strings
+      to and from code inspecting it. So let's write the complete function for
+      compiling PCRE regular expressions from Haskell:</p><pre class="calibre39">-- file: ch17/PCRE-compile.hs
+compile :: ByteString -&gt; [PCREOption] -&gt; Either String Regex
+compile str flags = unsafePerformIO $
+  useAsCString str $ \pattern -&gt; do
+    alloca $ \errptr       -&gt; do
+    alloca $ \erroffset    -&gt; do
+        pcre_ptr &lt;- c_pcre_compile pattern (combineOptions flags) errptr 
+        erroffset nullPtr
+        if pcre_ptr == nullPtr
+            then do
+                err &lt;- peekCString =&lt;&lt; peek errptr
+                return (Left err)
+            else do
+                reg &lt;- newForeignPtr finalizerFree pcre_ptr -- release with free()
+                return (Right (Regex reg str))</pre><br class="calibre48"/>
+<a name="x_kI1" class="calibre27" id="x_kI1"></a><p class="docText">That's it! Let's carefully walk through the details
+      here, since it is rather dense. The first thing that stands out is the
+      use of <tt class="calibre34">unsafePerformIO</tt>, a rather infamous function, with a
+      very unusual type, imported from the ominous
+      <tt class="calibre34">System.IO.Unsafe</tt>:</p><pre class="calibre39">-- file: ch17/ForeignPtr.hs
+unsafePerformIO :: IO a -&gt; a</pre><br class="calibre48"/>
+<a name="x_lI1" class="calibre27" id="x_lI1"></a><p class="docText">This function does something odd. It takes an
+      <tt class="calibre34">IO</tt> value and converts it to a pure one! After warning
+      about the danger of effects for so long, here we have the very enabler
+      of dangerous effects in one line. Used unwisely, this function lets us
+      sidestep all safety guarantees that the Haskell type system provides,
+      inserting arbitrary side effects into a Haskell program, anywhere. The
+      dangers in doing this are significant. We can break optimizations,
+      modify arbitrary locations in memory, remove files on the user's
+      machine, or launch nuclear missiles from our Fibonacci sequences. So why
+      does this function exist at all?</p><a name="x_mI1" class="calibre27" id="x_mI1"></a><p class="docText">It exists precisely to enable Haskell to bind to C code
+      that we know to be referentially transparent, but can't prove the case
+      to the Haskell type system. It lets us say to the compiler, "I know what
+      I'm doing—this code really is pure." For regular expression compilation,
+      we know this to be the case: given the same pattern, we should get the
+      same regular expression matcher every time. However, proving that to the
+      compiler is beyond the Haskell type system, so we're forced to assert
+      that this code is pure. Using <tt class="calibre34">unsafePerformIO</tt> allows us to
+      do just that.</p><p class="docText">However, if we know the C code is pure, why don't we just declare
+      it as such, by giving it a pure type in the import declaration? We don't
+      because we have to allocate local memory for the C function to work
+      with, which must be done in the <tt class="calibre34">IO</tt> monad, as it is a
+      local side effect. Those effects won't escape the code surrounding the
+      foreign call, though, so when wrapped, we use
+      <tt class="calibre34">unsafePerformIO</tt> to reintroduce purity.</p><a name="x_nI1" class="calibre27" id="x_nI1"></a><p class="docText">The argument to <tt class="calibre34">unsafePerformIO</tt> is the
+      actual body of our compilation function, which consists of four parts:
+      marshaling Haskell data to C form; calling into the C library; checking
+      the return values; and finally, constructing a Haskell value from the
+      results.</p><a name="x_oI1" class="calibre27" id="x_oI1"></a><p class="docText">We marshal with <tt class="calibre34">useAsCString</tt> and
+      <tt class="calibre34">alloca</tt>, setting up the data we need to pass to C, and use
+      <tt class="calibre34">combineOptions</tt>, developed previously, to collapse the list
+      of flags into a single <tt class="calibre34">CInt</tt>. Once that's all in place, we
+      can finally call <tt class="calibre34">c_pcre_compile</tt> with the pattern, flags,
+      and pointers for the results. We use <tt class="calibre34">nullPtr</tt> for the
+      character-encoding table, which is unused in this case.</p><a name="x_pI1" class="calibre27" id="x_pI1"></a><p class="docText">The result returned from the C call is a pointer to the
+      abstract <tt class="calibre34">PCRE</tt> structure. We then test this against the
+      <tt class="calibre34">nullPtr</tt>. If there is a problem with the regular expression,
+      we have to dereference the error pointer, yielding a
+      <tt class="calibre34">CString</tt>. We then unpack that to a normal Haskell list with
+      the library function, <tt class="calibre34">peekCString</tt>. The final result of the
+      error path is a value of <tt class="calibre34">Left err</tt>, indicating failure to
+      the caller.</p><a name="x_qI1" class="calibre27" id="x_qI1"></a><p class="docText">If the call succeeds, however, we allocate a new
+      storage-managed pointer, with the C function using a
+      <tt class="calibre34">ForeignPtr</tt>. The special value <tt class="calibre34">finalizerFree</tt> is
+      bound as the finalizer for this data, which uses the standard C
+      <tt class="calibre34">free</tt> to deallocate the data. This is then wrapped as an
+      opaque <tt class="calibre34">Regex</tt> value. The successful result is tagged as such
+      with <tt class="calibre34">Right</tt>, and then returned to the user. And now we're
+      done!</p><a name="x_rI1" class="calibre27" id="x_rI1"></a><p class="docText">We need to process our source file with
+      <tt class="calibre34">hsc2hs</tt>, and then load the function in <tt class="calibre34">ghci</tt>.
+      However, doing this results in an error on the first attempt:</p><pre class="calibre39">$ <b class="calibre40">hsc2hs Regex.hsc</b>$ <b class="calibre40">ghci Regex.hs</b>
+
+During interactive linking, GHCi couldn't find the following symbol:
+  pcre_compile
+This may be due to you not asking GHCi to load extra object files,
+archives, or DLLs needed by your current session.  Restart GHCi, specifying
+the missing library using the -L/path/to/object/dir and -lmissinglibname
+flags, or simply by naming the relevant files on the GHCi command line.</pre><a name="x_sI1" class="calibre27" id="x_sI1"></a><p class="docText">A little scary. However, this is just because we didn't
+      link the C library we wanted to call to the Haskell code. Assuming the
+      PCRE library has been installed on the system in the default library
+      location, we can let <tt class="calibre34">ghci</tt> know about it by adding
+      <tt class="calibre34">-lpcre</tt> to the <tt class="calibre34">ghci</tt> command line. Now we can
+      try out the code on some regular expressions, looking at the success and
+      error cases:</p><pre class="calibre39">$ <b class="calibre40">ghci Regex.hs -lpcre</b>*Regex&gt; <b class="calibre40">:m + Data.ByteString.Char8</b>*Regex Data.ByteString.Char8&gt; <b class="calibre40">compile (pack "a.*b") []</b>
+Right (Regex 0x00000000028882a0 "a.*b")
+*Regex Data.ByteString.Char8&gt; <b class="calibre40">compile (pack "a.*b[xy]+(foo?)") []</b>
+Right (Regex 0x0000000002888860 "a.*b[xy]+(foo?)")
+*Regex Data.ByteString.Char8&gt; <b class="calibre40">compile (pack "*") []</b>
+Left "nothing to repeat"</pre><a name="x_tI1" class="calibre27" id="x_tI1"></a><p class="docText">The regular expressions are packed into byte strings
+      and marshaled to C, where they are compiled by the PCRE library. The
+      result is then handed back to Haskell, where we display the structure
+      using the default <tt class="calibre34">Show</tt> instance. Our next step is to
+      pattern match some strings with these compiled regular
+      expressions.</p>
+<a href="21061538.html" class="calibre2"><img src="pixel.gif" alt="" border="0" class="calibre31"/></a><ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect117_d1e37921.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect117_d1e38933.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

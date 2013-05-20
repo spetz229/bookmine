@@ -1,0 +1,131 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: deftypes_data.html
+next: deftypes_adt.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="deftypes_data.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="deftypes_adt.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="deftypes_alias" class="calibre27" id="deftypes_alias"></a><h3 id="643999-896" class="docSection1Title">3.2. Type Synonyms</h3><a name="x_Mf" class="calibre27" id="x_Mf"></a><p class="docText">We<a name="I_indexterm3_d1e5885" class="calibre27" id="I_indexterm3_d1e5885"></a><a name="I_indexterm3_d1e5886" class="calibre27" id="I_indexterm3_d1e5886"></a><a name="I_indexterm3_d1e5887" class="calibre27" id="I_indexterm3_d1e5887"></a><a name="I_indexterm3_d1e5890" class="calibre27" id="I_indexterm3_d1e5890"></a> can introduce a <span class="docEmphasis">synonym</span> for an
+    existing type at any time, in order to give a type a more descriptive
+    name. For example, the <tt class="calibre34">String</tt> in our <tt class="calibre34">BookReview</tt>
+    type doesn't tell us what the string is for, but we can clarify
+    this:</p><pre class="calibre39">-- file: ch03/BookStore.hs
+type CustomerID = Int
+type ReviewBody = String
+
+data BetterReview = BetterReview BookInfo CustomerID ReviewBody</pre><br class="calibre48"/>
+<a name="x_Nf" class="calibre27" id="x_Nf"></a><p class="docText">The <tt class="calibre34">type</tt>
+    keyword<a name="I_indexterm3_d1e5912" class="calibre27" id="I_indexterm3_d1e5912"></a> introduces a type synonym. The new name is on the left of
+    the <tt class="calibre34">=</tt>, with the existing name on the right. The two names
+    identify the same type, so type synonyms are <span class="docEmphasis">purely</span>
+    for making code more readable.</p><a name="x_Of" class="calibre27" id="x_Of"></a><p class="docText">We can also use a type synonym to create a shorter name
+    for a verbose type:</p><pre class="calibre39">-- file: ch03/BookStore.hs
+type BookRecord = (BookInfo, BookReview)</pre><br class="calibre48"/>
+<a name="x_Pf" class="calibre27" id="x_Pf"></a><p class="docText">This states that we can use <tt class="calibre34">BookRecord</tt> as a synonym for the tuple
+    (<tt class="calibre34">BookInfo,</tt> <tt class="calibre34">BookReview</tt>). A
+    type synonym creates only a new name that refers to an existing
+    type.<sup class="docFootnote"><a class="docLink1" href="#x_Pfd1e6004">[7]</a></sup> We still use the same value constructors to create a value
+    of the type.</p><blockquote class="calibre30"><p class="docFootnote1"><sup class="calibre50"><a name="x_Pfd1e6004" class="calibre5" id="x_Pfd1e6004">[7]</a></sup> If you are familiar with C or C++, it is analogous to
+        a <tt class="calibre34">typedef</tt>.</p></blockquote>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"><a href="21061538.html" class="calibre2"><img src="btn_next_.gif" alt="Next" border="0" class="calibre31"/></a> 
+           
+          <span class="calibre33"><a target="_self" href="deftypes_data.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="deftypes_adt.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

@@ -1,0 +1,60 @@
+---
+layout: page
+title: "Эффективное использование C++. 55 верных способов улучшить структуру и код ваших программ"
+prev: OEBPS/section7.xhtml
+next: OEBPS/section9.xhtml
+book_path: books/effektivnoe-ispoljzovanie-c--vernih-sposobov-uluchshitj-strukturu-i-kod-vashih-programm_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <div class="calibre">
+      <div class="title1">
+        <h2 class="calibre3">Соглашения об именах</h2>
+      </div>
+      <p class="calibre2">Я пытался выбирать осмысленные имена для объектов, классов, функций, шаблонов и т. п., но семантика некоторых придуманных мной имен может быть для вас неочевидна. Например, я часто использую для параметров имена lhs и rhs. Имеется в виду соответственно «левая часть» (left-hand side) и «правая часть» (right-hand side). Эти имена обычно употребляются в функциях, реализующих бинарные операторы, то есть operator== и operator*. Например, если a и b – объекты, представляющие рациональные числа, и если объекты класса Rational можно перемножать с помощью функции-нечлена operator*() (подобный случай описан в правиле 24), то выражение</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">a*b</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">эквивалентно вызову функции:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">operator*(a, b);</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">В правиле 24 я объявляю operator* следующим образом:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">const Rational operator*(const Rational&amp; lhs, const Rational&amp; rhs);</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Как видите, левый операнд – a – внутри функции называется lhs, а правый – b – rhs.</p>
+      <p class="calibre2">Для функций-членов аргумент в левой части оператора представлен указателем this, а единственный оставшийся параметр я иногда называю rhs. Возможно, вы заметили это в объявлении некоторых функций-членов класса Widget в примерах выше. «Widget» не значит ничего. Это просто имя, которое я иногда использую для того, чтобы как-то назвать пример класса. Оно не имеет никакого отношения к элементам управления (виджетам), применяемым в графических интерфейсах (GUI).</p>
+      <p class="calibre2">Часто я именую указатели, следуя соглашению, с соответствии с которым указатель на объект типа T называется pt («pointer to T»). Вот некоторые примеры:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">Widget *pw; // pw = указатель на Widget</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class Airplane;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Airplane *pa; // pa = указатель на Airplane</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class GameCharacter;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">GameCharacter *pgc; // pgc = указатель на GameCharacter</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Похожее соглашение применяется и для ссылок: rw может быть ссылкой на Widget, а ra – ссылкой на Airplane.</p>
+      <p class="calibre2">Иногда для именования функции-члена я использую имя mf.</p>
+    </div>
+  </div>
+
+{% endraw %}
+

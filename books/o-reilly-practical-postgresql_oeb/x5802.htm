@@ -1,0 +1,1035 @@
+---
+layout: page
+title: "Unknown"
+prev: x5504.htm
+next: x7050.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="x5504.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 4. Using SQL with PostgreSQL</td><td width="10%" valign="bottom" class="calibre5"><a href="x7050.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="RETRIEVINGROWSWITHSELECT" class="calibre8">Retrieving Rows with SELECT</a></h1><p class="calibre9">The heart of all SQL queries is the <tt class="REPLACEABLE">SELECT</tt> command.
+    <tt class="REPLACEABLE">SELECT</tt> is used to build queries (also known as <tt class="REPLACEABLE">SELECT</tt>
+    statements).  Queries are the only SQL instructions by which your data can be retrieved from tables and views. The data
+    returned via a query is called a <span><i class="EMPHASIS">result set</i></span> and consists of rows, with columns, similar to a
+    table.</p><p class="calibre9">The columns of a result set are not stored on the disk in any fixed form. They are purely a temporary result of the
+    query's requested data. A query on a table may return a result set with the same column structure as the table, or it may
+    differ drastically. Result sets may even have columns which are drawn from several other tables by a single query.</p><p class="calibre9">Since it is central to PostgreSQL, <tt class="REPLACEABLE">SELECT</tt> is easily the most complicated single
+    command, having the most available clauses and parameters. The following is the syntax for
+    <tt class="REPLACEABLE">SELECT</tt>.  The terms used are summarized and described in greater detail within the
+    following sections. The term <tt class="REPLACEABLE"><i class="EMPHASIS">expression</i></tt> is used to refer to either a column name, or a general
+    expression (such as a column being operated upon by a constant, or another column).</p><pre class="SCREEN">  SELECT [ ALL | DISTINCT [ ON ( <tt class="REPLACEABLE"><i class="EMPHASIS">expression</i></tt> [, ...] ) ] ]
+         <tt class="REPLACEABLE"><i class="EMPHASIS">target</i></tt> [ AS <tt class="REPLACEABLE"><i class="EMPHASIS">name</i></tt> ] [, ...]
+         [ FROM <tt class="REPLACEABLE"><i class="EMPHASIS">source</i></tt> [, ...] ]
+                [ [ NATURAL ] <tt class="REPLACEABLE"><i class="EMPHASIS">join_type</i></tt> <tt class="REPLACEABLE"><i class="EMPHASIS">source</i></tt>
+                [ ON <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> | USING ( <tt class="REPLACEABLE"><i class="EMPHASIS">column_list</i></tt> ) ] ]
+                [, ...]
+         [ WHERE <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> ]
+         [ GROUP BY <tt class="REPLACEABLE"><i class="EMPHASIS">expression</i></tt> [, ...] ]
+         [ HAVING <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> [, ...] ]
+         [ { UNION | INTERSECT | EXCEPT } [ ALL ] <tt class="REPLACEABLE"><i class="EMPHASIS">sub-query</i></tt> ]
+         [ ORDER BY <tt class="REPLACEABLE"><i class="EMPHASIS">expression</i></tt>
+                 [ ASC | DESC | USING <tt class="REPLACEABLE"><i class="EMPHASIS">operator</i></tt> ]
+                 [, ...] ]
+         [ FOR UPDATE [ OF <tt class="REPLACEABLE"><i class="EMPHASIS">table</i></tt> [, ...] ] ]
+         [ LIMIT { <tt class="REPLACEABLE"><i class="EMPHASIS">count</i></tt> | ALL } [ { OFFSET | , } <tt class="REPLACEABLE"><i class="EMPHASIS">start</i></tt> ] ]</pre><p class="calibre9">In this syntax diagram, <tt class="REPLACEABLE"><i class="EMPHASIS">source</i></tt> may be either a table name or a subselect.
+      The syntax for these general forms is as follows:</p><pre class="SCREEN">  FROM { [ ONLY ] <tt class="REPLACEABLE"><i class="EMPHASIS">table</i></tt> [ [ AS ] <tt class="REPLACEABLE"><i class="EMPHASIS">alias</i></tt> [ ( <tt class="REPLACEABLE"><i class="EMPHASIS">column_alias</i></tt> [, ...] ) ] ] |
+         ( <tt class="REPLACEABLE"><i class="EMPHASIS">query</i></tt> ) [ AS ] <tt class="REPLACEABLE"><i class="EMPHASIS">alias</i></tt> [ ( <tt class="REPLACEABLE"><i class="EMPHASIS">column_alias</i></tt> [, ...] ) ] }</pre><p class="calibre9"> </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">ALL</tt></dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE">ALL</tt> keyword may be specified as a noise term to make it
+              clear that all rows should be returned. </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">DISTINCT [ ON ( </tt><tt class="REPLACEABLE"><i class="EMPHASIS">expression</i></tt> [, ...] ) ]</dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE">DISTINCT</tt> clause specifies a
+            column (or expression) for which to retrieve only one row per unique value of <tt class="REPLACEABLE"><i class="EMPHASIS">expression</i></tt>.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE"/><tt class="REPLACEABLE"><i class="EMPHASIS">target</i></tt> [ AS <tt class="REPLACEABLE"><i class="EMPHASIS">name</i></tt> ] [, ...]</dt><dd class="calibre16"><p class="calibre9">              The <tt class="REPLACEABLE">SELECT</tt> targets are usually column names, though they can be constants, identifier,
+              function or general expression.  Each <tt class="REPLACEABLE"><i class="EMPHASIS">target</i></tt> requested must be separated by commas, and may be named
+              dynamically to <tt class="REPLACEABLE"><i class="EMPHASIS">name</i></tt> via the <tt class="REPLACEABLE">AS</tt> clause.  Supplying the asterisk symbol
+              (<tt class="REPLACEABLE">*</tt>) as a target is shorthand for requesting all non-system columns, and may be
+              listed along with other targets.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">FROM </tt><tt class="REPLACEABLE"><i class="EMPHASIS">source</i></tt> [, ...]</dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE">FROM</tt> clause dictates the <tt class="REPLACEABLE"><i class="EMPHASIS">source</i></tt> that PostgreSQL will look in for the specified <tt class="REPLACEABLE"><i class="EMPHASIS">targets</i></tt>.
+            The <tt class="REPLACEABLE"><i class="EMPHASIS">source</i></tt>, in this case, may be a table name or a sub-query.
+            You can specify numerous sources, separated by commas. (This is roughly equivalent to a cross join).
+            The syntax for the <tt class="REPLACEABLE">FROM</tt> clause is described in more detail later in this section.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">[ NATURAL ] </tt><tt class="REPLACEABLE"><i class="EMPHASIS">join_type</i></tt> <tt class="REPLACEABLE"><i class="EMPHASIS">source</i></tt> [ ON <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> | USING ( <tt class="REPLACEABLE"><i class="EMPHASIS">column_list</i></tt> ) ]</dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE">FROM</tt> sources may be joined together via the
+              <tt class="REPLACEABLE">JOIN</tt> clause, which requires a <tt class="REPLACEABLE"><i class="EMPHASIS">join_type</i></tt> (e.g.,
+              <tt class="REPLACEABLE">INNER</tt>, <tt class="REPLACEABLE">FULL OUTER</tt>,
+              <tt class="REPLACEABLE">CROSS</tt>) and may require a <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> or
+              <tt class="REPLACEABLE"><i class="EMPHASIS">column_list</i></tt> to further define the nature of the join, depending on the
+              <tt class="REPLACEABLE"><i class="EMPHASIS">join_type</i></tt>.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">WHERE </tt><tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt></dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE">WHERE</tt> clause constrains the result set from the <tt class="REPLACEABLE">SELECT</tt> statement to specified
+              criteria, which are defined by <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt>. Conditions must return a single Boolean value (true
+              or false), but may consist of several checks combined with logical operators (e.g., with
+              <tt class="REPLACEABLE">AND</tt>, and <tt class="REPLACEABLE">OR</tt>) to indicate that available
+              rows must meet all supplied conditions to be included in the statement's results.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">GROUP BY </tt><tt class="REPLACEABLE"><i class="EMPHASIS">expression</i></tt> [, ...]</dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE">GROUP BY</tt> clause aggregates (groups) rows together by the criteria described in <tt class="REPLACEABLE"><i class="EMPHASIS">expression</i></tt>. This can be as
+            simple as a column name (and often is) or an arbitrary expression applied to values of the result set.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">HAVING </tt><tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> [, ...]</dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE">HAVING</tt> clause is similar to the <tt class="REPLACEABLE">WHERE</tt> clause, but checks its conditions on aggregated
+            (grouped) sets instead of atomic rows.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">{ UNION | INTERSECT | EXCEPT } [ ALL ] </tt><tt class="REPLACEABLE"><i class="EMPHASIS">sub-query</i></tt></dt><dd class="calibre16"><p class="calibre9">              Performs one of three <span><i class="EMPHASIS">set operations</i></span> between the
+              <tt class="REPLACEABLE">SELECT</tt> statement and a second query, returning their result sets in uniform column
+              structure (which must be compatible).
+              
+              </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre17"><dt class="NAVHEADER"><tt class="REPLACEABLE">UNION</tt></dt><dd class="calibre16"><p class="calibre9">                    Returns the set of collected rows.
+                    </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">INTERSECT</tt></dt><dd class="calibre16"><p class="calibre9">                    Returns the set of rows where the values of the two sets overlap.
+                    </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">EXCEPT</tt></dt><dd class="calibre16"><p class="calibre9">                    Returns the set of rows which are found in the <tt class="REPLACEABLE">SELECT</tt>
+                    statement, but not found in the secondary query.
+                    </p></dd></dl></div>
+</dd><dt class="NAVHEADER"><tt class="REPLACEABLE">ORDER BY </tt><tt class="REPLACEABLE"><i class="EMPHASIS">expression</i></tt></dt><dd class="calibre16"><p class="calibre9">Sorts the results of the <tt class="REPLACEABLE">SELECT</tt> statement by <tt class="REPLACEABLE"><i class="EMPHASIS">expression</i></tt>.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">[ ASC | DESC | USING operator ]</tt></dt><dd class="calibre16"><p class="calibre9">Determines whether or not the <tt class="REPLACEABLE">ORDER BY</tt> <tt class="REPLACEABLE"><i class="EMPHASIS">expression</i></tt>
+            proceeds in ascending order (<tt class="REPLACEABLE">ASC</tt>), or descending order (<tt class="REPLACEABLE">DESC</tt>).
+            An <tt class="REPLACEABLE"><i class="EMPHASIS">operator</i></tt> may alternatively be specified with the <tt class="REPLACEABLE">USING</tt> keyword
+            (e.g., <tt class="REPLACEABLE">&lt;</tt> or <tt class="REPLACEABLE">&gt;</tt>).
+            </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">FOR UPDATE [ OF </tt><tt class="REPLACEABLE"><i class="EMPHASIS">table</i></tt> [, ...] ]</dt><dd class="calibre16"><p class="calibre9">Allows for exclusive locking of the returned rows. When used within a transaction block, <tt class="REPLACEABLE">FOR UPDATE</tt>
+            locks the rows of the specified table until the transaction is committed.  While locked, the rows cannot be updated by other transactions.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">LIMIT { </tt><tt class="REPLACEABLE"><i class="EMPHASIS">count</i></tt> | ALL }</dt><dd class="calibre16"><p class="calibre9">Limits the number of rows returned to a maximum of <tt class="REPLACEABLE"><i class="EMPHASIS">count</i></tt>, or explicitly allows <tt class="REPLACEABLE">ALL</tt> rows.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">{ OFFSET | , } </tt><tt class="REPLACEABLE"><i class="EMPHASIS">start</i></tt></dt><dd class="calibre16"><p class="calibre9">Instructs the <tt class="REPLACEABLE">LIMIT</tt> clause at what point to begin limiting the
+              results.  For example, a <tt class="REPLACEABLE">LIMIT</tt> with a <tt class="REPLACEABLE"><i class="EMPHASIS">count</i></tt> set to 100, and
+              an <tt class="REPLACEABLE">OFFSET</tt> clause with a <tt class="REPLACEABLE"><i class="EMPHASIS">start</i></tt> value of 50
+              would return the rows from 50 to 150 (if there are that many results to return).</p></dd></dl></div>
+<p class="calibre9">        Terms used in the <tt class="REPLACEABLE">FROM</tt> clause's syntax description are as follows:
+      </p><p class="calibre9"> </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">[ ONLY ] </tt><tt class="REPLACEABLE"><i class="EMPHASIS">table</i></tt></dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE"><i class="EMPHASIS">table</i></tt> name specifies what table to use as a source for the
+              <tt class="REPLACEABLE">SELECT</tt> statement.  Specifying the <tt class="REPLACEABLE">ONLY</tt>
+              clause causes the rows of any child's table to be omitted from the query.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">[ AS ] </tt><tt class="REPLACEABLE"><i class="EMPHASIS">alias</i></tt></dt><dd class="calibre16"><p class="calibre9">An <tt class="REPLACEABLE"><i class="EMPHASIS">alias</i></tt> may optionally be assigned to a <tt class="REPLACEABLE">FROM</tt>
+              source, in order to simplify a query (e.g., <tt class="REPLACEABLE">books</tt> might be temporarily referenced
+              with an alias of <tt class="REPLACEABLE">b</tt>). The <tt class="REPLACEABLE">AS</tt> term is considered
+              noise, and is optional.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">( </tt><tt class="REPLACEABLE"><i class="EMPHASIS">query</i></tt> ) [ AS ] <tt class="REPLACEABLE"><i class="EMPHASIS">alias</i></tt></dt><dd class="calibre16"><p class="calibre9">Any valid <tt class="REPLACEABLE">SELECT</tt> statement may be placed in parentheses as the
+              <tt class="REPLACEABLE"><i class="EMPHASIS">query</i></tt>. This causes the result set created by the query to be used as a
+              <tt class="REPLACEABLE">FROM</tt> source, as if it had been a static table. This use of a sub-query requires a specified
+              <tt class="REPLACEABLE"><i class="EMPHASIS">alias</i></tt>.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">( </tt><tt class="REPLACEABLE"><i class="EMPHASIS">column_alias</i></tt> [, ...] )</dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE">FROM</tt> sources which have assigned aliases may also alias columns by
+            specifying arbitrary column aliases. Each <tt class="REPLACEABLE"><i class="EMPHASIS">column_alias</i></tt> must be separated by commas, and grouped
+            within parentheses following the <tt class="REPLACEABLE">FROM</tt> source's alias. These aliases must match the
+            order of the defined columns in the table to which it is applied.</p></dd></dl></div>
+<div class="NAVHEADER"><h2 class="SECT"><a name="AEN6047" class="calibre8">A Simple SELECT</a></h2><p class="calibre9">A <tt class="REPLACEABLE">SELECT</tt> statement may be as simple as a request for all rows and all columns
+        from a specified table.  Use the following syntax to retrieve all rows and columns from a table:</p><pre class="SCREEN">  SELECT * FROM <tt class="REPLACEABLE"><i class="EMPHASIS">table_name</i></tt>;</pre><p class="calibre9">The asterisk (<tt class="REPLACEABLE">*</tt>) character, as mentioned in the explanation of <tt class="REPLACEABLE">SELECT</tt>'s syntax,
+        is short-hand for all non-system columns. In essence, the <tt class="REPLACEABLE">SELECT *</tt> requests all
+        non-system data in the table named <tt class="REPLACEABLE"><i class="EMPHASIS">table_name</i></tt> ; this retrieves all columns and all rows, because no row limit is specified. To demonstrate,
+        <a href="x5802.htm#SELECTINGALLFROMBOOKS">Example 4-23</a> requests all columns (<tt class="REPLACEABLE">*</tt>) from
+        Book Town's <tt class="REPLACEABLE">books</tt> table.</p><div class="NAVHEADER"><a name="SELECTINGALLFROMBOOKS"></a><p class="calibre9"><b class="calibre10">Example 4-23. Selecting all from the books table</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT * FROM books;</b></tt>
+  id   |            title            | author_id | subject_id
+-------+-----------------------------+-----------+------------
+  7808 | The Shining                 |      4156 |          9
+  4513 | Dune                        |      1866 |         15
+  4267 | 2001: A Space Odyssey       |      2001 |         15
+  1608 | The Cat in the Hat          |      1809 |          2
+  1590 | Bartholomew and the Oobleck |      1809 |          2
+ 25908 | Franklin in the Dark        |     15990 |          2
+  1501 | Goodnight Moon              |      2031 |          2
+   190 | Little Women                |        16 |          6
+  1234 | The Velveteen Rabbit        |     25041 |          3
+  2038 | Dynamic Anatomy             |      1644 |          0
+   156 | The Tell-Tale Heart         |       115 |          9
+ 41472 | Practical PostgreSQL        |      1212 |          4
+ 41473 | Programming Python          |      7805 |          4
+ 41477 | Learning Python             |      7805 |          4
+ 41478 | Perl Cookbook               |      7806 |          4
+(15 rows)</pre></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="SPECIFYINGTARGETCOLUMNS" class="calibre8">Specifying Target Columns</a></h2><p class="calibre9">While <tt class="REPLACEABLE">SELECT *</tt> is a good example of a basic query, and is sometimes very useful,
+        you will probably be interested in retrieving only a few columns worth of information at a time. To stay
+        efficient, and to keep your queries clear, it is a good idea to explicitly specify the intended target columns rather than to
+        use the asterisk. This is especially true when using the <tt class="REPLACEABLE">JOIN</tt> clause, as will be
+        discussed in <a href="x5802.htm#JOINS">the Section called <i class="EMPHASIS">Joining Data Sets with JOIN</i></a>."</p><p class="calibre9">To specify the target columns for a query, list the names of the columns following the <tt class="REPLACEABLE"><i class="EMPHASIS">SELECT</i></tt> keyword. The query
+        will return data for only those columns that you list. The order of these columns need not match their literal order in the table,
+        and columns may be listed more than once, or not at all, as shown in <a href="x5802.htm#REORDERINGCOLUMNS">Example 4-24</a>.</p><div class="NAVHEADER"><a name="REORDERINGCOLUMNS"></a><p class="calibre9"><b class="calibre10">Example 4-24. Re-Ordering columns</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT id, author_id, title, id</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM books;</b></tt>
+  id   | author_id |            title            |  id
+-------+-----------+-----------------------------+-------
+  7808 |      4156 | The Shining                 |  7808
+  4513 |      1866 | Dune                        |  4513
+  4267 |      2001 | 2001: A Space Odyssey       |  4267
+  1608 |      1809 | The Cat in the Hat          |  1608
+  1590 |      1809 | Bartholomew and the Oobleck |  1590
+ 25908 |     15990 | Franklin in the Dark        | 25908
+  1501 |      2031 | Goodnight Moon              |  1501
+   190 |        16 | Little Women                |   190
+  1234 |     25041 | The Velveteen Rabbit        |  1234
+  2038 |      1644 | Dynamic Anatomy             |  2038
+   156 |       115 | The Tell-Tale Heart         |   156
+ 41472 |      1212 | Practical PostgreSQL        | 41472
+ 41473 |      7805 | Programming Python          | 41473
+ 41477 |      7805 | Learning Python             | 41477
+ 41478 |      7806 | Perl Cookbook               | 41478
+(15 rows)</pre></div><p class="calibre9">As you can see, the data sets returned in both <a href="x5802.htm#REORDERINGCOLUMNS">Example 4-24</a> and <a href="x5802.htm#SELECTINGALLFROMBOOKS">Example 4-23</a> are nearly identical. The second set is returned in a different column arrangement,
+        (omitting the <tt class="REPLACEABLE">subject_id</tt> column, and repeating the
+        <tt class="REPLACEABLE">id</tt> column twice) as a result of the target list.</p></div><div class="NAVHEADER"><h2 class="SECT"><a name="EXPRESSIONSANDALIASES" class="calibre8">Expressions, Constants, and Aliases</a></h2><p class="calibre9">In addition to plain column names, targets in the <tt class="REPLACEABLE">SELECT</tt> statement may be
+        arbitrary expressions (e.g., involving functions, or operators acting upon identifiers), or constants. The syntax is
+        simple, and only requires that each identifier, expression, or constant be separated by commas. Conveniently, different types
+        of targets may be arbitrarily mixed in the target list.</p><p class="calibre9">In fact, the <tt class="REPLACEABLE">SELECT</tt> command may be used to retrieve expressions and constants
+        without the use of a <tt class="REPLACEABLE">FROM</tt> clause or specified columns, as in <a href="x5802.htm#USINGEXPRESSIONSANDCONSTANTS">Example 4-25</a>.</p><div class="NAVHEADER"><a name="USINGEXPRESSIONSANDCONSTANTS"></a><p class="calibre9"><b class="calibre10">Example 4-25. Using expressions and constants</b></p><pre class="SCREEN">testdb=# <tt class="REPLACEABLE"><b class="calibre10">SELECT 2 + 2,</b></tt>
+testdb-# <tt class="REPLACEABLE"><b class="calibre10">       pi(),</b></tt>
+testdb-# <tt class="REPLACEABLE"><b class="calibre10">       'PostgreSQL is more than a calculator!';</b></tt>
+ ?column? |        pi        |               ?column?
+----------+------------------+---------------------------------------
+        4 | 3.14159265358979 | PostgreSQL is more than a calculator!
+(1 row)</pre></div><p class="calibre9">The target list allows the use of an optional <tt class="REPLACEABLE">AS</tt> clause for each
+        specified target, which re-names a column in the returned result set to an arbitrary name specified in the clause. The rules
+        and limitations for the specified name are the same as for normal identifiers (e.g., they may be quoted to contain spaces,
+        may not be keywords unless quoted, and so on).</p><p class="calibre9">Using <tt class="REPLACEABLE">AS</tt> has no lasting effect on the column itself, but only on the result set
+        which is returned by the query.  <tt class="REPLACEABLE">AS</tt> can be particularly useful when selecting expressions or constants, rather than
+        plain columns. Naming result set columns with <tt class="REPLACEABLE">AS</tt> can clarify the meaning of an otherwise
+        ambiguous expression or constant. This technique is demonstrated in <a href="x5802.htm#USINGTHEASCLAUSEEXAMPLE">Example 4-26</a>, which shows the same
+        results as <a href="x5802.htm#USINGEXPRESSIONSANDCONSTANTS">Example 4-25</a>, but with different column headings.</p><div class="NAVHEADER"><a name="USINGTHEASCLAUSEEXAMPLE"></a><p class="calibre9"><b class="calibre10">Example 4-26. Using the AS clause with expressions and constants</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT 2 + 2 AS "2 plus 2",</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       pi() AS "the pi function",</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       'PostgreSQL is more than a calculator!' AS comments;</b></tt>
+ 2 plus 2 | the pi function  |               comments
+----------+------------------+---------------------------------------
+        4 | 3.14159265358979 | PostgreSQL is more than a calculator!
+(1 row)</pre></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="SELECTINGSOURCESWITHTHEFROMCLAUSE" class="calibre8">Selecting Sources with the FROM Clause</a></h2><p class="calibre9">The <tt class="REPLACEABLE">FROM</tt> clause allows you to choose either a table or a result set as a source
+        for your specified target list. Multiple sources may be entered following the <tt class="REPLACEABLE">FROM</tt>
+        clause, separated by commas. Specifying multiple sources in this fashion is functionally similar to a
+        <tt class="REPLACEABLE">CROSS JOIN</tt>, discussed in <a href="x5802.htm#JOINS">the Section called <i class="EMPHASIS">Joining Data Sets with JOIN</i></a>."</p><p class="calibre9">Take care when specifying multiple <tt class="REPLACEABLE">FROM</tt> sources to PostgreSQL. The result
+        of performing a <tt class="REPLACEABLE">SELECT</tt> on several comma-delimited sources without a
+        <tt class="REPLACEABLE">WHERE</tt> or <tt class="REPLACEABLE">JOIN</tt> clause to qualify the relationship
+        between the sources is that the complete <span><i class="EMPHASIS">Cartesian product</i></span> of the sources will be returned. This is a
+        result set where each column from each source is combined in every possible combination of rows between each other
+        source.</p><p class="calibre9">Typically a <tt class="REPLACEABLE">WHERE</tt> clause is used to define the relationship between
+        comma-delimited <tt class="REPLACEABLE">FROM</tt> sources, as shown in <a href="x5802.htm#SELECTINGFROMMULTIPLETABLESOURCES">Example 4-27</a> (see <a href="x5802.htm#QUALIFYINGWITHTHEWHERECLAUSE">the Section called <i class="EMPHASIS">Qualifying with the WHERE Clause</i></a>" for more information about
+        the <tt class="REPLACEABLE">WHERE</tt> clause).</p><p class="calibre9">You must be careful when identifying column names and using multiple sources in the <tt class="REPLACEABLE">FROM</tt>
+        clause, as it can introduce ambiguity between identifiers. Consider a <tt class="REPLACEABLE">SELECT</tt> that draws from
+        both the <tt class="REPLACEABLE">books</tt> table and the <tt class="REPLACEABLE">authors</tt> table. Each of these
+        tables has a column called <tt class="REPLACEABLE">id</tt>. If specified, PostgreSQL will be unable to determine if
+        the <tt class="REPLACEABLE">id</tt> column refers to the book, or the author:</p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT id FROM books, authors;</b></tt>
+ERROR:  Column reference "id" is ambiguous</pre><p class="calibre9">As a result of the potential for ambiguity, "complete" column names can be referenced through a special syntax
+        called <span><i class="EMPHASIS">dot-notation</i></span>. Dot-notation refers to the placement of a dot, or
+        period, between the table name and a column name, in order to explicitly reference a particular column.  For example,
+        <tt class="REPLACEABLE">books.id</tt> refers to the <tt class="REPLACEABLE">id</tt> column within the
+        <tt class="REPLACEABLE">books</tt> table.</p><p class="calibre9">Dot-notation is only <span><i class="EMPHASIS">required</i></span> in instances of ambiguity between data sets. As shown in <a href="x5802.htm#SELECTINGFROMMULTIPLETABLESOURCES">Example 4-27</a>, you can use the column name as an identifier source, as long as
+        it is unique among the available sets defined by the <tt class="REPLACEABLE">FROM</tt> clause. (In this case, the
+        <tt class="REPLACEABLE">title</tt> column, which is unique to the <tt class="REPLACEABLE">books</tt> table, and
+        the <tt class="REPLACEABLE">last_name</tt> column, which is unique to the <tt class="REPLACEABLE">authors</tt>
+        tables).</p><div class="NAVHEADER"><a name="SELECTINGFROMMULTIPLETABLESOURCES"></a><p class="calibre9"><b class="calibre10">Example 4-27. Selecting from multiple table sources</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT books.id, title, authors.id, last_name</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM books, authors</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       WHERE books.author_id = authors.id;</b></tt>
+  id   |            title            |  id   |  last_name
+-------+-----------------------------+-------+--------------
+   190 | Little Women                |    16 | Alcott
+   156 | The Tell-Tale Heart         |   115 | Poe
+ 41472 | Practical PostgreSQL        |  1212 | Worsley
+  2038 | Dynamic Anatomy             |  1644 | Hogarth
+  1608 | The Cat in the Hat          |  1809 | Geisel
+  1590 | Bartholomew and the Oobleck |  1809 | Geisel
+  4513 | Dune                        |  1866 | Herbert
+  4267 | 2001: A Space Odyssey       |  2001 | Clarke
+  1501 | Goodnight Moon              |  2031 | Brown
+  7808 | The Shining                 |  4156 | King
+ 41473 | Programming Python          |  7805 | Lutz
+ 41477 | Learning Python             |  7805 | Lutz
+ 41478 | Perl Cookbook               |  7806 | Christiansen
+ 25908 | Franklin in the Dark        | 15990 | Bourgeois
+  1234 | The Velveteen Rabbit        | 25041 | Bianco
+(15 rows)</pre></div><p class="calibre9">If you wish to use a sub-query to generate a result set as a source for your <tt class="REPLACEABLE">FROM</tt>
+        clause, the entire query must be surrounded by parentheses. This instructs PostgreSQL to correctly interpret the query as a
+        sub-<tt class="REPLACEABLE">SELECT</tt> statement and to execute it before the <tt class="REPLACEABLE">SELECT</tt>
+        statement within which it resides.</p><p class="calibre9"><a href="x5802.htm#SELECTINGFROMASUBQUERY">Example 4-28</a> demonstrates a peculiar query which retrieves all column values
+        (<tt class="REPLACEABLE">*</tt>) from the <tt class="REPLACEABLE">books</tt> table via a
+        sub-query. The query then retrieves a string constant of <span><i class="EMPHASIS">test</i></span> and the <tt class="REPLACEABLE">id</tt>
+        values from that result set (derived from the sub-query).</p><div class="NAVHEADER"><a name="SELECTINGFROMASUBQUERY"></a><p class="calibre9"><b class="calibre10">Example 4-28. Selecting from a sub-query</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT 'test' AS test, id</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM (SELECT * FROM books)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       AS example_sub_query;</b></tt>
+ test |  id
+------+-------
+ test |  7808
+ test |  4513
+ test |  4267
+ test |  1608
+ test |  1590
+ test | 25908
+ test |  1501
+ test |   190
+ test |  1234
+ test |  2038
+ test |   156
+ test | 41472
+ test | 41473
+ test | 41477
+ test | 41478
+(15 rows)</pre></div><p class="calibre9">The query in <a href="x5802.htm#SELECTINGFROMASUBQUERY">Example 4-28</a> is rather peculiar because the net effect is no different than if you
+        had selected from the <tt class="REPLACEABLE">books</tt> table.  This occurs because the result set from the sub-query is identical
+        to the set of values in the <tt class="REPLACEABLE">books</tt> table. The use of this query demonstrates
+        the combination of a string constant from one <tt class="REPLACEABLE">SELECT</tt> statement with a value drawn from the result
+        set of a second <tt class="REPLACEABLE">SELECT</tt> statement. See <a href="x7300.htm">the Section called <i class="EMPHASIS">Using Sub-Queries</i></a>" for more
+        realistic examples of sub-queries once you have a better understanding of the <tt class="REPLACEABLE">SELECT</tt>
+        statement itself.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>When specifying a table that is inherited by other tables, you may provide the optional
+          <tt class="REPLACEABLE">ONLY</tt> keyword before the table name to indicate that you do not want to draw from any
+          sub-tables. (See <a href="c13329.htm">Chapter 7</a> for more information on inheritance.)</p></blockquote></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="ALIASINGFROMSOURCES" class="calibre8">Aliasing FROM Sources</a></h2><p class="calibre9">Like columns, <tt class="REPLACEABLE">FROM</tt> sources (e.g., tables, or sub-queries) may be aliased with the
+        <tt class="REPLACEABLE">AS</tt> clause. This is usually applied as a convenient shorthand for the dot-notation
+        described in the preceding section. Aliasing a data set allows you to refer to it via dot-notation, which provides a more succinct
+        and readable SQL statement. <a href="x5802.htm#ALIASINGFROMSOURCESEXAMPLE">Example 4-29</a> demonstrates the same query used in <a href="x5802.htm#SELECTINGFROMMULTIPLETABLESOURCES">Example 4-27</a>, however you can see that it simplifies the dot-notation with the
+        <tt class="REPLACEABLE">AS</tt> clause.</p><div class="NAVHEADER"><a name="ALIASINGFROMSOURCESEXAMPLE"></a><p class="calibre9"><b class="calibre10">Example 4-29. Aliasing FROM sources</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT b.id, title, a.id, last_name</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM books AS b, authors AS a</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       WHERE b.author_id = a.id;</b></tt>
+  id   |            title            |  id   |  last_name
+-------+-----------------------------+-------+--------------
+   190 | Little Women                |    16 | Alcott
+   156 | The Tell-Tale Heart         |   115 | Poe
+ 41472 | Practical PostgreSQL        |  1212 | Worsley
+  2038 | Dynamic Anatomy             |  1644 | Hogarth
+  1608 | The Cat in the Hat          |  1809 | Geisel
+  1590 | Bartholomew and the Oobleck |  1809 | Geisel
+  4513 | Dune                        |  1866 | Herbert
+  4267 | 2001: A Space Odyssey       |  2001 | Clarke
+  1501 | Goodnight Moon              |  2031 | Brown
+  7808 | The Shining                 |  4156 | King
+ 41473 | Programming Python          |  7805 | Lutz
+ 41477 | Learning Python             |  7805 | Lutz
+ 41478 | Perl Cookbook               |  7806 | Christiansen
+ 25908 | Franklin in the Dark        | 15990 | Bourgeois
+  1234 | The Velveteen Rabbit        | 25041 | Bianco
+(15 rows)</pre></div><p class="calibre9">In addition to placing aliases on the <tt class="REPLACEABLE">FROM</tt> clause's data sources, you can place
+        aliases on the <span><i class="EMPHASIS">columns</i></span> within that source. This is done by following a valid data source's alias
+        with a list of <span><i class="EMPHASIS">column aliases</i></span>, grouped in parentheses and separated by commas. A column alias list
+        therefore consists of a sequence of identifier aliases for each column, which correspond to the literal columns in the
+        order that the table is defined with (from left to right).</p><p class="calibre9">When describing a column alias list, you do not need to specify each column; any column that is left unspecified
+        is accessible via its normal name within such a query. If the only column you wish to alias is to the right of any
+        other columns that you do not necessarily wish to alias, you will need to explicitly list the preceding columns (it is
+        valid to list the same name for an existing column as its "alias").  Otherwise, PostgreSQL will have no way of knowing
+        which column you were attempting to alias and will assume you were addressing the first column from the left.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>The <tt class="REPLACEABLE">AS</tt> keyword is technically considered noise, and may be omitted in practice;
+          PostgreSQL determines that any stray identifiers following a <tt class="REPLACEABLE">FROM</tt> source may be used as aliases.</p></blockquote></div><p class="calibre9"><a href="x5802.htm#ALIASINGCOLUMNS">Example 4-30</a> illustrates the same query that is used in <a href="x5802.htm#ALIASINGFROMSOURCESEXAMPLE">Example 4-29</a> but aliases the <tt class="REPLACEABLE">id</tt> columns in each table to
+        unique identifiers in order to reference them directly (i.e., without dot-notation). The syntax is functionally
+        identical, aliasing only the <tt class="REPLACEABLE">books</tt> table's <tt class="REPLACEABLE">id</tt> column,
+        thus making the <tt class="REPLACEABLE">authors</tt> table's <tt class="REPLACEABLE">id</tt> column
+        non-ambiguous:</p><div class="NAVHEADER"><a name="ALIASINGCOLUMNS"></a><p class="calibre9"><b class="calibre10">Example 4-30. Aliasing columns</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT the_book_id, title, id, last_name</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM books AS b (the_book_id), authors</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       WHERE author_id = id;</b></tt>
+ the_book_id |            title            |  id   |  last_name
+-------------+-----------------------------+-------+--------------
+         190 | Little Women                |    16 | Alcott
+         156 | The Tell-Tale Heart         |   115 | Poe
+       41472 | Practical PostgreSQL        |  1212 | Worsley
+        2038 | Dynamic Anatomy             |  1644 | Hogarth
+        1608 | The Cat in the Hat          |  1809 | Geisel
+        1590 | Bartholomew and the Oobleck |  1809 | Geisel
+        4513 | Dune                        |  1866 | Herbert
+        4267 | 2001: A Space Odyssey       |  2001 | Clarke
+        1501 | Goodnight Moon              |  2031 | Brown
+        7808 | The Shining                 |  4156 | King
+       41473 | Programming Python          |  7805 | Lutz
+       41477 | Learning Python             |  7805 | Lutz
+       41478 | Perl Cookbook               |  7806 | Christiansen
+       25908 | Franklin in the Dark        | 15990 | Bourgeois
+        1234 | The Velveteen Rabbit        | 25041 | Bianco
+(15 rows)</pre></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="REMOVINGDUPLICATEROWSWITHDISTINCT" class="calibre8">Removing Duplicate Rows with DISTINCT</a></h2><p class="calibre9">The optional <tt class="REPLACEABLE">DISTINCT</tt> keyword excludes duplicate rows
+        from the result set. If
+        supplied without the <tt class="REPLACEABLE">ON</tt> clause, a query that specifies
+        <tt class="REPLACEABLE">DISTINCT</tt> will exclude any row whose target columns have already been retrieved
+        identically. Only columns in the <tt class="REPLACEABLE">SELECT</tt>'s target list will be evaluated.</p><p class="calibre9">For example, the <tt class="REPLACEABLE">books</tt> table has 15 rows, each with an
+        <tt class="REPLACEABLE">author_id</tt>. Some authors may have several entries in the
+        <tt class="REPLACEABLE">books</tt> table, causing there to be several rows with the same
+        <tt class="REPLACEABLE">author_id</tt>. Supplying the <tt class="REPLACEABLE">DISTINCT</tt> clause,
+        as shown in the first query in <a href="x5802.htm#USINGDISTINCT">Example 4-31</a>, ensures that the result set will not have two identical rows.</p><div class="NAVHEADER"><a name="USINGDISTINCT"></a><p class="calibre9"><b class="calibre10">Example 4-31. Using DISTINCT</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT DISTINCT author_id</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM books;</b></tt>
+ author_id
+-----------
+        16
+       115
+      1212
+      1644
+      1809
+      1866
+      2001
+      2031
+      4156
+      7805
+      7806
+     15990
+     25041
+(13 rows)
+
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT DISTINCT ON (author_id)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       author_id, title</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM books;</b></tt>
+ author_id |         title
+-----------+-----------------------
+        16 | Little Women
+       115 | The Tell-Tale Heart
+      1212 | Practical PostgreSQL
+      1644 | Dynamic Anatomy
+      1809 | The Cat in the Hat
+      1866 | Dune
+      2001 | 2001: A Space Odyssey
+      2031 | Goodnight Moon
+      4156 | The Shining
+      7805 | Programming Python
+      7806 | Perl Cookbook
+     15990 | Franklin in the Dark
+     25041 | The Velveteen Rabbit
+(13 rows)</pre></div><p class="calibre9">As you can see, the first query in <a href="x5802.htm#USINGDISTINCT">Example 4-31</a> returns only 13 rows from the
+        <tt class="REPLACEABLE">books</tt> table, even though there are 15 total rows within it. Two authors
+        with two books each end up being displayed only once.</p><p class="calibre9">The second query in <a href="x5802.htm#USINGDISTINCT">Example 4-31</a> uses a different form of
+        <tt class="REPLACEABLE">DISTINCT</tt>, which specifies the columns (or expressions) to be checked for redundancies.
+        In this case, 13 rows are still returned, as the <tt class="REPLACEABLE">ON</tt> clause specifies to
+        use the <tt class="REPLACEABLE">author_id</tt> column as the basis for determining if a row is redundant or not.
+        Without the <tt class="REPLACEABLE">ON</tt> clause, the second query would return all 15 rows, because the
+        <tt class="REPLACEABLE">DISTINCT</tt> clause would cause PostgreSQL to look for rows that are
+        completely unique.</p><p class="calibre9">The titles that are omitted from the resultant data set by <tt class="REPLACEABLE">ON</tt> are arbitrarily determined by PostgreSQL, unless an
+        <tt class="REPLACEABLE">ORDER BY</tt> clause is specified.  If the <tt class="REPLACEABLE">ORDER BY</tt> clause is used with <tt class="REPLACEABLE">DISTINCT</tt>, you can specify the order in which columns are selected; hence, you can select which rows will be considered
+        distinct first.  See <a href="x5802.htm#SORTINGWITHORDERBY">the Section called <i class="EMPHASIS">Sorting Rows with ORDER BY</i></a>" for information about sorting rows.</p><p class="calibre9">If you are interested in grouping rows which have non-unique criteria, rather than omitting all rows but one, see
+        the description of the <tt class="REPLACEABLE">GROUP BY</tt> clause in <a href="x5802.htm#GROUPINGROWSWITHGROUPBY">the Section called <i class="EMPHASIS">Grouping Rows with GROUP BY</i></a>."</p></div><div class="NAVHEADER"><h2 class="SECT"><a name="QUALIFYINGWITHTHEWHERECLAUSE" class="calibre8">Qualifying with the WHERE Clause</a></h2><p class="calibre9">The <tt class="REPLACEABLE">WHERE</tt> clause allows you to provide Boolean (true or false) conditions that rows must satisfy
+        to be included in the resulting row set.  In practice, a <tt class="REPLACEABLE">SELECT</tt> statement will almost always contain at least one qualification
+        via the <tt class="REPLACEABLE">WHERE</tt> clause.</p><p class="calibre9">For example, suppose that you want to see all of the books in Book Town's Computers section. The
+        <tt class="REPLACEABLE">subject_id</tt> for the Computers subject is 4.
+        Therefore, the <tt class="REPLACEABLE">WHERE</tt> clause can be applied with an equivalence operation
+        (the <tt class="REPLACEABLE">=</tt> operator) to check for all books in the <tt class="REPLACEABLE">books</tt>
+        table with a <tt class="REPLACEABLE">subject_id</tt> equal to 4. This is demonstrated in
+        <a href="x5802.htm#ASIMPLEWHERECLAUSE">Example 4-32</a>.</p><div class="NAVHEADER"><a name="ASIMPLEWHERECLAUSE"></a><p class="calibre9"><b class="calibre10">Example 4-32. A simple WHERE clause</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT * FROM books</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">         WHERE subject_id = 4;</b></tt>
+  id   |        title         | author_id | subject_id
+-------+----------------------+-----------+------------
+ 41472 | Practical PostgreSQL |      1212 |          4
+ 41473 | Programming Python   |      7805 |          4
+ 41477 | Learning Python      |      7805 |          4
+ 41478 | Perl Cookbook        |      7806 |          4
+(4 rows)</pre></div><p class="calibre9">The query in <a href="x5802.htm#ASIMPLEWHERECLAUSE">Example 4-32</a> returns only rows whose <tt class="REPLACEABLE">subject_id</tt>
+        column matches the integer constant value of 4. Thus, only the four rows for computer books are returned, rather than the 15 rows
+        shown by the simple query in <a href="x5802.htm#SELECTINGALLFROMBOOKS">Example 4-23</a>.</p><p class="calibre9">The <tt class="REPLACEABLE">WHERE</tt> clause accepts numerous conditions, provided that they are joined by
+        valid logical keywords (e.g., the <tt class="REPLACEABLE">AND</tt>, and <tt class="REPLACEABLE">OR</tt>
+        keywords) and returns a single Boolean condition. For example, you may be interested in seeing all Book Town titles
+        that fall under the Computers subject which are <span><i class="EMPHASIS">also</i></span> by the author Mark Lutz, thus joining two
+        conditions to narrow the focus of your query. Alternatively, you might be interested in seeing each of Book Town's titles
+        that fall under either the Computers subject or the Arts subject, thereby joining two conditions to broaden the focus of
+        your intended result set.  <a href="x5802.htm#JOININGCONDITIONSINTHEWHERECLAUSE">Example 4-33</a> demonstrates each of these scenarios using the
+        <tt class="REPLACEABLE">AND</tt> keyword and <tt class="REPLACEABLE">OR</tt> keyword, respectively.</p><div class="NAVHEADER"><a name="JOININGCONDITIONSINTHEWHERECLAUSE"></a><p class="calibre9"><b class="calibre10">Example 4-33. Combining conditions in the WHERE clause</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT title FROM books</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">             WHERE subject_id = 4</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">             AND author_id = 7805;</b></tt>
+       title
+--------------------
+ Programming Python
+ Learning Python
+(2 rows)
+
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT title FROM books</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">             WHERE subject_id = 4</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">             OR subject_id = 0;</b></tt>
+        title
+----------------------
+ Dynamic Anatomy
+ Practical PostgreSQL
+ Programming Python
+ Learning Python
+ Perl Cookbook
+(5 rows)</pre></div><p class="calibre9">The first <tt class="REPLACEABLE">SELECT</tt> statement in <a href="x5802.htm#JOININGCONDITIONSINTHEWHERECLAUSE">Example 4-33</a>
+        combines one condition, which checks for titles in the Computers subject (with a
+        <tt class="REPLACEABLE">subject_id</tt> of 4), with another condition, which checks if the author
+        is Mark Lutz (with an <tt class="REPLACEABLE">author_id</tt> of 7805) via the
+        <tt class="REPLACEABLE">AND</tt> keyword. The result is a smaller data set, constrained to two rows that fit
+        <span><i class="EMPHASIS">both</i></span> specified conditions.</p><p class="calibre9">The second <tt class="REPLACEABLE">SELECT</tt> statement in <a href="x5802.htm#JOININGCONDITIONSINTHEWHERECLAUSE">Example 4-33</a>
+        combines the same first condition (books in the Computers subject) with a second condition: if the title falls
+        under the Arts subject (with a <tt class="REPLACEABLE">subject_id</tt> of 0). The result is a
+        slightly larger data set of five rows that matched <span><i class="EMPHASIS">at least one</i></span> of these conditions.</p><p class="calibre9"><tt class="REPLACEABLE">WHERE</tt> conditions may be grouped together indefinitely, though after two conditions
+        you may wish to group the conditions with parentheses. Doing so explicitly indicates how the conditions are interrelated.
+        As a demonstration, the two statements in <a href="x5802.htm#GROUPINGWHERECONDITIONSWITHPARENTHESES">Example 4-34</a> have different effects based merely on the addition of parentheses.
+         </p><div class="NAVHEADER"><a name="GROUPINGWHERECONDITIONSWITHPARENTHESES"></a><p class="calibre9"><b class="calibre10">Example 4-34. Grouping WHERE conditions with parentheses</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT * FROM books</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">         WHERE author_id = 1866</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">         AND subject_id = 15</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">         OR subject_id = 3;</b></tt>
+  id  |        title         | author_id | subject_id
+------+----------------------+-----------+------------
+ 4513 | Dune                 |      1866 |         15
+ 1234 | The Velveteen Rabbit |     25041 |          3
+(2 rows)
+
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT * FROM books</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">         WHERE author_id = 1866</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">         AND (subject_id = 15</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">              OR subject_id = 3);</b></tt>
+  id  | title | author_id | subject_id
+------+-------+-----------+------------
+ 4513 | Dune  |      1866 |         15
+(1 row)</pre></div><p class="calibre9">The preceding example demonstrates two attempts to look up Book Town titles with an
+        <tt class="REPLACEABLE">author_id</tt> of 1866. The titles also have a
+        <tt class="REPLACEABLE">subject_id</tt> of either 15, or 3.
+    As you can see from the first statement, when the three conditions are used without parentheses, the intent
+    of the statement is ambiguous, and interpreted incorrectly. The addition of parentheses will cause the
+    evaluations within parentheses to be considered before any surrounding condition.</p></div><div class="NAVHEADER"><h2 class="SECT"><a name="JOINS" class="calibre8">Joining Data Sets with JOIN</a></h2><p class="calibre9">As demonstrated by the use of the <tt class="REPLACEABLE">WHERE</tt> clause on two table sources in <a href="x5802.htm#SELECTINGSOURCESWITHTHEFROMCLAUSE">the Section called <i class="EMPHASIS">Selecting Sources with the FROM Clause</i></a>," you have the ability to retrieve data from different data sources by
+        combining their columns into joined rows. In SQL, this process is formally called a <span><i class="EMPHASIS">join</i></span>.</p><p class="calibre9">The essential concept behind a join is that two or more data sets, when joined, have their columns combined into a
+        <span><i class="EMPHASIS">new</i></span> set of rows containing each of the columns requested from each of the data sets. The foundation
+        of all joins is the <span><i class="EMPHASIS">Cartesian product</i></span>, which is the set of all possible combinations between two
+        data sets. That product may then be refined into a smaller subset by a set of criteria in the
+        <tt class="REPLACEABLE">JOIN</tt> syntax. These criteria describe a relationship between data sets, though such a definition
+        is not required.</p><p class="calibre9">There are three general types of joins:
+          </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><span><i class="EMPHASIS">Cross joins</i></span></dt><dd class="calibre16"><p class="calibre9">Creates a Cartesian product (or cross product) between two sets of data. It is called a product
+              because it does not define a relationship between the sets; instead, it returns every possible combination of rows
+              between the joined sets, essentially multiplying the sources by one another.</p></dd><dt class="NAVHEADER"><span><i class="EMPHASIS">Inner joins</i></span></dt><dd class="calibre16"><p class="calibre9">Creates a subset of the Cartesian product between two sets of data, requiring a
+              conditional clause to specify criteria upon which to join records. The condition must
+              return a Boolean value to determine whether or not a row is included in the joined set.</p></dd><dt class="NAVHEADER"><span><i class="EMPHASIS">Outer joins</i></span></dt><dd class="calibre16"><p class="calibre9">Similar to an inner join, in that it accepts criteria which will match rows between two sets of
+              data, but returns at least one instance of each row from a specified set. This is either the left set (the
+              data source to the left of the <tt class="REPLACEABLE">JOIN</tt> keyword), the right set (the data source to
+              the right of the <tt class="REPLACEABLE">JOIN</tt> keyword), or both sets, depending on the variety of outer
+              join employed. The missing column values for the empty half of the row which does not meet the join condition are returned as
+              <tt class="REPLACEABLE">NULL</tt> values.</p></dd></dl></div>
+<div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN6387" class="calibre8">Cross joins</a></h3><p class="calibre9">A cross join is functionally identical to listing comma-delimited sources. It therefore should almost always be
+          accompanied by a <tt class="REPLACEABLE">WHERE</tt> clause to qualify the relationship between the joined data sets.
+          <a href="x5802.htm#ASIMPLECROSSJOIN">Example 4-35</a> demonstrates the same functional query used in <a href="x5802.htm#SELECTINGFROMMULTIPLETABLESOURCES">Example 4-27</a>, substituting the comma for the formal <tt class="REPLACEABLE">JOIN</tt>
+          syntax.</p><div class="NAVHEADER"><a name="ASIMPLECROSSJOIN"></a><p class="calibre9"><b class="calibre10">Example 4-35. A simple CROSS JOIN</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT b.id, title, a.id, last_name</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM books AS b CROSS JOIN authors AS a</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       WHERE b.author_id = a.id;</b></tt>
+  id   |            title            |  id   |  last_name
+-------+-----------------------------+-------+--------------
+   190 | Little Women                |    16 | Alcott
+   156 | The Tell-Tale Heart         |   115 | Poe
+ 41472 | Practical PostgreSQL        |  1212 | Worsley
+  2038 | Dynamic Anatomy             |  1644 | Hogarth
+  1608 | The Cat in the Hat          |  1809 | Geisel
+  1590 | Bartholomew and the Oobleck |  1809 | Geisel
+  4513 | Dune                        |  1866 | Herbert
+  4267 | 2001: A Space Odyssey       |  2001 | Clarke
+  1501 | Goodnight Moon              |  2031 | Brown
+  7808 | The Shining                 |  4156 | King
+ 41473 | Programming Python          |  7805 | Lutz
+ 41477 | Learning Python             |  7805 | Lutz
+ 41478 | Perl Cookbook               |  7806 | Christiansen
+ 25908 | Franklin in the Dark        | 15990 | Bourgeois
+  1234 | The Velveteen Rabbit        | 25041 | Bianco
+(15 rows)</pre></div><p class="calibre9">This syntax is merely a more formal way of stating the relationship between the two data sets. There is no functional
+          difference between the <tt class="REPLACEABLE">CROSS JOIN</tt> syntax and using a simple comma delimited list of columns.</p></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN6402" class="calibre8">Inner and outer join syntax</a></h3><p class="calibre9">More useful are the inner and outer joins, which <span><i class="EMPHASIS">require</i></span> a qualification of the relationship
+          between joined data sets in the <tt class="REPLACEABLE">JOIN</tt> syntax itself. The following is the syntax for an
+          inner or outer join:</p><pre class="SCREEN"> <tt class="REPLACEABLE"><i class="EMPHASIS">source1</i></tt> [ NATURAL ] <tt class="REPLACEABLE"><i class="EMPHASIS">join_type</i></tt> <tt class="REPLACEABLE"><i class="EMPHASIS">source2</i></tt>
+  [ ON ( <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> [, ...] ) | USING ( <tt class="REPLACEABLE"><i class="EMPHASIS">column</i></tt> [, ...] ) ]</pre><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE"><i class="EMPHASIS">source1</i></tt></dt><dd class="calibre16"><p class="calibre9">Identifies the first data set that is being joined (i.e., a table name or sub-query).</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">[ NATURAL ]</tt></dt><dd class="calibre16"><p class="calibre9">Implies that the two data sets should be joined on equivalent values between like-named columns
+                (e.g., if two tables have a column called <tt class="REPLACEABLE">id</tt>, it will join rows where the
+                <tt class="REPLACEABLE">id</tt> values are equivalent). The <tt class="REPLACEABLE">NATURAL</tt> clause
+                will respect column aliases, if applied. The use of the <tt class="REPLACEABLE">NATURAL</tt> clause makes it both
+                unnecessary and invalid to try to specify either of the <tt class="REPLACEABLE">ON</tt> or
+                <tt class="REPLACEABLE">USING</tt> clauses.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE"><i class="EMPHASIS">join_type</i></tt></dt><dd class="calibre16"><p class="calibre9">Specifies the type of <tt class="REPLACEABLE">JOIN</tt> intended. Valid values in this context
+                are <tt class="REPLACEABLE">[ INNER ] JOIN</tt> (specifying just <tt class="REPLACEABLE">JOIN</tt> implies
+                an <tt class="REPLACEABLE">INNER JOIN</tt>), <tt class="REPLACEABLE">LEFT [ OUTER] JOIN</tt>,
+                <tt class="REPLACEABLE">RIGHT [ OUTER ] JOIN</tt>, and <tt class="REPLACEABLE">FULL [ OUTER ] JOIN</tt>.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE"><i class="EMPHASIS">source2</i></tt></dt><dd class="calibre16"><p class="calibre9">Identifies the second data set that is being joined (i.e., a table name, or sub-query).</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">[ ON ( </tt><tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> [, ...] ) |</dt><dd class="calibre16"><p class="calibre9">Identifies the second data set that is being joined (i.e., a table name, or sub-query).</p><p class="calibre9">Specifies the relationship between <tt class="REPLACEABLE">source1</tt> and
+                <tt class="REPLACEABLE">source2</tt>. Any arbitrary criteria may be specified within the
+                <tt class="REPLACEABLE">ON</tt> clause, just as you would specify conditions following a
+                <tt class="REPLACEABLE">WHERE</tt> clause. Column and table aliases are allowed in this criteria.
+                </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">USING ( </tt><tt class="REPLACEABLE"><i class="EMPHASIS">column</i></tt> [, ...] ) ]</dt><dd class="calibre16"><p class="calibre9">Specifies like-named columns between <tt class="REPLACEABLE">source1</tt> and
+                <tt class="REPLACEABLE">source2</tt> with which to join rows by equivalent values. Similar to a
+                <tt class="REPLACEABLE">NATURAL JOIN</tt>, but allows you to indicate what specific columns to join on,
+                whereas <tt class="REPLACEABLE">NATURAL</tt> will join on <span><i class="EMPHASIS">all</i></span> like-named columns.
+                Similar to <tt class="REPLACEABLE">NATURAL</tt> joins, column aliases are respected in the
+                <tt class="REPLACEABLE">USING</tt> clause's parameters.</p></dd></dl></div></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN6471" class="calibre8">Inner joins</a></h3><p class="calibre9">The SQL92 <tt class="REPLACEABLE">INNER JOIN</tt> syntax is a tool that helps differentiate the conditions with
+        which you are joining data sources (the <tt class="REPLACEABLE">JOIN</tt> conditions) from the conditions with which
+        you are evaluating rows for inclusion in your data set (the <tt class="REPLACEABLE">WHERE</tt> conditions). For
+        example, consider the two <tt class="REPLACEABLE">SELECT</tt> statements in <a href="x5802.htm#COMPARINGINNERJOINTOWHERE">Example 4-36</a>.
+        </p><div class="NAVHEADER"><a name="COMPARINGINNERJOINTOWHERE"></a><p class="calibre9"><b class="calibre10">Example 4-36. Comparing INNER JOIN to WHERE</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT title, last_name, first_name</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM books, authors</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       WHERE (books.author_id = authors.id)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       AND last_name = 'Geisel';</b></tt>
+            title            | last_name |  first_name
+-----------------------------+-----------+---------------
+ The Cat in the Hat          | Geisel    | Theodor Seuss
+ Bartholomew and the Oobleck | Geisel    | Theodor Seuss
+(2 rows)
+
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT title, last_name, first_name</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM books AS b INNER JOIN authors AS a</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       ON (b.author_id = a.id)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       WHERE last_name = 'Geisel';</b></tt>
+            title            | last_name |  first_name
+-----------------------------+-----------+---------------
+ The Cat in the Hat          | Geisel    | Theodor Seuss
+ Bartholomew and the Oobleck | Geisel    | Theodor Seuss
+(2 rows)</pre></div><p class="calibre9">The two forms of syntax in <a href="x5802.htm#COMPARINGINNERJOINTOWHERE">Example 4-36</a> are functionally identical, and return the same results.
+        The <tt class="REPLACEABLE">INNER JOIN</tt> syntax allows you to segregate the
+        relational criteria from your evaluation criteria by only defining the set relationships in the
+        <tt class="REPLACEABLE">ON</tt> clause. This can make involved queries much easier to read and maintain, as you do
+        not need to interpret what each condition described by the <tt class="REPLACEABLE">WHERE</tt> clause is conceptually
+        achieving.</p><p class="calibre9">Notice that the second query demonstrates the use of aliases <tt class="REPLACEABLE">b</tt> and
+        <tt class="REPLACEABLE">a</tt> in the <tt class="REPLACEABLE">ON</tt> clause for the
+        <tt class="REPLACEABLE">books</tt> and <tt class="REPLACEABLE">authors</tt> tables, respectively. The use of
+        these aliases in the <tt class="REPLACEABLE">ON</tt> clause is perfectly valid, and often preferable from a
+        perspective of improved readability.</p><p class="calibre9">In cases of simple equivalence joins, it may be more convenient for you to use either the
+        <tt class="REPLACEABLE">USING</tt> or <tt class="REPLACEABLE">NATURAL</tt> clauses instead of the
+        <tt class="REPLACEABLE">ON</tt> clause. These are only applicable on data sets with identically named columns. If you
+        have columns that define a relationship between two sets that are not identically named, you may still use the
+        <tt class="REPLACEABLE">USING</tt> or <tt class="REPLACEABLE">NATURAL</tt> clauses by employing column aliases,
+        as demonstrated in <a href="x5802.htm#THENATURALANDUSINGCLAUSES">Example 4-37</a>, to re-name one or both of the columns to a uniform
+        name.</p><div class="NAVHEADER"><a name="THENATURALANDUSINGCLAUSES"></a><p class="calibre9"><b class="calibre10">Example 4-37. The NATURAL and USING clauses</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT title, last_name, first_name</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM books INNER JOIN authors AS a (author_id)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       USING (author_id)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       WHERE last_name = 'Geisel';</b></tt>
+            title            | last_name |  first_name
+-----------------------------+-----------+---------------
+ The Cat in the Hat          | Geisel    | Theodor Seuss
+ Bartholomew and the Oobleck | Geisel    | Theodor Seuss
+(2 rows)
+
+
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT title, last_name, first_name</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM books NATURAL INNER JOIN authors AS a (author_id)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       WHERE last_name = 'Geisel';</b></tt>
+            title            | last_name |  first_name
+-----------------------------+-----------+---------------
+ The Cat in the Hat          | Geisel    | Theodor Seuss
+ Bartholomew and the Oobleck | Geisel    | Theodor Seuss
+(2 rows)</pre></div><p class="calibre9">The first <tt class="REPLACEABLE">SELECT</tt> statement in <a href="x5802.htm#THENATURALANDUSINGCLAUSES">Example 4-37</a> assigns
+        the alias of <tt class="REPLACEABLE">author_id</tt> to the first column in the <tt class="REPLACEABLE">authors</tt>
+        table (which is actually named <tt class="REPLACEABLE">id</tt>). By passing the <tt class="REPLACEABLE">author_id</tt>
+        identifier to the <tt class="REPLACEABLE">USING</tt> clause, PostgreSQL then searches for a column identifier in each data
+        set with that name to join rows on values found to be equivalent.</p><p class="calibre9">Inner joins are adequate for a wide variety of queries, but there are times when an outer join is required to get
+        all of the data you need. The key to understanding the difference between inner and outer joins is in knowing how each
+        type of join handles rows that do not meet their defined relationship.</p><p class="calibre9">In short, an inner join will discard any row for which it cannot find a corresponding value between the sets being
+        joined (as specified by either the <tt class="REPLACEABLE">ON</tt> or <tt class="REPLACEABLE">USING</tt> clause).</p></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN6531" class="calibre8">Outer joins</a></h3><p class="calibre9">In contrast to inner joins, an outer join <span><i class="EMPHASIS">can</i></span> retain rows where corresponding values between sets
+        are not found, populating the missing columns with
+        <tt class="REPLACEABLE">NULL</tt> values. Whether or not the outer join <span><i class="EMPHASIS">does</i></span> retain that row
+        depends on which set is missing the value and the kind of outer join that is specified.  </p><p class="calibre9">There are three forms of outer joins:
+          </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><span><i class="EMPHASIS">Left outer joins</i></span></dt><dd class="calibre16"><p class="calibre9">Will always return at least one instance of each row in the set of rows to the
+              left of the <tt class="REPLACEABLE">JOIN</tt> keyword. Missing columns in the right set
+              are populated with <tt class="REPLACEABLE">NULL</tt> values.</p></dd><dt class="NAVHEADER"><span><i class="EMPHASIS">Right outer joins</i></span></dt><dd class="calibre16"><p class="calibre9">Will always return at least one instance of each row in the set of rows to the
+              right of the <tt class="REPLACEABLE">JOIN</tt> keyword. Missing columns in the left set
+              are populated with <tt class="REPLACEABLE">NULL</tt> values.</p></dd><dt class="NAVHEADER"><span><i class="EMPHASIS">Full outer joins</i></span></dt><dd class="calibre16"><p class="calibre9">Will always return at least one instance of each row in each joined set. Missing
+              columns on either side of the new set will be populated with <tt class="REPLACEABLE">NULL</tt>
+              values.</p></dd></dl></div>
+<p class="calibre9">Consider again Book Town's <tt class="REPLACEABLE">books</tt> table, and another Book Town table called
+        <tt class="REPLACEABLE">editions</tt>. While the <tt class="REPLACEABLE">books</tt> table stores general information
+        on a given title, the <tt class="REPLACEABLE">editions</tt> table stores specific information pertaining to each edition,
+        such as an the book's ISBN, publisher, and publication date. The <tt class="REPLACEABLE">editions</tt> table has a
+        column called <tt class="REPLACEABLE">book_id</tt> which corresponds to the <tt class="REPLACEABLE">books</tt> table's
+        primary key column, <tt class="REPLACEABLE">id</tt>.</p><p class="calibre9">Suppose that you want to retrieve each of Book Town's titles, along with its isbn, if applicable. Performing a
+        query with an inner join between the <tt class="REPLACEABLE">books</tt> and <tt class="REPLACEABLE">editions</tt>
+        tables will correctly return a data set with title and isbn columns. However, as demonstrated in <a href="x5802.htm#INNERJOINSVERSUSOUTERJOINS">Example 4-38</a>, if a book does not yet have a printed edition (or if that edition has not yet been
+        entered into Book Town's database), those titles will not be displayed.</p><p class="calibre9">In contrast, the statement immediately following the inner join in <a href="x5802.htm#INNERJOINSVERSUSOUTERJOINS">Example 4-38</a>
+        employs an outer join, returning 20 rows. Three of the returned rows do not have ISBN numbers, but are not omitted due to
+        the definition of the join.</p><div class="NAVHEADER"><a name="INNERJOINSVERSUSOUTERJOINS"></a><p class="calibre9"><b class="calibre10">Example 4-38. Inner joins versus outer joins</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT title, isbn</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM books INNER JOIN editions</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       ON (books.id = editions.book_id);</b></tt>
+            title            |    isbn
+-----------------------------+------------
+ The Tell-Tale Heart         | 1885418035
+ The Tell-Tale Heart         | 0929605942
+ Little Women                | 0760720002
+ The Velveteen Rabbit        | 0679803335
+ Goodnight Moon              | 0694003611
+ Bartholomew and the Oobleck | 0394800753
+ The Cat in the Hat          | 039480001X
+ The Cat in the Hat          | 0394900014
+ Dynamic Anatomy             | 0823015505
+ 2001: A Space Odyssey       | 0451457994
+ 2001: A Space Odyssey       | 0451198492
+ Dune                        | 0441172717
+ Dune                        | 044100590X
+ The Shining                 | 0451160916
+ The Shining                 | 0385121679
+ Franklin in the Dark        | 0590445065
+ Programming Python          | 0596000855
+(17 rows)
+
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT title, isbn</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM books LEFT OUTER JOIN editions</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       ON (books.id = editions.book_id);</b></tt>
+            title            |    isbn
+-----------------------------+------------
+ The Tell-Tale Heart         | 1885418035
+ The Tell-Tale Heart         | 0929605942
+ Little Women                | 0760720002
+ The Velveteen Rabbit        | 0679803335
+ Goodnight Moon              | 0694003611
+ Bartholomew and the Oobleck | 0394800753
+ The Cat in the Hat          | 039480001X
+ The Cat in the Hat          | 0394900014
+ Dynamic Anatomy             | 0823015505
+ 2001: A Space Odyssey       | 0451457994
+ 2001: A Space Odyssey       | 0451198492
+ Dune                        | 0441172717
+ Dune                        | 044100590X
+ The Shining                 | 0451160916
+ The Shining                 | 0385121679
+ Franklin in the Dark        | 0590445065
+ Practical PostgreSQL        |
+ Programming Python          | 0596000855
+ Learning Python             |
+ Perl Cookbook               |
+(20 rows)</pre></div><p class="calibre9">The join specified by the second query in <a href="x5802.htm#INNERJOINSVERSUSOUTERJOINS">Example 4-38</a> uses the
+        <tt class="REPLACEABLE">LEFT OUTER JOIN</tt> clause to define its join type. This is because
+         the query focuses on titles from the <tt class="REPLACEABLE">books</tt> table that
+        have ISBN numbers, and not those editions having ISBN numbers that do not correspond to titles. As the
+        <tt class="REPLACEABLE">books</tt> table is to the left of the <tt class="REPLACEABLE">JOIN</tt>
+        keyword, it is defined as a left outer join to achieve this. If the focus of the query was to see both ISBN numbers
+        without titles as well as titles without ISBN numbers, the same query could instead be modified to be a full outer join
+        with the <tt class="REPLACEABLE">FULL OUTER JOIN</tt> clause.</p><p class="calibre9">The difference between inner and outer joins illustrated in <a href="x5802.htm#INNERJOINSVERSUSOUTERJOINS">Example 4-38</a> is a vital
+        concept to understand, as misuse of joins can lead to both omitted and unexpected rows.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>The actual <tt class="REPLACEABLE">OUTER</tt> keyword is an optional term in a PostgreSQL outer join. Specifying a
+          join as either a <tt class="REPLACEABLE">LEFT JOIN</tt>, <tt class="REPLACEABLE">RIGHT JOIN</tt> or
+          <tt class="REPLACEABLE">FULL JOIN</tt> implicitly defines it as an outer join.</p></blockquote></div></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN6598" class="calibre8">Intricate joins</a></h3><p class="calibre9">It should be understood that while a single <tt class="REPLACEABLE">JOIN</tt> clause connects only two sets of
+        data, in practice, joins are not restricted to only two data sources. You may arbitrarily specify numerous
+        <tt class="REPLACEABLE">JOIN</tt> clauses following sets that are themselves constructed from joins, just as you may
+        specify numerous data sources separated by commas.</p><p class="calibre9">When connecting several joins together, it is a good practice to group each join and sub-join within parentheses.
+        Explicitly grouping joins in this fashion insures that there is no ambiguity, to either PostgreSQL or a developer, as to
+        which data sets are joined, and in what order.</p><div class="NAVHEADER"><a name="JOININGMANYDATASOURCES"></a><p class="calibre9"><b class="calibre10">Example 4-39. Joining many data sources</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT a.last_name, p.name AS publisher, e.isbn, s.subject</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM ((((authors AS a INNER JOIN books AS b</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">                ON (a.id = b.author_id))</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">       INNER JOIN editions AS e ON (e.book_id = b.id))</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">       INNER JOIN publishers AS p ON (p.id = e.publisher_id))</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">       INNER JOIN subjects AS s ON (s.id = b.subject_id));</b></tt>
+ last_name |          publisher          |    isbn    |     subject
+-----------+-----------------------------+------------+------------------
+ Hogarth   | Watson-Guptill Publications | 0823015505 | Arts
+ Brown     | HarperCollins               | 0694003611 | Children's Books
+ Geisel    | Random House                | 0394800753 | Children's Books
+ Geisel    | Random House                | 039480001X | Children's Books
+ Geisel    | Random House                | 0394900014 | Children's Books
+ Bourgeois | Kids Can Press              | 0590445065 | Children's Books
+ Bianco    | Penguin                     | 0679803335 | Classics
+ Lutz      | O'Reilly &amp; Associates       | 0596000855 | Computers
+ Alcott    | Henry Holt &amp; Company, Inc.  | 0760720002 | Drama
+ Poe       | Mojo Press                  | 1885418035 | Horror
+ Poe       | Books of Wonder             | 0929605942 | Horror
+ King      | Doubleday                   | 0451160916 | Horror
+ King      | Doubleday                   | 0385121679 | Horror
+ Clarke    | Roc                         | 0451457994 | Science Fiction
+ Clarke    | Roc                         | 0451198492 | Science Fiction
+ Herbert   | Ace Books                   | 0441172717 | Science Fiction
+ Herbert   | Ace Books                   | 044100590X | Science Fiction
+(17 rows)</pre></div><p class="calibre9">An interesting observation to be made about <a href="x5802.htm#JOININGMANYDATASOURCES">Example 4-39</a> is that, while the
+        <tt class="REPLACEABLE">books</tt> table is itself deeply involved in the join, none of its columns are retrieved in
+        the final result set. The <tt class="REPLACEABLE">books</tt> table is included in the <tt class="REPLACEABLE">JOIN</tt> clauses
+        in order to provide criteria through which other tables are joined together. Each of the tables whose columns are retrieved in the query rely on
+        the books table in order to draw relationships with any other table through the <tt class="REPLACEABLE">id</tt>
+        column (with the exception of the <tt class="REPLACEABLE">publishers</tt> table, which relates to the <tt class="REPLACEABLE">publisher_id</tt>
+        column in the <tt class="REPLACEABLE">editions</tt> table).</p></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="GROUPINGROWSWITHGROUPBY" class="calibre8">Grouping Rows with GROUP BY</a></h2><p class="calibre9">The <tt class="REPLACEABLE">GROUP BY</tt> clause introduces a powerful SQL concept:
+        <span><i class="EMPHASIS">aggregation</i></span>. To aggregate means to gather into a sum, or whole. The practical effect of aggregating
+        in a SQL query is that any rows whose results from the <tt class="REPLACEABLE">GROUP BY</tt> expression match
+        identically are grouped together into a <span><i class="EMPHASIS">single aggregate row</i></span>. The <tt class="REPLACEABLE">GROUP BY</tt>
+        expression may define a column, but it may also be any operation upon a column as well. If several columns or expressions
+        are specified (delimited by commas), the entire set of specified criteria must be identical for rows to be
+        grouped together.</p><p class="calibre9">To effectively use aggregation you must understand that any target columns requested by an aggregating query
+        which are <span><i class="EMPHASIS">not</i></span> specified in the <tt class="REPLACEABLE">GROUP BY</tt> clause will be
+        inaccessible, unless selected through an <span><i class="EMPHASIS">aggregate function</i></span>. An aggregate function accepts a column
+        name (or expression involving at least one column name) which can represent <span><i class="EMPHASIS">several values</i></span> (i.e., from
+        several grouped rows), performs an operation on those values, and returns a single value.</p><p class="calibre9">Common aggregate functions include <tt class="REPLACEABLE">count()</tt>, which returns the number of rows in the
+        set, <tt class="REPLACEABLE">max()</tt>, which returns the maximum value in the column, and
+        <tt class="REPLACEABLE">min()</tt>, which returns the minimum value in the column. An aggregate function operates
+        only on rows in the query's result set, and is therefore executed <span><i class="EMPHASIS">after</i></span> conditional joins and
+        <tt class="REPLACEABLE">WHERE</tt> conditions have been processed.</p><p class="calibre9">Imagine that you wanted to know how many books Book Town stores in its database for each known publisher. You
+        could perform a simple join between the <tt class="REPLACEABLE">editions</tt> and
+        <tt class="REPLACEABLE">publishers</tt> tables in order to associate each publisher name with a title that they publish.
+         It would be tedious to manually count how many titles each publisher maintained, and in cases of larger data sets,
+        it can become difficult to manage larger result sets.</p><p class="calibre9"><a href="x5802.htm#USINGGROUPBY">Example 4-40</a> demonstrates a join between these two Book Town tables, but also introduces two new
+        elements: the <tt class="REPLACEABLE">count()</tt> function, and the <tt class="REPLACEABLE">GROUP BY</tt> clause.
+        </p><div class="NAVHEADER"><a name="USINGGROUPBY"></a><p class="calibre9"><b class="calibre10">Example 4-40. Using GROUP BY</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT count(e.isbn) AS "number of books",</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       p.name AS publisher</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM editions AS e INNER JOIN publishers AS p</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">            ON (e.publisher_id = p.id)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       GROUP BY p.name;</b></tt>
+ number of books |          publisher
+-----------------+-----------------------------
+               2 | Ace Books
+               1 | Books of Wonder
+               2 | Doubleday
+               1 | HarperCollins
+               1 | Henry Holt &amp; Company, Inc.
+               1 | Kids Can Press
+               1 | Mojo Press
+               1 | O'Reilly &amp; Associates
+               1 | Penguin
+               3 | Random House
+               2 | Roc
+               1 | Watson-Guptill Publications
+(12 rows)</pre></div><p class="calibre9">The <tt class="REPLACEABLE">GROUP BY</tt> clause in <a href="x5802.htm#USINGGROUPBY">Example 4-40</a> instructs PostgreSQL to group
+        the rows in the joined data set by <tt class="REPLACEABLE">p.name</tt>, which in this query is a reference to the
+        <tt class="REPLACEABLE">name</tt> column in the <tt class="REPLACEABLE">publishers</tt> table. Therefore, any
+        rows that have the same publisher name will be grouped together, or aggregated. The
+        <tt class="REPLACEABLE">count()</tt> function then counts the number of <tt class="REPLACEABLE">isbn</tt> values
+        from the <tt class="REPLACEABLE">editions</tt> table that are in each aggregated row, and returns a single numeric
+        value representing the number of rows that were aggregated for each unique publisher.</p><p class="calibre9">Note that in <a href="x5802.htm#USINGGROUPBY">Example 4-40</a> the argument of the <tt class="REPLACEABLE">editions</tt> table's
+        <tt class="REPLACEABLE">isbn</tt> column is chosen simply to indicate the objective of the example
+        (to count how many books there are per publisher). Any column name will return the same number, as
+        <tt class="REPLACEABLE">count()</tt> will always return the number of rows grouped in the current aggregate row.</p><p class="calibre9">Something to watch out for when designing aggregate queries is that the <tt class="REPLACEABLE">WHERE</tt> clause
+        cannot accept criteria involving aggregate functions. Instead, use the <tt class="REPLACEABLE">HAVING</tt> clause. It functions identically to the <tt class="REPLACEABLE">WHERE</tt> clause, but its conditions must be on aggregate
+        functions rather than single-row conditions. Syntactically, the <tt class="REPLACEABLE">HAVING</tt> clause follows the
+        <tt class="REPLACEABLE">GROUP BY</tt> clause, as demonstrated in <a href="x5802.htm#USINGTHEHAVINGCLAUSE">Example 4-41</a>.</p><div class="NAVHEADER"><a name="USINGTHEHAVINGCLAUSE"></a><p class="calibre9"><b class="calibre10">Example 4-41. Using the HAVING clause</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT count(e.isbn) AS "number of books",</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       p.name AS publisher</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM editions AS e INNER JOIN publishers AS p</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">            ON (e.publisher_id = p.id)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       GROUP BY publisher</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       HAVING count(e.isbn) &gt; 1;</b></tt>
+ number of books |  publisher
+-----------------+--------------
+               2 | Ace Books
+               2 | Doubleday
+               3 | Random House
+               2 | Roc
+(4 rows)</pre></div><p class="calibre9">Both <a href="x5802.htm#USINGGROUPBY">Example 4-40</a> and <a href="x5802.htm#USINGTHEHAVINGCLAUSE">Example 4-41</a> create a data set through an inner join
+        between the <tt class="REPLACEABLE">editions</tt> and <tt class="REPLACEABLE">publishers</tt> table. However,
+        <a href="x5802.htm#USINGTHEHAVINGCLAUSE">Example 4-41</a> constrains the final result to publishers having more than a single book in the
+        Book Town database, as set by the <tt class="REPLACEABLE">HAVING</tt> clause.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>If a result set's column is aliased via an <tt class="REPLACEABLE">AS</tt> clause to a name that overlaps
+          with a real column in one of the source data sets, and used in the <tt class="REPLACEABLE">GROUP BY</tt> clause,
+          PostgreSQL will assume that you are referring to the input column, not the output alias.</p></blockquote></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="SORTINGWITHORDERBY" class="calibre8">Sorting Rows with ORDER BY</a></h2><p class="calibre9">As described in <a href="c1164.htm">Chapter 3</a>, row data is not stored in a consistent order
+        within tables. In fact, an identical query executed twice is in no way guaranteed to return the rows in the same order
+        each time. As order is commonly an important part of retrieving data for database-dependent applications, use the
+        <tt class="REPLACEABLE">ORDER BY</tt> clause to allow flexible sorting of your result set.</p><p class="calibre9">The <tt class="REPLACEABLE">ORDER BY</tt> clause accepts as its parameters a list of comma-delimited column
+        names (or expressions upon columns), which are used as sorting criteria. For each sort criteria, you may optionally apply either the
+        <tt class="REPLACEABLE">ASC</tt>, <tt class="REPLACEABLE">DESC</tt>, or <tt class="REPLACEABLE">USING</tt>
+        keywords to control the type of sorting employed:</p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">ASC</tt></dt><dd class="calibre16"><p class="calibre9">Causes the rows to sort by the related criteria in an ascending fashion (e.g., numbers will be
+            sorted lowest to highest, text will be sorted alphabetically from a to z). <tt class="REPLACEABLE">ASC</tt> is
+            equivalent to specifying <tt class="REPLACEABLE">USING &lt;</tt>. Since it is the default behavior, specifying
+            <tt class="REPLACEABLE">ASC</tt> is only useful for explicit readability.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">DESC</tt></dt><dd class="calibre16"><p class="calibre9">Causes the rows to sort by the related criteria in a descending fashion (e.g., numbers will be
+            sorted highest to lowest, text will be sorted alphabetically from z to a). <tt class="REPLACEABLE">DESC</tt> is
+            equivalent to specifying <tt class="REPLACEABLE">USING &gt;</tt>.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">USING </tt><tt class="REPLACEABLE"><i class="EMPHASIS">operator</i></tt></dt><dd class="calibre16"><p class="calibre9">Allows the specification of the operator <tt class="REPLACEABLE"><i class="EMPHASIS">operator</i></tt> to be used to compare each
+            column for precedence. This can be particularly useful for custom operators.</p></dd></dl></div><p class="calibre9"><a href="x5802.htm#USINGORDERBY">Example 4-42</a> demonstrates the use of the <tt class="REPLACEABLE">ORDER BY</tt> clause on the
+        <tt class="REPLACEABLE">editions</tt> table. It specifies the <tt class="REPLACEABLE">publication</tt> column as
+        the source of values to sort by, and explicitly declares the ordering method as an ascending (<tt class="REPLACEABLE">ASC</tt>)
+        sort.</p><div class="NAVHEADER"><a name="USINGORDERBY"></a><p class="calibre9"><b class="calibre10">Example 4-42. Using ORDER BY</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT isbn, edition, publication</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM editions</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       ORDER BY publication ASC;</b></tt>
+    isbn    | edition | publication
+------------+---------+-------------
+ 0760720002 |       1 | 1868-01-01
+ 0679803335 |       1 | 1922-01-01
+ 0694003611 |       1 | 1947-03-04
+ 0394800753 |       1 | 1949-03-01
+ 0394900014 |       1 | 1957-01-01
+ 039480001X |       1 | 1957-03-01
+ 0823015505 |       1 | 1958-01-01
+ 0451160916 |       1 | 1981-08-01
+ 0590445065 |       1 | 1987-03-01
+ 0385121679 |       2 | 1993-10-01
+ 1885418035 |       1 | 1995-03-28
+ 0441172717 |       2 | 1998-09-01
+ 0929605942 |       2 | 1998-12-01
+ 044100590X |       3 | 1999-10-01
+ 0451198492 |       3 | 1999-10-01
+ 0451457994 |       3 | 2000-09-12
+ 0596000855 |       2 | 2001-03-01
+(17 rows)</pre></div><p class="calibre9">As you can see in the result set from <a href="x5802.htm#USINGORDERBY">Example 4-42</a>, the rows return in ascending order, from
+        the oldest date to the newest. It should be noted that even columns and expressions that do not appear in the target
+        list of the <tt class="REPLACEABLE">SELECT</tt> statement may be used to sort the retrieved rows. Furthermore,
+        aggregate functions and expressions are allowed by the <tt class="REPLACEABLE">ORDER BY</tt> clause if the
+        query involves aggregation. The ability to sort by such a wide scope of sources thus allows for a great deal of
+        flexibility in ordering results from a variety of query approaches.</p><div class="NAVHEADER"><p class="calibre9"></p><table class="calibre" border="1" width="100%"><tr class="calibre1"><td class="calibre23"><b class="calibre10">Warning</b></td></tr><tr class="calibre1"><td class="calibre15"><p class="calibre9">If a column alias in the result set has the same name as a literal column in an input source from which it is
+          drawing rows, and it is used in the <tt class="REPLACEABLE">ORDER BY</tt> clause, PostgreSQL will assume that it is
+          a reference to the named column in the result set, not the column in the source set. This is an accepted inconsistency
+          compared against the default behavior of the <tt class="REPLACEABLE">GROUP BY</tt> clause, as specified by the
+          SQL92 standard.</p></td></tr></table></div><p class="calibre9">When specifying multiple expressions to sort by, the result set will be ordered by the first criteria (from left to
+        right), and will only process subsequent sorting criteria if the first condition's sort is inconclusive. For example,
+        consider the sorting performed in <a href="x5802.htm#USINGORDERBYWITHMULTIPLEEXPRESSIONS">Example 4-43</a>.</p><div class="NAVHEADER"><a name="USINGORDERBYWITHMULTIPLEEXPRESSIONS"></a><p class="calibre9"><b class="calibre10">Example 4-43. Using ORDER BY with multiple expressions</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT edition, publication</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM editions</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       ORDER BY edition ASC,</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">                publication DESC;</b></tt>
+ edition | publication
+---------+-------------
+       1 | 1995-03-28
+       1 | 1987-03-01
+       1 | 1981-08-01
+       1 | 1958-01-01
+       1 | 1957-03-01
+       1 | 1957-01-01
+       1 | 1949-03-01
+       1 | 1947-03-04
+       1 | 1922-01-01
+       1 | 1868-01-01
+       2 | 2001-03-01
+       2 | 1998-12-01
+       2 | 1998-09-01
+       2 | 1993-10-01
+       3 | 2000-09-12
+       3 | 1999-10-01
+       3 | 1999-10-01
+(17 rows)</pre></div><p class="calibre9">The query in <a href="x5802.htm#USINGORDERBYWITHMULTIPLEEXPRESSIONS">Example 4-43</a> selects the numeric
+        <tt class="REPLACEABLE">edition</tt> and <tt class="REPLACEABLE">publication</tt> date of each book
+        from the <tt class="REPLACEABLE">editions</tt> table. The <tt class="REPLACEABLE">ORDER BY</tt> clause
+        then specifies two columns to sort by: <tt class="REPLACEABLE">edition</tt>, in ascending order, and
+        <tt class="REPLACEABLE">publication</tt>, in descending order.</p><p class="calibre9">As you can see in the result set for <a href="x5802.htm#USINGORDERBYWITHMULTIPLEEXPRESSIONS">Example 4-43</a>, each row is first sorted
+        by edition, proceeding from the lower editions to the higher editions. Subsequently, wherever the editions are identical,
+        the publication date is used to then sort again, from the most recent publication date to the least recent.</p><p class="calibre9">Sorting is extremely relevant when using the <tt class="REPLACEABLE">DISTINCT</tt> keyword, as discussed in
+        <a href="x5802.htm#REMOVINGDUPLICATEROWSWITHDISTINCT">the Section called <i class="EMPHASIS">Removing Duplicate Rows with DISTINCT</i></a>." If you are only interested in seeing the most recently published
+        copy of each edition in the <tt class="REPLACEABLE">editions</tt> table, the <tt class="REPLACEABLE">ORDER BY</tt>
+        and <tt class="REPLACEABLE">DISTINCT</tt> clauses can be combined to achieve an effect somewhat similar to the
+        <tt class="REPLACEABLE">GROUP BY</tt> clause, as shown in <a href="x5802.htm#USINGDISTINCTWITHORDERBY">Example 4-44</a>.</p><div class="NAVHEADER"><a name="USINGDISTINCTWITHORDERBY"></a><p class="calibre9"><b class="calibre10">Example 4-44. Using DISTINCT with ORDER BY</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT DISTINCT ON (edition)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       edition, publication</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM editions</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       ORDER BY edition ASC,</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">                publication DESC;</b></tt>
+ edition | publication
+---------+-------------
+       1 | 1995-03-28
+       2 | 2001-03-01
+       3 | 2000-09-12
+(3 rows)
+
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT edition, max(publication)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM editions</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       GROUP BY edition;</b></tt>
+ edition |    max
+---------+------------
+       1 | 1995-03-28
+       2 | 2001-03-01
+       3 | 2000-09-12
+(3 rows)</pre></div><p class="calibre9">Since the <tt class="REPLACEABLE">ORDER BY</tt> occurring before the <tt class="REPLACEABLE">DISTINCT</tt>
+        clause eliminates duplicate rows, the net effect can be very similar to using the <tt class="REPLACEABLE">max()</tt> or
+        <tt class="REPLACEABLE">min()</tt> with a <tt class="REPLACEABLE">GROUP BY</tt> clause. This technique can sometimes be
+        more efficient, depending on the complexity of the aggregation and sorting involved.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>While never strictly necessary, PostgreSQL can accept integer constants as expressions in the
+          <tt class="REPLACEABLE">ORDER BY</tt> clause, instead of column names or expressions. Such a constant will be
+          interpreted as representing the column that is at the numbered position in the target list, from left to right,
+          starting at 1 (e.g., <tt class="REPLACEABLE">ORDER BY 1 ASC</tt> references the first column in the result
+          set).</p></blockquote></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="SETTINGROWRANGEWITHLIMITANDOFFSET" class="calibre8">Setting Row Range with LIMIT and OFFSET</a></h2><p class="calibre9">PostgreSQL enforces no limit upon the number of rows retrievable from a SQL query. If you attempt to execute a
+        query that returns several million rows, it may take a while, but the server will not stop until it has returned the
+        entire result set (or until it is interrupted).</p><p class="calibre9">Applications could conceivably be written to programmatically "page" through large sets of data after retrieval, but SQL
+        provides as a convenience the <tt class="REPLACEABLE">LIMIT</tt> and <tt class="REPLACEABLE">OFFSET</tt> clauses,
+        which allow for the retrieval of a specified portion of the generated result set.</p><p class="calibre9">When the <tt class="REPLACEABLE">LIMIT</tt> clause is specified, no more than the requested number of rows will
+        be returned (though there may be fewer if the result set is smaller than the passed parameter). When the
+        <tt class="REPLACEABLE">OFFSET</tt> clause is specified, it skips the number of rows defined by its parameters before
+        returning rows. If both are specified, the number of rows to be included as per the <tt class="REPLACEABLE">LIMIT</tt>
+        clause will not be counted until the number of rows dictated by the <tt class="REPLACEABLE">OFFSET</tt> clause have
+        been skipped.</p><div class="NAVHEADER"><a name="USINGLIMITANDOFFSET"></a><p class="calibre9"><b class="calibre10">Example 4-45. Using LIMIT and OFFSET</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT isbn, title, publication</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM editions NATURAL JOIN books AS b (book_id)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       ORDER BY publication DESC</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       LIMIT 5;</b></tt>
+    isbn    |         title         | publication
+------------+-----------------------+-------------
+ 0596000855 | Programming Python    | 2001-03-01
+ 0451457994 | 2001: A Space Odyssey | 2000-09-12
+ 0451198492 | 2001: A Space Odyssey | 1999-10-01
+ 044100590X | Dune                  | 1999-10-01
+ 0929605942 | The Tell-Tale Heart   | 1998-12-01
+(5 rows)
+
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT isbn, title, publication</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM editions NATURAL JOIN books AS b (book_id)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       ORDER BY publication DESC</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       LIMIT 5</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       OFFSET 2;</b></tt>
+    isbn    |         title         | publication
+------------+-----------------------+-------------
+ 0451198492 | 2001: A Space Odyssey | 1999-10-01
+ 044100590X | Dune                  | 1999-10-01
+ 0929605942 | The Tell-Tale Heart   | 1998-12-01
+ 0441172717 | Dune                  | 1998-09-01
+ 1885418035 | The Tell-Tale Heart   | 1995-03-28
+(5 rows)</pre></div><p class="calibre9"><a href="x5802.htm#USINGLIMITANDOFFSET">Example 4-45</a> demonstrates, in the first query, a simple use of
+        <tt class="REPLACEABLE">LIMIT</tt>, by retrieving only 5 rows from the joined set of the
+        <tt class="REPLACEABLE">editions</tt> and <tt class="REPLACEABLE">books</tt> table. Ordinarily, such a join would
+        result in 17 rows.</p><p class="calibre9">The second query in <a href="x5802.htm#USINGLIMITANDOFFSET">Example 4-45</a> shows the use of the
+        <tt class="REPLACEABLE">OFFSET</tt> clause, to shift the scope of the result set down by two rows. You can see that
+        the last three rows of the first query's result set overlap with the first three rows of the second query's result set. The
+        <tt class="REPLACEABLE">ORDER BY</tt> clause in each of these queries insures the consistency of the sets returned.
+        </p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>The <tt class="REPLACEABLE">ORDER BY</tt> clause can be a helpful tool for making sure that the
+          results of a limited query are relevant. This is because sorting occurs before limiting, allowing you to determine which rows end up being limited.</p></blockquote></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="COMPARINGDATASETS" class="calibre8">Comparing Sets with UNION, INTERSECT &amp; EXCEPT</a></h2><p class="calibre9">While joins are used in SQL to combine column values into a single row, the <tt class="REPLACEABLE">UNION</tt>,
+        <tt class="REPLACEABLE">INTERSECT</tt> and <tt class="REPLACEABLE">EXCEPT</tt> clauses exist to merge or omit row
+        data by comparing column values, returning a new result set based on this comparison. Each of these keywords may be used
+        at the end of a valid SQL query and followed by a second query, in order to compare the resultant data sets, and then either
+        merge or omit rows based on that comparison.</p><p class="calibre9">When comparing data sets in this manner, it is required that they each have the same number of columns, as well as the same column type.
+       Note that they do not need to have the same name, or be queried from the same table or data source.</p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">UNION</tt></dt><dd class="calibre16"><p class="calibre9">A pair of queries merged with the <tt class="REPLACEABLE">UNION</tt> keyword will combine all
+            non-distinct rows into a single data set. Like rows will not be duplicated.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">INTERSECT</tt></dt><dd class="calibre16"><p class="calibre9">A pair of queries merged with the <tt class="REPLACEABLE">INTERSECT</tt> keyword will cause
+            any rows not found in both data sets to be omitted. As such, the only rows returned are those that overlap
+            between the two query result sets.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">EXCEPT</tt></dt><dd class="calibre16"><p class="calibre9">A pair of queries merged with the <tt class="REPLACEABLE">EXCEPT</tt> keyword will cause any rows
+            found in both data sets to be omitted from the returned data set. As such, only rows found in the query to the
+            <span><i class="EMPHASIS">left</i></span> of the <tt class="REPLACEABLE">EXCEPT</tt> clause that are <span><i class="EMPHASIS">not</i></span>
+            found in the query to the right of the clause will be returned.</p></dd></dl></div><p class="calibre9"><a href="x5802.htm#USINGUNION">Example 4-46</a>, <a href="x5802.htm#USINGINTERSECT">Example 4-47</a>, and <a href="x5802.htm#USINGEXCEPT">Example 4-48</a> each demonstrate
+        these keywords by combining and omitting rows from comparative data sets. <a href="x5802.htm#USINGUNION">Example 4-46</a> creates a result
+        set by combining several authors' last names with book titles via the <tt class="REPLACEABLE">UNION</tt>
+        keyword.</p><p class="calibre9"><a href="x5802.htm#USINGINTERSECT">Example 4-47</a> demonstrates the selection of ISBN numbers from the <tt class="REPLACEABLE">books</tt>
+        table, limited to rows which intersect with the query on the <tt class="REPLACEABLE">shipments</tt> table for books which
+        have records of more than two shipments. Finally, <a href="x5802.htm#USINGEXCEPT">Example 4-48</a> demonstrates the removal of any rows from the
+        first query which are matched completely in the second.</p><div class="NAVHEADER"><a name="USINGUNION"></a><p class="calibre9"><b class="calibre10">Example 4-46. Using UNION</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT title FROM books</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       UNION</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       SELECT last_name FROM authors</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       LIMIT 11;</b></tt>
+            title
+-----------------------------
+ 2001: A Space Odyssey
+ Alcott
+ Bartholomew and the Oobleck
+ Bianco
+ Bourgeois
+ Brautigan
+ Brite
+ Brown
+ Christiansen
+ Clarke
+ Denham
+(11 rows)</pre></div><div class="NAVHEADER"><a name="USINGINTERSECT"></a><p class="calibre9"><b class="calibre10">Example 4-47. Using INTERSECT</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT isbn FROM editions</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       INTERSECT</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       SELECT isbn FROM shipments</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">              GROUP BY isbn</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">              HAVING count(id) &gt; 2;</b></tt>
+    isbn
+------------
+ 039480001X
+ 0394800753
+ 0451160916
+ 0590445065
+ 0694003611
+(5 rows)</pre></div><div class="NAVHEADER"><a name="USINGEXCEPT"></a><p class="calibre9"><b class="calibre10">Example 4-48. Using EXCEPT</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT last_name, first_name</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM authors</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       EXCEPT</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       SELECT last_name, first_name</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">              FROM authors AS a (author_id)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">              NATURAL INNER JOIN books</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       ORDER BY first_name ASC;</b></tt>
+ last_name | first_name
+-----------+------------
+ Denham    | Ariel
+ Gorey     | Edward
+ Brite     | Poppy Z.
+ Brautigan | Richard
+(4 rows)</pre></div><p class="calibre9">In <a href="x5802.htm#USINGEXCEPT">Example 4-48</a>, only rows that do not match the second query are returned. Notice that the
+        effective result of this is that only authors who do not have a book in the <tt class="REPLACEABLE">books</tt> table
+        are returned. This is due to the <tt class="REPLACEABLE">INNER JOIN</tt> clause, which causes the second query to
+        omit any authors whose <tt class="REPLACEABLE">author_id</tt> is not found in the
+        <tt class="REPLACEABLE">books</tt> table.</p><p class="calibre9">While the use of these keywords in a single SQL query precludes the ability to use the
+        <tt class="REPLACEABLE">LIMIT</tt> clause, this limitation can be circumvented by PostgreSQL's support for
+        sub-queries. By grouping in parentheses each of the queries involved between a <tt class="REPLACEABLE">UNION</tt>,
+        <tt class="REPLACEABLE">EXCEPT</tt>, or <tt class="REPLACEABLE">EXCEPT</tt> clause, the returned result sets
+        from the sub-queries are compared, as demonstrated in <a href="x5802.htm#COMPARINGSUBQUERYRESULTSETS">Example 4-49</a>.</p><div class="NAVHEADER"><a name="COMPARINGSUBQUERYRESULTSETS"></a><p class="calibre9"><b class="calibre10">Example 4-49. Comparing sub-query result sets</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">(SELECT title FROM books ORDER BY title DESC LIMIT 7)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">    EXCEPT</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">    (SELECT title FROM books ORDER BY title ASC LIMIT 11)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">    ORDER BY title DESC;</b></tt>
+        title
+----------------------
+ The Velveteen Rabbit
+ The Tell-Tale Heart
+ The Shining
+ The Cat in the Hat
+(4 rows)</pre></div><p class="calibre9">Notice that the query used in <a href="x5802.htm#COMPARINGSUBQUERYRESULTSETS">Example 4-49</a> creates a set from the <tt class="REPLACEABLE">books</tt>
+        table that is constrained to the last seven rows and sorted alphabetically by title.
+        The <tt class="REPLACEABLE">EXCEPT</tt> clause then removes from that data set the first eleven rows, sorted
+        alphabetically in an ascending fashion. The result consists of the
+        last four rows from the table, sorted from the bottom by the final <tt class="REPLACEABLE">ORDER BY</tt> clause on
+        the new exception set.</p></div><div class="NAVHEADER"><h2 class="SECT"><a name="CASEEXPRESSIONS" class="calibre8">Using Case Expressions</a></h2><p class="calibre9">In order to achieve simple programmatic transformations without having to call out to a procedural language,
+        PostgreSQL supports standard SQL <span><i class="EMPHASIS">case expressions</i></span>. These use the SQL keywords
+        <tt class="REPLACEABLE">CASE</tt>, <tt class="REPLACEABLE">WHEN</tt>, <tt class="REPLACEABLE">THEN</tt>,
+        and <tt class="REPLACEABLE">END</tt> to allow basic conditional transformations per each row.</p><p class="calibre9">The entirety of a case expression is syntactically placed within the <tt class="REPLACEABLE">SELECT</tt>
+        statement's target list. A case expression's result column is named <tt class="REPLACEABLE">case</tt> by default, but
+        it may be aliased in the same manner as any normal target list. The general syntax for a case expression in a
+        <tt class="REPLACEABLE">SELECT</tt> statement's target list is as follows: </p><pre class="SCREEN">  CASE WHEN <tt class="REPLACEABLE"><i class="EMPHASIS">condition1</i></tt> THEN <tt class="REPLACEABLE"><i class="EMPHASIS">result1</i></tt>
+       WHEN <tt class="REPLACEABLE"><i class="EMPHASIS">condition2</i></tt> THEN <tt class="REPLACEABLE"><i class="EMPHASIS">result2</i></tt>
+       [ ... ]
+       [ ELSE <tt class="REPLACEABLE"><i class="EMPHASIS">default_result</i></tt> ]
+  END [ AS <tt class="REPLACEABLE"><i class="EMPHASIS">alias</i></tt> ]</pre><p class="calibre9">The <tt class="REPLACEABLE">CASE</tt>, <tt class="REPLACEABLE">WHEN</tt>,
+        <tt class="REPLACEABLE">THEN</tt>, and <tt class="REPLACEABLE">ELSE</tt> keywords are somewhat similar to the
+        if-then-else logic in programming languages. The <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> of a
+        <tt class="REPLACEABLE">WHEN</tt> clause must return a Boolean result.</p><p class="calibre9">When a <tt class="REPLACEABLE">WHEN</tt> condition is met, the result from its corresponding
+        <tt class="REPLACEABLE">THEN</tt> clause will return in the result column for that row. If no conditions are
+        met, the <tt class="REPLACEABLE">ELSE</tt> clause may be used to specify a default result value. If there are no
+        results found for a case expression, <tt class="REPLACEABLE">NULL</tt> is returned.</p><div class="NAVHEADER"><a name="USINGCASEEXPRESSIONSINSTATEMENTS"></a><p class="calibre9"><b class="calibre10">Example 4-50. Using case expressions in statements</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT isbn,</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       CASE WHEN cost &gt; 20 THEN 'over $20.00 cost'</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">            WHEN cost = 20 THEN '$20.00 cost'</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">            ELSE 'under $20.00 cost'</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       END AS cost_range</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM stock</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       LIMIT 8;</b></tt>
+    isbn    |    cost_range
+------------+-------------------
+ 0385121679 | over $20.00 cost
+ 039480001X | over $20.00 cost
+ 044100590X | over $20.00 cost
+ 0451198492 | over $20.00 cost
+ 0394900014 | over $20.00 cost
+ 0441172717 | under $20.00 cost
+ 0451160916 | over $20.00 cost
+ 0679803335 | $20.00 cost
+(8 rows)</pre></div><p class="calibre9">Adding to the power of case expressions are PostgreSQL's sub-queries, described in <a href="x7300.htm">the Section called <i class="EMPHASIS">Using Sub-Queries</i></a>." As demonstrated in <a href="x5802.htm#USINGCASEEXPRESSIONSWITHSUBQUERIES">Example 4-51</a>, a sub-query
+        may be provided as a <tt class="REPLACEABLE"><i class="EMPHASIS">result</i></tt> within a conditional expression.</p><div class="NAVHEADER"><a name="USINGCASEEXPRESSIONSWITHSUBQUERIES"></a><p class="calibre9"><b class="calibre10">Example 4-51. Using case expressions with sub-queries</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT isbn,</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       CASE WHEN cost &gt; 20 THEN 'N/A - (Out of price range)'</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">            ELSE (SELECT title FROM books b JOIN editions e</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">                                    ON (b.id = e.book_id)</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">                               WHERE e.isbn = stock.isbn)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       END AS cost_range</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM stock</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       ORDER BY cost_range ASC</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       LIMIT 8;</b></tt>
+    isbn    |         cost_range
+------------+-----------------------------
+ 0451457994 | 2001: A Space Odyssey
+ 0394800753 | Bartholomew and the Oobleck
+ 0441172717 | Dune
+ 0760720002 | Little Women
+ 0385121679 | N/A - (Out of price range)
+ 039480001X | N/A - (Out of price range)
+ 044100590X | N/A - (Out of price range)
+ 0451198492 | N/A - (Out of price range)
+(8 rows)</pre></div><p class="calibre9">In <a href="x5802.htm#USINGCASEEXPRESSIONSWITHSUBQUERIES">Example 4-51</a>, any book found to have a cost of less than
+        20 has its title returned via a sub-select to the <tt class="REPLACEABLE">books</tt> table,
+        along with its ISBN from the main query to the <tt class="REPLACEABLE">stock</tt> table.</p></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN7024" class="calibre8">Creating Tables from Other Tables</a></h2><p class="calibre9">The <tt class="REPLACEABLE">INTO TABLE</tt> clause may be used with any valid <tt class="REPLACEABLE">SELECT</tt> query in order to create a
+        new table with the column structure and row data of the returned result set. The syntax for this is as follows:</p><pre class="SCREEN">  SELECT <tt class="REPLACEABLE"><i class="EMPHASIS">select_targets</i></tt>
+         INTO [ TABLE ] <tt class="REPLACEABLE"><i class="EMPHASIS">new_table</i></tt>
+         FROM <tt class="REPLACEABLE"><i class="EMPHASIS">old_table</i></tt>;</pre><p class="calibre9">This syntax performs an implicit <tt class="REPLACEABLE">CREATE TABLE</tt> command, creating a table with the same
+        column names, value types, and row data as the result set from the original table. When the message
+        <tt class="REPLACEABLE">SELECT</tt> is returned, you will know that the statement was successfully performed, and
+        the new table created. This is demonstrated in <a href="x5802.htm#USINGSELECTINTO">Example 4-52</a>, which creates a backup table
+        called <tt class="REPLACEABLE">stock_backup</tt> out of the data in the <tt class="REPLACEABLE">stock</tt> table.</p><div class="NAVHEADER"><a name="USINGSELECTINTO"></a><p class="calibre9"><b class="calibre10">Example 4-52. Using SELECT INTO</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT * INTO stock_backup</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">         FROM stock;</b></tt>
+SELECT</pre></div><p class="calibre9">The table specified by the <tt class="REPLACEABLE">INTO</tt> clause must not exist, or else an error will be
+        returned. Upon the error, the values of the query will not be inserted and the
+        query will fail. Note that the <tt class="REPLACEABLE">TABLE</tt> keyword, in this query, is an optional noise term.</p></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="x5504.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x7050.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Adding Data with INSERT and COPY</td><td width="34%" valign="top" class="calibre4"><a href="c4890.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Modifying Rows with UPDATE</td></tr></table></div></div>
+
+{% endraw %}
+

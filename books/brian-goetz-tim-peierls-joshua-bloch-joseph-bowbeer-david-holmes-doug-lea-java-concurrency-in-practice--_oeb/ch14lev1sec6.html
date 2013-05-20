@@ -1,0 +1,77 @@
+---
+layout: page
+title: "Java Concurrency in Practice"
+prev: ch14lev1sec5.html
+next: ch14lev1sec7.html
+book_path: books/brian-goetz-tim-peierls-joshua-bloch-joseph-bowbeer-david-holmes-doug-lea-java-concurrency-in-practice--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a href="21021536.html" class="calibre2"><img src="pixel.jpg" alt="" border="0" class="calibre26"/></a><a name="ch14lev1sec6" class="calibre18" id="ch14lev1sec6"></a>
+<h3 id="title-IDAIQWXF" class="docSection1Title">14.6. AQS in Java.util.concurrent Synchronizer Classes</h3>
+<p class="docText1">Many of the blocking classes in <tt class="calibre25">java.util.concurrent</tt>, such as <tt class="calibre25">ReentrantLock</tt>, <tt class="calibre25">Semaphore</tt>, <tt class="calibre25">ReentrantReadWriteLock</tt>, <tt class="calibre25">CountDownLatch</tt>, <tt class="calibre25">SynchronousQueue</tt>, and <tt class="calibre25">FutureTask</tt>, are built using AQS. Without getting too deeply into the details (the source code is part of the JDK download<sup class="docFootnote"><a class="calibre2" href="#ch14fn13">[13]</a></sup>), let's take a quick look at how each of these classes uses AQS.</p><blockquote class="calibre19"><p class="docFootnote1"><sup class="calibre27"><a name="ch14fn13" class="calibre18" id="ch14fn13">[13]</a></sup> Or with fewer licensing restrictions at <tt class="calibre35"><a class="calibre2" target="_blank" href="http://gee.cs.oswego.edu/dl/concurrency-interest">http://gee.cs.oswego.edu/dl/concurrency-interest</a></tt>.</p></blockquote>
+<a name="ch14lev2sec13" class="calibre18" id="ch14lev2sec13"></a>
+<h4 id="title-IDANRWXF" class="docSection2Title">14.6.1. ReentrantLock</h4>
+<p class="docText1"><tt class="calibre25">ReentrantLock</tt> supports only exclusive acquisition, so it implements <tt class="calibre25">tryAcquire</tt>, <tt class="calibre25">tryRelease</tt>, and <tt class="calibre25">isHeldExclusively</tt>; <tt class="calibre25">tryAcquire</tt> for the nonfair version is shown in <a class="calibre2" href="#ch14list15">Listing 14.15</a>. <tt class="calibre25">ReentrantLock</tt> uses the synchronization state to hold the lock acquisition count, and maintains an <tt class="calibre25">owner</tt> variable holding the identity of the owning thread that is modified only when the current thread has just acquired the lock or is just about to release it.<sup class="docFootnote"><a class="calibre2" href="#ch14fn14">[14]</a></sup> In <tt class="calibre25">tryRelease</tt>, it checks the <tt class="calibre25">owner</tt> field to ensure that the current thread owns the lock before allowing an <tt class="calibre25">unlock</tt> to proceed; in <tt class="calibre25">tryAcquire</tt>, it uses this field to differentiate between a reentrant acquisition and a contended acquisition attempt.</p><blockquote class="calibre19"><p class="docFootnote1"><sup class="calibre27"><a name="ch14fn14" class="calibre18" id="ch14fn14">[14]</a></sup> Because the protected state-manipulation methods have the memory semantics of a volatile read or write and <tt class="calibre35">ReentrantLock</tt> is careful to read the <tt class="calibre35">owner</tt> field only after calling <tt class="calibre35">getState</tt> and write it only before calling <tt class="calibre35">setState</tt>, <tt class="calibre35">ReentrantLock</tt> can piggyback on the memory semantics of the synchronization state, and thus avoid further synchronizationsee <a class="calibre2" href="ch16lev1sec1.html#ch16lev2sec4">Section 16.1.4</a>.</p></blockquote>
+<p class="docText1">When a thread attempts to acquire a lock, <tt class="calibre25">tryAcquire</tt> first consults the lock state. If it is unheld, it tries to update the lock state to indicate that it is held. Because the state could have changed since it was first inspected a few instructions ago, <tt class="calibre25">tryAcquire</tt> uses <tt class="calibre25">compareAndSetState</tt> to attempt to atomically update the state to indicate that the lock is now held and confirm that the state has not changed since last observed. (See the description of <tt class="calibre25">compareAndSet</tt> in <a class="calibre2" href="ch15lev1sec3.html#ch15lev1sec3">Section 15.3</a>.) If the lock state indicates that it is already held, if the current thread is the <a name="iddle1698" class="calibre18" id="iddle1698"></a><a name="iddle4137" class="calibre18" id="iddle4137"></a>owner of the lock, the acquisition count is incremented; if the current thread is not the owner of the lock, the acquisition attempt fails.</p>
+<a name="ch14list15" class="calibre18" id="ch14list15"></a><h5 id="title-IDAVUWXF" class="docExampleTitle">Listing 14.15. <tt class="calibre33">TRyacquire</tt> Implementation From Nonfair <tt class="calibre33">ReentrantLock</tt>.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">protected boolean tryAcquire(int ignored) {
+    final Thread current = Thread.currentThread();
+    int c = getState();
+    if (c == 0) {
+        if (compareAndSetState(0, 1)) {
+            owner = current;
+            return true;
+        }
+    } else if (current == owner) {
+        setState(c+1);
+        return true;
+    }
+    return false;
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1"><tt class="calibre25">ReentrantLock</tt> also takes advantage of AQS's built-in support for multiple condition variables and wait sets. <tt class="calibre25">Lock.newCondition</tt> returns a new instance of <tt class="calibre25">ConditionObject</tt>, an inner class of AQS.</p>
+<a name="ch14lev2sec14" class="calibre18" id="ch14lev2sec14"></a>
+<h4 id="title-IDAQVWXF" class="docSection2Title">14.6.2. Semaphore and CountDownLatch</h4>
+<p class="docText1"><tt class="calibre25">Semaphore</tt> uses the AQS synchronization state to hold the count of permits currently available. The <tt class="calibre25">tryAcquireShared</tt> method (see <a class="calibre2" href="#ch14list16">Listing 14.16</a>) first computes the number of permits remaining, and if there are not enough, returns a value indicating that the acquire failed. If sufficient permits appear to be left, it attempts to atomically reduce the permit count using <tt class="calibre25">compareAndSetState</tt>. If that succeeds (meaning that the permit count had not changed since it last looked), it returns a value indicating that the acquire succeeded. The return value also encodes whether <span class="docEmphasis">other</span> shared acquisition attempts might succeed, in which case other waiting threads will also be unblocked.</p>
+<p class="docText1">The <tt class="calibre25">while</tt> loop terminates either when there are not enough permits or when <tt class="calibre25">TRyAcquireShared</tt> can atomically update the permit count to reflect acquisition. While any given call to <tt class="calibre25">compareAndSetState</tt> may fail due to contention with another thread (see <a class="calibre2" href="ch15lev1sec3.html#ch15lev1sec3">Section 15.3</a>), causing it to retry, one of these two termination criteria will become true within a reasonable number of retries. Similarly, <tt class="calibre25">tryReleaseShared</tt> increases the permit count, potentially unblocking waiting threads, and retries until the update succeeds. The return value of <tt class="calibre25">TRyReleaseShared</tt> indicates whether other threads might have been unblocked by the release.</p>
+<p class="docText1"><tt class="calibre25">CountDownLatch</tt> uses AQS in a similar manner to <tt class="calibre25">Semaphore</tt>: the synchronization state holds the current count. The <tt class="calibre25">countDown</tt> method calls <tt class="calibre25">release</tt>, which causes the counter to be decremented and unblocks waiting threads if the counter <a name="iddle2431" class="calibre18" id="iddle2431"></a><a name="iddle3818" class="calibre18" id="iddle3818"></a><a name="iddle3819" class="calibre18" id="iddle3819"></a>has reached zero; <tt class="calibre25">await</tt> calls <tt class="calibre25">acquire</tt>, which returns immediately if the counter has reached zero and otherwise blocks.</p>
+<a name="ch14list16" class="calibre18" id="ch14list16"></a><h5 id="title-IDAOYWXF" class="docExampleTitle">Listing 14.16. <tt class="calibre33">tryacquireshared</tt> and <tt class="calibre33">tryreleaseshared</tt> from <tt class="calibre33">Semaphore</tt>.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">protected int tryAcquireShared(int acquires) {
+    while (true) {
+        int available = getState();
+        int remaining = available - acquires;
+        if (remaining &lt; 0
+                || compareAndSetState(available, remaining))
+            return remaining;
+    }
+}
+
+protected boolean tryReleaseShared(int releases) {
+    while (true) {
+        int p = getState();
+        if (compareAndSetState(p, p + releases))
+            return true;
+    }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<a name="ch14lev2sec15" class="calibre18" id="ch14lev2sec15"></a>
+<h4 id="title-IDADZWXF" class="docSection2Title">14.6.3. FutureTask</h4>
+<p class="docText1">At first glance, <tt class="calibre25">FutureTask</tt> doesn't even look like a synchronizer. But <tt class="calibre25">Future.get</tt> has semantics that are very similar to that of a latchif some event (the completion or cancellation of the task represented by the <tt class="calibre25">FutureTask</tt>) has occurred, then threads can proceed, otherwise they are queued until that event occurs.</p>
+<p class="docText1"><tt class="calibre25">FutureTask</tt> uses the AQS synchronization state to hold the task statusrunning, completed, or cancelled. It also maintains additional state variables to hold the result of the computation or the exception it threw. It further maintains a reference to the thread that is running the computation (if it is currently in the running state), so that it can be interrupted if the task is cancelled.</p>
+<a name="ch14lev2sec16" class="calibre18" id="ch14lev2sec16"></a>
+<h4 id="title-IDA0ZWXF" class="docSection2Title">14.6.4. ReentrantReadWriteLock</h4>
+<p class="docText1">The interface for <tt class="calibre25">ReadWriteLock</tt> suggests there are two locksa reader lock and a writer lockbut in the AQS-based implementation of <tt class="calibre25">ReentrantReadWriteLock</tt>, a single AQS subclass manages both read and write locking. <tt class="calibre25">ReentrantRead-WriteLock</tt> uses 16 bits of the state for the write-lock count, and the other 16 bits for the read-lock count. Operations on the read lock use the shared acquire and release methods; operations on the write lock use the exclusive acquire and release methods.</p>
+<p class="docText1">Internally, AQS maintains a queue of waiting threads, keeping track of whether a thread has requested exclusive or shared access. In <tt class="calibre25">ReentrantRead-WriteLock</tt>, <a name="iddle3400" class="calibre18" id="iddle3400"></a>when the lock becomes available, if the thread at the head of the queue was looking for write access it will get it, and if the thread at the head of the queue was looking for read access, all queued threads up to the first writer will get it.<sup class="docFootnote"><a class="calibre2" href="#ch14fn15">[15]</a></sup></p><blockquote class="calibre19"><p class="docFootnote1"><sup class="calibre27"><a name="ch14fn15" class="calibre18" id="ch14fn15">[15]</a></sup> This mechanism does not permit the choice of a reader-preference or writer-preference policy, as some read-write lock implementations do. For that, either the AQS wait queue would need to be something other than a FIFO queue, or two queues would be needed. However, such a strict ordering policy is rarely needed in practice; if the nonfair version of <tt class="calibre35">ReentrantReadWriteLock</tt> does not offer acceptable liveness, the fair version usually provides satisfactory ordering and guarantees nonstarvation of readers and writers.</p></blockquote>
+<a href="21021536.html" class="calibre2"><img src="pixel.jpg" alt="" border="0" class="calibre26"/></a>
+<p class="calibre3"> </p>
+
+</div>
+
+{% endraw %}
+

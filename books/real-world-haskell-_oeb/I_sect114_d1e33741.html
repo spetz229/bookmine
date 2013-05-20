@@ -1,0 +1,179 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect114_d1e33514.html
+next: monadcase_split_000.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect114_d1e33514.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="monadcase_split_000.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect114_d1e33741" class="calibre27" id="I_sect114_d1e33741"></a><h3 id="title-IDADJ4SI" class="docSection1Title">14.15. The Monad Laws and Good Coding Style</h3><a name="x_oh" class="calibre27" id="x_oh"></a><p class="docText">In<a name="I_indexterm14_d1e33746" class="calibre27" id="I_indexterm14_d1e33746"></a><a name="I_indexterm14_d1e33747" class="calibre27" id="I_indexterm14_d1e33747"></a> <a class="docLink" href="binary_functor.html#binary_functor_laws">Section 10.5.4</a>, we introduced two rules for how functors
+    should always behave:</p><pre class="calibre39">-- file: ch14/MonadLaws.hs
+fmap id        ==   id 
+fmap (f . g)   ==   fmap f . fmap g</pre><br class="calibre48"/>
+<a name="x_ph" class="calibre27" id="x_ph"></a><p class="docText">There are also rules for how monads ought to behave. The
+    three laws described in the following paragraphs are referred to as the
+    monad laws. A Haskell implementation doesn't enforce these laws—it's up to
+    the author of a <tt class="calibre34">Monad</tt> instance to follow them.</p><a name="x_qh" class="calibre27" id="x_qh"></a><p class="docText">The monad laws are simply formal ways of saying "a monad
+    shouldn't surprise me." In principle, we could probably get away with
+    skipping over them entirely. It would be a shame if we did, however,
+    because the laws contain gems of wisdom that we might otherwise
+    overlook.</p><p class="calibre37"><table border="0" cellspacing="0" cellpadding="1" width="90%" class="calibre41"><tr class="calibre16"><td class="v3"><table width="100%" border="0" cellspacing="0" cellpadding="6" class="calibre42"><tr class="calibre16"><td width="60" valign="top" class="v3"><img src="tip_yellow.gif" alt="" class="calibre43"/></td><td valign="top" class="v3"><p class="docNormalTitle">Reading the laws</p><a name="x_rh" class="calibre27" id="x_rh"></a><p class="docText">You can read each of the following laws as "the
+      expression on the left of the <tt class="calibre34">==</tt> is equivalent to that on
+      the right."</p></td></tr></table></td></tr></table></p><br class="calibre48"/><a name="x_sh" class="calibre27" id="x_sh"></a><p class="docText">The first law states that <tt class="calibre34">return</tt> <a name="I_indexterm14_d1e33775" class="calibre27" id="I_indexterm14_d1e33775"></a><a name="I_indexterm14_d1e33780" class="calibre27" id="I_indexterm14_d1e33780"></a>is a <span class="docEmphasis">left identity</span> for <i class="docEmphasis">(&gt;&gt;=)</i>:</p><pre class="calibre39">-- file: ch14/MonadLaws.hs
+return x &gt;&gt;= f            ===   f x</pre><br class="calibre48"/>
+<a name="x_th" class="calibre27" id="x_th"></a><p class="docText">Another way to phrase this is that there's no reason to
+    use <tt class="calibre34">return</tt> to wrap up a pure value if
+    all you're going to do is unwrap it again with <i class="docEmphasis">(&gt;&gt;=)</i>. It's actually a common style error
+    among programmers new to monads to wrap a value with <tt class="calibre34">return</tt>, and then unwrap it with <i class="docEmphasis">(&gt;&gt;=)</i> a few lines later in the same
+    function. Here's the same law written with <tt class="calibre34">do</tt> notation:</p><pre class="calibre39">-- file: ch14/MonadLaws.hs
+do y &lt;- return x
+   f y                    ===   f x</pre><br class="calibre48"/>
+<a name="x_uh" class="calibre27" id="x_uh"></a><p class="docText">This law has practical consequences for our coding style:
+    we don't want to write unnecessary code, and the law lets us assume that
+    the terse code will be identical in its effect to the more verbose
+    version.</p><a name="x_vh" class="calibre27" id="x_vh"></a><p class="docText">The second monad law states<a name="I_indexterm14_d1e33818" class="calibre27" id="I_indexterm14_d1e33818"></a><a name="I_indexterm14_d1e33823" class="calibre27" id="I_indexterm14_d1e33823"></a> that <tt class="calibre34">return</tt> is a
+    <span class="docEmphasis">right identity</span> for <i class="docEmphasis">(&gt;&gt;=)</i>:</p><pre class="calibre39">-- file: ch14/MonadLaws.hs
+m &gt;&gt;= return              ===   m</pre><br class="calibre48"/>
+<a name="x_wh" class="calibre27" id="x_wh"></a><p class="docText">This law also has style consequences in real programs,
+    particularly if you're coming from an imperative language: there's no need
+    to use <tt class="calibre34">return</tt> if the last action in a
+    block would otherwise be returning the correct result. Let's look at this
+    law in <tt class="calibre34">do</tt> notation:</p><pre class="calibre39">-- file: ch14/MonadLaws.hs
+do y &lt;- m
+   return y               ===   m</pre><br class="calibre48"/>
+<a name="x_xh" class="calibre27" id="x_xh"></a><p class="docText">Once again, if we assume that a monad obeys this law, we
+    can write the shorter code with the knowledge that it will have the same
+    effect as the longer code.</p><a name="x_yh" class="calibre27" id="x_yh"></a><p class="docText">The final law is concerned with associativity:</p><pre class="calibre39">-- file: ch14/MonadLaws.hs
+m &gt;&gt;= (\x -&gt; f x &gt;&gt;= g)   ===   (m &gt;&gt;= f) &gt;&gt;= g</pre><br class="calibre48"/>
+<a name="x_zh" class="calibre27" id="x_zh"></a><p class="docText">This law can be a little more difficult to follow, so
+    let's look at the contents of the parentheses on each side of the
+    equation. We can rewrite the expression on the left as follows:</p><pre class="calibre39">-- file: ch14/MonadLaws.hs
+m &gt;&gt;= s
+  where s x = f x &gt;&gt;= g</pre><br class="calibre48"/>
+<a name="x_Ai" class="calibre27" id="x_Ai"></a><p class="docText">On the right, we can also rearrange things:</p><pre class="calibre39">-- file: ch14/MonadLaws.hs
+t &gt;&gt;= g
+  where t = m &gt;&gt;= f</pre><br class="calibre48"/>
+<a name="x_Bi" class="calibre27" id="x_Bi"></a><p class="docText">We're now claiming that the following two expressions are
+    equivalent:</p><pre class="calibre39">-- file: ch14/MonadLaws.hs
+m &gt;&gt;= s                   ===   t &gt;&gt;= g</pre><br class="calibre48"/>
+<a name="x_Ci" class="calibre27" id="x_Ci"></a><p class="docText">This means that if we want to break up an action into
+    smaller pieces, it doesn't matter which subactions we hoist out to make
+    new actions, provided we preserve their ordering. If we have three actions
+    chained together, we can substitute the first two and leave the third in
+    place, or we can replace the second two and leave the first in
+    place.</p><a name="x_Di" class="calibre27" id="x_Di"></a><p class="docText">Even this more complicated law has a practical
+    consequence. In the terminology of software refactoring, <a name="I_indexterm14_d1e33874" class="calibre27" id="I_indexterm14_d1e33874"></a>the <span class="docEmphasis">extract method</span> technique is a fancy
+    term for snipping out a piece of inline code, turning it into a function,
+    and calling the function from the site of the snipped code. This law
+    essentially states that this technique can be applied to monadic Haskell
+    code.</p><a name="x_Ei" class="calibre27" id="x_Ei"></a><p class="docText">We've now seen how each of the monad laws offers us an
+    insight into writing better monadic code. The first two laws show us how
+    to avoid any unnecessary use of <tt class="calibre34">return</tt>.
+    The third suggests that we can safely refactor a complicated action into
+    several simpler ones. We can now safely let the details fade, with the
+    knowledge that our "do what I mean" intuitions won't be
+    violated when we use properly written monads.</p><a name="x_nG1" class="calibre27" id="x_nG1"></a><p class="docText">Incidentally, a Haskell compiler cannot guarantee that a
+    monad actually follows the monad laws. It is the responsibility of a
+    monad's author to satisfy—or, preferably, prove to—himself that his code
+    follows<a name="I_indexterm14_d1e33891" class="calibre27" id="I_indexterm14_d1e33891"></a> the laws.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect114_d1e33514.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="monadcase_split_000.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

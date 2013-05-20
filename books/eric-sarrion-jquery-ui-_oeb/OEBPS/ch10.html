@@ -1,0 +1,192 @@
+---
+layout: page
+title: "jQuery UI"
+prev: OEBPS/ch09s05.html
+next: OEBPS/ch10s02.html
+book_path: books/eric-sarrion-jquery-ui-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="calibre13"></div><div class="book" title="Chapter 10. Drag-and-Drop"><div class="book"><div class="book"><div class="book"><div class="calibre13"></div><h1 class="title1"><a id="drag_and_drop" class="calibre1"></a>Chapter 10. Drag-and-Drop</h1></div></div></div><p class="calibre7">Drag-and-drop is a common operation in web pages for moving an item
+  (using the mouse to drop the item on another page element). For example, if
+  the page displays images of articles to be purchased, users can drag an item
+  into a cart that symbolizes all the goods to be purchased.</p><p class="calibre7">jQuery UI can manage these operations, distinguishing the operation of
+  “drag” (the movement of an object) and the operation of “drop” (the
+  depositing of the item being moved). For this, jQuery UI offers both the
+  <code class="literal">draggable ()</code> and <code class="literal">droppable ()</code> methods.</p><div class="book" title="The draggable () Method"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="the_draggable_open_parenthesis_close_par" class="calibre1"></a>The draggable () Method</h1></div></div></div><p class="calibre7">The <code class="literal">draggable ()</code> method manages
+    elements of the HTML page you want to move. This method can be used in two
+    forms:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7"><code class="literal">$(selector, context).draggable
+        (options)</code></p></li><li class="listitem"><p class="calibre7"><code class="literal">$(selector, context).draggable
+        ("action", params)</code></p></li></ul></div><div class="book" title="The draggable (options) Method"><div class="book"><div class="book"><div class="book"><h2 class="title5"><a id="the_draggable_open_parenthesis_options_c" class="calibre1"></a>The draggable (options) Method</h2></div></div></div><p class="calibre7">The <code class="literal">draggable (options)</code> method
+      declares that an HTML element can be moved in the HTML page. The
+      <code class="literal">options</code> parameter is an object that
+      specifies the behavior of the elements involved.</p><div class="book" title="Specifying the movable elements"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="specifying_the_movable_elements" class="calibre1"></a>Specifying the movable elements</h3></div></div></div><p class="calibre7">Use the options in <a class="ulink" href="ch10.html#options_for_managing_movable_elements" title="Table 10-1. Options for managing movable elements">Table 10-1</a> to indicate which
+        elements can be moved. By default, these are all elements of the list
+        on which the <code class="literal">draggable (options)</code>
+        method applies. These options can inhibit the displacement for all
+        items or only some, or even for moving a new item created on the
+        fly.</p><div class="table"><a id="options_for_managing_movable_elements" class="firstname"></a><p class="title7">Table 10-1. Options for managing movable elements</p><div class="book"><table summary="Options for managing movable elements" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.disabled</code></p></td><td valign="top" class="calibre21"><p class="calibre7">When set to <code class="literal">true</code>, disables the ability to move
+                items. Items cannot be moved until this function is enabled
+                (using the <code class="literal">draggable
+                ("enable")</code> instruction).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.cancel</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Indicates a selector
+                representing elements for which the move is prohibited. This
+                allows you to restrict the starting list (those on which the
+                <code class="literal">draggable (options)</code> method
+                applies).</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.helper</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Creates and moves a
+                copy of the selected item.</p> <p class="calibre7">The <code class="literal">"clone"</code> value indicates that the
+                item is duplicated and that it is the new element that moves,
+                while the original remains in its original position.</p>
+                <p class="calibre7">With <code class="literal">"original"</code> (the
+                default), the initial element is moved.</p> <p class="calibre7">If you
+                specify a callback function, it creates and returns a new
+                element that will be moved. In any case, if a new item is
+                created (by <code class="literal">"clone"</code> or the
+                callback function), it is removed at the end of the
+                move.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.appendTo</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Specifies the element
+                in which the new element created with <code class="literal">options.helper</code> will be inserted
+                during the time of the move. Possible values are a selector
+                (only the first element in the list will be considered), a DOM
+                element, or the string <code class="literal">"parent"</code> (parent element). The
+                default is <code class="literal">"parent"</code>.</p></td></tr></tbody></table></div></div></div><div class="book" title="Managing element movement"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="managing_element_movement" class="calibre1"></a>Managing element movement</h3></div></div></div><p class="calibre7"><a class="ulink" href="ch10.html#options_for_managing_element_movement" title="Table 10-2. Options for managing element movement">Table 10-2</a>
+        describes the options for managing the actual movement of
+        elements.</p><div class="table"><a id="options_for_managing_element_movement" class="firstname"></a><p class="title7">Table 10-2. Options for managing element movement</p><div class="book"><table summary="Options for managing element movement" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.addClasses</code></p></td><td valign="top" class="calibre21"><p class="calibre7">When set to <code class="literal">true</code> (default), indicates that the
+                <code class="literal">ui-draggable</code> and <code class="literal">ui-draggable-dragging</code> CSS classes
+                should be added to the movable elements and the element being
+                moved, respectively.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.cursor</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Specifies the <code class="literal">cursor</code> CSS property when the element
+                moves. It represents the shape of the mouse pointer. The
+                possible values are:</p> <div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7"><code class="literal">"auto"</code>
+                      (default)</p></li><li class="listitem"><p class="calibre7"><code class="literal">"crosshair"</code>
+                      (across)</p></li><li class="listitem"><p class="calibre7"><code class="literal">"default"</code> (an
+                      arrow)</p></li><li class="listitem"><p class="calibre7"><code class="literal">"pointer"</code>
+                      (hand)</p></li><li class="listitem"><p class="calibre7"><code class="literal">"move"</code> (two
+                      arrows cross)</p></li><li class="listitem"><p class="calibre7"><code class="literal">"e-resize"</code>
+                      (expand to the right)</p></li><li class="listitem"><p class="calibre7"><code class="literal">"ne-resize"</code>
+                      (expand up right)</p></li><li class="listitem"><p class="calibre7"><code class="literal">"nw-resize"</code>
+                      (expand up left)</p></li><li class="listitem"><p class="calibre7"><code class="literal">"n-resize"</code>
+                      (expand up)</p></li><li class="listitem"><p class="calibre7"><code class="literal">"se-resize"</code>
+                      (expand down right)</p></li><li class="listitem"><p class="calibre7"><code class="literal">"sw-resize"</code>
+                      (expand down left)</p></li><li class="listitem"><p class="calibre7"><code class="literal">"s-resize"</code>
+                      (expand down)</p></li><li class="listitem"><p class="calibre7"><code class="literal">"w-resize"</code>
+                      (expand left)</p></li><li class="listitem"><p class="calibre7"><code class="literal">"text"</code> (pointer
+                      to write text)</p></li><li class="listitem"><p class="calibre7"><code class="literal">"wait"</code>
+                      (hourglass)</p></li><li class="listitem"><p class="calibre7"><code class="literal">"help"</code> (help
+                      pointer)</p></li></ul></div></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.delay</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Delay, in milliseconds,
+                after which the first movement of the mouse is taken into
+                account. The displacement may begin after that time. The
+                default is 0.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.distance</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Number of pixels that
+                the mouse must be moved before the displacement is taken into
+                account. The default is 1 (i.e., a single pixel is enough to
+                indicate that we want to move the item).</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.opacity</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Opacity of the element
+                moved when moving. The default is 1.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.scope</code></p></td><td valign="top" class="calibre21"><p class="calibre7">String to restrict the
+                drop of movable elements only on items that have the same
+                <code class="literal">options.scope</code> (defined in
+                <code class="literal">droppable
+                (options)</code>.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.connectToSortable</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Specifies a list whose
+                elements are interchangeable. At the end of placement, the
+                element is part of the list.</p></td></tr></tbody></table></div></div></div><div class="book" title="Managing the effect at the end of displacement"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="managing_the_effect_at_the_end_of_displa" class="calibre1"></a>Managing the effect at the end of displacement</h3></div></div></div><p class="calibre7">Once the element moved, it remains in its final position
+        (default behavior). The options listed in <a class="ulink" href="ch10.html#options_for_managing_effects_at_the_end" title="Table 10-3. Options for managing effects at the end of displacement">Table 10-3</a> allow you to
+        specify a new behavior of the element at the end of displacement
+        (e.g., to return to its original position).</p><div class="table"><a id="options_for_managing_effects_at_the_end" class="firstname"></a><p class="title7">Table 10-3. Options for managing effects at the end of
+          displacement</p><div class="book"><table summary="Options for managing effects at the end of           displacement" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.revert</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Indicates whether the
+                element is moved back to its original position at the end of
+                the move.</p> <p class="calibre7">When set to <code class="literal">true</code>, the element returns to its
+                original position. When set to <code class="literal">false</code> (the default), the element
+                stays where it was dropped. When set to <code class="literal">"valid"</code>, the element returns if it
+                has been dropped on an element that accepts it, and when set
+                to <code class="literal">"invalid"</code>, the element
+                returns if it has been dropped on an element that does not
+                accept it.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><span class="firstname"><code class="literal">options.revertDuration</code></span></p></td><td valign="top" class="calibre21"><p class="calibre7">Duration of
+                displacement (in milliseconds) after which the element returns
+                to its original position (see <code class="literal">options.revert</code>). By default, this
+                period is 500 ms.</p></td></tr></tbody></table></div></div></div><div class="book" title="Managing displacement constraints"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="managing_displacement_constraints" class="calibre1"></a>Managing displacement constraints</h3></div></div></div><p class="calibre7">By default, elements can be moved anywhere on the page according
+        to the movements of the mouse. We can change this default behavior
+        using the options listed in <span class="firstname"><a class="ulink" href="ch10.html#options_for_managing_displacement_constr" title="Table 10-4. Options for managing displacement constraints">Table 10-4</a>.</span></p><div class="table"><a id="options_for_managing_displacement_constr" class="firstname"></a><p class="title7">Table 10-4. Options for managing displacement constraints</p><div class="book"><table summary="Options for managing displacement constraints" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.grid</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Array [x, y] indicating
+                the number of pixels that the element moves horizontally and
+                vertically during displacement.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.axis</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Indicates an axis of
+                movement (“x” horizontal, “y” vertical). The default is
+                <code class="literal">false</code> (there is no
+                specified axis, so displacement is possible in all
+                directions).</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.containment</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Indicates an element
+                within which the displacement takes place. The element will be
+                represented by a selector (only the first item in the list
+                will be considered), a DOM element, or the string <code class="literal">"parent"</code> (parent element) or
+                <code class="literal">"window"</code> (HTML
+                page).</p> <p class="calibre7">It may also indicate an array [x1, y1, x2,
+                y2] representing a rectangle formed by the points (x1, y1) and
+                (x2, y2).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.snap</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Adjusts the display of
+                the item being moved on other elements (which are flown). If
+                you want to move an element to another, the displacement (in
+                pixels) does not perfectly position the two elements one above
+                the other.</p> <p class="calibre7">The value of this option is a selector
+                indicating the elements for which the adjustment will be
+                managed by jQuery UI (it adjusts the position of the displaced
+                element to the position of the flown element if it is part of
+                the selector). <code class="literal">true</code>
+                indicates the <code class="literal">".ui-draggable"</code> selector—the moved
+                element adjusts to all those that can be displaced. The
+                default value is <code class="literal">false</code> (no
+                adjustment).</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.snapMode</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Specifies how the
+                adjustment should be made between the moved element and those
+                indicated in <code class="literal">options.snap.
+                "inner"</code> specifies that the adjustment is made with
+                the interior elements, <code class="literal">"outer"</code> indicates outside elements,
+                and <code class="literal">"both"</code> specifies
+                interior and exterior elements. The default value is <code class="literal">"both"</code>.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.snapTolerance</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Maximum number of
+                pixels in the difference in position necessary to establish
+                the adjustment. By default, this number is 20, meaning that as
+                soon as 20 pixels separate the moved element from those in
+                <code class="literal">options.snap</code>, the
+                adjustment is made to the display, according to <code class="literal">options.snapMode.</code></p></td></tr></tbody></table></div></div></div><div class="book" title="Managing window scroll"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="managing_window_scroll" class="calibre1"></a>Managing window scroll</h3></div></div></div><p class="calibre7">It is possible to move an element to locations on the page that
+        are not in the visible part of the display. To do this, you can
+        configure the page to scroll during item movement. <a class="ulink" href="ch10.html#options_for_managing_window_scrolling" title="Table 10-5. Options for managing window scrolling">Table 10-5</a> lists the options
+        for managing scrolling.</p><div class="table"><a id="options_for_managing_window_scrolling" class="firstname"></a><p class="title7">Table 10-5. Options for managing window scrolling</p><div class="book"><table summary="Options for managing window scrolling" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.scroll</code></p></td><td valign="top" class="calibre21"><p class="calibre7">When set to <code class="literal">true</code> (the default), the display will
+                scroll if the item is moved outside the viewable area of the
+                window.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><span class="firstname"><code class="literal">options.scrollSensitivity</code></span></p></td><td valign="top" class="calibre21"><p class="calibre7">Indicates how many
+                pixels the mouse must exit the window to cause scrolling of
+                the display. The default is 20 pixels. This option is used
+                only when <code class="literal">options.scroll</code> is
+                set to <code class="literal">true.</code></p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.scrollSpeed</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Indicates the scrolling
+                speed of the display once scrolling begins. The default is
+                20.</p></td></tr></tbody></table></div></div></div><div class="book" title="Managing movable element events"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="managing_movable_element_events" class="calibre1"></a>Managing movable element events</h3></div></div></div><p class="calibre7">Events associated with movable elements manage the beginning and
+        end of the displacement and the displacement itself. Each of the
+        methods associated with these events has two parameters: <code class="literal">event</code> is the mouse event and <code class="literal">ui</code> is a <code class="literal">{helper,
+        position, offset}</code> object, the properties of which are
+        described in <a class="ulink" href="ch10.html#properties_of_the_ui_open_curly_helper_c" title="Table 10-6. Properties of the ui {helper, position, offset} object">Table 10-6</a>. The options are
+        listed in <a class="ulink" href="ch10.html#managing_events_for_movable_elements" title="Table 10-7. Managing events for movable elements">Table 10-7</a>.</p><div class="table"><a id="properties_of_the_ui_open_curly_helper_c" class="firstname"></a><p class="title7">Table 10-6. Properties of the ui {helper, position, offset}
+          object</p><div class="book"><table summary="Properties of the ui {helper, position, offset}           object" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Property</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">ui.helper</code></p></td><td valign="top" class="calibre21"><p class="calibre7">jQuery class object
+                associated with the element that moves (the element that was
+                clicked or specified in <code class="literal">options.helper</code>).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">ui.position</code></p></td><td valign="top" class="calibre21"><p class="calibre7">If the moved element is
+                indicated in <code class="literal">options.helper</code>, this indicates the
+                <code class="literal">{top, left}</code> position of the
+                element relative to the edges of the page. Otherwise (if you
+                move the element that was clicked), it indicates the
+                displacement from the initial position of the element,
+                considered to be (0, 0).</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">ui.offset</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Indicates in all cases
+                the <code class="literal">{top, left}</code> position of
+                the moved element relative to the edges of the
+                page.</p></td></tr></tbody></table></div></div><div class="table"><a id="managing_events_for_movable_elements" class="firstname"></a><p class="title7">Table 10-7. Managing events for movable elements</p><div class="book"><table summary="Managing events for movable elements" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.start</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">start (event, ui)</code> method is called
+                when the displacement begins (the element has been clicked and
+                the mouse was moved slightly).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.drag</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">drag (event, ui)</code> method is called
+                when the displacement continues after the first
+                move.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.stop</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">stop (event, ui)</code> method is called
+                when the move is complete (the mouse button was
+                released).</p></td></tr></tbody></table></div></div></div></div><div class="book" title="The draggable (“action”, params) Method"><div class="book"><div class="book"><div class="book"><h2 class="title5"><a id="the_draggable_open_parenthesis_quotation" class="calibre1"></a>The draggable (“action”, params) Method</h2></div></div></div><p class="calibre7">The <code class="literal">draggable ("action",
+      params)</code> method can perform an action on the movable elements,
+      such as to prevent displacement. The action is specified as a string in
+      the first argument (e.g., <code class="literal">"disable"</code>
+      to prevent the displacement). The actions for this method are listed in
+      <a class="ulink" href="ch10.html#the_draggable_open_parenthesis_lactionr" title="Table 10-8. The draggable (“action”, params) actions">Table 10-8</a>.</p><div class="table"><a id="the_draggable_open_parenthesis_lactionr" class="firstname"></a><p class="title7">Table 10-8. The draggable (“action”, params) actions</p><div class="book"><table summary="The draggable (“action”, params) actions" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Action</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">draggable ("disable")</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Disable drag management.
+              Elements cannot be moved until the next call to the <code class="literal">draggable ("enable")</code>
+              method.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">draggable ("enable")</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Reactivate drag
+              management. The elements can be moved again.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">draggable ("option",
+              param)</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Retrieve the value of the
+              indicated <code class="literal">param</code> option. This
+              option corresponds to one of those used with <code class="literal">draggable (options)</code>.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><span class="firstname"><code class="literal">draggable ("option",
+              param, value)</code></span></p></td><td valign="top" class="calibre21"><p class="calibre7">Changes the value of the
+              <code class="literal">param</code> option. This option
+              corresponds to one of those used with <code class="literal">draggable (options)</code>.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">draggable ("destroy")</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Remove drag management.
+              The elements are no longer movable.</p></td></tr></tbody></table></div></div></div></div></div></div>
+
+{% endraw %}
+

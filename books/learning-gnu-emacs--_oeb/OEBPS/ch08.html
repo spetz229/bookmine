@@ -1,0 +1,128 @@
+---
+layout: page
+title: "Learning GNU Emacs, 3rd Edition"
+prev: OEBPS/ch07s06.html
+next: OEBPS/ch08s02.html
+book_path: books/learning-gnu-emacs--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="calibre24"></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><div class="calibre24"></div><h1 class="title"><a id="gnu3-CHP-8" class="calibre1"></a>Chapter 8. Markup Language Support</h1></div></div></div><p class="copyright">It's true that many of the people who use Emacs are
+developers, writing code, tweaking it, recompiling it, and just
+generally enjoying the services of an amazingly extensible work
+environment. A variety of people, including developers, need to
+produce text for publication, whether internally, online, or in book
+format. This chapter describes the markup language support that Emacs
+offers, a topic relevant to both information publishers and
+developers, as more and more development work uses variants of the
+Extensible <a id="gnu3-CHP-8-ITERM-2398" class="calibre2"></a>
+         <a id="gnu3-CHP-8-ITERM-2399" class="calibre2"></a>
+         <a id="gnu3-CHP-8-ITERM-2400" class="calibre2"></a>Markup
+Language, XML.</p><p class="copyright">Choosing a format for producing documents isn't all
+that straightforward these days, especially if you eschew Microsoft
+Word. Some people write HTML, and Emacs offers a few options for
+this. HTML gives you some control over formatting but displays
+differently on various browsers. Of <a id="gnu3-CHP-8-ITERM-2401" class="calibre2"></a>
+         <a id="gnu3-CHP-8-ITERM-2402" class="calibre2"></a>
+         <a id="gnu3-CHP-8-ITERM-2403" class="calibre2"></a>course,
+it is important as the <span><em class="calibre7">lingua franca</em></span>  of the
+Web.</p><p class="copyright">Other text publishing options
+<a id="gnu3-CHP-8-ITERM-2404" class="calibre2"></a>
+         <a id="gnu3-CHP-8-ITERM-2405" class="calibre2"></a>
+         <a id="gnu3-CHP-8-ITERM-2406" class="calibre2"></a>
+         <a id="gnu3-CHP-8-ITERM-2407" class="calibre2"></a>include
+the TEX family. TEX (pronounced
+"tek") is a formatter that was
+developed by Donald Knuth for generating books. LATEX (pronounced
+"lay-tek") is a set of TEX commands
+created by Leslie Lamport. With TEX and LATEX , you can produce very
+precisely formatted text with equations, interesting fonts, graphics,
+headers and footers, and the like. Whether using filters or features
+of the program itself, you can publish TEX documents in a variety of
+formats.</p><p class="copyright">Another option for publishing text—as well as
+programming—is XML. XML, when combined with a
+<a id="gnu3-CHP-8-ITERM-2408" class="calibre2"></a>
+         <a id="gnu3-CHP-8-ITERM-2409" class="calibre2"></a>
+         <a id="gnu3-CHP-8-ITERM-2410" class="calibre2"></a>
+         <a id="gnu3-CHP-8-ITERM-2411" class="calibre2"></a>Document
+Type Definition (DTD) or schema, enables you to write text once and
+publish it in a variety of formats. Extensible Style Language (XSL)
+is also important in this regard. Because the standards are still
+being defined, organizations involved in document production may
+choose an established XML dialect, such as DocBook, as their
+publication format. XML at this point provides less precise control
+over format, but maximizes flexibility.</p><p class="copyright">XML bridges the programming and publishing worlds, and what you do
+with XML will in part determine what tools you use and what support
+you need. We discuss a few options for writing XML in Emacs,
+including psgml mode and Jim Clark's nxml mode,
+which uses Relax NG schemas rather than DTDs for validation.</p><p class="copyright">Some word processors and other tools integrate formatting and
+editing. These tools are often called WYSIWYG (what you see is what
+you get) <a id="gnu3-CHP-8-ITERM-2412" class="calibre2"></a>
+         <a id="gnu3-CHP-8-ITERM-2413" class="calibre2"></a>tools. What's the
+advantage of using Emacs versus a WYSIWYG tool? Well, whether
+you're writing LATEX, XML, or HTML, you can be
+crystal clear about what's in the file and how
+it's structured if you use Emacs. Save a Microsoft
+Word file as HTML and then open the resulting file in Emacs. Word
+bloats the file with additional tags and formatting that is not
+strictly required. In terms of output, the streamlined and
+straightforward code you picture in your mind's eye
+when viewing a page is definitely not what you get, an ironic
+consequence of using a WYSIWYG tool like Word to create markup files.
+Chances are, if you've read this far,
+you're planning to use Emacs anyway, so we
+won't belabor the point.</p><p class="copyright">In this chapter, we talk about these markup modes:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="copyright">For writing HTML, Emacs HTML mode (a subset of SGML mode) and the
+add-on HTML helper mode are discussed.</p></li><li class="listitem"><p class="copyright">For writing XML, Emacs SGML mode and the add-on modes psgml mode and
+nxml mode are described in brief.</p></li><li class="listitem"><p class="copyright">For writing LATEX  documents, Emacs LaTeX mode is discussed.</p></li></ul></div><p class="copyright">These major modes help you insert formatting commands, or markup,
+into your text. While the amount of help that Emacs offers varies,
+using the mode designed for your text formatter will streamline your
+work.</p><p class="copyright">At this point we must insert a caveat. We provide a barebones
+introduction to the markup modes described in this chapter. What we
+say here will get you started, but not much more than that. Entire
+books could be and have been written about using each of the markup
+tools described here. Now that that's out of the
+way, let's talk about a few features that are
+important in all the modes: comment handling and font-lock mode.</p><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h1 class="title"><a id="gnu3-CHP-8-SECT-1" class="calibre1"></a>Comments</h1></div></div></div><p class="copyright">All the modes described in this chapter share a
+<a id="gnu3-CHP-8-ITERM-2414" class="calibre2"></a>
+            <a id="gnu3-CHP-8-ITERM-2415" class="calibre2"></a>feature with the programming
+language modes such as Java mode and Lisp mode, which we discuss in
+<a class="calibre2" href="ch09.html" title="Chapter 9. Computer Language Support">Chapter 9</a>. All these modes understand comments
+and use a single command, <span><strong class="calibre5">M-;</strong></span> (for
+<span><strong class="calibre5">indent-for-comment</strong></span>) to insert the
+appropriate comment syntax. <a class="calibre2" href="ch08.html#gnu3-CHP-8-TABLE-1" title="Table 8-1. Comments in markup modes">Table 8-1</a> lists the
+comment syntax for the tools in this chapter.</p><div class="book"><a id="gnu3-CHP-8-TABLE-1" class="calibre2"></a><p class="title2"><b class="calibre25">Table 8-1. Comments in markup modes</b></p><div class="table-contents"><table summary="Comments in markup modes" class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre26">
+                        <p class="copyright">If you type <span><strong class="calibre5">M-;</strong></span> in:</p>
+                     </th><th class="calibre27">
+                        <p class="copyright">Emacs inserts:</p>
+                     </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre28">
+                        <p class="copyright">HTML mode</p>
+                     </td><td class="calibre29">
+                        <a id="I_8_tt249" class="calibre2"></a><pre class="programlisting">&lt;!--  --&gt;</pre>
+                     </td></tr><tr class="calibre12"><td class="calibre28">
+                        <p class="copyright">HTML helper mode</p>
+                     </td><td class="calibre29">
+                        <a id="I_8_tt250" class="calibre2"></a><pre class="programlisting">&lt;!--  --&gt;</pre>
+                     </td></tr><tr class="calibre12"><td class="calibre28">
+                        <p class="copyright">SGML mode</p>
+                     </td><td class="calibre29">
+                        <a id="I_8_tt251" class="calibre2"></a><pre class="programlisting">&lt;!--  --&gt;</pre>
+                     </td></tr><tr class="calibre12"><td class="calibre28">
+                        <p class="copyright">nxml mode</p>
+                     </td><td class="calibre29">
+                        <a id="I_8_tt252" class="calibre2"></a><pre class="programlisting">&lt;!--  --&gt;</pre>
+                     </td></tr><tr class="calibre12"><td class="calibre28">
+                        <p class="copyright">psgml mode</p>
+                     </td><td class="calibre29">
+                        <a id="I_8_tt253" class="calibre2"></a><pre class="programlisting">&lt;!--  --&gt;</pre>
+                     </td></tr><tr class="calibre12"><td class="calibre28">
+                        <p class="copyright">LaTeX mode</p>
+                     </td><td class="calibre29">
+                        <a id="I_8_tt254" class="calibre2"></a><pre class="programlisting">%% (on blank lines)</pre>
+                     </td></tr><tr class="calibre12"><td class="calibre30">
+</td><td class="calibre31">
+                        <a id="I_8_tt255" class="calibre2"></a><pre class="programlisting">% (on lines with content)</pre>
+                     </td></tr></tbody></table></div></div><br class="book"/></div></div></div>
+
+{% endraw %}
+

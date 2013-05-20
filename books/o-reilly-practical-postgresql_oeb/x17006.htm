@@ -1,0 +1,93 @@
+---
+layout: page
+title: "Unknown"
+prev: c16573.htm
+next: x17149.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="c16573.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 9. Database Management</td><td width="10%" valign="bottom" class="calibre5"><a href="x17149.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="INITIALIZINGTHEFILESYSTEM" class="calibre8">Initializing the Filesystem</a></h1><p class="calibre9">Before you can create a database in a database cluster, the filesystem must first be initialized. There are two ways to
+    initialize the filesystem for use with PostgreSQL; you may either use the <span><i class="EMPHASIS">initdb</i></span> application to create
+    an entirely new database cluster (as was used to prepare your initial database system, in <a href="c360.htm">Chapter 2</a>), or you may use the <span><i class="EMPHASIS">initlocation</i></span> application to prepare a secondary
+    data directory.</p><p class="calibre9">A database cluster represents several associated databases. A single instance of the <span><i class="EMPHASIS">postmaster</i></span>
+    process can only access one database cluster at a time. Alternatively, through <span><i class="EMPHASIS">initlocation</i></span>, you can
+    create databases that are part of an existing cluster that just happen to be stored in another data directory.</p><p class="calibre9">The following sections cover these two applications.</p><div class="NAVHEADER"><h2 class="SECT"><a name="AEN17026" class="calibre8">Initializing a Database Cluster</a></h2><p class="calibre9">Use the <span><i class="EMPHASIS">initdb</i></span> program to create and initialize a new database cluster within your filesystem.
+      Again, a database cluster is the framework upon which PostgreSQL databases are created. You should already have one cluster
+      in the data directory which was initialized in <a href="c360.htm">Chapter 2</a>.</p><p class="calibre9">You may use <span><i class="EMPHASIS">initdb</i></span> to initialize a new data directory for a database cluster, and instruct
+      <span><i class="EMPHASIS">postmaster</i></span> to start up using that data cluster instead of the default. Alternatively, you may have two
+      <span><i class="EMPHASIS">postmaster</i></span> processes running at the same time with different database clusters, provided that they are
+      configured to listen on different ports.</p><p class="calibre9">After you use <span><i class="EMPHASIS">initdb</i></span> to create a new database cluster, that new cluster's filesystem will be
+      owned by whatever operating system user you were logged in as when issuing the command.</p><div class="NAVHEADER"><p class="calibre9"></p><table class="calibre" border="1" width="100%"><tr class="calibre1"><td class="calibre23"><b class="calibre10">Warning</b></td></tr><tr class="calibre1"><td class="calibre15"><p class="calibre9">Do not run the <span><i class="EMPHASIS">initdb</i></span> program while logged in as the <span><i class="EMPHASIS">root</i></span> user!
+        The cluster needs to be created and <span><i class="EMPHASIS">owned</i></span> by whichever normal user is going to become the new cluster's
+        database superuser.</p></td></tr></table></div><p class="calibre9">You can also use <span><i class="EMPHASIS">initdb</i></span> to correct a corrupted <span><i class="EMPHASIS">template1</i></span> database by
+      executing <span><i class="EMPHASIS">initb</i></span> with the <span><i class="EMPHASIS">-t</i></span> (or <span><i class="EMPHASIS">- -template</i></span>) parameter. This
+      will re-generate the <tt class="REPLACEABLE">template1</tt> database from scratch.</p><p class="calibre9">Here is the syntax for <span><i class="EMPHASIS">initdb</i></span>:</p><pre class="SCREEN">  initdb [ -D <tt class="REPLACEABLE"><i class="EMPHASIS">dbdir</i></tt> | - -pgdata<tt class="REPLACEABLE"><i class="EMPHASIS">dbdir</i></tt> ]
+         [ -i <tt class="REPLACEABLE"><i class="EMPHASIS">sysid</i></tt> | - -sysid <tt class="REPLACEABLE"><i class="EMPHASIS">sysid</i></tt> ]
+         [ -W | - -pwprompt ] 
+         [ -E <tt class="REPLACEABLE"><i class="EMPHASIS">encoding</i></tt> | - -encoding=<tt class="REPLACEABLE"><i class="EMPHASIS">encoding</i></tt> ]
+         [ -L <tt class="REPLACEABLE"><i class="EMPHASIS">libdir</i></tt> | - -pglib=<tt class="REPLACEABLE"><i class="EMPHASIS">libdir</i></tt> ]
+         [ -n | - -noclean ]
+         [ -d | - -debug ]
+         [ -t | - -template ]</pre><p class="calibre9">The following are the valid options for <span><i class="EMPHASIS">initdb</i></span>:
+        
+        </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER">[ -D <tt class="REPLACEABLE"><i class="EMPHASIS">dbdir</i></tt> | - -pgdata=<tt class="REPLACEABLE"><i class="EMPHASIS">dbdir</i></tt> ]</dt><dd class="calibre16"><p class="calibre9">The directory that you wish to initialize a new database cluster within. If you do not specify a directory
+              name, the command will look at the <tt class="REPLACEABLE">PGDATA</tt> environment variable.</p></dd><dt class="NAVHEADER">[ -i <tt class="REPLACEABLE"><i class="EMPHASIS">sysid</i></tt> | - -sysid=<tt class="REPLACEABLE"><i class="EMPHASIS">sysid</i></tt> ]</dt><dd class="calibre16"><p class="calibre9">The system ID of the database superuser to be created. If unspecified, the ID will be the operating system ID
+              of the system user who runs the <span><i class="EMPHASIS">initdb</i></span> program.</p></dd><dt class="NAVHEADER">[ -W | - -pwprompt ]</dt><dd class="calibre16"><p class="calibre9">Prompt for a password upon connection.</p></dd><dt class="NAVHEADER">[ -E encoding | - -encoding=encoding ]</dt><dd class="calibre16"><p class="calibre9">The name of the multi-byte encoding type of the template database within this cluster.  Whatever type you set
+              here will become the default type for any databases you later create using this cluster. This is only relevant if
+              you have enabled multi-byte encoding in PostgreSQL.</p></dd><dt class="NAVHEADER">[ -l <tt class="REPLACEABLE"><i class="EMPHASIS">libdir</i></tt> | - -pglib=<tt class="REPLACEABLE"><i class="EMPHASIS">libdir</i></tt> ]</dt><dd class="calibre16"><p class="calibre9">The location of the PostgreSQL library files used by <span><i class="EMPHASIS">initdb</i></span> when creating a database
+              cluster. It is rarely necessary to use this parameter. The location of the libraries is usually known by the
+              <span><i class="EMPHASIS">initdb</i></span> program, and if it isn't known, <span><i class="EMPHASIS">initdb</i></span> will prompt you for the
+              location.</p></dd><dt class="NAVHEADER">[ -t | - -template ]</dt><dd class="calibre16"><p class="calibre9">The <span><i class="EMPHASIS">template</i></span> switch, which causes <span><i class="EMPHASIS">initdb</i></span> to re-initialize only the
+              <tt class="REPLACEABLE">template1</tt> database within an already existing database cluster.  This can help
+              during PostgreSQL version updates, or if your <tt class="REPLACEABLE">template1</tt> database ever becomes
+              corrupted, or is lost.</p></dd><dt class="NAVHEADER">[ -n | - -noclean ]</dt><dd class="calibre16"><p class="calibre9">The <span><i class="EMPHASIS">noclean</i></span> switch, which specifies that <span><i class="EMPHASIS">initdb</i></span> should
+              <span><i class="EMPHASIS">not</i></span> clean up its files in the event that it is unable to complete cluster creation due to an
+              error.  This parameter is only useful for debugging purposes.</p></dd><dt class="NAVHEADER">[ -d | - -debug ]</dt><dd class="calibre16"><p class="calibre9">The debug switch, which causes debugging information from the creation of the catalog tables to be
+            displayed.</p></dd></dl></div>
+<p class="calibre9">If the command completes successfully, <span><i class="EMPHASIS">initdb</i></span> will have created a database cluster in the
+      specified data directory; this cluster can then be used by the backend to store its databases.</p><p class="calibre9"><a href="x17006.htm#INITIALIZINGANEWDATABASECLUSTER">Example 9-7</a> initializes a new database cluster in the
+      <span><i class="EMPHASIS">/usr/local/pgsql/booktown</i></span> directory:</p><div class="NAVHEADER"><a name="INITIALIZINGANEWDATABASECLUSTER"></a><p class="calibre9"><b class="calibre10">Example 9-7. Initializing a New Database Cluster</b></p><pre class="SCREEN">[postgres@booktown ~]$ <tt class="REPLACEABLE"><b class="calibre10">initdb /usr/local/pgsql/booktown</b></tt>
+This database system will be initialized with username "postgres".
+This user will own all the data files and must also own the server process.
+
+Creating directory /usr/local/pgsql/booktown
+Creating directory /usr/local/pgsql/booktown/base
+Creating directory /usr/local/pgsql/booktown/global
+Creating directory /usr/local/pgsql/booktown/pg_xlog
+Creating template1 database in /usr/local/pgsql/booktown/base/1
+DEBUG:  database system was shut down at 2001-08-27 16:51:07 PDT
+DEBUG:  CheckPoint record at (0, 8)
+DEBUG:  Redo record at (0, 8); Undo record at (0, 8); Shutdown TRUE
+DEBUG:  NextTransactionId: 514; NextOid: 16384
+DEBUG:  database system is in production state
+Creating global relations in /usr/local/pgsql/booktown/global
+DEBUG:  database system was shut down at 2001-08-27 16:51:14 PDT
+DEBUG:  CheckPoint record at (0, 108)
+DEBUG:  Redo record at (0, 108); Undo record at (0, 0); Shutdown TRUE
+DEBUG:  NextTransactionId: 514; NextOid: 17199
+DEBUG:  database system is in production state
+Initializing pg_shadow.
+Enabling unlimited row width for system tables.
+Creating system views.
+Loading pg_description.
+Setting lastsysoid.
+Vacuuming database.
+Copying template1 to template0.
+
+Success. You can now start the database server using:
+    
+    /usr/local/pgsql/bin/postmaster -D /usr/local/pgsql/booktown
+or
+    /usr/local/pgsql/bin/pg_ctl -D /usr/local/pgsql/booktown -l logfile start</pre></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN17126" class="calibre8">Initializing a Secondary Database Location</a></h2><p class="calibre9">If you are not interested in creating a new database cluster, but simply wish to store a particular database in a
+      different data directory, use <span><i class="EMPHASIS">initlocation</i></span>. The <span><i class="EMPHASIS">initlocation</i></span> program creates the
+      directories needed for a secondary database storage area.  For more information on how to create a database in a secondary
+      data storage area, refer to <a href="x17149.htm">the Section called <i class="EMPHASIS">Creating and Removing a Database</i></a>" later in this chapter. Here is the syntax for
+      <span><i class="EMPHASIS">initlocation</i></span>:</p><pre class="SCREEN">  initlocation <tt class="REPLACEABLE"><i class="EMPHASIS">directory</i></tt></pre><p class="calibre9">In this syntax, <tt class="REPLACEABLE"><i class="EMPHASIS">directory</i></tt> is the path for the new secondary database location. This command
+      should be run as the user which runs the <span><i class="EMPHASIS">postmaster</i></span>, so that it will have the necessary rights in the
+      created path.</p><p class="calibre9"><a href="x17006.htm#INITIALIZINGASECONDARYDATABASELOCATION">Example 9-8</a> demonstrates how to initialize a secondary database storage
+      area in the <span><i class="EMPHASIS">/usr/local/pgsql/booktown2</i></span> directory:</p><div class="NAVHEADER"><a name="INITIALIZINGASECONDARYDATABASELOCATION"></a><p class="calibre9"><b class="calibre10">Example 9-8. Initializing a Secondary Database Location</b></p><pre class="SCREEN">[postgres@booktown ~]$ <tt class="REPLACEABLE"><b class="calibre10">initlocation /usr/local/pgsql/booktown2</b></tt></pre></div></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="c16573.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x17149.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Database Management</td><td width="34%" valign="top" class="calibre4"><a href="c16573.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Creating and Removing a Database</td></tr></table></div></div>
+
+{% endraw %}
+

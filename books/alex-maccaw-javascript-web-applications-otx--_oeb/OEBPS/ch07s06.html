@@ -1,0 +1,79 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch07s05.html
+next: OEBPS/ch07s07.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Reading Files"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect17_d1e6819" class="calibre1"></a>Reading Files</h1></div></div></div><p class="calibre3"><a id="I_indexterm7_d1e6823" class="calibre1"></a><a id="I_indexterm7_d1e6828" class="calibre1"></a>Once you’ve obtained a <code class="literal">File</code> reference, you can instantiate a <code class="literal">FileReader</code> object <a id="I_indexterm7_d1e6838" class="calibre1"></a><a id="I_indexterm7_d1e6841" class="calibre1"></a>to read its contents into memory. Files are read
+    asynchronously—you provide a callback to the <code class="literal">FileReader</code> instance, which will be invoked when
+    the file is ready.</p><p class="calibre3"><code class="literal">FileReader</code> gives you four
+    functions to read file data. Which you use depends on which data format
+    you want returned.</p><div class="book"><dl class="book"><dt class="calibre8"><span class="calibre1"><code class="literal">readAsBinaryString(Blob|File)</code></span></dt><dd class="calibre9"><p class="calibre3">Returns the file/blob’s data as a binary string. Every byte is
+          represented by an integer in the range 0 to 255.</p></dd><dt class="calibre8"><span class="calibre1"><code class="literal">readAsDataURL(Blob|File)</code></span></dt><dd class="calibre9"><p class="calibre3">Returns the file/blob’s data encoded as a <a class="ulink" href="http://en.wikipedia.org/wiki/Data_URI_scheme">data URL</a>.
+          For example, this can be used as the <code class="literal">src</code> attribute value for an image.</p></dd><dt class="calibre8"><span class="calibre1"><code class="literal">readAsText(Blob|File,
+        encoding='UTF-8')</code></span></dt><dd class="calibre9"><p class="calibre3">Returns the file/blob’s data as a text string. By default, the
+          string is decoded as UTF-8.</p></dd><dt class="calibre8"><span class="calibre1"><code class="literal">readAsArrayBuffer(Blob|File)</code></span></dt><dd class="calibre9"><p class="calibre3">Returns the file/blob’s data as an <code class="literal">ArrayBuffer</code> object. This is unimplemented
+          in most browsers.</p></dd></dl></div><p class="calibre3"><code class="literal">FileReader</code> instances have a
+    number of events that are triggered when one of the above read functions
+    is called. The main ones with which you need to be concerned are:</p><div class="book"><dl class="book"><dt class="calibre8"><span class="calibre1">onerror</span></dt><dd class="calibre9"><p class="calibre3">Called when an error occurs</p></dd><dt class="calibre8"><span class="calibre1">onprogress</span></dt><dd class="calibre9"><p class="calibre3">Called periodically while the data is being read</p></dd><dt class="calibre8"><span class="calibre1">onload</span></dt><dd class="calibre9"><p class="calibre3">Called when the data is available</p></dd></dl></div><p class="calibre3">To use <code class="literal">FileReader</code>, just
+    instantiate an instance, add the events, and use one of the read
+    functions. The <span class="calibre1"><em class="calibre4">onload</em></span> event contains a <code class="literal">result</code> attribute, specifying read data in the
+    appropriate format:</p><pre class="screen">var reader = new FileReader();  
+reader.onload = function(e) { 
+  var data = e.target.result;
+};
+reader.readAsDataURL(file);</pre><p class="calibre3">For example, we can use the <code class="literal">data</code>
+    variable above as an image source, displaying a thumbnail of the specified
+    file:</p><pre class="screen">var preview = $("img#preview")
+
+// Check to see whether file is an image type, and isn't 
+// so big a preview that it would cause the browser problems
+if (file.type.match(/image.*/) &amp;&amp; 
+      file.size &lt; 50000000) {
+
+  var reader = new FileReader();  
+  reader.onload = function(e) { 
+    var data    = e.target.result;
+    preview.attr("src", data);
+  };
+  reader.readAsDataURL(file);
+}</pre><div class="book" title="Blobs and Slices"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2925537" class="calibre12"></a>Blobs and Slices</h2></div></div></div><p class="calibre3"><a id="I_indexterm7_d1e6939" class="calibre1"></a><a id="I_indexterm7_d1e6942" class="calibre1"></a>Sometimes it’s preferable to read a slice of the file into
+      memory, rather than the entire thing. The HTML5 file APIs conveniently
+      support a <code class="literal">slice()</code> function.<a id="I_indexterm7_d1e6949" class="calibre1"></a><a id="I_indexterm7_d1e6952" class="calibre1"></a> This takes a starting byte as the first argument, and a
+      byte offset (or slice length) as its second. It returns a <code class="literal">Blob</code> object, which we can interchange with
+      methods that support the <code class="literal">File</code> object,
+      such as <code class="literal">FileReader</code>. For example, we
+      could buffer the file reading like this:</p><pre class="screen">var bufferSize = 1024;
+var pos = 0;
+
+var onload = function(e){
+  console.log("Read: ", e.target.result);
+};
+
+var onerror = function(e){
+  console.log("Error!", e);
+};
+
+while (pos &lt; file.size) {
+  var blob = file.slice(pos, bufferSize);
+
+  var reader = new FileReader();
+  reader.onload  = onload;
+  reader.onerror = onerror;
+  reader.readAsText(blob);
+
+  pos += bufferSize;
+}</pre><p class="calibre3">As you can see above, you can use a <code class="literal">FileReader</code> instance only once; after that,
+      you’ll need to instantiate a new one.</p><p class="calibre3">You can check out the full example in
+      <span class="calibre1"><em class="calibre4">assets/ch07/slices.html</em></span>. One thing to watch out for
+      is that the file can’t be read if the sandbox is local. In other words,
+      if <em class="calibre4">slices.html</em> is being read from the disk, rather
+      than hosted, the read will fail and the <span class="calibre1"><em class="calibre4">onerror</em></span>
+      event will be triggered.</p></div></div></div>
+
+{% endraw %}
+

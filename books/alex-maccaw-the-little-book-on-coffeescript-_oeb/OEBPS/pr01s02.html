@@ -1,0 +1,48 @@
+---
+layout: page
+title: "The Little Book on CoffeeScript"
+prev: OEBPS/pr01.html
+next: OEBPS/pr01s03.html
+book_path: books/alex-maccaw-the-little-book-on-coffeescript-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Initial Setup"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="initial_setup" class="calibre2"></a>Initial Setup</h1></div></div></div><p class="calibre8">One of the easiest ways to initially play around with the library is
+    to use it right inside the browser. Navigate to <a class="ulink" href="http://coffeescript.org">http://coffeescript.org</a> and click on the <span class="firstname"><em class="calibre5">Try
+    CoffeeScript</em></span> tab. The site uses a browser version of the
+    CoffeeScript compiler, converting any CoffeeScript typed inside the left panel to
+    JavaScript in the right panel.</p><p class="calibre8">You can also convert JavaScript back to CoffeeScript using the
+    <a class="ulink" href="http://js2coffee.org/">js2coffee</a> project, especially useful when migrating JavaScript
+    projects to CoffeeScript.</p><p class="calibre8">In fact, you can use the browser-based CoffeeScript compiler
+    yourself, by including <a class="ulink" href="http://jashkenas.github.com/coffee-script/extras/coffee-script.js">this
+    script</a> in a page, marking up any CoffeeScript script tags with the
+    correct <code class="literal">type</code>:</p><pre class="screen">&lt;script src="http://jashkenas.github.com/coffee-script/extras/coffee-script.js" type="text/javascript" charset="utf-8"&gt;&lt;/script&gt;
+&lt;script type="text/coffeescript"&gt;
+  # Some CoffeeScript
+&lt;/script&gt;</pre><p class="calibre8">Obviously, in production, you don’t want to be interpreting
+    CoffeeScript at runtime, as it’ll slow things up for your clients.
+    Instead, CoffeeScript offers a <a class="ulink" href="http://nodejs.org">Node.js</a> compiler to pre-process
+    CoffeeScript files.</p><p class="calibre8">To install it, first make sure you have a working copy of the latest
+    stable version of <a class="ulink" href="http://nodejs.org">Node.js</a> and
+    <a class="ulink" href="http://npmjs.org/">npm</a> (the Node Package Manager). You
+    can then install CoffeeScript with npm:</p><pre class="screen">npm install -g coffee-script</pre><p class="calibre8">The <code class="literal">-g</code> flag is important, as it
+    tells npm to install the <code class="literal">coffee-script</code>
+    package globally, rather than locally. Without it, you won’t get the
+    <code class="literal">coffee</code> executable.</p><p class="calibre8">If you execute the <code class="literal">coffee</code>
+    executable without any command line options, it’ll give you the
+    CoffeeScript console, which you can use to quickly execute CoffeeScript
+    statements. To pre-process files, pass the <code class="literal">--compile</code> option:</p><pre class="screen">coffee --compile my-script.coffee</pre><p class="calibre8">If <code class="literal">--output</code> is not specified,
+    CoffeeScript will write to a JavaScript file with the same name, in this
+    case <code class="literal">my-script.js</code>. This will overwrite
+    any existing files, so be careful you’re not overwriting any JavaScript
+    files unintentionally. For a full list of the command line options available, pass
+    <code class="literal">--help</code>.</p><p class="calibre8">You can also pass the <code class="literal">--compile</code>
+    option a directory, and CoffeeScript will recursively compile every file
+    with a <code class="literal">.coffee</code> extension:</p><pre class="screen">coffee --output lib --compile src</pre><p class="calibre8">If all this compilation seems like a bit of an inconvenience and
+    bother, that’s because it is. We’ll be getting onto ways to solve this by
+    automatically compiling CoffeeScript files, but first let’s take a look at
+    the language’s syntax.</p></div></div>
+
+{% endraw %}
+

@@ -1,0 +1,38 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/apas05.html
+next: OEBPS/apb.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="More Complicated Cases"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect1_d1e9029" class="calibre1"></a>More Complicated Cases</h1></div></div></div><p class="calibre7"></p><p class="calibre7">In order to make our tricks work so far, we’ve needed to have functions that give us full
+   access to play around with their values. Sometimes, this isn’t the case. Take, for instance:</p><a id="I_programlisting_d1e9035" class="firstname"></a><pre class="programlistinghaskell"><code class="nf">addMVarFinalizer</code><code class="err"> </code><code class="ow">::</code><code class="err"> </code><code class="kt">MVar</code><code class="err"> </code><code class="n">a</code> <code class="ow">-&gt;</code><code class="err"> </code><code class="kt">IO</code><code class="err"> </code><code class="nb">()</code><code class="err"> </code><code class="ow">-&gt;</code><code class="err"> </code><code class="kt">IO</code><code class="err"> </code><code class="nb">()</code>
+</pre><p class="calibre7">In this case, we are required to have no value inside our finalizer function. Intuitively, the
+   first thing we should notice is that there will be no way to capture our monadic side effects. So
+   how do we get something like this to compile? Well, we need to explicitly tell it to drop all of
+   its state-holding
+   information:<a id="I_programlisting_d1e9039" class="firstname"></a></p><pre class="programlistinghaskell"><code class="nf">addMVarFinalizerError</code> <code class="ow">::</code> <code class="kt">MVar</code> <code class="n">a</code> <code class="ow">-&gt;</code> <code class="kt">ErrorT</code> <code class="kt">MyError</code> <code class="kt">IO</code> <code class="nb">()</code> <code class="ow">-&gt;</code> <code class="kt">ErrorT</code> <code class="kt">MyError</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">addMVarFinalizerError</code> <code class="n">mvar</code> <code class="n">f</code> <code class="ow">=</code> <code class="n">controlIO</code> <code class="o">$</code> <code class="nf">\</code><code class="n">run</code> <code class="ow">-&gt;</code>
+    <code class="n">return</code> <code class="o">$</code> <code class="n">liftIO</code> <code class="o">$</code> <code class="n">addMVarFinalizer</code> <code class="n">mvar</code> <code class="p">(</code><code class="n">run</code> <code class="n">f</code> <code class="o">&gt;&gt;</code> <code class="n">return</code> <code class="nb">()</code><code class="p">)</code>
+</pre><p class="calibre7">Another case from the same module
+   is:<a id="I_programlisting_d1e9043" class="firstname"></a></p><pre class="programlistinghaskell"><code class="nf">modifyMVar</code><code class="err"> </code><code class="ow">::</code><code class="err"> </code><code class="kt">MVar</code><code class="err"> </code><code class="n">a</code> <code class="ow">-&gt;</code> <code class="p">(</code><code class="n">a</code> <code class="ow">-&gt;</code><code class="err"> </code><code class="kt">IO</code><code class="err"> </code><code class="p">(</code><code class="n">a</code><code class="p">,</code> <code class="n">b</code><code class="p">))</code> <code class="ow">-&gt;</code><code class="err"> </code><code class="kt">IO</code><code class="err"> </code><code class="n">b</code>
+</pre><p class="calibre7">Here,
+   we have a restriction on the return type in the second argument: it must be a tuple of the value
+   passed to that function and the final return value. Unfortunately, I can’t see a way of writing a
+   little wrapper around modifyMVar to make it work for ErrorT. Instead, in this case, I copied the
+   definition of modifyMVar and modified it:</p><a id="I_programlisting_d1e9046" class="firstname"></a><pre class="programlistinghaskell"><code class="nf">modifyMVar</code> <code class="ow">::</code> <code class="kt">MVar</code> <code class="n">a</code>
+           <code class="ow">-&gt;</code> <code class="p">(</code><code class="n">a</code> <code class="ow">-&gt;</code> <code class="kt">ErrorT</code> <code class="kt">MyError</code> <code class="kt">IO</code> <code class="p">(</code><code class="n">a</code><code class="p">,</code> <code class="n">b</code><code class="p">))</code>
+           <code class="ow">-&gt;</code> <code class="kt">ErrorT</code> <code class="kt">MyError</code> <code class="kt">IO</code> <code class="n">b</code>
+<code class="nf">modifyMVar</code> <code class="n">m</code> <code class="n">io</code> <code class="ow">=</code>
+  <code class="kt">Control</code><code class="o">.</code><code class="kt">Exception</code><code class="o">.</code><code class="kt">Control</code><code class="o">.</code><code class="n">mask</code> <code class="o">$</code> <code class="nf">\</code><code class="n">restore</code> <code class="ow">-&gt;</code> <code class="kr">do</code>
+    <code class="n">a</code>      <code class="ow">&lt;-</code> <code class="n">liftIO</code> <code class="o">$</code> <code class="n">takeMVar</code> <code class="n">m</code>
+    <code class="p">(</code><code class="n">a'</code><code class="p">,</code><code class="n">b</code><code class="p">)</code> <code class="ow">&lt;-</code> <code class="n">restore</code> <code class="p">(</code><code class="n">io</code> <code class="n">a</code><code class="p">)</code> <code class="p">`</code><code class="n">onExceptionError</code><code class="p">`</code> <code class="n">liftIO</code> <code class="p">(</code><code class="n">putMVar</code> <code class="n">m</code> <code class="n">a</code><code class="p">)</code>
+    <code class="n">liftIO</code> <code class="o">$</code> <code class="n">putMVar</code> <code class="n">m</code> <code class="n">a'</code>
+    <code class="n">return</code> <code class="n">b</code>
+</pre></div></div>
+
+{% endraw %}
+

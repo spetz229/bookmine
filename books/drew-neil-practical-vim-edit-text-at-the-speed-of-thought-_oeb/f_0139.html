@@ -1,0 +1,320 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0138.html
+next: f_0140.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="N1A8F1">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 101</td>
+<td class="arr-recipe-name">Meet ctags</td>
+</tr>
+</table>
+<p id="N1A8F7" class="calibre4">
+<span class="calibre5">
+        To use Vim’s tag navigation features, we must first install <code class="cf">ctags</code>. Then we’ll learn how to execute the program and understand the index that it generates.
+    </span>
+</p>
+<h3 class="calibre22">Installing Exuberant Ctags</h3>
+<p id="N1A902" class="calibre4">
+	  Linux users should be able to get <code class="cf">ctags</code> with their package manager. For example, on Ubuntu you can install it by running the following:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ sudo apt-get install exuberant-ctags</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1A927" class="calibre4">
+        OS X ships with a BSD program called <code class="cf">ctags</code>. Beware: this is not the same thing as Exuberant Ctags. You’ll have to install Exuberant Ctags yourself. Using homebrew, it’s as easy as this:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ brew install ctags</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1A941" class="calibre4">
+        Check that <code class="cf">ctags</code> is installed and that it’s in your path by running the following:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ ctags --help</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​Exuberant Ctags 5.8, Copyright (C) 1996-2009 Darren Hiebert​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​Compiled: Dec 18 2010, 22:44:26​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​...​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1A95E" class="calibre4">
+        If you don’t get this message, you might have to modify your <code class="cf">$PATH</code>. Make sure that <code class="cf">/usr/local/bin</code> takes precedence over <code class="cf">/usr/bin</code>.
+      </p>
+<div class="sidebar">
+<div class="sidebar-title">Complements to ctags</div>
+<div class="calibre1">
+<p id="N1A96E" class="calibre4">
+        Mozilla runs a project called Doctor JS,<a id="FNPTR-27" href="f_0141.html#FOOTNOTE-27">[27]</a> which includes a <code class="cf1">jsctags</code> program. This performs static analysis on JavaScript code, with a deep understanding of the language’s semantics (<code class="cf1">jsctags</code> itself is implemented in JavaScript). <code class="cf1">jsctags</code> produces output in the same format as <code class="cf1">ctags</code>, so it works seamlessly with Vim.
+      </p>
+<p id="N1A992" class="calibre4">
+        There’s nothing proprietary about the <code class="cf1">tags</code> file format; it’s plain text. Anybody can write a script to generate <code class="cf1">tags</code> files that Vim understands.
+      </p>
+</div>
+</div>
+<h3 id="sec.ctags.usage" class="calibre22">Indexing a Codebase with ctags</h3>
+<p id="N1A9A0" class="calibre4">
+	  We can invoke <code class="cf">ctags</code> from the command line, giving it the path for one or more files that we would like it to index. The source code distributed with this book includes a small demo program consisting of three Ruby files. Let’s run <code class="cf">ctags</code> on this codebase:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ cd code/ctags</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ ls</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​anglophone.rb francophone.rb speaker.rb​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ ctags *.rb</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ ls</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​anglophone.rb francophone.rb speaker.rb tags​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1A9E2" class="calibre4">
+        Note that <code class="cf">ctags</code> has created a plain-text file called <code class="cf">tags</code>. It contains an index of the keywords from the three source files that <code class="cf">ctags</code> analyzed.
+      </p>
+<h3 id="sec.tags.file" class="calibre22">The Anatomy of a tags File</h3>
+<p id="N1A9F8" class="calibre4">
+        Let’s look inside the <code class="cf">tags</code> file we just generated. Note that some lines have been truncated to fit the page:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/ctags/tags-abridged">ctags/tags-abridged</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​!_TAG_FILE_FORMAT       2       /extended format/​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​!_TAG_FILE_SORTED       1       /0=unsorted, 1=sorted, 2=foldcase/​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​!_TAG_PROGRAM_AUTHOR    Darren Hiebert  //​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​!_TAG_PROGRAM_NAME      Exuberant Ctags //​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​!_TAG_PROGRAM_URL       http://ctags.sourceforge.net    /official site/​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​!_TAG_PROGRAM_VERSION   5.8     //​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​Anglophone      anglophone.rb   /^class Anglophone &lt; Speaker$/;"        c​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​Francophone     francophone.rb  /^class Francophone &lt; Speaker$/;"       c​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​Speaker speaker.rb      /^class Speaker$/;"     c​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​initialize      speaker.rb      /^  def initialize(name)$/;"    f​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​speak   anglophone.rb   /^  def speak$/;"       f       class:Anglophone​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​speak   francophone.rb  /^  def speak$/;"       f       class:Francophone​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​speak   speaker.rb      /^  def speak$/;"       f       class:Speaker​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1AA2E" class="calibre4">
+        The <code class="cf">tags</code> file begins with a few lines of metadata. After that it lists one keyword per line, along with the filename and address where that keyword is defined in the source code. The keywords are arranged in alphabetical order, so Vim (or any text editor, for that matter) can rapidly locate them with a binary search.
+      </p>
+<h4 class="calibre20">Keywords Are Addressed by Pattern, Not by Line Number</h4>
+<p id="N1AA38" class="calibre4">
+          The specification for the <code class="cf">tags</code> file format states that the address could be any Ex command.<a id="FNPTR-28" href="f_0141.html#FOOTNOTE-28">[28]</a> One option would be to use absolute line numbers. For example, we could make the cursor jump to an address on line 42 with the Ex command <code class="cf">:42</code>. But think of how brittle that could be. Adding just one new line at the top of a file would throw every address out of step.
+        </p>
+<p id="N1AA47" class="calibre4">
+          Instead, <code class="cf">ctags</code> uses the search command to address each keyword (if you’re not convinced that search is an Ex command, try entering <code class="cf">:/pattern</code>). This method is more robust than using line numbers, but it’s still not perfect. What if the search command used to address a particular keyword had more than one match for a given file?
+        </p>
+<p id="N1AA55" class="calibre4">
+          That situation shouldn’t arise, because the pattern can match as many lines of code as is necessary to produce a unique address. So long as the line length doesn’t exceed 512 characters, a <code class="cf">tags</code> file will remain backward compatible with <code class="cf">vi</code>. Of course, as a search pattern becomes longer, it, too, becomes brittle in its own way.
+        </p>
+<h4 class="calibre20">Keywords Are Tagged with Metadata</h4>
+<p id="N1AA62" class="calibre4">
+          The classic <code class="cf">tags</code> file format only required three tab-separated fields: the keyword, the filename, and the address. But the extended format used today allows for additional fields at the end to provide metadata about the keyword. In this example, we can see that the <code class="cf">Anglophone</code>, <code class="cf">Francophone</code>, and <code class="cf">Speaker</code> keywords are labeled <code class="cf">c</code> for class, while <code class="cf">initialize</code> and <code class="cf">speak</code> are labeled <code class="cf">f</code> for function.
+        </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

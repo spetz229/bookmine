@@ -1,0 +1,57 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch13s05.html
+next: OEBPS/apa.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Putting It All Together: An Abstract CRUD List"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect113_d1e15092" class="calibre1"></a>Putting It All Together: An Abstract CRUD List</h1></div></div></div><p class="calibre3"><a id="I_indexterm13_d1e15096" class="calibre1"></a><a id="I_indexterm13_d1e15101" class="calibre1"></a>Now we will enhance the list to not only add items when they
+    are created, but to update and remove them when they are destroyed. To do
+    this, we start by listening to updated and destroyed:</p><pre class="screen">"{model} updated" : function(Model, ev, updatedItem){
+  // find and update the LI for updatedItem
+},
+"{model} destroyed" : function(Model, ev, destroyedItem){
+  // find and remove the LI for destroyedItem
+}</pre><p class="calibre3">You’ll notice that we have a problem. Somehow, we need to find the
+    element that represents the particular model instance. To do this, we need
+    to label the element as belonging to the model instance. Fortunately,
+    <code class="literal">$.Model</code> and <code class="literal">$.View</code> make it very easy
+    to label an element with an instance and find that element.</p><p class="calibre3">To label the element with a model instance within an EJS view,
+    simply write the model instance to the element. The following might be
+    <code class="literal">tasks.ejs</code>:</p><pre class="screen">&lt;% for(var i =0 ; i &lt; this.length; i++){ %&gt;
+  &lt;% var task = this[i]; %&gt;
+  &lt;li &lt;%= task %&gt; &gt; &lt;%= task.name %&gt; &lt;/li&gt;
+&lt;% } %&gt;</pre><p class="calibre3"><code class="literal">tasks.ejs</code> iterates through a list
+    of tasks. For each task, it creates an <code class="literal">li</code> element with the task’s name. But it also
+    adds the task to the element’s jQuery data with <code class="literal">&lt;li&gt;&lt;%= task %&gt;&lt;/li&gt;</code>.</p><p class="calibre3">To later get that element given a model instance, call <code class="literal">modelInstance.elements([CONTEXT])</code>. This returns
+    the jQuery-wrapped elements that represent the model instance.</p><p class="calibre3">Putting it together, the list becomes:</p><pre class="screen">$.Controller("List", {
+  defaults : {
+    template: "items.ejs",
+    model: null
+  }
+},{
+  init : function(){
+    this.element.html( this.options.template, this.options.model.findAll() ); 
+  },
+  "{model} created" : function(Model, ev, newItem){
+    this.element.append(this.options.template, [newItem])
+  },
+  "{model} updated" : function(Model, ev, updatedItem){
+    updatedItem.elements(this.element)
+      .replaceWith(this.options.template, [updatedItem])
+  },
+  "{model} destroyed" : function(Model, ev, destroyedItem){
+    destroyedItem.elements(this.element)
+      .remove()
+  }
+});
+
+// create a list of tasks
+$('#tasks').list({model: Task, template: "tasks.ejs"});</pre><p class="calibre3">It’s almost frighteningly easy to create abstract, reusable,
+    memory-safe widgets with JavaScriptMVC.<a id="I_indexterm13_d1e15143" class="calibre1"></a><a id="I_indexterm13_d1e15144" class="calibre1"></a></p></div></div>
+
+{% endraw %}
+

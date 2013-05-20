@@ -1,0 +1,335 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0117.html
+next: f_0119.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.working.with.search.matches">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 84</td>
+<td class="arr-recipe-name">Operate on a Complete Search Match</td>
+</tr>
+</table>
+<p id="N18F52" class="calibre4">
+<span class="calibre5">
+        Vim’s search command allows us to highlight matches and to jump between them quickly, but operating on a complete match is nontrivial. See how to construct a motion that lets us operate on all matches, even if they vary in length.
+    </span>
+</p>
+<p id="N18F62" class="calibre4">
+      Vim’s search command is convenient for jumping between occurrences of a pattern, but what if we want to make a change to each match?
+    </p>
+<p id="N18F65" class="calibre4">
+      In some text editors, the search command doesn’t just position the cursor on a match: it selects the whole thing, which is convenient if we want to operate on the match. By contrast, in Vim, the entire match is highlighted (as long as <code class="cf">‘hlsearch’</code> is enabled), but our cursor is placed at the start of the match. So if we want to operate on the match, we either have to select the highlighted text visually or use a motion that covers the same range of text.
+    </p>
+<p id="N18F75" class="calibre4">
+      Which of Vim’s motions can we use to do that? As always, the answer is “it depends.” If our pattern matches a complete word, then we could use <span class="calibre17">e</span> or <span class="calibre17">iw</span> to operate on the word. But what if a match covers only a portion of the word? What if each match differs in length?
+    </p>
+<p id="N18F7E" class="calibre4">
+      Let’s look at an example. In this excerpt, we’re dealing with classes called <code class="cf">XmlDocument</code>, <code class="cf">XhtmlDocument</code>, <code class="cf">XmlTag</code>, and <code class="cf">XhtmlTag</code>.
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/search/tag-heirarchy.rb">search/tag-heirarchy.rb</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">class</strong> XhtmlDocument &lt; XmlDocument; <strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">class</strong> XhtmlTag &lt; XmlTag; <strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N18FA5" class="calibre4">
+      Suppose that we wanted to rename each class to look like this instead:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">class</strong> XHTMLDocument &lt; XMLDocument; <strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">class</strong> XHTMLTag &lt; XMLTag; <strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N18FBF" class="calibre4">
+      We could use the <span class="calibre17">gU{motion}</span> command to convert a range of text to uppercase, but in this case what would be the ideal motion?
+    </p>
+<p id="N18FC5" class="calibre4">
+      If we had to operate only on the word “Xml,” then we could run <span class="calibre17">gU3l</span> (or <span class="calibre17">3gUl</span>) to act on the next three characters. If we had to operate only on the “Document” classes, then we could run <span class="calibre17">gUtD</span> to act on all characters up to, but not including, the next “D” character. But neither of these solutions works for all four changes.
+    </p>
+<p id="N18FD1" class="calibre4">
+<a xmlns:str="http://exslt.org/strings" href="#table.complete-search-match">Table 24, ​<em class="calibre5">Operating on a Complete Search Match</em>​</a> shows one possible solution.
+    </p>
+<hr class="calibre37"/>
+<div class="figurecaption" id="table.complete-search-match">Table 24. Operating on a Complete Search Match</div>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">{start}</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">c</span>lass XhtmlDocument &lt; XmlDocument; end​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​class XhtmlTag &lt; XmlTag; end​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">/\vX(ht)?ml\C</code>
+<span class="calibre17">&lt;CR&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​class <span class="shade-fg-black">
+<span class="shade-fg-white">X</span>html</span>Document &lt; <span class="shade-fg-black">Xml</span>Document; end​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​class <span class="shade-fg-black">Xhtml</span>Tag &lt; <span class="shade-fg-black">Xml</span>Tag; end​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">gU</span>
+<code class="cf">//e</code>
+<span class="calibre17">&lt;CR&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​class <span class="shade-fg-white">X</span>HTMLDocument &lt; <span class="shade-fg-black">Xml</span>Document; end​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​class <span class="shade-fg-black">Xhtml</span>Tag &lt; <span class="shade-fg-black">Xml</span>Tag; end​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">//</code>
+<span class="calibre17">&lt;CR&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​class XHTMLDocument &lt; <span class="shade-fg-black">
+<span class="shade-fg-white">X</span>ml</span>Document; end​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​class <span class="shade-fg-black">Xhtml</span>Tag &lt; <span class="shade-fg-black">Xml</span>Tag; end​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">.</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​class XHTMLDocument &lt; <span class="shade-fg-white">X</span>MLDocument; end​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​class <span class="shade-fg-black">Xhtml</span>Tag &lt; <span class="shade-fg-black">Xml</span>Tag; end​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">//</code>
+<span class="calibre17">&lt;CR&gt;</span>
+<span class="calibre17">.</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​class XHTMLDocument &lt; <span class="shade-fg-white">X</span>MLDocument; end​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​class <span class="shade-fg-white">X</span>HTMLTag &lt; <span class="shade-fg-black">Xml</span>Tag; end​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<hr class="calibre37"/>
+<p id="N190CE" class="calibre4">
+      To begin with, we write a regular expression to match either “Xml” or “Xhtml.” That’s easy enough: <code class="cf">/\vX(ht)?ml\C</code>
+<span class="calibre17">&lt;CR&gt;</span> does the job. The <code class="cf">\C</code> item enforces case sensitivity, so this should work regardless of whether <code class="cf">‘ignorecase’</code> and/or <code class="cf">‘smartcase’</code> are enabled. After searching for this pattern, the four ranges of text that we want to operate on light up with search highlighting, and our cursor is positioned at the start of the first match.
+    </p>
+<p id="N190DF" class="calibre4">
+      Here’s the trick: <span class="calibre17">gU</span>
+<code class="cf">//e</code>
+<span class="calibre17">&lt;CR&gt;</span>. We’re using <code class="cf">//e</code>
+<span class="calibre17">&lt;CR&gt;</span> as a motion, which reaches from the start to the end of the search match. It doesn’t matter whether the match is three characters long (“Xml”) or five (“Xhtml”); the <code class="cf">//e</code>
+<span class="calibre17">&lt;CR&gt;</span> motion will act on the entire search match.
+    </p>
+<p id="N190F3" class="calibre4">
+      But now we have a problem. If we press the <span class="calibre17">n</span> key, we’ll repeat the last search, including the <code class="cf">//e</code>
+<span class="calibre17">&lt;CR&gt;</span> offset. Instead of jumping to the start of the next match, the <span class="calibre17">n</span> key will take us to the end. To get to the start, we’ll have to repeat the search <span class="calibre5">without</span> the offset by running <code class="cf">//</code>
+<span class="calibre17">&lt;CR&gt;</span>.
+    </p>
+<p id="N19109" class="calibre4">
+      That’s a bit of a pain, right? The good news is that the dot command will repeat our last change, namely <span class="calibre17">gU</span>
+<code class="cf">//e</code>
+<span class="calibre17">&lt;CR&gt;</span>. The bad news is that we’ll have to use <code class="cf">//</code>
+<span class="calibre17">&lt;CR&gt;</span> to jump to the start of the following match. The ideal Dot Formula here would be <span class="calibre17">n.</span>, but we’ll have to settle for <code class="cf">//</code>
+<span class="calibre17">&lt;CR&gt;</span>
+<span class="calibre17">.</span> instead. <a xmlns:str="http://exslt.org/strings" href="#sidebar.textobj.lastpat">​<em class="calibre5">A Text Object for Search Matches</em>​</a>, discusses a more optimal solution, which requires a plugin.
+    </p>
+<div class="sidebar" id="sidebar.textobj.lastpat">
+<div class="sidebar-title">A Text Object for Search Matches</div>
+<div class="calibre1">
+<p id="N1912B" class="calibre4">
+        The ideal Dot Formula requires a single keystroke to move and a single keystroke to execute the change. The example in <a xmlns:str="http://exslt.org/strings" href="#sec.working.with.search.matches">Tip 84</a>, used three keystrokes just to move (<code class="cf1">//</code>
+<span class="calibre17">&lt;CR&gt;</span>), which falls short of the ideal. It’s surprising that Vim doesn’t have a more convenient built-in motion for operating on search matches.
+      </p>
+<p id="N1913A" class="calibre4">
+        With the judicious use of Vim script, we can add this functionality to Vim. My favorite solution is the textobj-lastpat plugin, by Kana Natsuno,<a id="FNPTR-23" href="f_0120.html#FOOTNOTE-23">[23]</a> which adds an <span class="calibre17">i/</span> text object for operating on search matches. Using this, we can make the same change as before just by running <span class="calibre17">gUi/</span>. Instead of needing three keystrokes (<code class="cf1">//</code>
+<span class="calibre17">&lt;CR&gt;</span>) to jump to the next match, we can get there in just one: <span class="calibre17">n</span>. In other words, we can achieve an ideal Dot Formula.
+      </p>
+</div>
+</div>
+<p id="N19157" class="calibre4">
+      You may have noticed that this example has an alternative solution: <span class="calibre17">gUfl</span>. The <span class="calibre17">fl</span> motion would jump from the start of the match to the next occurrence of the letter <span class="calibre5">l,</span> and since “Xml” and “Xhtml” both end with the same letter, it would work in both cases.
+    </p>
+<p id="N19168" class="calibre4">
+      I didn’t notice this solution when I devised the example, and I think that’s significant. Uppercase letters have more presence than their lowercase counterparts, which makes them easier targets to see and therefore to hit (refer to <a xmlns:str="http://exslt.org/strings" href="f_0076.html#sec.scrabble">​<em class="calibre5">Think Like a Scrabble® Player</em>​</a>). When dealing with the word “MixedCase,” aiming for the next capital letter (<span class="calibre17">tC</span>) is easier than the last lowercase letter before it (<span class="calibre17">fd</span>).
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

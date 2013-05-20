@@ -1,0 +1,1819 @@
+---
+layout: page
+title: "Seven Databases in Seven Weeks (for Greg Kennedy)"
+prev: f_0055.html
+next: f_0057.html
+book_path: books/seven-databases-in-seven-weeks--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="sec.riak.day3" class="calibre18">8.4 Day 3: Playing with Other Databases</h2>
+<p id="N1A955" class="calibre5">
+    Today we’re wrapping up our final database chapter by inviting some previous databases to play. Yet Redis will hold a starring role by making our interaction with other databases faster and easier.
+    </p>
+<p id="N1A958" class="calibre5">
+    We’ve learned throughout this book that different databases have different strengths, so many modern system designs have moved toward a polyglot persistence model, where many databases each play a role in the system. You’ll learn how to build one of these projects using CouchDB as the system of record (the canonical data source), Neo4j to handle data relationships, and Redis to help with data population and caching. Consider this your final exam.
+    </p>
+<p id="N1A95B" class="calibre5">
+    Note that this project is not the authors’ endorsement of any specific set of databases, languages, or frameworks over another but rather a showcase of how multiple databases can work together, leveraging the capabilities of each in pursuit of a single goal.
+    </p>
+<h3 class="calibre20">A Polyglot Persistent Service</h3>
+<p id="N1A962" class="calibre5">
+      Our polyglot persistence service will act as a front end to a band information service. We want to store a list of musical band names, the artists who performed in those bands, and any number of roles each artist played in the band, from lead singer to backup keytar player. Each of three databases—Redis, CouchDB, and Neo4j—will handle a different aspect of our band management system.
+      </p>
+<div class="sidebar">
+<div class="sidebar-title">The Rise of Polyglot Persistence</div>
+<div class="calibre2">
+<p id="N1A97E" class="calibre5">
+          Like the growing phenomenon of polyglot programming, polyglot persistence is now gaining ground.
+        </p>
+<p id="N1A986" class="calibre5">
+          If you are unfamiliar with the practice, polyglot programming is whereby a team uses more than one programming language in a single project. Contrast this with the convention of using one general-purpose language throughout a project. This is useful because of the different inherent strengths of languages. A framework like Scala may be better suited for server-side stateless transactions on the Web, but a language like Ruby may be friendlier for business logic. Used together, they create a synergy. A polyglot language system like this was famously used at Twitter.
+        </p>
+<p id="N1A989" class="calibre5">Some of the databases we’ve seen themselves support polyglot programming—Riak supports both JavaScript and Erlang when writing mapreduce, and a single request can execute both.
+        </p>
+<p id="N1A98C" class="calibre5">
+          Similar to its language-centric cousin, polyglot persistence is where you can leverage the strengths of many kinds of databases in the same system, as opposed to the currently familiar practice of a single database, probably a relational style. A basic variant of this is already common: using a key-value store (like Redis) that acts as a cache for relatively slower relational database (like PostgreSQL) queries. Relational, as we’ve seen in previous chapters, is suboptimally suited for a growing host of problems, such as graph traversal. But even these new databases shine only as a few stars in the full galaxy of requirements.
+        </p>
+<p id="N1A98F" class="calibre5">
+          Why the sudden interest in polyglot? Martin Fowler noted<a id="FNPTR-57" href="f_0057.html#FOOTNOTE-57">[57]</a> that having a single central database where multiple applications could integrate was a common pattern in software design. This once popular database integration pattern has given way to a middleware layer pattern, where multiple applications instead communicate to a service layer over HTTP. This frees up the middleware service itself to rely on any number of databases or, in the case of polyglot persistence, any type.
+        </p>
+</div>
+</div>
+<p id="N1A998" class="calibre5">
+      Redis plays three important roles in our system: to assist in data populating CouchDB, as a cache for recent Neo4j changes, and as a quick lookup for partial value searches. Its speed and ability to store multiple data formats make it well suited for population, and its built-in expiry policies are perfect for handling cached data.
+      </p>
+<p id="N1A99B" class="calibre5">
+      CouchDB is our system of record (SOR), or authoritative data source. CouchDB’s document structure is an easy way to store band data with nested artist and role information, and we will take advantage of the Changes API in CouchDB to keep our third data source in sync.
+      </p>
+<p id="N1A9B3" class="calibre5">
+      Neo4j is our relationship store. Although querying the CouchDB SOR directly is perfectly reasonable, a graph datastore allows us a simplicity and speed in walking node relationships that other databases have a difficult time matching. We’ll store relationships between bands, band members, and the roles the members play.
+      </p>
+<p id="N1A9BB" class="calibre5">
+      Each database has a specific role to play in our system, but they don’t natively communicate. We use the Node.js JavaScript framework to populate the databases, communicate between them, and act as a simple front-end server. Since gluing multiple databases together requires a bit of code, this last day will have much more code than we have seen so far in this book. 
+      </p>
+<h3 class="calibre20">Population</h3>
+<p id="N1A9D1" class="calibre5">
+      The first item of business is to populate our datastores with the necessary data. We take a two-phased approach here, by first populating Redis and then populating our CouchDB SOR.
+      </p>
+<p id="N1A9DA" class="calibre5">
+      As in earlier sections, we download a dataset from Freebase.com. We’ll be using the <code class="cf">group_membership</code> tab-separated set.<a id="FNPTR-58" href="f_0057.html#FOOTNOTE-58">[58]</a> This file contains a lot of information, but we are interested only in extracting the <code class="cf">member</code> or artist name, the <code class="cf">group</code> or band name, and their <code class="cf">role</code>s in that band stored as a comma-separated list. For example, <span class="calibre6">John Cooper</span> played in the band <span class="calibre6">Skillet</span> as the <span class="calibre6">Lead vocalist</span>, <span class="calibre6">Acoustic guitar</span> player, and <span class="calibre6">Bassist</span>.
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​/m/0654bxy  John Cooper Skillet Lead vocalist,Acoustic guitar,Bass  1996​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1AA12" class="calibre5">
+      Ultimately we want to structure John Cooper and the other members of Skillet into a single CouchDB document like the following, stored at the URL
+      <code class="cf">http://localhost:5984/bands/Skillet</code>:
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​{​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  "_id": "Skillet",​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  "name": "Skillet"​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  "artists": [​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      "name": "John Cooper",​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      "role": [​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        "Acoustic guitar",​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        "Lead vocalist",​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        "Bass"​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      ]​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    },​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    ...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      "name": "Korey Cooper",​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      "role": [​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        "backing vocals",​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        "Synthesizer",​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        "Guitar",​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        "Keyboard instrument"​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      ]​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  ]​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​}​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1AA68" class="calibre5">
+      This file contains well over 100,000 band members and more than 30,000 bands. That’s not many, but it’s a good starting point to build your own system. Note that not every artist’s roles are documented. This is an incomplete dataset, but we can deal with that later.
+      </p>
+<h4 class="calibre21">Phase 1: Data Transformation</h4>
+<p id="N1AA72" class="calibre5">
+        You may wonder why we bother populating Redis and not just dive right into populating CouchDB. Acting as an intermediary, Redis adds structure to the flat TSV data so that subsequent insertion into another database is fast. Since our plan is to create a single record per band name, Redis allows us to make a single pass through our TSV file (which lists the same band for each band member—each band member is represented in a line). Adding single members directly to CouchDB for each line in the file can cause update thrashing, where two band member lines attempt to create/update the same band document at the same time, forcing the system to reinsert when one of them fails CouchDB’s version check.
+        </p>
+<p id="N1AA7B" class="calibre5">
+        The catch with this strategy is that you’re limited to the constraints of Redis to hold an entire dataset in RAM—though this limit could be overcome by the simple consistent-hashing cluster we saw on Day 2.
+        </p>
+<p id="N1AA7E" class="calibre5">
+        With our data file in hand, ensure you have Node.js installed as well as the Node Package Manager (npm). Once that’s all done, we need to install three NPM projects: redis, csv, and hiredis (the optional Redis C-driver we learned about yesterday that can greatly speed up Redis interactions).
+        </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ npm install hiredis redis csv​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1AA8C" class="calibre5">
+        Then, check that your Redis server is running on the default port 6379, or alter each script’s <code class="cf">createClient</code> function to point to your Redis port.
+        </p>
+<p id="N1AA92" class="calibre5">
+        You can populate Redis by running the following Node.js script in the same directory as your TSV file, which we assume is named <code class="cf">group_membership.tsv</code>.
+        (All of the JavaScript files we’ll look at are fairly verbose, so we don’t show them in their entirety. All of the code can be downloaded from the Pragmatic Bookshelf website. Here we’ll just stick to the meat of each file.) Download and run the following file:
+        </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">node pre_populate.js</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1AAA7" class="calibre5">
+        This script basically iterates through each line of the TSV and extracts the artist name, the band name, and the roles they play in that band. Then it adds those values to Redis (skipping any blank values).
+        </p>
+<p id="N1AAAA" class="calibre5">
+        The format of each Redis band key is <code class="cf">"band:Band Name"</code>. The script will add this artist name to the set of artist names. So, the key <code class="cf">"band:Beatles"</code> will contain the set of values <code class="cf">["John Lennon", "Paul McCartney", "George Harrison", "Ringo Starr"]</code>. The artist keys will also contain the band name and similarly contain a set of roles. <code class="cf">"artist:Beatles:Ringo Starr"</code> will contain the set <code class="cf">["Drums"]</code>.
+        </p>
+<p id="N1AABC" class="calibre5">
+        The other code just keeps track of how many lines we’ve processed and outputs the results to the screen.
+        </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td colspan="2" class="calibre34">
+<a href="http://media.pragprog.com/titles/rwdata/code/redis/pre_populate.js">redis/pre_populate.js</a>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​csv().​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​fromPath( tsvFileName, { delimiter: <em class="string">'\t'</em>, quote: <em class="string">''</em> }).​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​on(<em class="string">'data'</em>, <strong class="prompt">function</strong>(data, index) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">var</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    artist = data[2],​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    band = data[3],​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    roles = buildRoles(data[4]);​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">if</strong>( band === <em class="string">''</em> || artist === <em class="string">''</em> ) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    trackLineCount();​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">return</strong> true;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  redis_client.sadd(<em class="string">'band:'</em> + band, artist);​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  roles.forEach(<strong class="prompt">function</strong>(role) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    redis_client.sadd(<em class="string">'artist:'</em> + band + <em class="string">':'</em> + artist, role);​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  });​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  trackLineCount();​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​}).​</code>​</div>
+</td>
+</tr>
+</table>
+<div class="xxxsays" id="sb.nonBlocking">
+<div class="heading">
+<div class="persons-picture">
+<img src="images/headshots/Eric.png" alt="Eric says:" class="calibre27"/>
+</div>
+<div class="label">Eric says:</div>
+<div class="title">Nonblocking Code</div>
+</div>
+<div class="calibre2">
+<p id="N1AB27" class="calibre5">
+          Before starting this book, we were only passingly familiar with writing event-driven nonblocking applications. <span class="calibre6">Nonblocking</span> means precisely that: rather than waiting for a long-running process to complete, the main code will continue executing. Whatever you need to do in response to a blocking event you put inside a function or code block to be executed later. This can be by spawning a separate thread or, in our case, implementing a reactor pattern event-driven approach.
+          </p>
+<p id="N1AB35" class="calibre5">
+          In a blocking program, you can write code that queries a database, waits, and loops through the results.
+          </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre25">
+​<code class="calibre37">​results = database.some_query()​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre25">
+​<code class="calibre37">​<strong class="prompt">for</strong> value <strong class="prompt">in</strong> results​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre25">
+​<code class="calibre37">​  <em class="comment"># do something with each value</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre25">
+​<code class="calibre37">​<strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre25">
+​<code class="calibre37">​<em class="comment"># this is not executed until after the results are looped...</em>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1AB59" class="calibre5">
+          In a event-driven program, you would pass in the loop as a function/code block. While the databases is doing its thing, the rest of the program can continue running. Only after the database returns the result does the function/code block get executed.
+          </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre25">
+​<code class="calibre37">​database.some_query <strong class="prompt">do</strong> |results|​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre25">
+​<code class="calibre37">​  <strong class="prompt">for</strong> value <strong class="prompt">in</strong> results​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre25">
+​<code class="calibre37">​    <em class="comment"># do something with each value</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre25">
+​<code class="calibre37">​  <strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre25">
+​<code class="calibre37">​<strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre25">
+​<code class="calibre37">​<em class="comment"># this continues running while the database performs its query...</em>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1AB86" class="calibre5">
+          It took us quite some time to realize the benefits here. The rest of the program can run rather than sitting idle while it waits on the database, sure, but is this common? Apparently so, because when we began coding in this style, we noticed an order-of-magnitude decrease in latency.
+          </p>
+<p id="N1AB89" class="calibre5">
+          We try to keep the code as simple as we can, but interacting with databases in a nonblocking way is an inherently complex process. But as we learned, it’s generally a very good method when dealing with databases. Nearly every popular programming language has some sort of nonblocking library. Ruby has EventMachine, Python has Twisted, Java has the NIO library, C# has Interlace, and of course JavaScript has Node.js.
+          </p>
+</div>
+</div>
+<p id="N1AB8C" class="calibre5">
+        You can test that the code has been populating Redis by launching <code class="cf">redis-cli</code> and executing <code class="cf">RANDOMKEY</code>. We should expect a key prefixed by <code class="cf">band:</code> or <code class="cf">artist:</code>…any value but <code class="cf">(nil)</code> is good.
+        </p>
+<p id="N1AB9E" class="calibre5">
+        Now that Redis is populated, proceed immediately to the next section. Turning off Redis could lose data, unless you chose to set a higher durability than the default or initiated a <code class="cf">SAVE</code> command.
+        </p>
+<h4 class="calibre21">Phase 2: SOR Insertion</h4>
+<p id="N1ABAB" class="calibre5">
+        CouchDB will play the role of our system of record (SOR). If any data conflicts arise between Redis, CouchDB, or Neo4j, CouchDB wins. A good SOR should contain all of the data necessary to rebuild any other data source in its domain.
+        </p>
+<p id="N1ABB4" class="calibre5">
+        Ensure CouchDB is running on the default port 5984, or change the <code class="cf">require(’http’).createClient(5984, ’localhost’)</code> line in the following code to the port number you require. Redis should also still be running from the previous section. Download and run the following file:
+        </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">node populate_couch.js</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1ABC9" class="calibre5">
+        Since phase 1 was all about pulling data from a TSV and populating Redis, this phase is all about pulling data from Redis and populating CouchDB. We don’t use any special drivers for CouchDB, since it’s a simple REST interface and Node.js has a simple built-in HTTP library.
+        </p>
+<p id="N1ABCC" class="calibre5">
+        In the following block of code, we perform a Redis <code class="cf">KEYS bands:*</code> to get a list of all band names in our system. If we had a <span class="calibre6">really</span> big dataset, we could add more scoping (for example, <code class="cf">bands:A*</code> to get only band names starting with <span class="calibre6">a</span>, and so on). Then for each of those bands we fetch the set of artists and extract the band name from the key, by removing the prefix <span class="calibre6">bands:</span> from the key string.
+        </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td colspan="2" class="calibre34">
+<a href="http://media.pragprog.com/titles/rwdata/code/redis/populate_couch.js">redis/populate_couch.js</a>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​redisClient.keys(<em class="string">'band:*'</em>, <strong class="prompt">function</strong>(error, bandKeys) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  totalBands = bandKeys.length;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">var</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    readBands = 0,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    bandsBatch = [];​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  bandKeys.forEach(<strong class="prompt">function</strong>(bandKey) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <em class="comment">// substring of 'band:'.length gives us the band name</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">var</strong> bandName = bandKey.substring(5);​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    redisClient.smembers(bandKey, <strong class="prompt">function</strong>(error, artists) {​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1AC18" class="calibre5">
+        Next we get all of the roles for every artist in this band, which Redis returns as an array of arrays (each artists role is its own array). We can do this by batching up Redis <code class="cf">SMEMBERS</code> commands into an array called <code class="cf">roleBatch</code> and executing them in a single <code class="cf">MULTI</code> batch. Effectively, that would be executing a single pipelined request like this:
+        </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​MULTI​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  SMEMBERS "artist:Beatles:John Lennon"​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  SMEMBERS "artist:Beatles:Ringo Starr"​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​EXEC​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1AC39" class="calibre5">
+        From there, a batch of 50 CouchDB documents are made. We build a batch of 50, because we then send the entire set to CouchDB’s <code class="cf">/_bulk_docs</code> command, allowing us very, very fast insertion.
+        </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td colspan="2" class="calibre34">
+<a href="http://media.pragprog.com/titles/rwdata/code/redis/populate_couch.js">redis/populate_couch.js</a>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​redisClient.​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  multi(roleBatch).​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  exec(<strong class="prompt">function</strong>(err, roles)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">var</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      i = 0,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      artistDocs = [];​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <em class="comment">// build the artists sub-documents</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    artists.forEach( <strong class="prompt">function</strong>(artistName) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      artistDocs.push({ name: artistName, role : roles[i++] });​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    });​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <em class="comment">// add this new band document to the batch to be executed later</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    bandsBatch.push({​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      _id: couchKeyify( bandName ),​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      name: bandName,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      artists: artistDocs​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    });​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1AC8C" class="calibre5">
+        With the population of the bands database, we now have in a single location all of the data our system requires. We know the names of many bands, the artists who performed in them, and the roles they played in those bands.
+        </p>
+<p id="N1AC8F" class="calibre5">
+        Now would be a good time to take a break and play around with our newly populated bands system of record in CouchDB at <code class="cf">http://localhost:5984/_utils/</code>
+<code class="cf">database.html?bands</code>.
+        </p>
+<h3 class="calibre20">Relationship Store</h3>
+<p id="N1ACA1" class="calibre5">
+      Next on the docket is our Neo4j service that we’ll use to track relationships between artists and the roles they play. We could certainly query CouchDB outright by creating views, but we are rather limited on complex queries based on relationships. If Wayne Coyne from the Flaming Lips loses his theremin before a show, he could ask Charlie Clouser from Nine Inch Nails, who also plays a theremin. Or we could discover artists who have many overlapping talents, even if they performed different roles in different bands—all with a simple node walk.
+      </p>
+<p id="N1ACAA" class="calibre5">
+      With our initial data in place, now we need to keep Neo4j in sync with CouchDB should any data ever change on our system of record. So, we’ll kill two birds by crafting a service that populates Neo4j on any changes to CouchDB since the database was created. 
+      </p>
+<p id="N1ACAD" class="calibre5">
+      We also want to populate Redis with keys for our bands, artists, and role so we can quickly access this data later. Happily, this includes all data that we’ve already populated in CouchDB, thus saving us a separate initial Neo4j and Redis population step.
+      </p>
+<p id="N1ACB0" class="calibre5">
+      Ensure that Neo4j is running on port 7474, or change the appropriate <code class="cf">createClient</code> function to use your correct port. CouchDB and Redis should still be running. Download and run the following file. This file will continue running until you shut it down.
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">node graph_sync.js</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1ACC5" class="calibre5">
+      This server just uses the continuous polling example we saw in the CouchDB chapter to track all CouchDB changes. Whenever a change is detected, we do two things: populate Redis and populate Neo4j. This code populates Redis by cascading callback functions. First it populates the band as <code class="cf">"band-name:Band Name"</code>. It follows this pattern for artist name and roles.
+      </p>
+<p id="N1ACCB" class="calibre5">
+      This way, we can search with partial strings. For example, <code class="cf">KEYS band-name:Bea*</code> could return this: Beach Boys, Beastie Boys, Beatles, and so on.
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td colspan="2" class="calibre34">
+<a href="http://media.pragprog.com/titles/rwdata/code/redis/graph_sync.js">redis/graph_sync.js</a>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">function</strong> feedBandToRedis(band) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  redisClient.set(<em class="string">'band-name:'</em> + band.name, 1);​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  band.artists.forEach(<strong class="prompt">function</strong>(artist) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    redisClient.set(<em class="string">'artist-name:'</em> + artist.name, 1);​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    artist.role.forEach(<strong class="prompt">function</strong>(role){​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      redisClient.set(<em class="string">'role-name:'</em> + role, 1);​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1AD01" class="calibre5">
+      The next block is how we populate Neo4j. We created a driver that you can download as part of this book’s code, named <code class="cf">neo4j_caching_client.js</code>. It just uses Node.js’s HTTP library to connect to the Neo4j REST interface with a bit of rate-limiting built in so the client doesn’t open too many connections at once. Our driver also uses Redis to keep track of changes made to the Neo4j graph without having to initiate a separate query. This is our third separate use for Redis—the first being as a data transformation step for populating CouchDB, and the second we just saw earlier, to quickly search for band values.
+      </p>
+<p id="N1AD07" class="calibre5">
+      This code creates band nodes (if they need to be created), then artist nodes (if they need to be created), and then roles. Each step along the way creates a new relationship, so The Beatles node will relate to John, Paul, George, and Ringo nodes, who in turn each relate to the roles they play.
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td colspan="2" class="calibre34">
+<a href="http://media.pragprog.com/titles/rwdata/code/redis/graph_sync.js">redis/graph_sync.js</a>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">function</strong> feedBandToNeo4j(band, progress) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">var</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    lookup = neo4jClient.lookupOrCreateNode,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    relate = neo4jClient.createRelationship;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  lookup(<em class="string">'bands'</em>, <em class="string">'name'</em>, band.name, <strong class="prompt">function</strong>(bandNode) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    progress.emit(<em class="string">'progress'</em>, <em class="string">'band'</em>);​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    band.artists.forEach(<strong class="prompt">function</strong>(artist) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      lookup(<em class="string">'artists'</em>, <em class="string">'name'</em>, artist.name, <strong class="prompt">function</strong>(artistNode){​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        progress.emit(<em class="string">'progress'</em>, <em class="string">'artist'</em>);​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        relate(bandNode.self, artistNode.self, <em class="string">'member'</em>, <strong class="prompt">function</strong>(){​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​          progress.emit(<em class="string">'progress'</em>, <em class="string">'member'</em>);​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        });​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        artist.role.forEach(<strong class="prompt">function</strong>(role){​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​          lookup(<em class="string">'roles'</em>, <em class="string">'role'</em>, role, <strong class="prompt">function</strong>(roleNode){​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​            progress.emit(<em class="string">'progress'</em>, <em class="string">'role'</em>);​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​            relate(artistNode.self, roleNode.self, <em class="string">'plays'</em>, <strong class="prompt">function</strong>(){​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​              progress.emit(<em class="string">'progress'</em>, <em class="string">'plays'</em>);​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1AD98" class="calibre5">
+      Let this service keep running in its own window. Every update to CouchDB that adds a new artist or role to an existing artist will trigger a new relationship in Neo4j and potentially new keys in Redis. As long as this service runs, they should be in sync.
+      </p>
+<p id="N1AD9B" class="calibre5">
+      Open  your CouchDB web console and open  a band. Make any data change you want to the database: add a new band member (make yourself a member of the Beatles!), or add a new role to an artist. Keep an eye on the graph_sync output. Then fire up the Neo4j console and try finding any new connections in the graph. If you added a new band member, they should now have a relationship with the band node or new role if that was altered. The current implementation does not remove relationships—though it would not be a complete modification to add a Neo4j <code class="cf">DELETE</code> operation to the script.
+      </p>
+<h3 class="calibre20">The Service</h3>
+<p id="N1ADA8" class="calibre5">
+      This is the part we’ve been building up to. We’re going to create a simple web application that allows users to search for a band. Any band in the system will list all of the band members as links, and any clicked band member link will list some information about the artist—namely, the roles they play. In addition, each role the artist plays will list every other artist in the system who also plays that role.
+      </p>
+<p id="N1ADB1" class="calibre5">
+      For example, searching for Led Zeppelin would give you Jimmy Page, John Paul Jones, John Bonham, and Robert Plant. Clicking Jimmy Page will list that he plays guitar and also many other artists who play guitar, like The Edge from U2.
+      </p>
+<p id="N1ADB4" class="calibre5">
+      To simplify our web app creation a bit, we’ll need two more node packages: bricks (a simple web framework) and mustache (a templating library).
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">npm install bricks mustache</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1ADC6" class="calibre5">
+      Like in the previous sections, ensure you have all of the databases running, and then start up the server. Download and run the following code:
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">node band.js</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1ADD8" class="calibre5">
+      The server is set to run on port 8080, so if you point your browser to <code class="cf">http://localhost:8080/</code>, you should see a simple search form. 
+      </p>
+<p id="N1ADDE" class="calibre5">
+      Let’s take a look at the code that will build a web page that lists band information. Each URL performs a separate function in our little HTTP server. The first is at <code class="cf">http://localhost:8080/band</code> and accepts any band name as a parameter. 
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td colspan="2" class="calibre34">
+<a href="http://media.pragprog.com/titles/rwdata/code/redis/bands.js">redis/bands.js</a>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​appServer.addRoute(<em class="string">"^/band$"</em>, <strong class="prompt">function</strong>(req, res) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">var</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    bandName = req.param(<em class="string">'name'</em>),​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    bandNodePath = <em class="string">'/bands/'</em> + couchUtil.couchKeyify( bandName ),​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    membersQuery = <em class="string">'g.V[[name:"'</em>+bandName+<em class="string">'"]]'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​                 + <em class="string">'.out("member").in("member").uniqueObject.name'</em>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  getCouchDoc( bandNodePath, res, <strong class="prompt">function</strong>( couchObj ) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    gremlin( membersQuery, <strong class="prompt">function</strong>(graphData) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      <strong class="prompt">var</strong> artists = couchObj &amp;&amp; couchObj[<em class="string">'artists'</em>];​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      <strong class="prompt">var</strong> values = { band: bandName, artists: artists, bands: graphData };​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      <strong class="prompt">var</strong> body = <em class="string">'&lt;h2&gt;{{band}} Band Members&lt;/h2&gt;'</em>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      body += <em class="string">'&lt;ul&gt;{{#artists}}'</em>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      body += <em class="string">'&lt;li&gt;&lt;a href="/artist?name={{name}}"&gt;{{name}}&lt;/a&gt;&lt;/li&gt;'</em>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      body += <em class="string">'{{/artists}}&lt;/ul&gt;'</em>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      body += <em class="string">'&lt;h3&gt;You may also like&lt;/h3&gt;'</em>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      body += <em class="string">'&lt;ul&gt;{{#bands}}'</em>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      body += <em class="string">'&lt;li&gt;&lt;a href="/band?name={{.}}"&gt;{{.}}&lt;/a&gt;&lt;/li&gt;'</em>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      body += <em class="string">'{{/bands}}&lt;/ul&gt;'</em>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      writeTemplate( res, body, values );​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1AE69" class="calibre5">
+      If you enter in the band <span class="calibre6">Nirvana</span> in the search form, your URL request will be <code class="cf">http://localhost:8080/band?name=Nirvana</code>. This function will render an HTML page (the overall template is in an external file named <code class="cf">template.html</code>). This web page lists  all artists in a band, which it pulls directly from CouchDB. It also lists some suggested bands, which it retrieves from a Gremlin query against the Neo4j graph. The Gremlin query is like this for Nirvana:
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​g.V.filter{it.name=="Nirvana"}.out("member").in("member").dedup.name​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1AE80" class="calibre5">
+      Or in other words, from the Nirvana node, get all unique names whose members are connected to Nirvana members. For example, Dave Grohl played in Nirvana and the Foo Fighters, so Foo Fighters will be returned in this list.
+      </p>
+<p id="N1AE83" class="calibre5">
+      The next action is the <code class="cf">http://localhost:8080/artist</code> URL. This page will output information about an artist.
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td colspan="2" class="calibre34">
+<a href="http://media.pragprog.com/titles/rwdata/code/redis/bands.js">redis/bands.js</a>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​appServer.addRoute(<em class="string">"^/artist$"</em>, <strong class="prompt">function</strong>(req, res) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">var</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    artistName = req.param(<em class="string">'name'</em>),​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    rolesQuery = <em class="string">'g.V[[name:"'</em>+artistName+<em class="string">'"]].out("plays").role.uniqueObject'</em>,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    bandsQuery = <em class="string">'g.V[[name:"'</em>+artistName+<em class="string">'"]].in("member").name.uniqueObject'</em>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  gremlin( rolesQuery, <strong class="prompt">function</strong>(roles) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    gremlin( bandsQuery, <strong class="prompt">function</strong>(bands) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      <strong class="prompt">var</strong> values = { artist: artistName, roles: roles, bands: bands };​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      <strong class="prompt">var</strong> body = <em class="string">'&lt;h3&gt;{{artist}} Performs these Roles&lt;/h3&gt;'</em>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      body += <em class="string">'&lt;ul&gt;{{#roles}}'</em>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      body += <em class="string">'&lt;li&gt;{{.}}&lt;/li&gt;'</em>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      body += <em class="string">'{{/roles}}&lt;/ul&gt;'</em>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      body += <em class="string">'&lt;h3&gt;Play in Bands&lt;/h3&gt;'</em>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      body += <em class="string">'&lt;ul&gt;{{#bands}}'</em>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      body += <em class="string">'&lt;li&gt;&lt;a href="/band?name={{.}}"&gt;{{.}}&lt;/a&gt;&lt;/li&gt;'</em>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      body += <em class="string">'{{/bands}}&lt;/ul&gt;'</em>;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      writeTemplate( res, body, values );​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1AF01" class="calibre5">
+      Two Gremlin queries are executed here. This first outputs all roles a member plays, and the second is a list of bands that person played in.  For example, Jeff Ward (<code class="cf">http://localhost:8080/artist?name=Jeff%20Ward</code>) would be listed as playing the role Drummer and in the bands Nine Inch Nails and Ministry.
+      </p>
+<p id="N1AF07" class="calibre5">
+      A cool feature of the previous two pages is that we render links between these values. The artist list in the <code class="cf">/bands</code> page links to the chosen <code class="cf">/artist</code> page, and vice versa. But we could make searching a bit easier.
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td colspan="2" class="calibre34">
+<a href="http://media.pragprog.com/titles/rwdata/code/redis/bands.js">redis/bands.js</a>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​appServer.addRoute(<em class="string">"^/search$"</em>, <strong class="prompt">function</strong>(req, res) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">var</strong> query = req.param(<em class="string">'term'</em>);​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  redisClient.keys(<em class="string">"band-name:"</em>+query+<em class="string">"*"</em>, <strong class="prompt">function</strong>(error, keys) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <strong class="prompt">var</strong> bands = [];​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    keys.forEach(<strong class="prompt">function</strong>(key){​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      bands.push(key.replace(<em class="string">"band-name:"</em>, <em class="string">''</em>));​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    });​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    res.write( JSON.stringify(bands) );​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    res.end();​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1AF58" class="calibre5">
+      Here we just pull all keys from Redis that match the first part of the string, such as <code class="cf">"Bea*"</code> as described previously. It then outputs the data as JSON. The <code class="cf">template.html</code> file links to the jQuery code necessary to make this function as an autocomplete feature on the rendered search box.
+      </p>
+<h4 class="calibre21">Expanding the Service</h4>
+<p id="N1AF65" class="calibre5">
+        This is a fairly little script for all of the bare-bones work we’re doing here. You may find many places you want to extend. Notice that the band suggestion is only first-order bands (bands the current band’s members have performed in); you can get interesting results by writing a query to walk second-order bands, like this: <code class="cf">g.V.filter{it.name==’Nine Inch Nails’}.out(’member’).in(’member’).dedup.</code>
+<code class="cf">loop(3){ it.loops &lt;= 2 }.name</code>.
+      </p>
+<p id="N1AF70" class="calibre5">
+      You may also note that we do not have a form where someone can update band information. Adding this functionality could be fairly simple, since we already wrote CouchDB population code in the <code class="cf">populate_couch.js</code> script, and populating CouchDB will automatically keep Neo4j and Redis eventually consistent as long as the <code class="cf">graph_sync.js</code> service is running.
+      </p>
+<p id="N1AF79" class="calibre5">
+      If you enjoy playing with this kind of polyglot persistence, you could take this even further. You could add a PostgreSQL data warehouse<a id="FNPTR-59" href="f_0057.html#FOOTNOTE-59">[59]</a> to transform this data into a star schema—allowing for different dimensions of analysis, such as most commonly played instrument or average numbers of total members in a band vs. total instruments. You could add a Riak server to store samples of bands’ music, an HBase server to build a messaging system where users can keep track of their historical likes/dislikes, or a MongoDB extension to add a geographic element to this service.
+      </p>
+<p id="N1AF82" class="calibre5">
+      Or, redesign this project entirely with a different language, web framework, or dataset. There are as many opportunities to extend this project as there are combinations of databases and technologies to create it—a Cartesian product of all open source.
+      </p>
+<h3 class="calibre20">Day 3 Wrap-Up</h3>
+<p id="N1AF91" class="calibre5">
+      Today was a big day—so big, in fact, we wouldn’t be surprised if it took several days to complete. But this is a little taste of the future of data management systems, as the world strolls away from the <code class="cf1">one large relational database</code> model to a <code class="cf1">several specialized databases</code> model. We also glued these databases together with some nonblocking code, which, though not a focus of this book, also seems to be where database interaction is headed in the development space.
+      </p>
+<p id="N1AF9A" class="calibre5">
+      The importance of Redis in this model should not be missed. Redis certainly doesn’t provide any functionality these databases don’t supply individually, but  it does supply  speedy data structures. We were able to organize a flat file into a series of meaningful data structures, which is an integral part of both data population and transportation. And it did this in a fast and simple-to-use way. 
+      </p>
+<p id="N1AF9D" class="calibre5">
+      Even if you’re not sold on the whole polyglot persistence model, you should certainly consider Redis for any system.
+      </p>
+<h4 class="calibre21">Day 3 Homework</h4>
+<p class="calibre5">
+<strong class="calibre32">Do</strong>
+</p>
+<ol class="calibre33">
+<li class="calibre23">
+<p id="N1AFAB" class="calibre5">Alter the importer steps to also track a band member’s start and end dates with the band. Track that data in the artist’s CouchDB subdocument. Display this information on the artist’s page.</p>
+</li>
+<li class="calibre23">
+<p id="N1AFB0" class="calibre5">Add MongoDB into the mix by storing a few music samples into GridFS, whereby users can hear a song or two related to a band. If any songs exists for a band, add a link to the web app. Ensure the Riak data and CouchDB remain in sync.</p>
+</li>
+</ol>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre3"/>
+</div>
+
+{% endraw %}
+

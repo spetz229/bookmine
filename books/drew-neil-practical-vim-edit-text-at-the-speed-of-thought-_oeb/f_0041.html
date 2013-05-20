@@ -1,0 +1,62 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0040.html
+next: f_0042.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.grok.visual">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 20</td>
+<td class="arr-recipe-name">Grok Visual Mode</td>
+</tr>
+</table>
+<p id="N11D67" class="calibre4">
+<span class="calibre5">
+        Visual mode allows us to select a range of text and then operate upon it. However intuitive this might seem, Vim’s perspective on selecting text is different from other text editors.
+    </span>
+</p>
+<p id="N11D6B" class="calibre4">
+      Suppose for a minute that we’re not working with Vim but instead filling out a text area on a web page. We’ve written the word “March,” but it should read “April,” so using the mouse, we double-click the word to select it. Having highlighted the word, we could hit the backspace key to delete it and then type out the correct month as a replacement.
+    </p>
+<p id="N11D6E" class="calibre4">
+      You probably already know that there’s no need to hit the backspace key in this example. With the word “March” selected, we would only have to type the letter “A” and it would replace the selection, preparing the way so that we could type out the rest of the word “April.” It’s not much, but a keystroke saved is a keystroke earned.
+    </p>
+<p id="N11D71" class="calibre4">
+      If you expect this behavior to carry over to Vim’s Visual mode, you’re in for a surprise. The clue is right there in the name: Visual <span class="calibre5">mode</span> is just another mode, which means that each key performs a different function.
+    </p>
+<p id="N11D77" class="calibre4">
+      Many of the commands that you are familiar with from Normal mode work just the same in Visual mode. We can still use <span class="calibre17">h</span>, <span class="calibre17">j</span>, <span class="calibre17">k</span>, and <span class="calibre17">l</span> as cursor keys. We can use <span class="calibre17">f{char}</span> to jump to a character on the current line and then repeat or reverse the jump with the <span class="calibre17">;</span> and <span class="calibre17">,</span> commands, respectively. We can even use the search command (and <span class="calibre17">n</span>/<span class="calibre17">N</span>) to jump to pattern matches. Each time we move our cursor in Visual mode, we change the bounds of the selection.
+    </p>
+<p id="N11D9F" class="calibre4">
+      Some Visual mode commands perform the same basic function as in Normal mode but with a slight twist. For example, the <span class="calibre17">c</span> command is consistent in both modes in that it deletes the specified text and then switches to Insert mode. The difference is in how we specify the range on which to act. From Normal mode, we trigger the change command first and then specify the range as a motion. This, if you’ll remember from <a xmlns:str="http://exslt.org/strings" href="f_0031.html#sec.operator">Tip 12</a>, is called an operator command. Whereas in Visual mode, we start off by making the selection and then trigger the change command. This inversion of control can be generalized for all operator commands (see <a xmlns:str="http://exslt.org/strings" href="f_0031.html#table.operators">Table 2, ​<em class="calibre5">Vim’s Operator Commands</em>​</a>). For most people, the Visual mode approach feels more intuitive.
+    </p>
+<p id="N11DAD" class="calibre4">
+      Let’s revisit the simple example where we wanted to change the word “March” to “April.” This time, suppose that we have left the confines of the text area on a web page and we’re comfortably back inside Vim. We place our cursor somewhere on the word “March” and run <span class="calibre17">viw</span> to visually select the word. Now, we can’t just type the word “April” because that would trigger the <span class="calibre17">A</span> command and append the text “pril”! Instead, we’ll use the <span class="calibre17">c</span> command to <span class="calibre5">change</span> the selection, deleting the word and dropping us into Insert mode, where we can type out the word “April” in full. This pattern of usage is similar to our original example, except that we use the <span class="calibre17">c</span> key instead of backspace.
+    </p>
+<div class="sidebar">
+<div class="sidebar-title">Meet Select Mode</div>
+<div class="calibre1">
+<p id="N11DC3" class="calibre4">
+        In a typical text editing environment, selected text is deleted when we type any printable character. Vim’s Visual mode doesn’t follow this convention—but Select mode does. According to Vim’s built-in documentation, it “resembles the selection mode in Microsoft Windows” (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">Select-mode</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/visual.html#Select-mode">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). Printable characters cause the selection to be deleted, Vim enters Insert mode, and the typed character is inserted.
+      </p>
+<p id="N11DCD" class="calibre4">
+        We can toggle between Visual and Select modes by pressing <span class="calibre17">&lt;C-g&gt;</span>. The only visible difference is the message at the bottom of screen, which switches between <code class="cf1">-- VISUAL --</code> and <code class="cf1">-- SELECT --</code>. But if we type any printable character in Select mode, it will replace the selection and switch to Insert mode. Of course, from Visual mode you could just as well use the <span class="calibre17">c</span> key to change the selection.
+      </p>
+<p id="N11DDC" class="calibre4">
+        If you are happy to embrace the modal nature of Vim, then you should find little use for Select mode, which holds the hand of users who want to make Vim behave more like other text editors. I can think of only one place where I consistently use Select mode: when using a plugin that emulates TextMate’s snippet functionality, Select mode highlights the active placeholder.
+      </p>
+</div>
+</div>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

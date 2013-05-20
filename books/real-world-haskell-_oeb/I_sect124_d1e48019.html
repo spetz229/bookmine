@@ -1,0 +1,459 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect124_d1e47441_split_001.html
+next: profiling_split_000.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect124_d1e47441_split_000.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="profiling_split_000.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect124_d1e48019" class="calibre27" id="I_sect124_d1e48019"></a><h3 id="title-IDAAB2XG" class="docSection1Title">24.10. Parallel Strategies and MapReduce</h3><a name="x_N61" class="calibre27" id="x_N61"></a><p class="docText">Within<a name="I_indexterm24_d1e48024" class="calibre27" id="I_indexterm24_d1e48024"></a><a name="I_indexterm24_d1e48025" class="calibre27" id="I_indexterm24_d1e48025"></a> the programming community, one of the most famous software
+    systems to credit functional programming for inspiration is Google's
+    MapReduce<a name="I_indexterm24_d1e48031" class="calibre27" id="I_indexterm24_d1e48031"></a><a name="I_indexterm24_d1e48034" class="calibre27" id="I_indexterm24_d1e48034"></a> infrastructure for parallel processing of bulk data.</p><a name="x_O61" class="calibre27" id="x_O61"></a><p class="docText">We can easily construct a greatly simplified, but still
+    useful, Haskell equivalent. To focus our attention, we will look at
+    processing web server logfiles, which tend to be both huge and
+    plentiful.<sup class="docFootnote"><a class="docLink1" href="#x_O61d1e48316">[59]</a></sup>As an example, here is a log entry for a page visit recorded
+    by the Apache Web Server. The entry originally filled one line—we split it
+    across several lines to fit:</p><blockquote class="calibre30"><p class="docFootnote1"><sup class="calibre50"><a name="x_O61d1e48316" class="calibre5" id="x_O61d1e48316">[59]</a></sup> The genesis of this idea came from Tim Bray.</p></blockquote><pre class="calibre39">201.49.94.87 - - [08/Jun/2008:07:04:20 -0500] "GET / HTTP/1.1"
+200 2097 "http://en.wikipedia.org/wiki/Mercurial_(software)"
+"Mozilla/5.0 (Windows; U; Windows XP 5.1; en-GB; rv:1.8.1.12)
+Gecko/20080201 Firefox/2.0.0.12" 0 hgbook.red-bean.com</pre><br class="calibre48"/>
+<a name="x_Q61" class="calibre27" id="x_Q61"></a><p class="docText">While we could create a straightforward implementation
+    without much effort, we will resist the temptation to dive in. If we think
+    about solving a <span class="docEmphasis">class</span> of problems instead of a single
+    one, we may end up with more widely applicable code.</p><a name="x_R61" class="calibre27" id="x_R61"></a><p class="docText">When we develop a parallel program, we always face a few
+    "bad penny" problems, which turn up regardless of the
+    underlying programming language. A few are described here:</p><ul class="calibre18"><li class="calibre19"><p class="docText">Our algorithm quickly becomes obscured by the details
+        of partitioning and communication. This makes it difficult to
+        understand code, which in turn makes modifying it risky.</p></li><li class="calibre19"><p class="docText">Choosing a <span class="docEmphasis">grain
+        size</span>—the<a name="I_indexterm24_d1e48066" class="calibre27" id="I_indexterm24_d1e48066"></a> smallest unit of work parceled out to a core—can be
+        difficult. If the grain size is too small, cores spend so much of
+        their time on book-keeping that a parallel program can easily become
+        slower than a serial counterpart. If the grain size is too large, some
+        cores may lie idle due to poor load balancing.</p></li></ul><a name="concurrent_strategies" class="calibre27" id="concurrent_strategies"></a><h4 id="title-IDADD2XG" class="docSection1Title">24.10.1. Separating Algorithm from Evaluation</h4><a name="x_U61" class="calibre27" id="x_U61"></a><p class="docText">In parallel Haskell code, the clutter that would arise
+      from communication code in a traditional language is replaced with the
+      clutter of <i class="docEmphasis">par</i> and <i class="docEmphasis">pseq</i> annotations. As an example, this
+      function operates similarly to <i class="docEmphasis">map</i>,
+      but evaluates each element to WHNF in parallel as it goes:</p><pre class="calibre39">-- file: ch24/ParMap.hs
+import Control.Parallel (par)
+
+parallelMap :: (a -&gt; b) -&gt; [a] -&gt; [b]
+parallelMap f (x:xs) = let r = f x
+                       in r `par` r : parallelMap f xs
+parallelMap _ _      = []</pre><br class="calibre48"/>
+<a name="x_V61" class="calibre27" id="x_V61"></a><p class="docText">The type <span class="docMonofont">b</span> might be a
+      list or some other type for which evaluation to WHNF doesn't do a useful
+      amount of work. We'd prefer not to have to write a special <i class="docEmphasis">parallelMap</i> for lists and every other type
+      that needs special handling.</p><a name="x_W61" class="calibre27" id="x_W61"></a><p class="docText">To address this problem, we will begin by considering a
+      simpler problem: how to force a value to be evaluated. Here is a
+      function that forces every element of a list to be evaluated to
+      <a name="I_indexterm24_d1e48096" class="calibre27" id="I_indexterm24_d1e48096"></a><a name="I_indexterm24_d1e48099" class="calibre27" id="I_indexterm24_d1e48099"></a>WHNF:</p><pre class="calibre39">-- file: ch24/ParMap.hs
+forceList :: [a] -&gt; ()
+forceList (x:xs) = x `pseq` forceList xs
+forceList _      = ()</pre><br class="calibre48"/>
+<a name="x_X61" class="calibre27" id="x_X61"></a><p class="docText">Our function performs no computation on the list. (In
+      fact, from examining its type signature, we can tell that it
+      <span class="docEmphasis">cannot</span> perform any computation, since it knows
+      nothing about the elements of the list.) Its only purpose is to ensure
+      that the spine of the list is evaluated to head normal form. The only
+      place that it makes any sense to apply this function is in the first
+      argument of <i class="docEmphasis">seq</i> or <i class="docEmphasis">par</i>, as follows:</p><pre class="calibre39">-- file: ch24/ParMap.hs
+stricterMap :: (a -&gt; b) -&gt; [a] -&gt; [b]
+stricterMap f xs = forceList xs `seq` map f xs</pre><br class="calibre48"/>
+<a name="x_Y61" class="calibre27" id="x_Y61"></a><p class="docText">This still leaves us with the elements of the list
+      evaluated only to WHNF. We address this by adding a function as
+      parameter that can force an element to be evaluated more deeply:</p><pre class="calibre39">-- file: ch24/ParMap.hs
+forceListAndElts :: (a -&gt; ()) -&gt; [a] -&gt; ()
+forceListAndElts forceElt (x:xs) =
+    forceElt x `seq` forceListAndElts forceElt xs
+forceListAndElts _        _      = ()</pre><br class="calibre48"/>
+<a name="x_Z61" class="calibre27" id="x_Z61"></a><p class="docText">The <tt class="calibre34">Control.Parallel.Strategies</tt> module
+      generalizes this idea into something we can use as a library. It
+      introduces the idea of<a name="I_indexterm24_d1e48127" class="calibre27" id="I_indexterm24_d1e48127"></a> an <span class="docEmphasis">evaluation strategy</span>:</p><pre class="calibre39">-- file: ch24/Strat.hs
+type Done = ()
+
+type Strategy a = a -&gt; Done</pre><br class="calibre48"/>
+<a name="x_a61" class="calibre27" id="x_a61"></a><p class="docText">An evaluation strategy performs no computation; it
+      simply ensures that a value is evaluated to some extent. The simplest
+      strategy is named <i class="docEmphasis">r0</i>, and does
+      nothing at all:</p><pre class="calibre39">-- file: ch24/Strat.hs
+r0 :: Strategy a 
+r0 _ = ()</pre><br class="calibre48"/>
+<a name="x_b61" class="calibre27" id="x_b61"></a><p class="docText">Next is <i class="docEmphasis">rwhnf</i>,
+      which evaluates a value to WHNF:</p><pre class="calibre39">-- file: ch24/Strat.hs
+rwhnf :: Strategy a 
+rwhnf x = x `seq` ()</pre><br class="calibre48"/>
+<a name="x_c61" class="calibre27" id="x_c61"></a><p class="docText">To evaluate a value to normal form, the module provides
+      a typeclass with a method named <i class="docEmphasis">rnf</i>:</p><pre class="calibre39">-- file: ch24/Strat.hs
+class NFData a where
+  rnf :: Strategy a
+  rnf = rwhnf</pre><br class="calibre48"/>
+<p class="calibre37"><table border="0" cellspacing="0" cellpadding="1" width="90%" class="calibre41"><tr class="calibre16"><td class="v3"><table width="100%" border="0" cellspacing="0" cellpadding="6" class="calibre42"><tr class="calibre16"><td width="60" valign="top" class="v3"><img src="tip_yellow.gif" alt="" class="calibre43"/></td><td valign="top" class="v3"><p class="docNormalTitle">Remembering those names</p><a name="x_d61" class="calibre27" id="x_d61"></a><p class="docText">If the names of these functions and types are not
+        sticking in your head, look at them as acronyms. The name <i class="docEmphasis">rwhnf</i> expands to reduce to weak head normal
+        form; NFData becomes normal form data; and<a name="I_indexterm24_d1e48169" class="calibre27" id="I_indexterm24_d1e48169"></a> so on.</p></td></tr></table></td></tr></table></p><br class="calibre48"/><a name="x_e61" class="calibre27" id="x_e61"></a><p class="docText">For the basic types, such as Int, weak
+      head normal form and normal form are the same thing, which is why the
+      NFData typeclass uses <i class="docEmphasis">rwhnf</i> as the default implementation of
+      <i class="docEmphasis">rnf</i>. For many common types, the
+      <tt class="calibre34">Control.Parallel.Strategies</tt> module<a name="I_indexterm24_d1e48191" class="calibre27" id="I_indexterm24_d1e48191"></a> provides instances of NFData:</p><pre class="calibre39">-- file: ch24/Strat.hs
+instance NFData Char
+instance NFData Int
+
+instance NFData a =&gt; NFData (Maybe a) where
+    rnf Nothing  = ()
+    rnf (Just x) = rnf x
+
+{- ... and so on ... -}</pre><br class="calibre48"/>
+<a name="x_f61" class="calibre27" id="x_f61"></a><p class="docText">From these examples, it should be clear how you might
+      write an NFData instance for a type of your own. Your
+      implementation of <i class="docEmphasis">rnf</i> must handle
+      every constructor and apply <i class="docEmphasis">rnf</i> to
+      every field of a constructor.</p><a name="I_sect124_d1e48019d1e48487" class="calibre27" id="I_sect124_d1e48019d1e48487"></a><h4 id="title-IDA1I2XG" class="docSection1Title">24.10.2. Separating Algorithm from Strategy</h4><a name="x_g61" class="calibre27" id="x_g61"></a><p class="docText">From these strategy building blocks, we can construct
+      more elaborate strategies. Many are already provided by
+      <tt class="calibre34">Control.Parallel.Strategies</tt>. For instance, <i class="docEmphasis">parList</i> applies an evaluation strategy in
+      parallel to every element of a list:</p><pre class="calibre39">-- file: ch24/Strat.hs
+parList :: Strategy a -&gt; Strategy [a]
+parList strat []     = ()
+parList strat (x:xs) = strat x `par` (parList strat xs)</pre><br class="calibre48"/>
+<a name="x_h61" class="calibre27" id="x_h61"></a><p class="docText">The module uses this to define a parallel <i class="docEmphasis">map</i> function:</p><pre class="calibre39">-- file: ch24/Strat.hs
+parMap :: Strategy b -&gt; (a -&gt; b) -&gt; [a] -&gt; [b]
+parMap strat f xs = map f xs `using` parList strat</pre><br class="calibre48"/>
+<a name="x_i61" class="calibre27" id="x_i61"></a><p class="docText">This is where the code becomes interesting. On the left
+      of <i class="docEmphasis">using</i>, we have a normal
+      application of <i class="docEmphasis">map</i>. On the right,
+      we have an evaluation strategy. The <i class="docEmphasis">using</i> combinator tells us how to apply a
+      strategy to a value, allowing us to keep the code separate from how we
+      plan to evaluate it:</p><pre class="calibre39">-- file: ch24/Strat.hs
+using :: a -&gt; Strategy a -&gt; a
+using x s = s x `seq` x</pre><br class="calibre48"/>
+<a name="x_j61" class="calibre27" id="x_j61"></a><p class="docText">The <tt class="calibre34">Control.Parallel.Strategies</tt> module
+      provides many other functions that enable fine control over evaluation.
+      For instance, <i class="docEmphasis">parZipWith</i> that
+      applies <i class="docEmphasis">zipWith</i> in parallel, using
+      an evaluation strategy:</p><pre class="calibre39">-- file: ch24/Strat.hs
+vectorSum' :: (NFData a, Num a) =&gt; [a] -&gt; [a] -&gt; [a]
+vectorSum' = parZipWith rnf (+)</pre><br class="calibre48"/>
+<a name="I_sect124_d1e48019d1e48533" class="calibre27" id="I_sect124_d1e48019d1e48533"></a><h4 id="title-IDA1K2XG" class="docSection1Title">24.10.3. Writing a Simple MapReduce Definition</h4><a name="x_k61" class="calibre27" id="x_k61"></a><p class="docText">We can quickly<a name="I_indexterm24_d1e48262" class="calibre27" id="I_indexterm24_d1e48262"></a> suggest a type for a <i class="docEmphasis">mapReduce</i> function by considering what it
+      must do. We need a <span class="docEmphasis">map</span> component, to which we will
+      give the usual type a -&gt; b. And we need a
+      <span class="docEmphasis">reduce</span>; this term is a synonym for
+      <span class="docEmphasis">fold</span>. Rather than commit ourselves to using a
+      specific kind of fold, we'll use a more general type, [b] -&gt;
+      c. This type lets us use a left or right fold, so we can choose
+      the one that suits our data and processing needs.</p><a name="x_l61" class="calibre27" id="x_l61"></a><p class="docText">If we plug these types together, the complete type
+      looks like this:</p><pre class="calibre39">-- file: ch24/MapReduce.hs
+simpleMapReduce
+    :: (a -&gt; b)      -- map function
+    -&gt; ([b] -&gt; c)    -- reduce function
+    -&gt; [a]           -- list to map over
+    -&gt; c</pre><br class="calibre48"/>
+<a name="x_m61" class="calibre27" id="x_m61"></a><p class="docText">The code that goes with the type is extremely
+      simple:</p><pre class="calibre39">-- file: ch24/MapReduce.hs
+simpleMapReduce mapFunc reduceFunc = reduceFunc . map mapFunc</pre><br class="calibre48"/>
+<a name="I_sect124_d1e48019d1e48571" class="calibre27" id="I_sect124_d1e48019d1e48571"></a><h4 id="title-IDAEM2XG" class="docSection1Title">24.10.4. MapReduce and Strategies</h4><a name="x_n61" class="calibre27" id="x_n61"></a><p class="docText">Our definition of <i class="docEmphasis">simpleMapReduce</i> is too simple to really be
+      interesting. To make it useful, we want to be able to specify that some
+      of the work should occur in parallel. We'll achieve this using
+      strategies, passing in a strategy for the map phase and one for the
+      reduction phase:</p><pre class="calibre39">-- file: ch24/MapReduce.hs
+mapReduce
+    :: Strategy b    -- evaluation strategy for mapping
+    -&gt; (a -&gt; b)      -- map function
+    -&gt; Strategy c    -- evaluation strategy for reduction
+    -&gt; ([b] -&gt; c)    -- reduce function
+    -&gt; [a]           -- list to map over
+    -&gt; c</pre><br class="calibre48"/>
+<a name="x_o61" class="calibre27" id="x_o61"></a><p class="docText">Both the type and the body of the function must grow a
+      little in size to accommodate the strategy parameters.</p><pre class="calibre39">-- file: ch24/MapReduce.hs
+mapReduce mapStrat mapFunc reduceStrat reduceFunc input =
+    mapResult `pseq` reduceResult
+  where mapResult    = parMap mapStrat mapFunc input
+        reduceResult = reduceFunc mapResult `using` reduceStrat</pre><br class="calibre48"/>
+<a name="I_sect124_d1e48019d1e48586" class="calibre27" id="I_sect124_d1e48019d1e48586"></a><h4 id="title-IDA0M2XG" class="docSection1Title">24.10.5. Sizing Work Appropriately</h4><a name="x_p61" class="calibre27" id="x_p61"></a><p class="docText">To achieve decent performance, we must ensure that the
+      work that we do per application of <i class="docEmphasis">par</i> substantially outweighs its bookkeeping
+      costs. If we are processing a huge file, splitting it on line boundaries
+      gives us far too little work compared to overhead.</p><a name="x_q61" class="calibre27" id="x_q61"></a><p class="docText">We will develop a way to process a file in larger
+      chunks in a later section. What should those chunks consist of? Because
+      a web server logfile ought to contain only ASCII text, we will see
+      excellent performance with a lazy ByteString. This type is
+      highly efficient and consumes little memory when we stream it from a
+      file:</p><pre class="calibre39">-- file: ch24/LineChunks.hs
+module LineChunks
+    (
+      chunkedReadWith
+    ) where
+
+import Control.Exception (bracket, finally)
+import Control.Monad (forM, liftM)
+import Control.Parallel.Strategies (NFData, rnf)
+import Data.Int (Int64)
+import qualified Data.ByteString.Lazy.Char8 as LB
+import GHC.Conc (numCapabilities)
+import System.IO
+
+data ChunkSpec = CS {
+      chunkOffset :: !Int64
+    , chunkLength :: !Int64
+    } deriving (Eq, Show)
+
+withChunks :: (NFData a) =&gt;
+              (FilePath -&gt; IO [ChunkSpec])
+           -&gt; ([LB.ByteString] -&gt; a)
+           -&gt; FilePath
+           -&gt; IO a
+withChunks chunkFunc process path = do
+  (chunks, handles) &lt;- chunkedRead chunkFunc path
+  let r = process chunks
+  (rnf r `seq` return r) `finally` mapM_ hClose handles
+  
+chunkedReadWith :: (NFData a) =&gt;
+                   ([LB.ByteString] -&gt; a) -&gt; FilePath -&gt; IO a
+chunkedReadWith func path =
+    withChunks (lineChunks (numCapabilities * 4)) func path</pre><br class="calibre48"/>
+<a name="x_r61" class="calibre27" id="x_r61"></a><p class="docText">We consume each chunk in parallel, taking careful
+      advantage of lazy I/O to ensure that we can stream these chunks
+      safely.</p><a name="idd1e48603" class="calibre27" id="idd1e48603"></a><h5 id="title-IDARN2XG" class="docSection3Title">24.10.5.1. Mitigating the risks of lazy I/O</h5><a name="x_s61" class="calibre27" id="x_s61"></a><p class="docText">Lazy I/O <a name="I_indexterm24_d1e48332" class="calibre27" id="I_indexterm24_d1e48332"></a><a name="I_indexterm24_d1e48335" class="calibre27" id="I_indexterm24_d1e48335"></a>poses a few well-known hazards that we would like to
+        avoid:</p><ul class="calibre18"><li class="calibre19"><p class="docText">We may invisibly keep a file handle open for
+            longer than necessary by not forcing the computation that pulls
+            data from it to be evaluated. Since an operating system will
+            typically place a small, fixed limit on the number of files we can
+            have open at once, if we do not address this risk, we can
+            accidentally starve some other part of our program of file
+            handles.</p></li><li class="calibre19"><p class="docText">If we do not explicitly close a file handle, the
+            garbage collector will automatically close it for us, but it may
+            take a long time to notice that it should close the file handle.
+            This poses the same starvation risk mentioned earlier.</p></li><li class="calibre19"><p class="docText">We can avoid starvation by explicitly closing a
+            file handle. If we do so too early, though, we can cause a lazy
+            computation to fail if it expects to be able to pull more data
+            from a closed file handle.</p></li></ul><a name="x_w61" class="calibre27" id="x_w61"></a><p class="docText">On top of these well-known risks, we cannot use a
+        single file handle to supply data to multiple threads. A file handle
+        has a single <span class="docEmphasis">seek pointer</span> that<a name="I_indexterm24_d1e48356" class="calibre27" id="I_indexterm24_d1e48356"></a> tracks the position from which it should be reading,
+        but when we want to read multiple chunks, each needs to consume data
+        from a different position in the file.</p><a name="x_x61" class="calibre27" id="x_x61"></a><p class="docText">With these ideas in mind, let's fill out the lazy I/O
+        picture:</p><pre class="calibre39">-- file: ch24/LineChunks.hs
+chunkedRead :: (FilePath -&gt; IO [ChunkSpec])
+            -&gt; FilePath
+            -&gt; IO ([LB.ByteString], [Handle])
+chunkedRead chunkFunc path = do
+  chunks &lt;- chunkFunc path
+  liftM unzip . forM chunks $ \spec -&gt; do
+    h &lt;- openFile path ReadMode
+    hSeek h AbsoluteSeek (fromIntegral (chunkOffset spec))
+    chunk &lt;- LB.take (chunkLength spec) `liftM` LB.hGetContents h
+    return (chunk, h)</pre><br class="calibre48"/>
+<a name="x_y61" class="calibre27" id="x_y61"></a><p class="docText">We avoid the starvation problem by explicitly closing
+        file handles. We allow multiple threads to read different chunks at
+        once by supplying each one with a distinct file handle, all reading
+        the same file.</p><a name="x_z61" class="calibre27" id="x_z61"></a><p class="docText">The final problem that we try to mitigate is that of
+        a lazy computation having a file handle closed behind its back. We use
+        <i class="docEmphasis">rnf</i> to force all of our
+        processing to complete before we return from <i class="docEmphasis">withChunks</i>. We can then close our file
+        handles explicitly, as they should no longer be read from. If you must
+        use lazy I/O in a program, it is often best to "firewall"
+        it like this so that it cannot cause problems in unexpected parts of
+        your code.</p><p class="calibre37"><table border="0" cellspacing="0" cellpadding="1" width="90%" class="calibre41"><tr class="calibre16"><td class="v3"><table width="100%" border="0" cellspacing="0" cellpadding="6" class="calibre42"><tr class="calibre16"><td width="60" valign="top" class="v3"><img src="tip_yellow.gif" alt="" class="calibre43"/></td><td valign="top" class="v3"><p class="docNormalTitle">Processing chunks via a fold</p><a name="x_A71" class="calibre27" id="x_A71"></a><p class="docText">We can adapt the fold-with-early-termination
+          technique from <a class="docLink" href="find_fold_split_000.html#find_fold">Section 9.9</a> to stream-based file
+          processing. While this requires more work than the lazy I/O
+          approach, it nicely avoids the problems just discussed.</p></td></tr></table></td></tr></table></p><br class="calibre48"/><a name="I_sect124_d1e48019d1e48660" class="calibre27" id="I_sect124_d1e48019d1e48660"></a><h4 id="title-IDA2P2XG" class="docSection1Title">24.10.6. Efficiently Finding Line-Aligned Chunks</h4><a name="x_B71" class="calibre27" id="x_B71"></a><p class="docText">Since a server<a name="I_indexterm24_d1e48389" class="calibre27" id="I_indexterm24_d1e48389"></a> logfile is line-oriented, we need an efficient way to
+      break a file into large chunks, while making sure that each chunk ends
+      on a line boundary. Since a chunk might be tens of megabytes in size, we
+      don't want to scan all of the data in a chunk to determine where its
+      final boundary should be.</p><a name="x_C71" class="calibre27" id="x_C71"></a><p class="docText">Our approach works whether we choose a fixed chunk size
+      or a fixed number of chunks. Here, we opt for the latter. We begin by
+      seeking to the approximate position of the end of a chunk, and then scan
+      forwards until we reach a newline character. We next start the following
+      chunk after the newline, and repeat the procedure:</p><pre class="calibre39">-- file: ch24/LineChunks.hs
+lineChunks :: Int -&gt; FilePath -&gt; IO [ChunkSpec]
+lineChunks numChunks path = do
+  bracket (openFile path ReadMode) hClose $ \h -&gt; do
+    totalSize &lt;- fromIntegral `liftM` hFileSize h
+    let chunkSize = totalSize `div` fromIntegral numChunks
+        findChunks offset = do
+          let newOffset = offset + chunkSize
+          hSeek h AbsoluteSeek (fromIntegral newOffset)
+          let findNewline off = do
+                eof &lt;- hIsEOF h
+                if eof
+                  then return [CS offset (totalSize - offset)]
+                  else do
+                    bytes &lt;- LB.hGet h 4096
+                    case LB.elemIndex '\n' bytes of
+                      Just n -&gt; do
+                        chunks@(c:_) &lt;- findChunks (off + n + 1)
+                        let coff = chunkOffset c
+                        return (CS offset (coff - offset):chunks)
+                      Nothing -&gt; findNewline (off + LB.length bytes)
+          findNewline newOffset
+    findChunks 0</pre><br class="calibre48"/>
+<a name="x_D71" class="calibre27" id="x_D71"></a><p class="docText">The last chunk will end up a little shorter than its
+      predecessors, but this difference will be insignificant in
+      practice.</p><a name="I_sect124_d1e48019d1e48675" class="calibre27" id="I_sect124_d1e48019d1e48675"></a><h4 id="title-IDAVQ2XG" class="docSection1Title">24.10.7. Counting Lines</h4><a name="x_E71" class="calibre27" id="x_E71"></a><p class="docText">This simple example illustrates how to use the
+      scaffolding we built:</p><pre class="calibre39">-- file: ch24/LineCount.hs
+module Main where
+
+import Control.Monad (forM_)
+import Data.Int (Int64)
+import qualified Data.ByteString.Lazy.Char8 as LB
+import System.Environment (getArgs)
+
+import LineChunks (chunkedReadWith)
+import MapReduce (mapReduce, rnf)
+
+lineCount :: [LB.ByteString] -&gt; Int64
+lineCount = mapReduce rnf (LB.count '\n')
+                      rnf sum
+
+main :: IO ()
+main = do
+  args &lt;- getArgs
+  forM_ args $ \path -&gt; do
+    numLines &lt;- chunkedReadWith lineCount path
+    putStrLn $ path ++ ": " ++ show numLines</pre><br class="calibre48"/>
+<a name="x_F71" class="calibre27" id="x_F71"></a><p class="docText">If we compile this program with <i class="docEmphasis">ghc -O2 --make
+      -threaded</i>, it should perform well after an initial run to
+      "warm" the filesystem cache. On a dual-core laptop
+      processing a logfile 248 megabytes (1.1 million lines) in size, this
+      program runs in 0.576 seconds using a single core, and in 0.361 using
+      two (using <i class="docEmphasis">+RTS -N2</i>).</p><a name="I_sect124_d1e48019d1e48693" class="calibre27" id="I_sect124_d1e48019d1e48693"></a><h4 id="title-IDAJR2XG" class="docSection1Title">24.10.8. Finding the Most Popular URLs</h4><a name="x_G71" class="calibre27" id="x_G71"></a><p class="docText">In this example, we count the number of times each URL
+      is accessed. This example comes from "MapReduce: simplified data
+      processing on large clusters" by <a name="I_indexterm24_d1e48422" class="calibre27" id="I_indexterm24_d1e48422"></a><a name="I_indexterm24_d1e48425" class="calibre27" id="I_indexterm24_d1e48425"></a>Jeffrey Dean and Sanjay Ghemawat (), Google's
+      original paper discussing MapReduce. In the <span class="docEmphasis">map</span>
+      phase, for each chunk, we create a Map from a URL using the
+      number of times it was accessed. In the <span class="docEmphasis">reduce</span>
+      phase, we union-merge these maps into one:</p><pre class="calibre39">-- file: ch24/CommonURLs.hs
+module Main where
+
+import Control.Parallel.Strategies (NFData(..), rwhnf)
+import Control.Monad (forM_)
+import Data.List (foldl', sortBy)
+import qualified Data.ByteString.Lazy.Char8 as L
+import qualified Data.ByteString.Char8 as S
+import qualified Data.Map as M
+import Text.Regex.PCRE.Light (compile, match)
+
+import System.Environment (getArgs)
+import LineChunks (chunkedReadWith)
+import MapReduce (mapReduce)
+
+countURLs :: [L.ByteString] -&gt; M.Map S.ByteString Int
+countURLs = mapReduce rwhnf (foldl' augment M.empty . L.lines)
+                      rwhnf (M.unionsWith (+))
+  where augment map line =
+            case match (compile pattern []) (strict line) [] of
+              Just (_:url:_) -&gt; M.insertWith' (+) url 1 map
+              _ -&gt; map
+        strict  = S.concat . L.toChunks
+        pattern = S.pack "\"(?:GET|POST|HEAD) ([^ ]+) HTTP/"</pre><br class="calibre48"/>
+<a name="x_H71" class="calibre27" id="x_H71"></a><p class="docText">To pick a URL out of a line of the logfile, we use the
+      bindings to the PCRE regular expression library that we developed in
+      <a class="docLink" href="ffi_split_000.html#ffi">Chapter 17</a>.</p><a name="x_I71" class="calibre27" id="x_I71"></a><p class="docText">Our driver function prints the 10 most popular URLs. As
+      with the line-counting example, this program runs about 1.8 times faster
+      with two cores than with one, taking 1.7 seconds to process the a
+      logfile containing 1.1 million entries.</p><a name="I_sect124_d1e48019d1e48725" class="calibre27" id="I_sect124_d1e48019d1e48725"></a><h4 id="title-IDATS2XG" class="docSection1Title">24.10.9. Conclusions</h4><a name="x_J71" class="calibre27" id="x_J71"></a><p class="docText">Given a problem that fits its model well, the MapReduce
+      programming model lets us write "casual" parallel programs
+      in Haskell with good performance and minimal <span class="docEmphasis">additional</span> effort. We can easily extend
+      the idea to use other data sources, such as collections of files or data
+      sourced over the network.</p><a name="x_K71" class="calibre27" id="x_K71"></a><p class="docText">In many cases, the performance bottleneck will be
+      streaming data at a rate high enough to keep up with a core's processing
+      capacity. For instance, if we try to use either of the sample programs
+      just shown on a file that is not cached in memory or streamed from a
+      high-bandwidth storage array, we will spend most of our time waiting for
+      disk I/O, gaining no benefit from multiple <a name="I_indexterm24_d1e48462" class="calibre27" id="I_indexterm24_d1e48462"></a><a name="I_indexterm24_d1e48463" class="calibre27" id="I_indexterm24_d1e48463"></a>cores.</p>
+<a href="21061538.html" class="calibre2"><img src="pixel.gif" alt="" border="0" class="calibre31"/></a><ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect124_d1e47441_split_000.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="profiling_split_000.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

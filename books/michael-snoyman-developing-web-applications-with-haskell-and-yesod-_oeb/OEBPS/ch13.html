@@ -1,0 +1,44 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch12s05.html
+next: OEBPS/ch13s02.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="calibre8"></div><div class="book" title="Chapter 13. Yesod’s Monads"><div class="book"><div class="book"><div class="book"><div class="calibre8"></div><h1 class="title1"><a id="I_chapter2_d1e6553" class="calibre1"></a>Chapter 13. Yesod’s Monads</h1></div></div></div><p class="calibre7">As you’ve read through this book, there have been a number of monads that have appeared:
+            <code class="literal">Handler</code>, <code class="literal">Widget</code>,
+        and <code class="literal">YesodDB</code> (for Persistent). As with most monads, each
+        one provides some specific functionality: <code class="literal">Handler</code> gives
+        access to the request and allows you to send responses, a <code class="literal">Widget</code> contains HTML, CSS, and JavaScript, and <code class="literal">YesodDB</code> let’s you make database queries. In Model-View-Controller (MVC)
+        terms, we could consider <code class="literal">YesodDB</code> to be the model,
+            <code class="literal">Widget</code> to be the view, and <code class="literal">Handler</code> to be the controller.</p><p class="calibre7">So far, we’ve presented some very straightforward ways to use these monads: your main
+        handler will run in <code class="literal">Handler</code>, using <code class="literal">runDB</code> to execute a <code class="literal">YesodDB</code>
+        query, and <code class="literal">defaultLayout</code> to return a <code class="literal">Widget</code>, which in turn was created by calls to <code class="literal">toWidget</code>.</p><p class="calibre7">However, if we have a deeper understanding of these types, we can achieve some fancier
+   results.</p><div class="book" title="Monad Transformers"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect12_d1e6609" class="calibre1"></a>Monad Transformers</h1></div></div></div><div class="blockquote"><blockquote class="blockquote1"><p class="calibre27">Monads are like onions. Monads are <span class="firstname"><em class="calibre4">not</em></span> like cakes. <em class="calibre4">Shrek, more or less</em></p></blockquote></div><p class="calibre7">Before we get into the heart of Yesod’s monads, we need to understand a bit about monad
+            transformers. (If you already know all about monad transformers, you can likely skip
+            this section.) Different monads provide different functionality: <code class="literal">Reader</code> allows read-only access to some piece of data
+            throughout a computation, <code class="literal">Error</code> allows you to
+            short-circuit computations, and so on.</p><p class="calibre7">Oftentimes, however, you would like to be able to combine a few of these features
+            together. After all, why not have a computation with read-only access to some settings
+            variable, which could error out at any time? One approach to this would be to write a
+            new monad like <code class="literal">ReaderError</code>, but this has the obvious
+            downside of exponential complexity: you’ll need to write a new monad for every single
+            possible combination.</p><p class="calibre7">Instead, we have monad transformers. In addition to <code class="literal">Reader</code>, we have
+    <code class="literal">ReaderT</code>, which adds reader functionality to any other monad. So we could
+   represent our <code class="literal">ReaderError</code> as (conceptually):</p><a id="I_programlisting2_d1e6650" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">type</code> <code class="kt">ReaderError</code> <code class="ow">=</code> <code class="kt">ReaderT</code> <code class="kt">Error</code>
+</pre><p class="calibre7">In order to access our settings variable, we can use the <code class="literal">ask</code> function. But what about short-circuiting a computation? We’d like to
+            use <code class="literal">throwError</code>, but that won’t exactly work. Instead,
+            we need to <code class="literal">lift</code> our call into the next monad up. In
+            other words:</p><a id="I_programlisting2_d1e6663" class="firstname"></a><pre class="programlistinghaskell"><code class="nf">throwError</code> <code class="ow">::</code> <code class="n">errValue</code> <code class="ow">-&gt;</code> <code class="kt">Error</code>
+<code class="nf">lift</code> <code class="o">.</code> <code class="n">throwError</code> <code class="ow">::</code> <code class="n">errValue</code> <code class="ow">-&gt;</code> <code class="kt">ReaderT</code> <code class="kt">Error</code>
+</pre><p class="calibre7">There are a few things you should pick up here:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">A transformer can be used to add functionality to an existing monad.</p></li><li class="listitem"><p class="calibre7">A transformer must always wrap around an existing monad.</p></li><li class="listitem"><p class="calibre7">The functionality available in a wrapped monad will be dependent not only on the
+    monad transformer, but also on the inner monad that is being wrapped.</p></li></ul></div><p class="calibre7">A great example of that last point is the <code class="literal">IO</code> monad. No
+            matter how many layers of transformers you have around an <code class="literal">IO</code>, there’s still an <code class="literal">IO</code> at the core,
+            meaning you can perform I/O in any of these <em class="calibre4">monad transformer
+                stacks</em>. You’ll often see code that looks like <code class="literal">liftIO $ putStrLn "Hello There!"</code>.</p></div></div></div>
+
+{% endraw %}
+

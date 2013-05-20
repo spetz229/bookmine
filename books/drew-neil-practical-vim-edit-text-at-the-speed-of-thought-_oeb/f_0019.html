@@ -1,0 +1,405 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0018.html
+next: f_0020.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.line.append">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 2</td>
+<td class="arr-recipe-name">Don’t Repeat Yourself</td>
+</tr>
+</table>
+<p id="N10A39" class="calibre4">
+<span class="calibre5">
+        For such a common use case as appending a semicolon at the end of a series of lines, Vim provides a dedicated command that combines two steps into one.
+    </span>
+</p>
+<p id="N10A3D" class="calibre4">
+	 Suppose that we have a snippet of JavaScript code like this:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/the_vim_way/2_foo_bar.js">the_vim_way/2_foo_bar.js</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">var</strong> foo = 1​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">var</strong> bar = <em class="string">'a'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">var</strong> foobar = foo + bar​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N10A5F" class="calibre4">
+	  We need to append a semicolon at the end of each line. Doing so involves moving our cursor to the end of the line and then switching to Insert mode to make the change. The <span class="calibre17">$</span> command will handle the motion for us, and then we can run <span class="calibre17">a</span>
+<code class="cf">;&lt;Esc&gt;</code> to make the change.
+      </p>
+<p id="N10A7E" class="calibre4">
+        To finish the job, we could run the exact same sequence of keystrokes on the next two lines, but that would be missing a trick. The dot command will repeat that last change, so instead of duplicating our efforts, we could just run <span class="calibre17">j$.</span> twice. One keystroke (<span class="calibre17">.</span>) buys us three (<span class="calibre17">a</span>
+<code class="cf">;&lt;Esc&gt;</code>). It’s a small saving, but these efficiencies accumulate when repeated.
+      </p>
+<p id="N10A8C" class="calibre4">
+        But let’s take a closer look at this pattern: <span class="calibre17">j$.</span>. The <span class="calibre17">j</span> command moves the cursor down one line, and then the <span class="calibre17">$</span> command moves it to the end of the line. We’ve used two keystrokes just to maneuver our cursor into position so that we can use the dot command. Do you sense that there’s room for improvement here?
+      </p>
+<h3 class="calibre22">Reduce Extraneous Movement</h3>
+<p id="N10AAB" class="calibre4">
+		While the <span class="calibre17">a</span> command appends after the current cursor position, the <span class="calibre17">A</span> command appends at the end of the current line. It doesn’t matter where our cursor is at the time, pressing <span class="calibre17">A</span> will switch to Insert mode and move the cursor to the end of the line. In other words, it squashes <span class="calibre17">$a</span> into a single keystroke. In <a xmlns:str="http://exslt.org/strings" href="#sidebar.two.for.one">​<em class="calibre5">Two for the Price of One</em>​</a>, we see that Vim has a handful of compound commands.
+      </p>
+<div class="sidebar" id="sidebar.two.for.one">
+<div class="sidebar-title">Two for the Price of One</div>
+<div class="calibre1">
+<p id="N10AD8" class="calibre4">
+          We could say that the <span class="calibre17">A</span> command compounds two actions (<span class="calibre17">$a</span>) into a single keystroke. It’s not alone in doing this. Many of Vim’s single-key commands can be seen as a condensed version of two or more other commands. The table below shows an approximation of some examples. Can you identify anything else that they all have in common?
+        </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">
+<p class="last-para-in-cell">Compound Command</p>
+</th>
+<th class="hlines">
+<p class="last-para-in-cell">Equivalent in Longhand</p>
+</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">C</span>
+</p>
+</td>
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">c$</span>
+</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">s</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">cl</span>
+</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">S</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">^C</span>
+</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">I</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">^i</span>
+</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">A</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">$a</span>
+</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">o</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">A&lt;CR&gt;</span>
+</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">O</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">ko</span>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N10B4C" class="calibre4">
+          If you catch yourself running <span class="calibre17">ko</span> (or worse, <span class="calibre17">k$a&lt;CR&gt;</span>), stop! Think about what you’re doing. Then recognize that you could have used the <span class="calibre17">O</span> command instead.
+        </p>
+<p id="N10B58" class="calibre4">
+          Did you identify the other property that these commands share? They all switch from Normal to Insert mode. Think about that and how it might affect the dot command.
+        </p>
+</div>
+</div>
+<p id="N10B5B" class="calibre4">
+        Here is a refinement of our previous example:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">{start}</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">v</span>ar foo = 1​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var bar = 'a'​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foobar = foo + bar​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">A</span>
+<code class="cf">;&lt;Esc&gt;</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foo = 1<span class="shade-fg-white">;</span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var bar = 'a'​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foobar = foo + bar​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">j</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foo = 1;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var bar = '<span class="shade-fg-white">a</span>'​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foobar = foo + bar​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">.</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foo = 1;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var bar = 'a'<span class="shade-fg-white">;</span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foobar = foo + bar​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">j.</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foo = 1;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var bar = 'a';​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foobar = foo + bar<span class="shade-fg-white">;</span>​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N10BF8" class="calibre4">
+		By using <span class="calibre17">A</span> instead of <span class="calibre17">$a</span>, we give the dot command a boost. Instead of having to position the cursor at the <span class="calibre5">end</span> of the line we want to change, we just have to make sure it is <span class="calibre5">somewhere</span> (anywhere!) on that line. Now we can repeat the change on consecutive lines just by typing <span class="calibre17">j.</span> as many times as it takes.
+      </p>
+<p id="N10C19" class="calibre4">
+        One keystroke to move, another to execute. That’s about as good as it gets! Watch for this pattern of usage, because we’ll see it popping up in a couple more examples.
+      </p>
+<p id="N10C1C" class="calibre4">
+        Although this formula looks terrific for our short example, it’s not a universal solution. Imagine if we had to append a semicolon to fifty consecutive lines. Pressing <span class="calibre17">j.</span> for each change starts to look like a lot of work. For an alternative approach, skip ahead to <a xmlns:str="http://exslt.org/strings" href="f_0052.html#sec.ex.normal">Tip 30</a>.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

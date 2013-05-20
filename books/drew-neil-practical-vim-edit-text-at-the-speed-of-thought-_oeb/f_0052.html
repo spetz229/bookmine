@@ -1,0 +1,381 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0051.html
+next: f_0053.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.ex.normal">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 30</td>
+<td class="arr-recipe-name">Run Normal Mode Commands Across a Range</td>
+</tr>
+</table>
+<p id="N12F20" class="calibre4">
+<span class="calibre5">
+        If we want to run a Normal mode command on a series of consecutive lines, we can do so using the <code class="cf">:normal</code> command. When used in combination with the dot command or a macro, we can perform repetitive tasks with very little effort.
+    </span>
+</p>
+<p id="N12F38" class="calibre4">
+      Consider the example we met in <a xmlns:str="http://exslt.org/strings" href="f_0019.html#sec.line.append">Tip 2</a>. We wanted to append a semicolon at the end of a series of lines. Using the Dot Formula allowed us to complete the task rapidly, but in that example we needed to make the change only on three consecutive lines. What if we had to make the same change fifty times? Using the Dot Formula, we would have to press <span class="calibre17">j.</span> fifty times. That makes a total of one hundred keystrokes!
+    </p>
+<p id="N12F45" class="calibre4">
+      There is a better way. To demonstrate, we’ll append a semicolon at the end of each line in this file. To save space, I’ve only included five lines, but if you can imagine instead that there are fifty lines, then this technique will seem more potent:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/ex_mode/foobar.js">ex_mode/foobar.js</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">var</strong> foo = 1​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">var</strong> bar = <em class="string">'a'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">var</strong> baz = <em class="string">'z'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">var</strong> foobar = foo + bar​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">var</strong> foobarbaz = foo + bar + baz​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N12F6F" class="calibre4">
+      We’ll start off as we did before, by changing the first line:
+    </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">{start}</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">v</span>ar foo = 1​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var bar = 'a'​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var baz = 'z'​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foobar = foo + bar​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foobarbaz = foo + bar + baz​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">A</span>
+<code class="cf">;&lt;Esc&gt;</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foo = 1<span class="shade-fg-white">;</span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var bar = 'a'​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var baz = 'z'​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foobar = foo + bar​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foobarbaz = foo + bar + baz​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N12FC3" class="calibre4">
+      We want to avoid executing the <span class="calibre17">.</span> command on each line one by one. Instead, we can use the <code class="cf">:normal</code> Ex command to execute the dot command across a range of lines:
+    </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">jVG</span>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foo = 1;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-black">var bar = ’a’</span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-black">var baz = ’z’ </span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-black">var foobar = foo + bar </span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-black">
+<span class="shade-fg-white">v</span>ar foobarbaz = foo + bar + baz </span>​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">:’&lt;,’&gt;normal .</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foo = 1;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var bar = 'a';​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var baz = 'z';​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foobar = foo + bar;​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​var foobarbaz = foo + bar + baz<span class="shade-fg-white">;</span>​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N13027" class="calibre4">
+      The <code class="cf">:’&lt;,’&gt;normal .</code> command can be read as follows: “For each line in the visual selection, execute the Normal mode <span class="calibre17">.</span> command.” This technique works just as well whether we’re operating on five lines or fifty lines. The real beauty of it is that we don’t even have to count the lines—we can get away with selecting them in Visual mode.
+    </p>
+<p id="N13030" class="calibre4">
+      In this case, we’ve used <code class="cf">:normal</code> to execute the dot command, but we can execute any Normal mode commands in the same way. For example, we could have solved the problem above with this single command:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:%normal A;</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N13043" class="calibre4">
+      The <code class="cf">%</code> symbol is used as a range representing the entire file. So <code class="cf">:%normal A;</code> instructs Vim to append a semicolon at the end of every line of the file. Making this change involves switching into Insert mode, but Vim automatically reverts to Normal mode afterward.
+    </p>
+<p id="N1305A" class="calibre4">
+      Before executing the specified Normal mode command on each line, Vim moves the cursor to the beginning of the line. So we don’t have to worry about where the cursor is positioned when we execute the command. This single command could be used to comment out an entire JavaScript file:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:%normal i//</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1306A" class="calibre4">
+      While it’s possible to use <code class="cf">:normal</code> with any normal command, I find it most powerful when used in combination with one of Vim’s repeat commands: either <code class="cf">:normal .</code> for simple repeats or <code class="cf">:normal @q</code> for more complex tasks. Skip ahead to <a xmlns:str="http://exslt.org/strings" href="f_0098.html#sec.macro.lines">Tip 67</a>, and <a xmlns:str="http://exslt.org/strings" href="f_0100.html#sec.macro.files">Tip 69</a>, for a couple of examples.
+    </p>
+<p id="N1307E" class="calibre4">
+      In <a xmlns:str="http://exslt.org/strings" href="f_0049.html#sec.ex.far.wide">​<em class="calibre5">Ex Commands Strike Far and Wide</em>​</a>, we noted that Ex commands can change multiple lines at once. The <code class="cf">:normal</code> command allows us to combine the expressive nature of Vim’s Normal mode commands with the range of Ex commands. It’s a powerful combination!
+    </p>
+<p id="N13088" class="calibre4">
+      For yet another alternative solution to the problem covered in this tip, refer to <a xmlns:str="http://exslt.org/strings" href="f_0047.html#sec.visual.block.ragged">Tip 26</a>.
+	  </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

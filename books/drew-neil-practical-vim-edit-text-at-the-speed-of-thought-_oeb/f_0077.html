@@ -1,0 +1,412 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0076.html
+next: f_0078.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.search.motion">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 50</td>
+<td class="arr-recipe-name">Search to Navigate</td>
+</tr>
+</table>
+<p id="N152D5" class="calibre4">
+<span class="calibre5">
+        The search command allows us to rapidly cover distances both large and small with very few keystrokes.
+    </span>
+</p>
+<p id="N152E5" class="calibre4">
+      The character search commands (<span class="calibre17">f{char}</span>, <span class="calibre17">t{char}</span>, and so on) are fast and lightweight, but they have limitations. They can only search for a single character at a time, and they can only operate within the current line. If we need to search for more than one character or move beyond the current line, then we can use the search command instead.
+    </p>
+<p id="N152EE" class="calibre4">
+      Suppose that we want to position our cursor on the word “takes” in this sample:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/motions/search-haiku.txt">motions/search-haiku.txt</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​search for your target​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​it only takes a moment​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​to get where you want​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N15304" class="calibre4">
+      We could do so by searching for the word: <code class="cf">/takes</code>
+<span class="calibre17">&lt;CR&gt;</span>. It only occurs once in this short sample, so that would be sure to get us where we want to go in a single move. But let’s see if we can we do it with even fewer keystrokes:
+    </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">{start}</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">s</span>earch for your target​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​it only takes a moment​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​to get where you want​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">/ta</code>
+<span class="calibre17">&lt;CR&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​search for your <span class="shade-fg-black">
+<span class="shade-fg-white">t</span>a</span>rget​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​it only <span class="shade-fg-black">ta</span>kes a moment​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​to get where you want​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">/tak</code>
+<span class="calibre17">&lt;CR&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​search for your target​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​it only <span class="shade-fg-black">
+<span class="shade-fg-white">t</span>ak</span>es a moment​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​to get where you want​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N1537E" class="calibre4">
+      Searching for the two-letter string “ta” gets two hits, but the three-letter string “tak” has one unique hit. In this example, the search motion makes a short hop, but in a large document we can use this technique to cover great distances with few keystrokes. The search command is a very economical way to move around.
+    </p>
+<p id="N15381" class="calibre4">
+      Even if we had searched for the two-letter “ta” fragment and ended up in the wrong place, we could jump to the next occurrence by repeating the previous search with the <span class="calibre17">n</span> command. Also, if we pressed the <span class="calibre17">n</span> key too many times, we could back up again with the <span class="calibre17">N</span> command. The mantra from <a xmlns:str="http://exslt.org/strings" href="f_0021.html#sec.act.repeat.reverse">Tip 4</a>, should be becoming familiar by now: act, repeat, reverse.
+    </p>
+<p id="N15391" class="calibre4">
+      In the previous tip, we saw that the <span class="calibre17">fe</span> command was rarely useful because the letter <span class="calibre5">e</span> is so common. We can get around this shortcoming by searching for a string of two or more letters in sequence. Although <span class="calibre5">e</span> may appear many times in the English language, only a fraction of those occurrences are succeeded immediately by the letter <span class="calibre5">r</span>. It’s surprising how often we can jump to any word of our choice just by searching for the first few characters.
+    </p>
+<p id="N153A0" class="calibre4">
+      In our “takes” example, I enabled the <code class="cf">‘hlsearch’</code> feature to highlight the search matches. When searching for a short string, we’ll often find multiple matches scattered across the document. Results can get unsightly when the <code class="cf">‘hlsearch’</code> option is enabled, so you might want to disable this feature if you make a habit of using the search command to navigate (it’s off by default). However, the <code class="cf">‘incsearch’</code> option is very useful in this use case. Refer to <a xmlns:str="http://exslt.org/strings" href="f_0115.html#sec.incsearch">Tip 81</a>, for more details.
+    </p>
+<h3 class="calibre22">Operate with a Search Motion</h3>
+<p id="N153B4" class="calibre4">
+        We’re not limited to using the search command in Normal mode. We can use it from Visual and Operator-Pending modes just as well to do real work. For example, suppose that we wanted to delete the text “takes time but eventually” from this phrase:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">v</span>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​This phrase <span class="shade-fg-white">t</span>akes time but​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​eventually gets to the point.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">/ge</code>
+<span class="calibre17">&lt;CR&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​This phrase <span class="shade-fg-black">takes time but </span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-black">eventually <span class="shade-fg-white">g</span>
+</span>ets to the point.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">h</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​This phrase <span class="shade-fg-black">takes time but </span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-black">eventually<span class="shade-fg-white"> </span>
+</span>gets to the point.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">d</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​This phrase gets to the point.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N15441" class="calibre4">
+        To begin with, we press <span class="calibre17">v</span> to switch to Visual mode. Then we can extend the selection by searching for the short “ge” string, which puts the cursor where we want it in a single bound. Well, almost—we have an off-by-one error. The selection includes the  “g” at the start of the word, but we don’t want to delete that. We’ll use <span class="calibre17">h</span> to back up one character. Then, having defined our selection, we’ll delete it with the <span class="calibre17">d</span> command.
+      </p>
+<p id="N1544D" class="calibre4">
+        Here’s an even quicker way of doing the same thing:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">{start}</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​This phrase <span class="shade-fg-white">t</span>akes time but​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​eventually gets to the point.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">d</span>
+<code class="cf">/ge</code>
+<span class="calibre17">&lt;CR&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​This phrase <span class="shade-fg-white">g</span>ets to the point.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N15490" class="calibre4">
+        Here, we use the <code class="cf">/ge</code>
+<span class="calibre17">&lt;CR&gt;</span> search motion to tell the <span class="calibre17">d{motion}</span> command what to delete. The search command is an <span class="calibre5">exclusive</span> motion. That means that even though our cursor ends up on the  “g” at the start of the word “gets,” that character is excluded from the delete operation (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">exclusive</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/motion.html#exclusive">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>).
+      </p>
+<p id="N154A7" class="calibre4">
+        By staying out of Visual mode, we’ve cut out two unnecessary keystrokes (see also <a xmlns:str="http://exslt.org/strings" href="f_0044.html#sec.prefer.operators">Tip 23</a>). It takes a bit of getting used to, but combining the <span class="calibre17">d{motion}</span> operator with the search motion is a power move. Use it to amaze your friends and coworkers.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

@@ -1,0 +1,184 @@
+---
+layout: page
+title: "Эффективное использование C++. 55 верных способов улучшить структуру и код ваших программ"
+prev: OEBPS/section73.xhtml
+next: OEBPS/section75.xhtml
+book_path: books/effektivnoe-ispoljzovanie-c--vernih-sposobov-uluchshitj-strukturu-i-kod-vashih-programm_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <div class="calibre">
+      <div class="title1">
+        <h2 class="calibre3">Правило 41: Разберитесь в том, что такое неявные интерфейсы и полиморфизм на этапе компиляции</h2>
+      </div>
+      <p class="calibre2">В мире объектно-ориентированного программирования преобладают <em class="calibre5">явные</em> интерфейсы и полиморфизм на этапе исполнения. Например, рассмотрим следующий (бессмысленный) класс:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Widget {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Widget();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual ~Widget();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual std::size_t size() const;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual void normalize();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void swap(Widget&amp; other); // см. правило 25</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">и столь же бессмысленную функцию:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">void doProcessing(Widget&amp; w)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">if(w.size() &gt; 10 &amp;&amp; w != someNastyWidget) {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Widget temp(w);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">temp.normalize();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">temp.swap(w);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Вот что мы можем сказать о переменной w в функции doProcessing:</p>
+      <p class="calibre2">• Поскольку объявлено, что переменная w имеет тип Widget, то w должна поддерживать интерфейс Widget. Мы можем найти точное описание этого интерфейса в исходном коде (например, в заголовочном файле для Widget), поэтому я называю его <em class="calibre5">явным интерфейсом</em> – явно присутствующим в исходном коде программы.</p>
+      <p class="calibre2">• Поскольку некоторые из функций-членов Widget являются виртуальными, то вызовы этих функций посредством w являются примером полиморфизма времени исполнения: конкретная функция, которую нужно вызвать, определяется во время исполнения на основании динамического типа w (см. правило 37).</p>
+      <p class="calibre2">Мир шаблонного и обобщенного программирования принципиально отличается. В этом мире явные интерфейсы и полиморфизм времени исполнения продолжают существовать, но они менее важны. Вместо них на передний план выходят <em class="calibre5">неявные интерфейсы</em> и <em class="calibre5">полиморфизм времени компиляции.</em> Чтобы понять, что это означает, посмотрите, что произойдет, если мы превратим функцию doProcessing в шаблон функции:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">template&lt;typename T&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void doProcessing(T&amp; w)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">if(w.size() &gt; 10 &amp;&amp; w != someNastyWidget) {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">T temp(w);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">temp.normalize();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">temp.swap(w);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Что теперь можно сказать о переменной w в шаблоне doProcessing?</p>
+      <p class="calibre2">• Теперь интерфейс, который должна поддерживать переменная w, определяется операциями, выполняемыми над w в шаблоне. В данном случае видно, что тип переменной w (а именно T) должен поддерживать функции-члены size, normalize и swap; конструктор копирования (для создания temp), а также операцию сравнения на равенство (для сравнения с someNastyWidget). Скоро мы увидим, что это не совсем точно, но на данный момент достаточно. Важно, что набор выражений, которые должны быть корректны для того, чтобы шаблон компилировался, представляет собой неявный интерфейс, который тип T должен поддерживать.</p>
+      <p class="calibre2">• Для успешного вызова функций, в которых участвует w, таких как operator&gt; и operator!=, может потребоваться конкретизировать шаблон. Такая конкретизация происходит во время компиляции. Поскольку конкретизация шаблонов функций с разными шаблонными параметрами приводит к вызову разных функций, мы называем это <em class="calibre5">полиморфизмом времени компиляции.</em></p>
+      <p class="calibre2">Даже если вы никогда не пользовались шаблонами, разница между полиморфизмом времени исполнения и полиморфизмом времени компиляции должна быть вам знакома, поскольку она напоминает разницу между процедурой определения того, какую из перегруженных функций вызывать (это происходит во время компиляции) и динамическим связыванием при вызове виртуальных функций (которое происходит во время исполнения). Однако разница между явными и неявными интерфейсами – понятие, характерное только для шаблонов, поэтому остановимся на нем более подробно.</p>
+      <p class="calibre2">Явные интерфейсы обычно состоят из сигнатур функций, то есть имен функций, типов параметров, возвращаемого значения и т. д. Так, открытый интерфейс класса Widget</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Widget {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Widget();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual ~Widget();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual std::size_t size() const;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual void normalize();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void swap(Widget&amp; other);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">состоит из конструктора, деструктора и функций size, normalize и swap вместе с типами их параметров, возвращаемых значений и признаков константности (интерфейс также включает генерируемые компилятором конструктор копирования и оператор присваивания – см. правило 5). В состав интерфейса могут входить также typedefbi.</p>
+      <p class="calibre2">Неявный интерфейс несколько отличается. Он не базируется на сигнатурах функций. Вместо этого он состоит из корректных <em class="calibre5">выражений.</em> Посмотрим еще раз на условия в начале шаблона doProcessing:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">template&lt;typename T&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void doProcessing(T&amp; w)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">if(w.size() &gt; 10 &amp;&amp; w != someNastyWidget) {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Неявному интерфейсу T (типа переменной w) присущи следующие ограничения:</p>
+      <p class="calibre2">• Он должен предоставлять функцию-член по имени size, которая возвращает целое значение.</p>
+      <p class="calibre2">• Он должен поддерживать функцию operator!=, которая сравнивает два объекта типа T. (Здесь мы предполагаем, что someNastyWidget имеет тип T.)</p>
+      <p class="calibre2">Благодаря возможности перегрузки операторов ни одно из этих требований не должно удовлетворяться в обязательном порядке. Да, T должен поддерживать функцию-член size, хотя стоит упомянуть, что эта функция может быть унаследована от базового класса. Но эта функция не обязана возвращать целочисленный тип. Она даже может вообще не возвращать числовой тип. Вообще-то она даже не обязана возвращать тип, для которого определен operator&gt;! Нужно лишь, чтобы она возвращала объект такого типа X, что может быть вызван operator&gt;, которому передаются параметры типа X и int (потому что 10 имеет тип int). При этом функция operator&gt; может и не принимать параметра, тип которого в точности совпадает с X; достаточно, если тип ее параметра Y может быть неявно преобразован к типу X!</p>
+      <p class="calibre2">Аналогично не требуется, чтобы тип T поддерживал operator!=, достаточно будет и того, чтобы функция operator!= принимала один объект типа X и один объект типа Y. Если T можно преобразовать в X, а someNastyWidget в Y, то вызов operator!= будет корректным.</p>
+      <p class="calibre2">(Кстати говоря: мы не принимаем во внимание возможность перегрузки operator&amp;&amp;, в результате которой семантика приведенного выражения может стать уже не конъюнкцией, а чем-то совершенно иным.)</p>
+      <p class="calibre2">У большинства людей голова идет кругом, когда они начинают задумываться о неявных интерфейсах, но на самом деле ничего страшного в них нет. Неявные интерфейсы – это просто набор корректных выражений. Сами по себе выражения могут показаться сложными, но налагаемые ими ограничения достаточно очевидны.</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">if(w.size() &gt; 10 &amp;&amp; w != someNastyWidget)...</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Мало что можно сказать об ограничениях, налагаемых функциями size, operator&gt;, operator&amp;&amp; или operator!=, но идентифицировать ограничения всего выражения в целом легко. Условная часть предложения if должна быть булевским выражением, поэтому независимо от конкретных типов результат вычисления (w.size() &gt; 10 &amp;&amp; w!= someNastyWidget) должен быть совместим с bool. Это та часть неявного интерфейса, которую шаблон doProcessing налагает на свой параметр типа T. Кроме того, для работы doProcessing необходимо, чтобы интерфейс типа T допускал обращения к конструктору копирования, а также функциям normalize, size и swap.</p>
+      <p class="calibre2">Ограничения, налагаемые неявными интерфейсами на параметры шаблона, так же реальны, как ограничения, налагаемые явными интерфейсами на объекты класса: и те, и другие проверяются на этапе компиляции. Вы не можете использовать объекты способами, противоречащими явным интерфейсам их классов (такой код не скомпилируется), и точно так же вы не пытайтесь использовать в шаблоне объект, не поддерживающий неявный интерфейс, которого требует шаблон (опять же, код не скомпилируется).</p>
+      <div class="subtitle">
+        <p class="subtitle1">
+          <strong class="calibre4">
+            <em class="calibre5">Что следует помнить</em>
+          </strong>
+        </p>
+      </div>
+      <p class="calibre2">• И классы, и шаблоны поддерживают интерфейсы и полиморфизм.</p>
+      <p class="calibre2">• Для классов интерфейсы определены явно и включают главным образом сигнатуры функций. Полиморфизм проявляется во время исполнения – через виртуальные функции.</p>
+      <p class="calibre2">• Для параметров шаблонов интерфейсы неявны и основаны на корректных выражениях. Полиморфизм проявляется во время компиляции – через конкретизацию и разрешение перегрузки функций.</p>
+    </div>
+  </div>
+
+{% endraw %}
+

@@ -1,0 +1,157 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect124_d1e46331.html
+next: I_sect124_d1e46566.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect124_d1e46331.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect124_d1e46566.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect124_d1e46438" class="calibre27" id="I_sect124_d1e46438"></a><h3 id="title-IDA4WQ4H" class="docSection1Title">24.3. Simple Communication Between Threads</h3><a name="x_k31" class="calibre27" id="x_k31"></a><p class="docText">The simplest way<a name="I_indexterm24_d1e46443" class="calibre27" id="I_indexterm24_d1e46443"></a> to share information between two threads is to let them
+    both use a variable. In our file compression example, the <i class="docEmphasis">main</i> thread shares both the name of a file and
+    its contents with the other thread. Because Haskell data is immutable by
+    default, this poses no risks: neither thread can modify the other's view
+    of the file's name or contents.</p><a name="x_l31" class="calibre27" id="x_l31"></a><p class="docText">We often need to have threads actively communicate with
+    each other. For example, <span class="docMonofont">GHC</span>
+    does not provide a way for one thread to find out whether another is still
+    executing, has completed, or has crashed.<sup class="docFootnote"><a class="docLink1" href="#x_l31d1e46746">[56]</a></sup> However, it provides a <span class="docEmphasis">synchronizing
+    variable</span> type,<a name="I_indexterm24_d1e46467" class="calibre27" id="I_indexterm24_d1e46467"></a> the MVar, <a name="I_indexterm24_d1e46475" class="calibre27" id="I_indexterm24_d1e46475"></a>which we can use to create this capability for
+    ourselves.</p><blockquote class="calibre30"><p class="docFootnote1"><sup class="calibre50"><a name="x_l31d1e46746" class="calibre5" id="x_l31d1e46746">[56]</a></sup> As we will show later, <span class="docMonofont">GHC</span> threads are extraordinarily
+        lightweight. If the runtime were to provide a way to check the status
+        of every thread, the overhead of every thread would increase, even if
+        this information were never used.</p></blockquote><a name="x_n31" class="calibre27" id="x_n31"></a><p class="docText">An MVar acts like a single-element box: it
+    can be either full or empty. We can put something into the box, making it
+    full, or take something out, making it empty:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:t putMVar</b>
+putMVar :: MVar a -&gt; a -&gt; IO ()
+ghci&gt; <b class="calibre40">:t takeMVar</b>
+takeMVar :: MVar a -&gt; IO a</pre><a name="x_o31" class="calibre27" id="x_o31"></a><p class="docText">If we try to put a value into an MVar that
+    is already full, our thread is put to sleep until another thread takes the
+    value out. Similarly, if we try to take a value from an empty
+    MVar, our thread is put to sleep until some other thread puts
+    a value in:</p><pre class="calibre39">-- file: ch24/MVarExample.hs
+import Control.Concurrent
+
+communicate = do
+  m &lt;- newEmptyMVar
+  forkIO $ do
+    v &lt;- takeMVar m
+    putStrLn ("received " ++ show v)
+  putStrLn "sending"
+  putMVar m "wake up!"</pre><br class="calibre48"/>
+<a name="x_p31" class="calibre27" id="x_p31"></a><p class="docText">The <i class="docEmphasis">newEmptyMVar</i>
+    function has<a name="I_indexterm24_d1e46510" class="calibre27" id="I_indexterm24_d1e46510"></a> a descriptive name. To create an MVar that
+    starts out nonempty, we'd use <i class="docEmphasis">newMVar</i>:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:t newEmptyMVar</b>
+newEmptyMVar :: IO (MVar a)
+ghci&gt; <b class="calibre40">:t newMVar</b>
+newMVar :: a -&gt; IO (MVar a)</pre><a name="x_q31" class="calibre27" id="x_q31"></a><p class="docText">Let's run our example in <i class="docEmphasis">ghci</i>:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:load MVarExample</b>
+[1 of 1] Compiling Main             ( MVarExample.hs, interpreted )
+Ok, modules loaded: Main.
+ghci&gt; <b class="calibre40">communicate</b>
+sending
+received "wake up!"</pre><a name="x_r31" class="calibre27" id="x_r31"></a><p class="docText">If you're coming from a background of concurrent
+    programming in a traditional language, you can think of an
+    MVar as being useful for two familiar purposes:</p><ul class="calibre18"><li class="calibre19"><p class="docText">Sending a message from one thread to another, for
+        example, a notification.</p></li><li class="calibre19"><p class="docText">Providing <span class="docEmphasis">mutual exclusion</span> for a
+        piece of mutable data that is shared among threads. We put the data
+        into the MVar when it is not being used by any thread.
+        One thread then takes it out temporarily to read or modify it.</p></li></ul>
+<a href="21061538.html" class="calibre2"><img src="pixel.gif" alt="" border="0" class="calibre31"/></a><ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect124_d1e46331.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect124_d1e46566.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

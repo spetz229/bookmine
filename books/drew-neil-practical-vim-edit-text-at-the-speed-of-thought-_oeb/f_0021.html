@@ -1,0 +1,198 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0020.html
+next: f_0022.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.act.repeat.reverse">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 4</td>
+<td class="arr-recipe-name">Act, Repeat, Reverse</td>
+</tr>
+</table>
+<p id="N10DD9" class="calibre4">
+<span class="calibre5">
+        When facing a repetitive task, we can achieve an optimal editing strategy by making both the motion and the change repeatable. Vim has a knack for this. It remembers our actions and keeps the most common ones within close reach so that we can easily replay them. In this tip, we’ll introduce each of the actions that Vim can repeat and learn how to reverse them.
+    </span>
+</p>
+<hr class="calibre37"/>
+<div class="figurecaption" id="table.act.repeat.reverse">Table 1. Repeatable Actions and How to Reverse Them</div>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Intent</th>
+<th class="hlines">Act</th>
+<th class="hlines">Repeat</th>
+<th class="hlines">Reverse</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">Make a change</p>
+</td>
+<td class="calibre24">
+<p class="last-para-in-cell">{edit}</p>
+</td>
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">.</span>
+</p>
+</td>
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">u</span>
+</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">Scan line for next character</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">f{char}</span>/<span class="calibre17">t{char}</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">,</span>
+</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">Scan line for previous character</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">F{char}</span>/<span class="calibre17">T{char}</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">,</span>
+</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">Scan document for next match</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">/pattern</code>
+<span class="calibre17">&lt;CR&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">n</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">N</span>
+</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">Scan document for previous match</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">?pattern</code>
+<span class="calibre17">&lt;CR&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">n</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">N</span>
+</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">Perform substitution</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">:s/target/replacement</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&amp;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">u</span>
+</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">Execute a sequence of changes</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">qx{changes}q</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">@x</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">u</span>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+<hr class="calibre37"/>
+<p id="N10EA2" class="calibre4">
+	  We’ve seen that the dot command repeats the last <span class="calibre5">change</span>. Since lots of operations count as a change, the dot command proves to be versatile. But some commands can be repeated by other means. For example, <span class="calibre17">@:</span> can be used to repeat any Ex command (as discussed in <a xmlns:str="http://exslt.org/strings" href="f_0053.html#sec.ex.repeat">Tip 31</a>). Or we can repeat the last <code class="cf">:substitute</code> command (which itself happens to be an Ex command as well) by pressing <span class="calibre17">&amp;</span> (see <a xmlns:str="http://exslt.org/strings" href="f_0127.html#sec.substitute.repeat">Tip 92</a>).
+    </p>
+<p id="N10ED8" class="calibre4">
+      If we know how to repeat our actions without having to spell them out every single time, then we can be more efficient. First we act; then we repeat.
+    </p>
+<p id="N10EDB" class="calibre4">
+      But when so much can be achieved with so few keystrokes, we have to watch our step. It’s easy to get trigger-happy. Rapping out <span class="calibre17">j.j.j.</span> again and again feels a bit like doing a drum roll. What happens if we accidentally hit the <span class="calibre17">j</span> key twice in a row? Or worse, the <span class="calibre17">.</span> key?
+    </p>
+<p id="N10EE7" class="calibre4">
+	  Whenever Vim makes it easy to repeat an action or a motion, it always provides some way of backing out in case we accidentally go too far. In the case of the dot command, we can always hit the <span class="calibre17">u</span> key to undo the last change. If we hit the <span class="calibre17">;</span> key too many times after using the <span class="calibre17">f{char}</span> command, we’ll miss our mark. But we can back up again by pressing the <span class="calibre17">,</span> key, which repeats the last <span class="calibre17">f{char}</span> search in the reverse direction (see <a xmlns:str="http://exslt.org/strings" href="f_0076.html#sec.fchar">Tip 49</a>).
+    </p>
+<p id="N10F07" class="calibre4">
+      It always helps to know where the reverse gear is in case you accidentally go a step too far. <a xmlns:str="http://exslt.org/strings" href="#table.act.repeat.reverse">Table 1, ​<em class="calibre5">Repeatable Actions and How to Reverse Them</em>​</a>, summarizes Vim’s repeatable commands along with their corresponding reverse action. In most cases, the undo command is the one that we reach for. No wonder the <span class="calibre17">u</span> key on my keyboard is so worn out!
+    </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

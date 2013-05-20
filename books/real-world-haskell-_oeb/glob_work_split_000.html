@@ -1,0 +1,103 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: glob_errapi_split_001.html
+next: glob_work_split_001.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="glob_errapi_split_000.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="find_split_000.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="glob_work" class="calibre27" id="glob_work"></a><h3 id="title-IDADP34G" class="docSection1Title">8.9. Putting Our Code to Work</h3><a name="x_LH" class="calibre27" id="x_LH"></a><p class="docText">The <i class="docEmphasis">namesMatching</i>
+    function isn't very exciting by itself, but it's a useful building block.
+    Combine it with a few more functions, and we can start to do interesting
+    things.</p><a name="x_MH" class="calibre27" id="x_MH"></a><p class="docText">Here's one such example. Let's define a <i class="docEmphasis">renameWith</i> function that, instead of simply
+    renaming a file, applies a function to the file's name, and renames the
+    file to whatever that function returns:</p><pre class="calibre39">-- file: ch08/Useful.hs
+import System.FilePath (replaceExtension)
+import System.Directory (doesFileExist, renameDirectory, renameFile)
+import Glob (namesMatching)
+
+renameWith :: (FilePath -&gt; FilePath)
+           -&gt; FilePath
+           -&gt; IO FilePath
+
+renameWith f path = do
+    let path' = f path
+    rename path path'
+    return path'</pre><br class="calibre48"/>
+<a name="x_NH" class="calibre27" id="x_NH"></a><p class="docText">Once again, we work around the ungainly file/directory
+    split in <i class="docEmphasis">System.Directory</i> with a
+    helper function:</p><pre class="calibre39">-- file: ch08/Useful.hs
+rename :: FilePath -&gt; FilePath -&gt; IO ()
+
+rename old new = do
+    isFile &lt;- doesFileExist old
+    let f = if isFile then renameFile else renameDirectory
+    f old new</pre><br class="calibre48"/>
+<a name="x_OH" class="calibre27" id="x_OH"></a><p class="docText">The <i class="docEmphasis">System.FilePath</i>
+    module provides many useful functions for manipulating filenames. These
+    functions mesh nicely with our <i class="docEmphasis">renameWith</i> and <i class="docEmphasis">namesMatching</i> functions, so that we can quickly
+    use them to create functions with complex behavior. As an example, this
+    terse function changes the filename suffixing convention for C++ source
+    files:</p><pre class="calibre39">-- file: ch08/Useful.hs
+cc2cpp =
+  mapM (renameWith (flip replaceExtension ".cpp")) =&lt;&lt; namesMatching "*.cc"</pre><br class="calibre48"/>
+<a name="x_PH" class="calibre27" id="x_PH"></a><p class="docText">The <i class="docEmphasis">cc2cpp</i> function
+    uses a few functions we'll see over and over. The <i class="docEmphasis">flip</i> function takes another function as
+    argument and swaps the order of its arguments (inspect the type of
+    <i class="docEmphasis">replaceExtension</i> in <i class="docEmphasis">ghci</i> to see why). The <i class="docEmphasis">=&lt;&lt;</i> function <a name="I_indexterm8_d1e23084" class="calibre27" id="I_indexterm8_d1e23084"></a>feeds the result of the action on its right side to the
+    action<a name="I_indexterm8_d1e23088" class="calibre27" id="I_indexterm8_d1e23088"></a> on its left.</p><a name="I_sidebar8_d1e23090" class="calibre27" id="I_sidebar8_d1e23090"></a></td>
+                    </tr>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

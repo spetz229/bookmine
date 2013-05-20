@@ -1,0 +1,205 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect128_d1e52318.html
+next: install_split_000.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect128_d1e52318.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="install_split_000.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect128_d1e52674" class="calibre27" id="I_sect128_d1e52674"></a><h3 id="title-IDA0ZZSB" class="docSection1Title">28.9. Practical Aspects of STM</h3><a name="x_KN1" class="calibre27" id="x_KN1"></a><p class="docText">We have so far been quiet about the specific benefits
+    that <tt class="calibre34">STM</tt> gives us. Most obvious is how well it
+    <span class="docEmphasis">composes</span>—to add code to a transaction, we just use
+    our usual monadic building blocks, <i class="docEmphasis">(&gt;&gt;=)</i> and <i class="docEmphasis">(&gt;&gt;)</i>.</p><a name="x_XO1" class="calibre27" id="x_XO1"></a><p class="docText">The notion of composability is critical to building
+    modular software. If we take two pieces of code that work correctly
+    individually, the composition of the two should also be correct. While
+    normal threaded programming makes composability impossible,
+    <tt class="calibre34">STM</tt> restores it as a key assumption that we can rely
+    upon.</p><a name="x_YO1" class="calibre27" id="x_YO1"></a><p class="docText">The STM monad prevents us from accidentally
+    performing nontransactional I/O actions. We don't need to worry about lock
+    ordering, since our code contains no locks. We can forget about lost
+    wakeups, since we don't have condition variables. If an exception is
+    thrown, we can either catch it using <i class="docEmphasis">catchSTM</i> or be bounced out of our transaction,
+    leaving our state untouched. Finally, the <i class="docEmphasis">retry</i> and <i class="docEmphasis">orElse</i> functions give us some beautiful ways to
+    structure our code.</p><a name="x_LN1" class="calibre27" id="x_LN1"></a><p class="docText">Code that uses <tt class="calibre34">STM</tt> will not deadlock,
+    but it is possible for threads to starve each other to some degree. A
+    long-running transaction can cause another transaction to <i class="docEmphasis">retry</i> often enough that it will make
+    comparatively little progress. To address a problem such as this, make
+    your transactions as short as you can, while keeping your data
+    consistent.</p><a name="I_sect128_d1e52674d1e52984" class="calibre27" id="I_sect128_d1e52674d1e52984"></a><h4 id="title-IDAS1ZSB" class="docSection1Title">28.9.1. Getting Comfortable with Giving Up Control</h4><a name="x_MN1" class="calibre27" id="x_MN1"></a><p class="docText">Whether with concurrency or memory management, there
+      will be times when we must retain control: some software must make solid
+      guarantees about latency or memory footprint, so we will be forced to
+      spend the extra time and effort managing and debugging explicit code.
+      For many interesting, practical uses of software, garbage collection and
+      <tt class="calibre34">STM</tt> will do more than well enough.</p><a name="x_NN1" class="calibre27" id="x_NN1"></a><p class="docText"><tt class="calibre34">STM</tt> is not a complete panacea. It is
+      useful to compare it with the use of garbage collection for memory
+      management. When we abandon explicit memory management in favor of
+      garbage collection, we give up control in return for safer code.
+      Likewise, with <tt class="calibre34">STM</tt>, we abandon the low-level details
+      in exchange for code that we can better hope to <span class="docEmphasis">understand</span>.</p><a name="I_sect128_d1e52674d1e53002" class="calibre27" id="I_sect128_d1e52674d1e53002"></a><h4 id="title-IDAL2ZSB" class="docSection1Title">28.9.2. Using Invariants</h4><a name="x_ON1" class="calibre27" id="x_ON1"></a><p class="docText"><tt class="calibre34">STM</tt> cannot<a name="I_indexterm28_d1e52743" class="calibre27" id="I_indexterm28_d1e52743"></a> eliminate certain classes of bugs. For instance, if we
+      withdraw money from an account in one <i class="docEmphasis">atomically</i> block, return to the
+      IO monad, and then deposit it to another account in a
+      different <i class="docEmphasis">atomically</i> block, our
+      code will have an inconsistency. There will be a window of time in which
+      the money is present in neither account.</p><pre class="calibre39">-- file: ch28/GameInventory.hs
+bogusTransfer qty fromBal toBal = do
+  fromQty &lt;- atomically $ readTVar fromBal
+  -- window of inconsistency
+  toQty   &lt;- atomically $ readTVar toBal
+  atomically $ writeTVar fromBal (fromQty - qty)
+  -- window of inconsistency
+  atomically $ writeTVar toBal   (toQty + qty)
+
+bogusSale :: Item -&gt; Gold -&gt; Player -&gt; Player -&gt; IO ()
+bogusSale item price buyer seller = do
+  atomically $ giveItem item (inventory seller) (inventory buyer)
+  bogusTransfer price (balance buyer) (balance seller)</pre><br class="calibre48"/>
+<a name="x_PN1" class="calibre27" id="x_PN1"></a><p class="docText">In concurrent programs, these kinds of problems are
+      notoriously difficult to find and reproduce. For instance, the
+      inconsistency that we describe here will usually only occur for a brief
+      period of time. Problems such as this often refuse to show up during
+      development, instead occurring only in the field under heavy
+      load.</p><a name="x_QN1" class="calibre27" id="x_QN1"></a><p class="docText">The <i class="docEmphasis">alwaysSucceeds</i>
+      function lets us define an <span class="docEmphasis">invariant</span>, a property of
+      our data that must always be true:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type alwaysSucceeds</b>
+alwaysSucceeds :: STM a -&gt; STM ()
+</pre><a name="x_RN1" class="calibre27" id="x_RN1"></a><p class="docText">When we create an invariant, it will immediately be
+      checked. To fail, the invariant must raise an exception. More
+      interestingly, the invariant will subsequently be checked <span class="docEmphasis">automatically</span> at the end of
+      <span class="docEmphasis">every</span> transaction. If it fails at any point, the
+      transaction will be aborted, and the exception raised by the invariant
+      will be propagated. This means that we will get immediate feedback as
+      soon as one of our invariants is violated.</p><a name="x_SN1" class="calibre27" id="x_SN1"></a><p class="docText">For instance, here are a few functions to populate our
+      game world from the beginning of this chapter with players:</p><pre class="calibre39">-- file: ch28/GameInventory.hs
+newPlayer :: Gold -&gt; HitPoint -&gt; [Item] -&gt; STM Player
+newPlayer balance health inventory =
+    Player `liftM` newTVar balance
+              `ap` newTVar health
+              `ap` newTVar inventory
+
+populateWorld :: STM [Player]
+populateWorld = sequence [ newPlayer 20 20 [Wand, Banjo],
+                           newPlayer 10 12 [Scroll] ]</pre><br class="calibre48"/>
+<a name="x_TN1" class="calibre27" id="x_TN1"></a><p class="docText">This function returns an invariant that we can use to
+      ensure that the world's money balance is always consistent—the balance
+      at any point in time should be the same as at the creation of the
+      world:</p><pre class="calibre39">-- file: ch28/GameInventory.hs
+consistentBalance :: [Player] -&gt; STM (STM ())
+consistentBalance players = do
+    initialTotal &lt;- totalBalance
+    return $ do
+      curTotal &lt;- totalBalance
+      when (curTotal /= initialTotal) $
+        error "inconsistent global balance"
+  where totalBalance   = foldM addBalance 0 players
+        addBalance a b = (a+) `liftM` readTVar (balance b)</pre><br class="calibre48"/>
+<a name="x_UN1" class="calibre27" id="x_UN1"></a><p class="docText">Let's write a small function that exercises
+      this:</p><pre class="calibre39">-- file: ch28/GameInventory.hs
+tryBogusSale = do
+  players@(alice:bob:_) &lt;- atomically populateWorld
+  atomically $ alwaysSucceeds =&lt;&lt; consistentBalance players
+  bogusSale Wand 5 alice bob</pre><br class="calibre48"/>
+<a name="x_VN1" class="calibre27" id="x_VN1"></a><p class="docText">If we run it in <i class="docEmphasis">ghci</i>, it should detect the inconsistency
+      caused by our incorrect use<a name="I_indexterm28_d1e52800" class="calibre27" id="I_indexterm28_d1e52800"></a> of <i class="docEmphasis">atomically</i> in the <i class="docEmphasis">bogusTransfer</i> function we wrote:</p><pre class="calibre39">ghci&gt; <b class="calibre40">tryBogusSale</b>
+*** Exception: inconsistent global balance
+</pre>
+<a href="21061538.html" class="calibre2"><img src="pixel.gif" alt="" border="0" class="calibre31"/></a><ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect128_d1e52318.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="install_split_000.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

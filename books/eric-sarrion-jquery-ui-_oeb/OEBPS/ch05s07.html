@@ -1,0 +1,384 @@
+---
+layout: page
+title: "jQuery UI"
+prev: OEBPS/ch05s06.html
+next: OEBPS/ch06.html
+book_path: books/eric-sarrion-jquery-ui-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Examples of Using Buttons"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="examples_of_using_buttons" class="calibre1"></a>Examples of Using Buttons</h1></div></div></div><p class="calibre7">Here are some examples that apply the principles discussed in this
+    chapter.</p><div class="book" title="Displaying Icons in Buttons"><div class="book"><div class="book"><div class="book"><h2 class="title5"><a id="displaying_icons_in_buttons" class="calibre1"></a>Displaying Icons in Buttons</h2></div></div></div><p class="calibre7">The <code class="literal">options.icons</code> option
+      defines an icon for the button. For example, to define a volume button,
+      including the volume icon, as shown in <a class="ulink" href="ch05s07.html#icon_inserted_after_the_text_on_a_button" title="Figure 5-10. Icon inserted after the text on a button">Figure 5-10</a>, write the
+      following basic code (shown in bold):</p><a id="I_programlisting5_d1e4424" class="firstname"></a><pre class="programlisting">&lt;!DOCTYPE html&gt;
+&lt;script src = jquery.js&gt;&lt;/script&gt;
+&lt;script src = jqueryui/js/jquery-ui-1.8.16.custom.min.js&gt;&lt;/script&gt;
+
+&lt;link rel=stylesheet type=text/css
+      href=jqueryui/css/smoothness/jquery-ui-1.8.16.custom.css /&gt;
+
+&lt;span id=volume&gt;Volume&lt;/span&gt;
+
+&lt;script&gt;
+
+<span class="firstname"><strong class="userinput">$("#volume").button ({</strong></span>
+  <span class="firstname"><strong class="userinput">icons : { secondary : "ui-icon-volume-off" }</strong></span>
+<span class="firstname"><strong class="userinput">});</strong></span>
+
+&lt;/script&gt;</pre><p class="calibre7">The icon is inserted after the text (<code class="literal">secondary</code> property). About the <code class="literal">"ui-icon-volume-off"</code> value is that used in the
+      CSS styles of jQuery UI for the volume icon (<a class="ulink" href="ch05s07.html#icon_inserted_after_the_text_on_a_button" title="Figure 5-10. Icon inserted after the text on a button">Figure 5-10</a>).</p><div class="book"><div class="figure"><a id="icon_inserted_after_the_text_on_a_button" class="firstname"></a><div class="book"><div class="book"><a id="I_mediaobject5_d1e4448" class="firstname"></a><img src="httpatomoreillycomsourceoreillyimages1096371.png.jpg" alt="Icon inserted after the text on a button" class="calibre5"/></div></div><p class="title4">Figure 5-10. Icon inserted after the text on a button</p></div></div><p class="calibre7">You can change the appearance of the button when clicked to
+      visually convey that a button has been turned on or off. For example, in
+      <a class="ulink" href="ch05s07.html#icon_indicating_that_the_volume_is_turne" title="Figure 5-11. Icon indicating that the volume is turned on">Figure 5-11</a>, we see an
+      icon showing that the volume is turned on:</p><a id="I_programlisting5_d1e4457" class="firstname"></a><pre class="programlisting">&lt;!DOCTYPE html&gt;
+&lt;script src = jquery.js&gt;&lt;/script&gt;
+&lt;script src = jqueryui/js/jquery-ui-1.8.16.custom.min.js&gt;&lt;/script&gt;
+
+&lt;link rel=stylesheet type=text/css
+      href=jqueryui/css/smoothness/jquery-ui-1.8.16.custom.css /&gt;
+
+&lt;span id=volume&gt;Volume&lt;/span&gt;
+
+&lt;script&gt;
+
+$("#volume").button ({
+  icons : { secondary : "ui-icon-volume-off" }
+}).click (function (event)
+{
+  // current volume
+  var volume = $(this).button ("option", "icons").secondary ==
+                    "ui-icon-volume-off" ? false : true;
+
+  // we reverse the volume (On / Off)
+  if (volume) $(this).button ("option", "icons",
+                               { secondary : "ui-icon-volume-off" });
+  else $(this).button ("option", "icons", { secondary : "ui-icon-volume-on" });
+});
+
+&lt;/script&gt;</pre><div class="book"><div class="figure"><a id="icon_indicating_that_the_volume_is_turne" class="firstname"></a><div class="book"><div class="book"><a id="I_mediaobject5_d1e4462" class="firstname"></a><img src="httpatomoreillycomsourceoreillyimages1096373.png" alt="Icon indicating that the volume is turned on" class="calibre5"/></div></div><p class="title4">Figure 5-11. Icon indicating that the volume is turned on</p></div></div><p class="calibre7">Let’s also change the button text to display the text Volume On or
+      Volume Off in addition to changing the icon:</p><a id="I_programlisting5_d1e4469" class="firstname"></a><pre class="programlisting">&lt;!DOCTYPE html&gt;
+&lt;script src = jquery.js&gt;&lt;/script&gt;
+&lt;script src = jqueryui/js/jquery-ui-1.8.16.custom.min.js&gt;&lt;/script&gt;
+
+&lt;link rel=stylesheet type=text/css
+      href=jqueryui/css/smoothness/jquery-ui-1.8.16.custom.css /&gt;
+
+&lt;span id=volume&gt;Volume Off&lt;/span&gt;
+
+&lt;script&gt;
+
+$("#volume").button ({
+  icons : { secondary : "ui-icon-volume-off" }
+}).click (function (event)
+{
+  // current volume
+  var volume = $(this).button ("option", "icons").secondary ==
+                    "ui-icon-volume-off" ? false : true;
+
+  // we reverse the volume (On / Off)
+  if (volume)
+  {
+    // text
+    $(this).button ("option", "label", "Volume Off");
+    // icon
+    $(this).button ("option", "icons", { secondary : "ui-icon-volume-off" });
+  }
+  else
+  {
+    // text
+    $(this).button ("option", "label", "Volume On");
+    // icon
+    $(this).button ("option", "icons", { secondary : "ui-icon-volume-on" });
+  }
+});
+
+&lt;/script&gt;</pre><p class="calibre7">At launch, the volume is off (<a class="ulink" href="ch05s07.html#button_text_displayed_when_the_program_s" title="Figure 5-12. Button text displayed when the program starts (volume is off)">Figure 5-12</a>), and it is
+      enabled (on) when users click the button (<a class="ulink" href="ch05s07.html#button_text_after_clicking_open_parenthe" title="Figure 5-13. Button text after clicking (volume is turned on)">Figure 5-13</a>).</p><div class="book"><div class="figure"><a id="button_text_displayed_when_the_program_s" class="firstname"></a><div class="book"><div class="book"><a id="I_mediaobject5_d1e4481" class="firstname"></a><img src="httpatomoreillycomsourceoreillyimages1096375.png.jpg" alt="Button text displayed when the program starts (volume is off)" class="calibre5"/></div></div><p class="title4">Figure 5-12. Button text displayed when the program starts (volume is
+        off)</p></div></div><div class="book"><div class="figure"><a id="button_text_after_clicking_open_parenthe" class="firstname"></a><div class="book"><div class="book"><a id="I_mediaobject5_d1e4489" class="firstname"></a><img src="httpatomoreillycomsourceoreillyimages1096377.png.jpg" alt="Button text after clicking (volume is turned on)" class="calibre5"/></div></div><p class="title4">Figure 5-13. Button text after clicking (volume is turned on)</p></div></div></div><div class="book" title="Creating a Calculator"><div class="book"><div class="book"><div class="book"><h2 class="title5"><a id="creating_a_calculator" class="calibre1"></a>Creating a Calculator</h2></div></div></div><p class="calibre7">We can use buttons to create a calculator like the one shown in
+      <a class="ulink" href="ch05s07.html#a_calculator" title="Figure 5-14. A calculator">Figure 5-14</a>. It can perform the four basic
+      operations, and users can reset the display by clicking the button
+      associated with the display of the result (at the top of the
+      window).</p><div class="book"><div class="figure"><a id="a_calculator" class="firstname"></a><div class="book"><div class="book"><a id="I_mediaobject5_d1e4504" class="firstname"></a><img src="httpatomoreillycomsourceoreillyimages1096379.png" alt="A calculator" class="calibre5"/></div></div><p class="title4">Figure 5-14. A calculator</p></div></div><div class="book" title="Basic program"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="basic_program" class="calibre1"></a>Basic program</h3></div></div></div><p class="calibre7">Use the following script to create a basic calculator:</p><a id="I_programlisting5_d1e4514" class="firstname"></a><pre class="programlisting">&lt;!DOCTYPE html&gt;
+&lt;script src = jquery.js&gt;&lt;/script&gt;
+&lt;script src = jqueryui/js/jquery-ui-1.8.16.custom.min.js&gt;&lt;/script&gt;
+
+&lt;link rel=stylesheet type=text/css
+      href=jqueryui/css/smoothness/jquery-ui-1.8.16.custom.css /&gt;
+
+&lt;style type=text/css&gt;
+  span.ui-button-text-only {     /* any key */
+    width : 60px;
+  }
+  div.ui-button-text-only {      /* field result */
+    width : 230px;
+    text-align : right;
+  }
+  div.ui-button-text-only.ie {   /* field of IE specific result */
+    width : 230px;
+  }
+&lt;/style&gt;
+
+&lt;div id=result&gt;0&lt;/div&gt;
+
+&lt;div class=touches&gt;
+  &lt;span&gt;7&lt;/span&gt;&lt;span&gt;8&lt;/span&gt;&lt;span&gt;9&lt;/span&gt;&lt;span&gt;/&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class=touches&gt;
+  &lt;span&gt;4&lt;/span&gt;&lt;span&gt;5&lt;/span&gt;&lt;span&gt;6&lt;/span&gt;&lt;span&gt;*&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class=touches&gt;
+  &lt;span&gt;1&lt;/span&gt;&lt;span&gt;2&lt;/span&gt;&lt;span&gt;3&lt;/span&gt;&lt;span&gt;-&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class=touches&gt;
+  &lt;span&gt;0&lt;/span&gt;&lt;span&gt;.&lt;/span&gt;&lt;span&gt;=&lt;/span&gt;&lt;span&gt;+&lt;/span&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+
+var result = 0;          // calculation result
+var previous_touche;     // previously pressed key
+var last_operation;      // last operation
+
+$("span").button ().click (function (event)
+{
+  var touche = $(this).text ();         // button currently pressed
+  var display = $("#result").text ();   // current display (string)
+  if (touche == "+" || touche == "−" ||
+     touche == "*" || touche == "/" ||
+     touche == "=")
+  {
+    if (previous_touche != "+" &amp;&amp; previous_touche != "−" &amp;&amp;
+        previous_touche != "*" &amp;&amp; previous_touche != "/")
+    {
+      // we pressed +, −, *, / or = :
+      // if a previous operation was in progress, it performs
+      if (last_operation == "+")
+      {
+        result += parseFloat (display);
+        $("#result span").text (format_display (result));
+      }
+      else if (last_operation == "−")
+      {
+        result −= parseFloat (display);
+        $("#result span").text (format_display (result));
+      }
+      else if (last_operation == "*")
+      {
+        result *= parseFloat (display);
+        $("#result span").text (format_display (result));
+      }
+      else if (last_operation == "/")
+      {
+        result /= parseFloat (display);
+        $("#result span").text (format_display (result));
+      }
+      result = parseFloat ($("#result").text ());
+    }
+    if (touche == "=") last_operation = undefined;
+    else last_operation = touche;
+  }
+  else
+  {
+    // we pressed a number or point
+    // we combine this key with the current display,
+    // unless the previous button was a sign operation
+    if (display == "0" ||
+        previous_touche == "+" ||
+        previous_touche == "−" ||
+        previous_touche == "*" ||
+        previous_touche == "/" ||
+        previous_touche == "=") display = "";
+    if (display.length &lt; 16) display += touche;
+    $("#result span").text (display);
+  }
+  previous_touche = touche;
+});
+
+$("div.touches").buttonset ();
+
+$("div#result").button ().click (function (event)
+{
+  // click on the result field: it sets the display to 0
+  var display = $("#result").text ();
+  if (display == "0") result = 0;
+  $("#result span").text ("0");
+});
+
+// consider a special style for Internet Explorer
+if ($.browser.msie) $("div#result").addClass ("ie");
+
+// ensure that the displayed result is not more than 16 characters
+function format_display (display)
+{
+  display += "";
+  if (display.length &lt; 16) return display;
+  if (display.match (/\./)) return display.substring (0, 15);
+  else return ("Out of Memory");
+}
+
+&lt;/script&gt;</pre><p class="calibre7">This program includes the management of keys (e.g., retaining
+        information about which button was clicked and whether to perform a
+        calculation or not).</p><p class="calibre7">To account for differences in display between Internet Explorer
+        and other browsers, the display field of the result has an <code class="literal">ie</code> CSS class that is used automatically if
+        jQuery detects this browser.</p><p class="calibre7">This calculator currently runs in the browser window. With a few
+        additions, we can turn the calculator into an application that runs
+        separately from the main browser window. For this, we can create a
+        jQuery plug-in.</p></div><div class="book" title="Improving the program"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="improving_the_program" class="calibre1"></a>Improving the program</h3></div></div></div><p class="calibre7">Rather than creating a standalone calculator application, let’s
+        create a calculator plug-in. The calculator will be presented as a
+        dialog box that opens on top of the page elements when displayed
+        (<a class="ulink" href="ch05s07.html#calculator_opening_as_a_dialog_box" title="Figure 5-15. Calculator opening as a dialog box">Figure 5-15</a>). This will
+        simplify the code of our program by outsourcing all of the calculator
+        code to a third-party file that can be reused for other
+        applications.</p><p class="calibre7">Here we have a main program with a Display calculator button,
+        which calls the corresponding plug-in when clicked. The calculator is
+        displayed on top of the page elements in a centered position. Users
+        can close it by clicking the close button in the top right corner of
+        the dialog box.</p><p class="calibre7">The program below displays the button using the
+        calculator:</p><a id="I_programlisting5_d1e4536" class="firstname"></a><pre class="programlisting">&lt;!DOCTYPE html&gt;
+&lt;script src = jquery.js&gt;&lt;/script&gt;
+&lt;script src = jqueryui/js/jquery-ui-1.8.16.custom.min.js&gt;&lt;/script&gt;
+<span class="firstname"><strong class="userinput">&lt;script src = jquery.calculator.js&gt;&lt;/script&gt;</strong></span>
+
+&lt;link rel=stylesheet type=text/css
+      href=jqueryui/css/smoothness/jquery-ui-1.8.16.custom.css /&gt;
+<span class="firstname"><strong class="userinput">&lt;link rel=stylesheet type=text/css href=jquery.calculator.css /&gt;</strong></span>
+
+<span class="firstname"><strong class="userinput">&lt;button onclick=$.calculator()&gt;Display calculator &lt;/button&gt;</strong></span></pre><div class="book"><div class="figure"><a id="calculator_opening_as_a_dialog_box" class="firstname"></a><div class="book"><div class="book"><a id="I_mediaobject5_d1e4549" class="firstname"></a><img src="httpatomoreillycomsourceoreillyimages1096381.png" alt="Calculator opening as a dialog box" class="calibre5"/></div></div><p class="title4">Figure 5-15. Calculator opening as a dialog box</p></div></div><p class="calibre7">This simple code displays a button where the treatment of the
+        <code class="literal">onclick</code> event calls the <code class="literal">calculator ()</code> plug-in. The functionality of
+        plug-in matches a JavaScript <em class="calibre4">jquery.calculator.js</em> file and a <em class="calibre4">jquery.calculator.css</em> CSS file, both
+        included in the HTML page:</p><a id="I_programlisting5_d1e4568" class="firstname"></a><pre class="programlisting">span.ui-button-text-only {     /* any key */
+  width : 60px;
+}
+div.ui-button-text-only {      /* field result */
+  width : 230px;
+  text-align : right;
+}
+div.ui-button-text-only.ie {   /* field of IE specific result */
+  width : 230px;
+}</pre><p class="calibre7">We just put the CSS styles in an external file, which will be
+        included in the main HTML file.</p><p class="calibre7">The plug-in file is <code class="literal">jquery.calculator.js</code>,
+        containing the following lines:</p><a id="I_programlisting5_d1e4577" class="firstname"></a><pre class="programlisting"> (function ($)
+{
+  $.calculator = function ()
+  {
+    var result = 0;          // calculation result
+    var previous_touche;     // previously pressed key
+    var last_operation;      // last operation
+
+    if ($("#calculator").length)
+    {
+      // calculator has been already created, simply display
+      $("#calculator").dialog ("open");
+      return;
+    }
+
+    // creation of the calculator, only on the first call of the function
+    var html = "&lt;div id=calculator&gt; \
+                        &lt;div id=result&gt;0&lt;/div&gt; \
+                        &lt;div class=touches&gt; \
+                          &lt;span&gt;7&lt;/span&gt;&lt;span&gt;8&lt;/span&gt;&lt;span&gt;9&lt;/span&gt;&lt;span&gt;/&lt;/span&gt; \
+                        &lt;/div&gt; \
+                        &lt;div class=touches&gt; \
+                          &lt;span&gt;4&lt;/span&gt;&lt;span&gt;5&lt;/span&gt;&lt;span&gt;6&lt;/span&gt;&lt;span&gt;*&lt;/span&gt; \
+                        &lt;/div&gt; \
+                        &lt;div class=touches&gt; \
+                          &lt;span&gt;1&lt;/span&gt;&lt;span&gt;2&lt;/span&gt;&lt;span&gt;3&lt;/span&gt;&lt;span&gt;-&lt;/span&gt; \
+                        &lt;/div&gt; \
+                        &lt;div class=touches&gt; \
+                          &lt;span&gt;0&lt;/span&gt;&lt;span&gt;.&lt;/span&gt;&lt;span&gt;=&lt;/span&gt;&lt;span&gt;+&lt;/span&gt; \
+                        &lt;/div&gt; \
+                      &lt;/div&gt;"
+
+    $(html).appendTo ("body");
+
+    $("#calculator div.touches span").button ().click (function (event)
+    {
+      var touche = $(this).text ();         // button currently pressed
+      var display = $("#result").text ();   // current view (string)
+      if (touche == "+" || touche == "−" ||
+         touche == "*" || touche == "/" ||
+         touche == "=")
+      {
+        if (previous_touche != "+" &amp;&amp; previous_touche != "−" &amp;&amp;
+            previous_touche != "*" &amp;&amp; previous_touche != "/")
+        {
+          // we pressed +, −, *, / or = :
+          // if a previous operation was in progress, it performs
+          if (last_operation == "+")
+          {
+            result += parseFloat (display);
+            $("#result span").text (format_display (result));
+          }
+          else if (last_operation == "−")
+          {
+            result −= parseFloat (display);
+            $("#result span").text (format_display (result));
+          }
+          else if (last_operation == "*")
+          {
+            result *= parseFloat (display);
+            $("#result span").text (format_display (result));
+          }
+          else if (last_operation == "/")
+          {
+            result /= parseFloat (display);
+            $("#result span").text (format_display (result));
+          }
+          result = parseFloat ($("#result").text ());
+        }
+        if (touche == "=") last_operation = undefined;
+        else last_operation = touche;
+      }
+      else
+      {
+        // we pressed a number or point
+        // we combine this key with the current display,
+        // unless the previous button was a sign operation
+        if (display == "0" ||
+            previous_touche == "+" ||
+            previous_touche == "−" ||
+            previous_touche == "*" ||
+            previous_touche == "/" ||
+            previous_touche == "=") display = "";
+        if (display.length &lt; 16) display += touche;
+        $("#result span").text (display);
+      }
+      previous_touche = touche;
+    });
+
+    $("#calculator div.touches").buttonset ();
+
+    $("#calculator div#result").button ().click (function (event)
+    {
+      // click on the result field: it sets the display to 0
+      var display = $("#calculator #result").text ();
+      if (display == "0") result = 0;
+      $("#calculator #result span").text ("0");
+    });
+
+    // consider a special style for Internet Explorer
+    if ($.browser.msie) $("#calculator div#result").addClass ("ie");
+
+    // creation of the window with the calculator
+    $("#calculator").dialog ({
+      title : "Calculator",
+      resizable : false,
+      width : $.browser.msie ? 275 : 270
+    });
+
+    // ensure that the displayed result is not more than 16 characters
+    function format_display (display)
+    {
+      display += "";
+      if (display.length &lt; 16) return display;
+      if (display.match (/\./)) return display.substring (0, 15);
+      else return ("Out of Memory");
+    }
+  }
+}) (jQuery);</pre><p class="calibre7">This program is almost identical to the previous, except that
+        the HTML code of the calculator is created in the JavaScript plug-in.
+        In addition, we added the dialog box containing the calculator.</p></div></div></div></div>
+
+{% endraw %}
+

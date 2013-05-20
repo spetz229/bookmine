@@ -1,0 +1,62 @@
+---
+layout: page
+title: "The Little Book on CoffeeScript"
+prev: OEBPS/ch02s04.html
+next: OEBPS/ch03.html
+book_path: books/alex-maccaw-the-little-book-on-coffeescript-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Extending Classes"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect12_d1e1123" class="calibre2"></a>Extending Classes</h1></div></div></div><p class="calibre8">Mixins are pretty neat, but they’re not very object orientated.
+    Instead, let’s integrate mixins into CoffeeScript’s classes. We’re going
+    to define a class called <code class="literal">Module</code> that we
+    can inherit from for mixin support. <code class="literal">Module</code> will have two static functions, <code class="literal">@extend()</code> and <code class="literal">@include()</code>, which we can use for extending the
+    class with static and instance properties, respectively:</p><pre class="screen">moduleKeywords = ['extended', 'included']
+
+class Module
+  @extend: (obj) -&gt;
+    for key, value of obj when key not in moduleKeywords
+      @[key] = value
+
+    obj.extended?.apply(@)
+    this
+
+  @include: (obj) -&gt;
+    for key, value of obj when key not in moduleKeywords
+      # Assign properties to the prototype
+      @::[key] = value
+
+    obj.included?.apply(@)
+    this</pre><p class="calibre8">The little dance around the <code class="literal">moduleKeywords</code> variable is to ensure we have
+    callback support when mixins extend
+    a class. Let’s take a look at our <code class="literal">Module</code> class in action:</p><pre class="screen">classProperties = 
+  find: (id) -&gt;
+  create: (attrs) -&gt;
+
+instanceProperties =
+  save: -&gt; 
+
+class User extends Module
+  @extend classProperties
+  @include instanceProperties
+
+# Usage:
+user = User.find(1)
+
+user = new User
+user.save()</pre><p class="calibre8">As you can see, we’ve added some static properties, <code class="literal">find()</code> and <code class="literal">create()</code>, to the <code class="literal">User</code> class, as well as an instance property,
+    <code class="literal">save()</code>. Since we’ve got callbacks
+    whenever modules are extended, we can shortcut the process of applying
+    both static and instance properties:</p><pre class="screen">ORM = 
+  find: (id) -&gt;
+  create: (attrs) -&gt;
+  extended: -&gt;
+    @include
+      save: -&gt; 
+
+class User extends Module
+  @extend ORM</pre><p class="calibre8">Super simple and elegant!</p></div></div>
+
+{% endraw %}
+

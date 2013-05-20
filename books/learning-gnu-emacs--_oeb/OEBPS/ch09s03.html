@@ -1,0 +1,500 @@
+---
+layout: page
+title: "Learning GNU Emacs, 3rd Edition"
+prev: OEBPS/ch09s02.html
+next: OEBPS/ch09s04.html
+book_path: books/learning-gnu-emacs--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h1 class="title"><a id="gnu3-CHP-9-SECT-3" class="calibre1"></a>C and C++ Support</h1></div></div></div><p class="copyright">Emacs automatically enters C mode <a id="gnu3-CHP-9-ITERM-2565" class="calibre2"></a>
+            <a id="gnu3-CHP-9-ITERM-2566" class="calibre2"></a>
+            <a id="gnu3-CHP-9-ITERM-2567" class="calibre2"></a>
+            <a id="gnu3-CHP-9-ITERM-2568" class="calibre2"></a>when you visit a file whose
+suffix is <span><em class="calibre7">.c</em></span>, <span><em class="calibre7">.h</em></span>,
+<span><em class="calibre7">.y</em></span> (for <span><strong class="calibre5">yacc</strong></span>
+grammars), or <span><em class="calibre7">.lex</em></span> (<span><strong class="calibre5">lex</strong></span> specification files). Emacs invokes C++
+mode when you visit a file whose suffix is <span><em class="calibre7">.C</em></span>,
+<span><em class="calibre7">.H</em></span>, <span><em class="calibre7">.cc</em></span>,
+<span><em class="calibre7">.hh</em></span>, <span><em class="calibre7">.cpp</em></span>,
+<span><em class="calibre7">.cxx</em></span>, <span><em class="calibre7">.hxx</em></span>,
+<span><em class="calibre7">.c++</em></span>, or <span><em class="calibre7">.h++</em></span>. You can also
+put any file in C mode manually by typing <span><strong class="calibre5">M-x
+c-mode Enter</strong></span>. Similarly, you can use <span><strong class="calibre5">c++-mode</strong></span> to put a buffer into C++ mode.</p><p class="copyright">Both C and C++ modes are implemented in the same Emacs Lisp package,
+called <span><strong class="calibre5">cc-mode</strong></span>,<sup class="calibre6">[<a id="gnu3-CHP-9-FNOTE-7" href="#ftn.gnu3-CHP-9-FNOTE-7" class="calibre2">7</a>]</sup> which
+also includes a mode for the Objective-C language used in Mac OS X. C
+mode understands both ANSI C and the older Kernighan and Ritchie C
+syntax. We describe C mode functions, but you should assume that
+everything also applies to C++ mode. C++ mode has a small number of
+additional features, which we describe at the end of this section.</p><p class="copyright">We should also note that the Emacs mode for Perl is derived from an
+older version of C mode. If you program in Perl, you will find that
+virtually all of the motion, indentation, and formatting commands in
+C mode apply equally to Perl mode, with <span><strong class="calibre5">perl-</strong></span> replacing <span><strong class="calibre5">c-</strong></span> in their names. Emacs invokes Perl mode on
+files with suffix <span><em class="calibre7">.pl</em></span>. (However, to be honest we
+prefer CPerl mode, discussed later in this chapter.)</p><p class="copyright">In C mode, Emacs understands the syntax elements described earlier in
+this chapter. The characters semicolon (;), colon (:), comma (,)
+curly braces ({ and }), and pound sign (#, for C preprocessor
+commands) are all electric, meaning that Emacs automatically indents
+the current line when you type them. It also actively uses the font
+options when you have font-lock mode turned on.</p><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-9-SECT-3.1" class="calibre1"></a>Motion Commands</h2></div></div></div><p class="copyright">In addition to the standard <a id="gnu3-CHP-9-ITERM-2569" class="calibre2"></a>
+               <a id="gnu3-CHP-9-ITERM-2570" class="calibre2"></a>
+               <a id="gnu3-CHP-9-ITERM-2571" class="calibre2"></a>Emacs
+commands for words and sentences (which are mainly useful only inside
+multiline comments), C mode contains advanced commands that know
+about statements, functions,<sup class="calibre6">[<a id="gnu3-CHP-9-FNOTE-8" href="#ftn.gnu3-CHP-9-FNOTE-8" class="calibre2">8</a>]</sup> and
+preprocessor conditionals. A summary of these commands appears in
+<a class="calibre2" href="ch09s03.html#gnu3-CHP-9-TABLE-3" title="Table 9-3. Advanced C motion commands">Table 9-3</a>.</p><div class="book"><a id="gnu3-CHP-9-TABLE-3" class="calibre2"></a><p class="title2"><b class="calibre25">Table 9-3. Advanced C motion commands</b></p><div class="table-contents"><table summary="Advanced C motion commands" class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre26">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Keystrokes</strong></span>
+                           </p>
+                        </th><th class="calibre26">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Command name</strong></span>
+                           </p>
+                        </th><th class="calibre27">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Action</strong></span>
+                           </p>
+                        </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">M-a</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">c-beginning-of-statement</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Move to the beginning of the current statement.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">M-e</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">c-end-of-statement</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Move to the end of the current statement.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">M-q</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">c-fill-paragraph</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">If in comment, fill the paragraph, preserving indentations and
+decorations.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-M-a</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">beginning-of-defun</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Move to the beginning of the body of the function surrounding the
+point.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-M-e</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">end-of-defun</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Move to the end of the function.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-M-h</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">c-mark-function</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Put the cursor at the beginning of the function, the mark at the end.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-c C-q</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">c-indent-defun</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Indent the entire function according to indentation style.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-c C-u</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">c-up-conditional</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Move to the beginning of the current preprocessor conditional.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-c C-p</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">c-backward-conditional</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Move to the previous preprocessor conditional.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre30">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-c C-n</strong></span>
+                           </p>
+                        </td><td class="calibre30">
+                           <p class="copyright">
+                              <span><strong class="calibre5">c-forward-conditional</strong></span>
+                           </p>
+                        </td><td class="calibre31">
+                           <p class="copyright">Move to the next preprocessor conditional.</p>
+                        </td></tr></tbody></table></div></div><br class="book"/><p class="copyright">Notice that the statement motion commands have the same key bindings
+as <span><strong class="calibre5">backward-sentence</strong></span> and <span><strong class="calibre5">forward-sentence</strong></span>, respectively. In fact, they
+act as sentence commands if you use them within a C comment.</p><p class="copyright">Similarly, <span><strong class="calibre5">M-q</strong></span> is normally the
+<span><strong class="calibre5">fill-paragraph</strong></span> command; C mode
+augments it with the ability to preserve indentations and decorative
+characters at the beginnings of lines. For example, if your cursor is
+anywhere in this comment:</p><a id="I_9_tt457" class="calibre2"></a><pre class="programlisting">/* This is 
+ * a
+ * comment paragraph with wildly differing right
+ *  margins.
+ * It goes on     for a while,
+ * then stops.
+ */</pre><p class="copyright">typing <span><strong class="calibre5">M-q</strong></span> has this result:</p><a id="I_9_tt458" class="calibre2"></a><pre class="programlisting">/* This is a comment paragraph with wildly differing right margins.
+ * It goes on for a while, then stops. */</pre><p class="copyright">You will find that the preprocessor conditional motion commands are a
+godsend if you have to slog through someone else's
+voluminous code. Especially if you're faced with
+code built to run on a variety of systems—like Emacs
+itself—often the most important question you need answered is,
+"What code is actually compiled?"</p><p class="copyright">With <span><strong class="calibre5">C-c C-u</strong></span>, you can tell instantly
+what preprocessor conditional governs the code in question. Consider
+this code block:</p><a id="I_9_tt459" class="calibre2"></a><pre class="programlisting">#define LUCYX
+#define BADEXIT -1
+
+#ifdef LUCYX
+    ...
+    *ptyv = open ("/dev/ptc", O_RDWR | O_NDELAY, 0);
+    if (fd &lt; 0)
+        return BADEXIT;
+    ...
+#else
+    ...
+    fprintf (stderr, "You can't do that on this system!");
+    ...
+#endif</pre><p class="copyright">Imagine that the ellipses ( . . . ) represent hundreds of lines of
+code. Now suppose you are trying to determine under what conditions
+the file <span><em class="calibre7">/dev/ptc</em></span> is opened. If your cursor is
+on that line of code, you can type <span><strong class="calibre5">C-c
+C-u</strong></span>, and the cursor moves to the line <span><strong class="calibre5">#ifdef LUCYX</strong></span>—telling you that the code
+is compiled if you're on a LUCYX system. If you want
+to skip the code that would not be compiled and go directly to the
+end of the conditional, type <span><strong class="calibre5">C-c
+C-n</strong></span>. We will see another command that is useful for
+dealing with C preprocessor code later in this section.</p><p class="copyright">C statement and statement block delimiter characters are bound to
+commands that, in addition to inserting the appropriate character,
+also provide proper indentation. These characters are <span><strong class="calibre5">{</strong></span>, <span><strong class="calibre5">}</strong></span>,
+<span><strong class="calibre5">;</strong></span>, and : (for labels and <span><strong class="calibre5">switch</strong></span> cases). For example, if you are closing
+out a statement block or function body, you can press <span><strong class="calibre5">C-j</strong></span> (or <span><strong class="calibre5">Enter</strong></span>) and type <span><strong class="calibre5">}</strong></span>, and Emacs lines it up with its matching
+<span><strong class="calibre5">{</strong></span>. This eliminates the need for you
+to scroll back through the code to find out what column the <span><strong class="calibre5">{</strong></span> is in.</p><p class="copyright">Because <span><strong class="calibre5">}</strong></span> is a parenthesis-type
+character, Emacs attempts to
+"flash" a matching <span><strong class="calibre5">{</strong></span> when you type <span><strong class="calibre5">}</strong></span>. If the matching <span><strong class="calibre5">{</strong></span> is outside of the text displayed in your
+window, Emacs instead prints the line containing the <span><strong class="calibre5">{</strong></span> in the minibuffer. Furthermore, if only
+whitespace (blanks or tabs) follows the <span><strong class="calibre5">{</strong></span> on its line, Emacs also prints a <span><strong class="calibre5">^J</strong></span> (for <span><strong class="calibre5">C-j</strong></span>)
+followed by the next line, thus giving a better idea of the context
+of the <span><strong class="calibre5">{</strong></span>.</p><p class="copyright">Recall the "times" example earlier
+in this chapter. Let's say you are typing in a
+<span><strong class="calibre5">}</strong></span> to end the function, and the
+<span><strong class="calibre5">{</strong></span> that begins the function body is
+off-screen. There is no code on the line following the beginning
+<span><strong class="calibre5">{</strong></span>, so you see the following in the
+minibuffer after you type <span><strong class="calibre5">}</strong></span>:</p><a id="I_9_tt460" class="calibre2"></a><pre class="programlisting">Matches {^J  int i;</pre></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-9-SECT-3.2" class="calibre1"></a>Customizing Code Indentation Style</h2></div></div></div><p class="copyright">Coding style in C—or any programming
+<a id="gnu3-CHP-9-ITERM-2572" class="calibre2"></a>
+               <a id="gnu3-CHP-9-ITERM-2573" class="calibre2"></a>language for that
+matter—is a very personal thing. C programmers learn from
+various books or by referring to various different pieces of other
+people's code; eventually they evolve a personal
+style that may or may not conform to those that they learned from.</p><p class="copyright">C mode provides a rich set of features for customizing its
+indentation behavior that mirrors this way of learning the language.
+At the simplest level, you can choose a coding style by name. Then,
+if you're not satisfied, you can customize your
+chosen style or even create your own from scratch. The latter tasks,
+however, require a fair amount of Emacs Lisp programming knowledge
+(see <a class="calibre2" href="ch11.html" title="Chapter 11. Emacs Lisp Programming">Chapter 11</a>) and perhaps a bit of bravery.</p><p class="copyright">You can choose a named coding style with the command <span><strong class="calibre5">M-x c-set-style</strong></span>. This command prompts you for
+the name of the style you want. The easiest thing to do at this point
+is to type <span><strong class="calibre5">Tab</strong></span>, the completion
+character (see <a class="calibre2" href="ch14.html" title="Chapter 14. The Help System">Chapter 14</a>), which brings up a
+<code class="calibre21">*Completions*</code> window that lists all of the
+choices. Type one of them and press <span><strong class="calibre5">Enter</strong></span> to select it.</p><p class="copyright">By default, Emacs comes loaded with the styles shown in <a class="calibre2" href="ch09s03.html#gnu3-CHP-9-TABLE-4" title="Table 9-4. Built-in cc-mode indentation styles">Table 9-4</a>.</p><div class="book"><a id="gnu3-CHP-9-TABLE-4" class="calibre2"></a><p class="title2"><b class="calibre25">Table 9-4. Built-in cc-mode indentation styles</b></p><div class="table-contents"><table summary="Built-in cc-mode indentation styles" class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre26">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Style</strong></span>
+                           </p>
+                        </th><th class="calibre27">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Description</strong></span>
+                           </p>
+                        </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">bsd</p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Style used in code for BSD-derived versions of Unix.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">cc-mode</p>
+                        </td><td class="calibre29">
+                           <p class="copyright">The default coding style, from which all others are derived .</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">ellemtel</p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Style used in C++ documentation from Ellemtel Telecommunication
+Systems Laboratories in Sweden .</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">gnu</p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Style used in C code for Emacs itself and other GNU-related programs .</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">java</p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Style used in Java code (the default for Java mode).</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">k&amp;r</p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Style of the classic text on C, Kernighan and
+Ritchie's <span><em class="calibre7">The C Programming
+Language</em></span> .</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">linux</p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Style used in C code that is part of the Linux kernel.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">python</p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Style used in python extensions.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">stroustrup</p>
+                        </td><td class="calibre29">
+                           <p class="copyright">C++ coding style of the standard reference work, Bjarne
+Stroustrup's <span><em class="calibre7">The C++ Programming
+Language</em></span> .</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">user</p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Customizations you make to <span><em class="calibre7">.emacs</em></span> or via Custom
+(see <a class="calibre2" href="ch10.html" title="Chapter 10. Customizing Emacs">Chapter 10</a>). All other styles inherit these
+customizations if you set them.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre30">
+                           <p class="copyright">whitesmith</p>
+                        </td><td class="calibre31">
+                           <p class="copyright">Style used in Whitesmith Ltd.'s documentation for
+their C and C++ compilers .</p>
+                        </td></tr></tbody></table></div></div><br class="book"/><p class="copyright">To show how some of these styles work, let's start
+with the C function example from earlier in this chapter:</p><a id="I_9_tt461" class="calibre2"></a><pre class="programlisting">int times (x, y)
+int x, y;
+{
+int i;
+int result = 0;
+
+for (i = 0; i &lt; x; i++) 
+{
+result += y;
+}
+}</pre><p class="copyright">If you define a region around this code and you type <span><strong class="calibre5">C-M-\</strong></span> (for <span><strong class="calibre5">indent-region</strong></span>), Emacs reformats the code in
+the default style like this:</p><a id="I_9_tt462" class="calibre2"></a><pre class="programlisting">int times (x, y)
+    int x, y;
+{
+    int i;
+    int result = 0;
+
+    for (i = 0; i &lt; x; i++) 
+        {
+            result += y;
+        }
+}</pre><p class="copyright">If you type <span><strong class="calibre5">C-c </strong></span>. (for <span><strong class="calibre5">c-set-style</strong></span>), enter <span><strong class="calibre5">k&amp;r</strong></span>, and then repeat the reformatting, the
+code looks like this:</p><a id="I_9_tt463" class="calibre2"></a><pre class="programlisting">int times (x, y)
+int x, y;
+{
+     int i;
+     int result = 0;
+
+     for (i = 0; i &lt; x; i++)
+     {
+          result += y;
+     }
+}</pre><p class="copyright">Or, if you want to switch to GNU-style indentation, choose the style
+<span><strong class="calibre5">gnu</strong></span> and reformat. The result is:</p><a id="I_9_tt464" class="calibre2"></a><pre class="programlisting">int times (x, y)
+     int x, y;
+{
+  int i;
+  int result = 0;
+
+  for (i = 0; i &lt; x; i++)
+    {
+      result += y;
+    }
+}</pre><p class="copyright">Once you decide on a coding style, you can set it up permanently by
+putting a line in your <span><em class="calibre7">.emacs</em></span> file that looks
+like this:</p><a id="I_9_tt465" class="calibre2"></a><pre class="programlisting">(add-hook 'c-mode-hook
+       '(lambda ( )
+         (c-set-style "<em class="calibre7"><code class="calibre32">stylename</code></em>")))</pre><p class="copyright">Unfortunately, we'll have to wait until <a class="calibre2" href="ch11.html" title="Chapter 11. Emacs Lisp Programming">Chapter 11</a> to understand exactly what this code does.
+For now, make sure that you insert a single quote (') before the
+<code class="calibre21">(lambda</code> in the second line.</p><p class="copyright">Each coding style contains subtleties that makes it nontrivial for
+Emacs to implement. Older versions of Emacs did this by defining
+several variables that controlled various indentation levels; these
+were not easy to work with and, frankly, did not really cover 100
+percent of the nuances of each style. The current version of C mode,
+in contrast, uses a considerably larger set of variables—too
+large, in fact, for anyone other than hardy Emacs Lisp hackers to
+deal with.</p><p class="copyright">Therefore, C mode keeps track of groups of these variables and their
+values under named styles. One huge variable, called <span><strong class="calibre5">c-style-alist</strong></span>, contains all of the styles and
+their associated information. You can customize this beast either by
+changing values of variables within existing styles or by adding a
+style of your own. For further details, look in the file
+<span><em class="calibre7">cc-mode.el</em></span> in your system's
+Emacs Lisp directory (see <a class="calibre2" href="ch11.html" title="Chapter 11. Emacs Lisp Programming">Chapter 11</a>).</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-9-SECT-3.3" class="calibre1"></a>Additional C and C++ Mode Features</h2></div></div></div><p class="copyright">C mode contains a number of other useful features, ranging from the
+generally useful to the arcanely obscure. Perhaps the most
+interesting of these are two ways of adding additional electric
+functionality <a id="gnu3-CHP-9-ITERM-2574" class="calibre2"></a>
+               <a id="gnu3-CHP-9-ITERM-2575" class="calibre2"></a>
+               <a id="gnu3-CHP-9-ITERM-2576" class="calibre2"></a>
+               <a id="gnu3-CHP-9-ITERM-2577" class="calibre2"></a>to certain keystrokes,
+called <span><em class="calibre7">auto-newline</em></span> and
+<span><em class="calibre7">hungry-delete-key</em></span>.<sup class="calibre6">[<a id="gnu3-CHP-9-FNOTE-9" href="#ftn.gnu3-CHP-9-FNOTE-9" class="calibre2">9</a>]</sup>
+            </p><p class="copyright">When auto-newline is enabled, it causes Emacs to add a newline
+character and indent the new line properly whenever you type a
+semicolon (;), curly brace ({ or }), or, at certain times, comma (,)
+or colon (:). These features can save you some time and help you
+format your code in a consistent style.</p><p class="copyright">Auto-newline is off by default. To turn it on, type <span><strong class="calibre5">C-c C-a</strong></span> for <span><strong class="calibre5">c-toggle-auto-state</strong></span>. (Repeat the same command
+to turn it off again.) You will see the <span><strong class="calibre5">(C)</strong></span> in the mode line change to <span><strong class="calibre5">(C/a)</strong></span> as an indication. As an example of how
+it works, try typing in the code for our <code class="calibre21">times( )</code>
+function. Type the first two lines up to the <span><strong class="calibre5">y</strong></span> on the second line:</p><a id="I_9_tt466" class="calibre2"></a><pre class="programlisting">int times (x, y)
+int x, y</pre><p class="copyright">Now press the semicolon; notice that Emacs inserts a newline and
+brings you down to the next line:</p><a id="I_9_tt467" class="calibre2"></a><pre class="programlisting">int times (x, y)
+int x, y;</pre><p class="copyright">Type the opening curly brace, and it happens again:</p><a id="I_9_tt468" class="calibre2"></a><pre class="programlisting">int times (x, y)
+int x, y;
+{</pre><p class="copyright">Of course, the number of spaces Emacs indents after you type the {
+depends on the indentation style you are using.</p><p class="copyright">The other optional electric feature, <span><strong class="calibre5">hungry-delete-key</strong></span>, is also off by default. To
+toggle it on, type <span><strong class="calibre5">C-c C-d</strong></span> (for
+<span><strong class="calibre5">c-toggle-hungry-state</strong></span>). You will see
+the <span><strong class="calibre5">(C)</strong></span> on the mode line change to
+<span><strong class="calibre5">(C/h)</strong></span>, or if you have <span><strong class="calibre5">auto-newline</strong></span> turned on, from <span><strong class="calibre5">(C/a)</strong></span> to <span><strong class="calibre5">(C/ah)</strong></span>.</p><p class="copyright">Turning on <span><strong class="calibre5">hungry-delete-key</strong></span>
+empowers the <span><strong class="calibre5">Del</strong></span> key to delete all
+whitespace to the left of the point. To go back to the previous
+example, assume you just typed the open curly brace. Then, if you
+press <span><strong class="calibre5">Del</strong></span>, Emacs deletes everything
+back to the curly brace:</p><a id="I_9_tt469" class="calibre2"></a><pre class="programlisting">int times (x, y)
+int x, y;
+{</pre><p class="copyright">You can toggle the states of both <span><strong class="calibre5">auto-newline</strong></span> and <span><strong class="calibre5">hungry-delete-key</strong></span> with the command <span><strong class="calibre5">C-c C-t</strong></span> (for <span><strong class="calibre5">c-toggle-auto-hungry-state</strong></span>).</p><p class="copyright">If you want either of these features on by default when you invoke
+Emacs, you can put lines like the following in your
+<span><em class="calibre7">.emacs</em></span> file:</p><a id="I_9_tt470" class="calibre2"></a><pre class="programlisting">(add-hook 'c-mode-hook
+      '(lambda ( )
+         (c-toggle-auto-state)))</pre><p class="copyright">If you want to combine this customization with another C mode
+customization, such as the indentation style in the previous example,
+you need to combine the lines of Emacs Lisp code as follows:</p><a id="I_9_tt471" class="calibre2"></a><pre class="programlisting">(add-hook 'c-mode-hook
+      '(lambda ( )
+         (c-set-style "<em class="calibre7"><code class="calibre32">stylename</code></em>")
+          (c-toggle-auto-state)))</pre><p class="copyright">Again, we will see what this hook construct means in
+"Customizing Existing Modes" in
+<a class="calibre2" href="ch11.html" title="Chapter 11. Emacs Lisp Programming">Chapter 11</a>.</p><p class="copyright">C mode also provides support for comments; earlier in the chapter, we
+saw examples of this support. There is, however, another feature. You
+can customize <span><strong class="calibre5">M-j</strong></span> (for <span><strong class="calibre5">indent-new-comment-line</strong></span>) so that Emacs
+continues the same comment on the next line instead of creating a new
+pair of delimiters. The variable <span><strong class="calibre5">comment-multi-line</strong></span> controls this feature: if
+it is set to <span><strong class="calibre5">nil</strong></span> (the default),
+Emacs generates a new comment on the next line, as in the example
+from earlier in the chapter:</p><a id="I_9_tt472" class="calibre2"></a><pre class="programlisting">result += y;                    /* add the multiplicand */
+                                /* <span>*</span>/</pre><p class="copyright">This outcome is the result of typing <span><strong class="calibre5">M-j</strong></span> after <span><strong class="calibre5">multiplicand</strong></span>, and it shows that the cursor is
+positioned so that you can type the text of the second comment line.
+However, if you set <span><strong class="calibre5">comment-multi-line</strong></span> to <span><strong class="calibre5">t</strong></span> (or any value other than <span><strong class="calibre5">nil</strong></span>), you get this outcome instead:</p><a id="I_9_tt473" class="calibre2"></a><pre class="programlisting">result += y;                    /* add the multiplicand 
+                                   <span>*</span>/</pre><p class="copyright">The final feature we'll cover is <span><strong class="calibre5">C-c C-e</strong></span>, (for <span><strong class="calibre5">c-macro-expand</strong></span>). Like the conditional
+compilation motion commands (e.g., <span><strong class="calibre5">C-c
+C-u</strong></span> for <span><strong class="calibre5">c-up-conditional</strong></span>), <span><strong class="calibre5">c-macro-expand</strong></span> helps you answer the often
+difficult question, "What code actually gets
+compiled?" when your source code contains a morass
+of preprocessor directives.</p><p class="copyright">To use <span><strong class="calibre5">c-macro-expand</strong></span>, you must
+first define a region. Then, when you type <span><strong class="calibre5">C-c
+C-e</strong></span>, it takes the code within the region, passes it
+through the actual C preprocessor, and places the output in a window
+called <code class="calibre21">*Macroexpansion*</code>.</p><p class="copyright">To see how this procedure works, let's go back to
+the code example from earlier in this chapter that contains C
+preprocessor directives:</p><a id="I_9_tt474" class="calibre2"></a><pre class="programlisting">#define LUCYX
+#define BADEXIT -1
+
+#ifdef LUCYX
+    *ptyv = open ("/dev/ptc", O_RDWR | O_NDELAY, 0);
+    if (fd &lt; 0)
+        return BADEXIT;
+#else
+    fprintf (stderr, "You can't do that on this system!");
+#endif</pre><p class="copyright">If you define a region around this chunk of code and type <span><strong class="calibre5">C-c C-e</strong></span>, you see following the message:</p><a id="I_9_tt475" class="calibre2"></a><pre class="programlisting">Invoking /lib/cpp -C on region...</pre><p class="copyright">followed by this:</p><a id="I_9_tt476" class="calibre2"></a><pre class="programlisting">done</pre><p class="copyright">Then you see a <code class="calibre21">*Macroexpansion*</code> window that
+contains this result:</p><a id="I_9_tt477" class="calibre2"></a><pre class="programlisting">    *ptyv = open ("/dev/ptc", O_RDWR | O_NDELAY, 0);
+    if (fd &lt; 0)
+        return -1;</pre><p class="copyright">If you want to use <span><strong class="calibre5">c-macro-expand</strong></span>
+with a different C preprocessor command, instead of the default
+<span><strong class="calibre5">/lib/cpp -C</strong></span> (the <span><strong class="calibre5">-C</strong></span> option means "preserve
+comments in the output"), you can set the variable
+<span><strong class="calibre5">c-macro-preprocessor</strong></span>. For example,
+if you want to use an experimental preprocessor whose filename is
+<span><em class="calibre7">/usr/local/lib/cpp</em></span>, put the following line in
+your <span><em class="calibre7">.emacs</em></span> file:</p><a id="I_9_tt478" class="calibre2"></a><pre class="programlisting">(setq c-macro-preprocessor "/usr/local/lib/cpp -C")</pre><p class="copyright">It's highly recommended that you keep the <span><strong class="calibre5">-C</strong></span> option for not deleting comments in your
+code.</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-9-SECT-3.4" class="calibre1"></a>C++ Mode Differences</h2></div></div></div><p class="copyright">As we mentioned before, C++ mode uses <a id="gnu3-CHP-9-ITERM-2578" class="calibre2"></a>the same Emacs Lisp package as C
+mode. When you're in C++ mode, Emacs understands C++
+syntax, as opposed to C (or Objective-C) syntax. That results in
+differences in how some of the commands discussed here behave, but in
+ways that are not noticeable to the user.</p><p class="copyright">There are few apparent differences between C++ and C mode. The most
+important is the Emacs Lisp code you need to put in your
+<span><em class="calibre7">.emacs</em></span> file to customize C++ mode: instead of
+<span><strong class="calibre5">c-mode-hook</strong></span>, you use <span><strong class="calibre5">c++-mode-hook</strong></span>. For example, if you want C++
+mode's indentation style set to <span><strong class="calibre5">Stroustrup</strong></span> with automatic newlines instead of
+the default style, put the following in your
+<span><em class="calibre7">.emacs</em></span> file:</p><a id="I_9_tt479" class="calibre2"></a><pre class="programlisting">(add-hook 'c++-mode-hook
+      '(lambda ( )
+         (c-set-style "Stroustrup")
+         (c-toggle-auto-state)))</pre><p class="copyright">Notice that you can set hooks for C mode and C++ mode separately this
+way, so that if you program in both languages, you can set up
+separate indentation styles for each.</p><p class="copyright">C++ mode provides an additional command: <span><strong class="calibre5">C-c
+</strong></span>: (for <span><strong class="calibre5">c-scope-operator</strong></span>).
+This command inserts the C++ double colon (::) scope operator.
+It's necessary because the colon (:) is normally
+bound to electric functionality that can reindent the line when you
+don't want that done. The scope operator can appear
+virtually anywhere in C++ code whereas the single colon usually
+denotes a <span><em class="calibre7">case</em></span> label, which requires special
+indentation. The <span><strong class="calibre5">C-c </strong></span>: command may
+seem somewhat clumsy, but it's a necessary
+workaround to a syntactic clash in the C++ language.</p><p class="copyright">Finally, both C and C++ mode contain the commands <span><strong class="calibre5">c-forward-into-nomenclature</strong></span> and <span><strong class="calibre5">c-backward-into-nomenclature</strong></span>, which
+aren't bound to any keystrokes by default. These are
+like <span><strong class="calibre5">forward-word</strong></span> and <span><strong class="calibre5">backward-word</strong></span>, respectively, but they treat
+capital letters in the middle of words as if they were starting new
+words. For example, they treat <span><em class="calibre7">ThisVariableName</em></span>
+as if it were three separate words while the standard <span><strong class="calibre5">forward-word</strong></span> and <span><strong class="calibre5">backward-word</strong></span> commands treat it as one word.
+<span><em class="calibre7">ThisTypeOfVariableName</em></span> is a style used by C++
+programmers, as opposed to
+<span><em class="calibre7">this_type_of_variable_name</em></span>, which is somehow
+more endemic to old-school C code.</p><p class="copyright">C++ programmers may want to bind <span><strong class="calibre5">c-forward-into-nomenclature</strong></span> and <span><strong class="calibre5">c-backward-into-nomenclature</strong></span> to the keystrokes
+normally bound to the standard word motion commands. We show you how
+to do this in "Customizing Existing
+Modes" in <a class="calibre2" href="ch11.html" title="Chapter 11. Emacs Lisp Programming">Chapter 11</a>.</p><p class="copyright">We've covered the main features of C and C++ modes,
+but actually these modes include many more features, most of them
+quite obscure or intended only for hardcore Emacs Lisp-adept
+customizers. Look in the Emacs Lisp package <span><strong class="calibre5">cc-mode.el</strong></span>—and the ever-expanding list
+of <span><strong class="calibre5">cc-</strong></span> helper packages—for
+more details.</p></div><div class="book"><br class="book"/><hr class="calibre4"/><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-9-FNOTE-7" href="#gnu3-CHP-9-FNOTE-7" class="calibre2">7</a>] </sup>We
+know! There is no <span><strong class="calibre5">M-x cc-mode</strong></span>. It
+can be confusing. Just try to remember that the modes are named
+directly after the language they support.</p></div><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-9-FNOTE-8" href="#gnu3-CHP-9-FNOTE-8" class="calibre2">8</a>] </sup>The function commands
+have "defun" in their names because
+they are actually adaptations of analogous commands in Lisp mode; a
+defun is a function definition in Lisp.</p></div><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-9-FNOTE-9" href="#gnu3-CHP-9-FNOTE-9" class="calibre2">9</a>] </sup>These emulate
+<span><strong class="calibre5">electric-c-mode</strong></span> in the old Gosling
+Emacs.</p></div></div></div></div>
+
+{% endraw %}
+

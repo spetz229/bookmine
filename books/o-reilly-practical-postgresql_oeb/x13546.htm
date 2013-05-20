@@ -1,0 +1,398 @@
+---
+layout: page
+title: "Unknown"
+prev: c13329.htm
+next: x14110.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="c13329.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 7. Advanced Features</td><td width="10%" valign="bottom" class="calibre5"><a href="x14110.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="AEN13546" class="calibre8">Advanced Table Techniques</a></h1><p class="calibre9">PostgreSQL provides several ways to constrain values inserted and updated within tables.
+    One of these is the availability of table and column <span><i class="EMPHASIS">constraints</i></span>.</p><p class="calibre9">PostgreSQL also supports an advanced object-relational table concept called <span><i class="EMPHASIS">inheritance</i></span>.
+    Inheritance allows separate tables to have an explicit parent-child relationship and, through this relationship, share
+    columns in a hierarchical fashion.</p><p class="calibre9">The following sections document both types of SQL constraints, as well as the creation and application of inherited
+    tables.</p><div class="NAVHEADER"><h2 class="SECT"><a name="CONSTRAINTS" class="calibre8">Using Constraints</a></h2><p class="calibre9">Constraints are table attributes used to define rules on the type of data values allowed within specified columns. By
+      enforcing these rules within the database, you can effectively safeguard against incorrect or inappropriate data being
+      added to the database.</p><p class="calibre9">When you create a table, you can create a constraint using the <tt class="REPLACEABLE">CREATE TABLE</tt>
+      command's <tt class="REPLACEABLE">CONSTRAINT</tt> clause. There are two types of constraints: column constraints and
+      table constraints.</p><p class="calibre9">Column constraints apply only to a single column, while table constraints may apply to one or more columns.  Within
+      the <tt class="REPLACEABLE">CREATE TABLE</tt> command, the syntax for a column constraint follows immediately after a
+      column definition, whereas the syntax for a table constraint exists in its own block, separated by a comma from any
+      existing column definitions. A table constraint relies on its definition, rather than placement in the syntax, to indicate
+      the columns affected by its restrictions.</p><p class="calibre9">The following sections discuss the different rules a constraint can enforce. </p><div class="NAVHEADER"><h3 class="AUTHOR"><a name="COLUMNCONSTRAINTS" class="calibre8">Column constraints</a></h3><p class="calibre9">Performing the <tt class="REPLACEABLE">\h CREATE TABLE</tt> slash command within <span><i class="EMPHASIS">psql</i></span>
+        displays several detailed syntax diagrams for the constraints that may be placed on a table. Here is the
+        syntax for a column constraint:</p><pre class="SCREEN">  [ CONSTRAINT <tt class="REPLACEABLE"><i class="EMPHASIS">constraint_name</i></tt> ]
+  { NOT NULL | UNIQUE | PRIMARY KEY | DEFAULT <tt class="REPLACEABLE"><i class="EMPHASIS">value</i></tt> | CHECK ( <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> ) |
+    REFERENCES table [ ( <tt class="REPLACEABLE"><i class="EMPHASIS">column</i></tt> ) ]
+               [ MATCH FULL | MATCH PARTIAL ]
+               [ ON DELETE <tt class="REPLACEABLE"><i class="EMPHASIS">action</i></tt> ]
+               [ ON UPDATE <tt class="REPLACEABLE"><i class="EMPHASIS">action</i></tt> ]
+               [ DEFERRABLE | NOT DEFERRABLE ]
+               [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ]
+  }</pre><p class="calibre9">This syntax immediately follows the data type of the column to be constrained (and precedes any commas separating
+        it from other columns) in the <tt class="REPLACEABLE">CREATE TABLE</tt> statement. It may be used with as many
+        columns as is necessary. Notice that the <tt class="REPLACEABLE">CONSTRAINT</tt> keyword and
+        <tt class="REPLACEABLE">constraint_name</tt> identifier are optional, and may be omitted.</p><p class="calibre9">There are six sets of column constraint keywords that may be applied. Some of the effects of these constraints are
+        implicitly defined by others. The constraint keywords are as follows:</p><p class="calibre9"> </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">NOT NULL</tt></dt><dd class="calibre16"><p class="calibre9">                Specifies that the column is not allowed to contain <tt class="REPLACEABLE">NULL</tt> values. Using the
+                constraint <tt class="REPLACEABLE">CHECK (</tt><tt class="REPLACEABLE"><i class="EMPHASIS">column</i></tt> NOT NULL) is equivalent to using the
+                <tt class="REPLACEABLE">NOT NULL</tt> constraint.
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">UNIQUE</tt></dt><dd class="calibre16"><p class="calibre9">                Specifies that the same value may not be inserted in this column twice. Note that the
+                <tt class="REPLACEABLE">UNIQUE</tt> constraint allows more than one <tt class="REPLACEABLE">NULL</tt>
+                value to be in a column, as <tt class="REPLACEABLE">NULL</tt> values technically never match another value.
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">PRIMARY KEY</tt></dt><dd class="calibre16"><p class="calibre9">                Implies both <tt class="REPLACEABLE">UNIQUE</tt> and <tt class="REPLACEABLE">NOT NULL</tt> constraints,
+                and causes an index to be created on the column. A table is restricted to having only one primary key constraint.
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">DEFAULT </tt><tt class="REPLACEABLE"><i class="EMPHASIS">value</i></tt></dt><dd class="calibre16"><p class="calibre9">                Causes unspecified input values to be replaced with a default value of <tt class="REPLACEABLE"><i class="EMPHASIS">value</i></tt>. This value
+                must be of the same data type as the column it applies to. PostgreSQL 7.1.x does not
+                support subselects as default values.
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">CHECK </tt><tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt></dt><dd class="calibre16"><p class="calibre9">                Defines a <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> that the value must satisfy for an
+                <tt class="REPLACEABLE">INSERT</tt> or <tt class="REPLACEABLE">UPDATE</tt> operation to succeed on that
+                row. The condition is an expression that returns a Boolean result. Used as a column constraint, only the one column
+                being defined can be referenced by the <tt class="REPLACEABLE">CHECK</tt> clause.
+              </p></dd></dl></div>
+<p class="calibre9">The sixth column constraint, <tt class="REPLACEABLE">REFERENCES</tt>, contains the following clauses:</p><p class="calibre9"> </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">REFERENCES </tt><tt class="REPLACEABLE"><i class="EMPHASIS">table</i></tt> [ ( <tt class="REPLACEABLE"><i class="EMPHASIS">column</i></tt> ) ]</dt><dd class="calibre16"><p class="calibre9">                Input values to the constrained column are checked against the values of the <tt class="REPLACEABLE"><i class="EMPHASIS">column</i></tt> column
+                within the <tt class="REPLACEABLE"><i class="EMPHASIS">table</i></tt> table. If a matching value on this column is not found in the column that it references, the <tt class="REPLACEABLE">INSERT</tt> or <tt class="REPLACEABLE">UPDATE</tt> will
+                fail. If <tt class="REPLACEABLE"><i class="EMPHASIS">column</i></tt> is omitted, the primary key on <tt class="REPLACEABLE"><i class="EMPHASIS">table</i></tt> is used, if one exists.
+              </p><p class="calibre9">                
+                This column constraint is similar to the <tt class="REPLACEABLE">FOREIGN KEY</tt> table discussed in the next
+                section. Functionally, the <tt class="REPLACEABLE">REFERENCES</tt> column constraint is very similar to a
+                <tt class="REPLACEABLE">FOREIGN KEY</tt> column constraint.
+              
+              </p><p class="calibre9">                
+                See <a href="x13546.htm#CREATINGATABLEWITHTABLECONSTRAINTS">Example 7-8</a> for an example of a table being created with a
+                <tt class="REPLACEABLE">FOREIGN KEY</tt> table constraint.
+              
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">MATCH FULL | MATCH PARTIAL</tt></dt><dd class="calibre16"><p class="calibre9">                
+                The <tt class="REPLACEABLE">MATCH</tt> clause affects what kind of <tt class="REPLACEABLE">NULL</tt> and
+                non-<tt class="REPLACEABLE">NULL</tt> values are allowed to be mixed on insertion into a table whose foreign
+                key references <span><i class="EMPHASIS">multiple columns</i></span>. The <tt class="REPLACEABLE">MATCH</tt> clause is
+                therefore only practically applicable to table constraints, though the syntax is technically valid in a column
+                constraint as well.</p><p class="calibre9"><tt class="REPLACEABLE">MATCH FULL</tt> disallows insertion of row data whose columns contain
+                <tt class="REPLACEABLE">NULL</tt> values unless all referenced columns are
+                <tt class="REPLACEABLE">NULL</tt>. As of PostgreSQL 7.1.x, <tt class="REPLACEABLE">MATCH PARTIAL</tt> is
+                not supported. Not specifying either clause allows <tt class="REPLACEABLE">NULL</tt> columns to satisfy the
+                constraint.
+              
+              </p><p class="calibre9">                
+                Again, as column constraints may only be placed on a single column, this clause is only directly applicable to
+                table constraints.
+              
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">ON DELETE </tt><tt class="REPLACEABLE"><i class="EMPHASIS">action</i></tt></dt><dd class="calibre16"><p class="calibre9">                
+                When a <tt class="REPLACEABLE">DELETE</tt> is executed on a referenced row in the referenced table, one of
+                the following actions will be executed upon the constrained column, as specified by <tt class="REPLACEABLE"><i class="EMPHASIS">action</i></tt>:
+                
+                </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre17"><dt class="NAVHEADER"><tt class="REPLACEABLE">NO ACTION</tt></dt><dd class="calibre16"><p class="calibre9">                      Produces an error if the reference is violated. This is the default if
+                      <tt class="REPLACEABLE"><i class="EMPHASIS">action</i></tt> is not specified.
+                    </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">RESTRICT</tt></dt><dd class="calibre16"><p class="calibre9">                      Identical to <tt class="REPLACEABLE">NO ACTION</tt>.
+                    </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">CASCADE</tt></dt><dd class="calibre16"><p class="calibre9">                      Removes all rows which reference the deleted row.
+                    </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">SET NULL</tt></dt><dd class="calibre16"><p class="calibre9">                      Assigns a <tt class="REPLACEABLE">NULL</tt> value to all referenced column values.
+                    </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">SET DEFAULT</tt></dt><dd class="calibre16"><p class="calibre9">                      Sets all referenced columns to their default values.
+                    </p></dd></dl></div>
+</dd><dt class="NAVHEADER"><tt class="REPLACEABLE">ON UPDATE action</tt></dt><dd class="calibre16"><p class="calibre9">                
+                When an <tt class="REPLACEABLE">UPDATE</tt> statement is performed on a referenced row in the referenced
+                table, the same actions are available as with the <tt class="REPLACEABLE">ON DELETE</tt> clause. The default
+                action is also <tt class="REPLACEABLE">NO ACTION</tt>.
+              </p><p class="calibre9">                Specifying <tt class="REPLACEABLE">CASCADE</tt> as the <tt class="REPLACEABLE">ON UPDATE</tt> action
+                updates all of the rows that reference the updated row with the new value (rather than deleting them, as would be the case with
+                <tt class="REPLACEABLE">ON DELETE CASCADE</tt>).
+              
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">DEFERRABLE | NOT DEFERRABLE</tt></dt><dd class="calibre16"><p class="calibre9">
+<tt class="REPLACEABLE">DEFERRABLE</tt> gives you the option of postponing enforcement of the constraint to
+                the end of a transaction rather than having it enforced at the end of each statement. Use the
+                <tt class="REPLACEABLE">INITIALLY</tt> clause to specify the initial point at which the constraint will be
+                enforced.
+              </p><p class="calibre9">
+<tt class="REPLACEABLE">NOT DEFERRABLE</tt> means the enforcement of the constraint must always be done
+                immediately as each statement is executed. Users do not have the option to defer enforcement to the end of a
+                transaction when this is set. This is the default.
+                
+                
+              
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">INITIALLY DEFERRED | INITIALLY IMMEDIATE</tt></dt><dd class="calibre16"><p class="calibre9">                
+                The constraint must be <tt class="REPLACEABLE">DEFERRABLE</tt> in order to specify the
+                <tt class="REPLACEABLE">INITIALLY</tt> clause. <tt class="REPLACEABLE">INITIALLY DEFERRED</tt> causes
+                enforcement to be postponed until the end of the transaction is reached, whereas <tt class="REPLACEABLE">INITIALLY IMMEDIATE</tt> causes constraint checking to be performed after each
+                statement. <tt class="REPLACEABLE">INITIALLY IMMEDIATE</tt> is the default when the
+                <tt class="REPLACEABLE">INITIALLY</tt> clause is not specified.
+              
+              </p></dd></dl></div>
+<p class="calibre9"><a href="x13546.htm#CREATINGATABLEWITHCOLUMNCONSTRAINTS">Example 7-7</a>
+        shows how to create a table called <tt class="REPLACEABLE">employees</tt> with a variety of simple constraints.</p><div class="NAVHEADER"><a name="CREATINGATABLEWITHCOLUMNCONSTRAINTS"></a><p class="calibre9"><b class="calibre10">Example 7-7. Creating a table with column constraints</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">CREATE TABLE employees</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">            (id integer PRIMARY KEY CHECK (id &gt; 100),</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">             last_name text NOT NULL,</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">             first_name text);</b></tt>
+NOTICE:  CREATE TABLE/PRIMARY KEY will create implicit index 'employees_pkey'
+for table 'employees'
+CREATE</pre></div><p class="calibre9"><a href="x13546.htm#CREATINGATABLEWITHCOLUMNCONSTRAINTS">Example 7-7</a> creates a column called <tt class="REPLACEABLE">id</tt>,
+        of type <tt class="REPLACEABLE">integer</tt> which has both a <tt class="REPLACEABLE">PRIMARY KEY</tt> constraint
+        and a <tt class="REPLACEABLE">CHECK</tt> constraint. The <tt class="REPLACEABLE">PRIMARY KEY</tt> constraint implies
+        both <tt class="REPLACEABLE">NOT NULL</tt> and <tt class="REPLACEABLE">UNIQUE</tt>, as well as implicitly creates
+        the <tt class="REPLACEABLE">employees_ pkey</tt> index to be used on the column. The
+        <tt class="REPLACEABLE">CHECK</tt> constraint verifies that the value of <tt class="REPLACEABLE">id</tt> is greater than
+        100. This means that any attempt to <tt class="REPLACEABLE">INSERT</tt> or
+        <tt class="REPLACEABLE">UPDATE</tt> row data for the <tt class="REPLACEABLE">employees</tt> table with an
+        <tt class="REPLACEABLE">id</tt> value of less-than or equal-to 100 will fail.</p><p class="calibre9">The <tt class="REPLACEABLE">employees</tt> table created in <a href="x13546.htm#CREATINGATABLEWITHCOLUMNCONSTRAINTS">Example 7-7</a> also contains a column named <tt class="REPLACEABLE">last_name</tt> of
+        type <tt class="REPLACEABLE">text</tt> which has a <tt class="REPLACEABLE">NOT NULL</tt> constraint enforced.
+        This is a much simpler constraint; it disallows the addition of employees whose last name values are
+        input as <tt class="REPLACEABLE">NULL</tt>. In other words, users must supply a last name for each employee. </p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>Conditions set with the <tt class="REPLACEABLE">CHECK</tt> clause must involve values of comparable data
+          types.</p></blockquote></div></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="TABLECONSTRAINTS" class="calibre8">Table constraints</a></h3><p class="calibre9">Unlike column constraints, a table constraint can be defined on more than one column of a table. Here is the syntax
+        to create a table constraint: </p><pre class="SCREEN">  [ CONSTRAINT <tt class="REPLACEABLE"><i class="EMPHASIS">constraint_name</i></tt> ]
+  { UNIQUE ( <tt class="REPLACEABLE"><i class="EMPHASIS">column</i></tt> [, ...] ) |
+    PRIMARY KEY ( <tt class="REPLACEABLE"><i class="EMPHASIS">column</i></tt> [, ...] ) |
+    CHECK ( <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> ) |
+    FOREIGN KEY ( <tt class="REPLACEABLE"><i class="EMPHASIS">column</i></tt> [, ... ] )
+                REFERENCES table [ ( <tt class="REPLACEABLE"><i class="EMPHASIS">column</i></tt> [, ... ] ) ]
+                [ MATCH FULL | MATCH PARTIAL ]
+                [ ON DELETE <tt class="REPLACEABLE"><i class="EMPHASIS">action</i></tt> ]
+                [ ON UPDATE <tt class="REPLACEABLE"><i class="EMPHASIS">action</i></tt> ]
+                [ DEFERRABLE | NOT DEFERRABLE ]
+                [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ]</pre><p class="calibre9"><tt class="REPLACEABLE">CONSTRAINT</tt> <tt class="REPLACEABLE"><i class="EMPHASIS">constraint_name</i></tt> provides an optional name for the constraint. Naming a
+        constraint is recommended, as it provides you with a meaningful name for the purpose of the constraint, rather than an
+        automatically generated, generic name. In the future, this name also may be useful in removing constraints (e.g., when
+        PostgreSQL's <tt class="REPLACEABLE">DROP CONSTRAINT</tt> clause of the <tt class="REPLACEABLE">ALTER TABLE</tt>
+        implemented). The other clauses define four general types of table constraints:</p><p class="calibre9"> </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">PRIMARY KEY ( </tt><tt class="REPLACEABLE"><i class="EMPHASIS">column</i></tt> [, ...] )</dt><dd class="calibre16"><p class="calibre9">                
+                The <tt class="REPLACEABLE">PRIMARY KEY</tt> table constraint is similar to the
+                
+                <tt class="REPLACEABLE">PRIMARY KEY</tt> column constraint. As a table constraint,
+                
+                <tt class="REPLACEABLE">PRIMARY KEY</tt> allows multiple columns to be defined in a parenthetical expression,
+                separated by commas. An implicit index will be created across columns. The combination of values for each column
+                specified must therefore amount to only unique and non-<tt class="REPLACEABLE">NULL</tt> values, as with the
+                <tt class="REPLACEABLE">PRIMARY KEY</tt> column constraint.
+              
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">UNIQUE ( </tt><tt class="REPLACEABLE"><i class="EMPHASIS">column</i></tt> [, ...] )</dt><dd class="calibre16"><p class="calibre9">                
+                Specifies that the combination of values for the columns listed in the expression following the
+                <tt class="REPLACEABLE">UNIQUE</tt> keyword may not amount to duplicate values.
+                <tt class="REPLACEABLE">NULL</tt> values are allowed more than once, as <tt class="REPLACEABLE">NULL</tt>
+                technically never matches any other value.
+              
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">CHECK ( </tt><tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> )</dt><dd class="calibre16"><p class="calibre9">                
+                Defines a <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> that incoming row data must satisfy for an
+                <tt class="REPLACEABLE">INSERT</tt> or <tt class="REPLACEABLE">UPDATE</tt> operation to succeed. The
+                condition is an expression that returns a Boolean result. Used as a table constraint, more than one column can be
+                referenced by the <tt class="REPLACEABLE">CHECK</tt> clause.
+              
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">FOREIGN KEY ( </tt><tt class="REPLACEABLE"><i class="EMPHASIS">column</i></tt> [, ... ] ) REFERENCES <tt class="REPLACEABLE"><i class="EMPHASIS">table</i></tt> [ ( <tt class="REPLACEABLE"><i class="EMPHASIS">column</i></tt> [, ... ] ) ]</dt><dd class="calibre16"><p class="calibre9">                
+                Allows multiple columns to be specified as the source for the <tt class="REPLACEABLE">REFERENCES</tt> clause.
+                The syntax following the <tt class="REPLACEABLE">FOREIGN KEY</tt> clause and its specified columns is
+                identical to that of the column <tt class="REPLACEABLE">REFERENCES</tt> constraint.
+              
+              </p></dd></dl></div>
+<p class="calibre9"><a href="x13546.htm#CREATINGATABLEWITHTABLECONSTRAINTS">Example 7-8</a> creates the Book Town <tt class="REPLACEABLE">editions</tt>
+        table. It creates three table constraints. A detailed explanation follows the example.</p><div class="NAVHEADER"><a name="CREATINGATABLEWITHTABLECONSTRAINTS"></a><p class="calibre9"><b class="calibre10">Example 7-8. Creating a table with table constraints</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">CREATE TABLE editions</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">             (isbn text,</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">             book_id integer,</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">             edition integer,</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">             publisher_id integer,</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">             publication date,</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">             type char,</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">             CONSTRAINT pkey PRIMARY KEY (isbn),</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">             CONSTRAINT integrity CHECK (book_id IS NOT NULL</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">                                         AND edition IS NOT NULL),</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">             CONSTRAINT book_exists FOREIGN KEY (book_id)</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">                        REFERENCES books (id)</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">                        ON DELETE CASCADE</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">                        ON UPDATE CASCADE);</b></tt>
+NOTICE:  CREATE TABLE/PRIMARY KEY will create implicit index 'pkey' for table
+'editions'
+NOTICE:  CREATE TABLE will create implicit trigger(s) for FOREIGN KEY check(s)
+CREATE</pre></div><p class="calibre9">The first constraint, <tt class="REPLACEABLE">pkey</tt> is a <tt class="REPLACEABLE">PRIMARY KEY</tt>
+        constraint on the <tt class="REPLACEABLE">isbn</tt> column, and behaves identically to a
+        
+        <tt class="REPLACEABLE">PRIMARY KEY</tt> column constraint (because only one column target is supplied).</p><p class="calibre9">The constraint named <tt class="REPLACEABLE">integrity</tt> uses the <tt class="REPLACEABLE">CHECK</tt> clause to
+        ensure that neither the <tt class="REPLACEABLE">book_id</tt> nor <tt class="REPLACEABLE">edition</tt> columns ever
+        contain <tt class="REPLACEABLE">NULL</tt> values.</p><p class="calibre9">Finally, the <tt class="REPLACEABLE">book_exists</tt> constraint uses the <tt class="REPLACEABLE">FOREIGN KEY</tt>
+        
+        and <tt class="REPLACEABLE">REFERENCES</tt> clauses to verify that the <tt class="REPLACEABLE">book_id</tt> value
+        always exists within the <tt class="REPLACEABLE">books</tt> table in the <tt class="REPLACEABLE">id</tt> column.
+        Furthermore, since the <tt class="REPLACEABLE">CASCADE</tt> keyword is supplied for both the
+        
+        <tt class="REPLACEABLE">ON DELETE</tt> and <tt class="REPLACEABLE">ON UPDATE</tt> clauses, any modifications to
+        the <tt class="REPLACEABLE">id</tt> column in the <tt class="REPLACEABLE">books</tt> table will also be made to
+        the corresponding rows of the editions table, and any deletions from <tt class="REPLACEABLE">books</tt> will result
+        in corresponding rows being deleted from <tt class="REPLACEABLE">editions</tt>.  </p><p class="calibre9">Notice that both an implicit index named <tt class="REPLACEABLE">editions_pkey</tt> on the
+        <tt class="REPLACEABLE">isbn</tt> column and an implicit trigger are created from these table constraints.
+        The implicit index is used in the enforcement of the <tt class="REPLACEABLE">PRIMARY KEY</tt> constraint.
+        The implicit trigger enforces the <tt class="REPLACEABLE">FOREIGN KEY</tt> constraint.</p></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN13889" class="calibre8">Adding a constraint</a></h3><p class="calibre9">The <tt class="REPLACEABLE">ALTER TABLE</tt> command is intended to allow the addition of table constraints to
+        existing tables. As of PostgreSQL 7.1.x, however, only the addition of <tt class="REPLACEABLE">CHECK</tt> and
+        <tt class="REPLACEABLE">FOREIGN KEY</tt> constraints is supported.</p><p class="calibre9">Here is the syntax to add a constraint with <tt class="REPLACEABLE">ALTER TABLE</tt>:</p><pre class="SCREEN">  ALTER TABLE <tt class="REPLACEABLE"><i class="EMPHASIS">table</i></tt>
+        ADD [ CONSTRAINT <tt class="REPLACEABLE"><i class="EMPHASIS">name</i></tt> ]
+        { CHECK ( <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> ) |
+          FOREIGN KEY ( <tt class="REPLACEABLE"><i class="EMPHASIS">column</i></tt> [, ... ] )
+                      REFERENCES <tt class="REPLACEABLE"><i class="EMPHASIS">table</i></tt> [ ( <tt class="REPLACEABLE"><i class="EMPHASIS">column</i></tt> [, ... ] ) ]
+                      [ MATCH FULL | MATCH PARTIAL ]
+                      [ ON DELETE <tt class="REPLACEABLE"><i class="EMPHASIS">action</i></tt> ]
+                      [ ON UPDATE <tt class="REPLACEABLE"><i class="EMPHASIS">action</i></tt> ]
+                      [ DEFERRABLE | NOT DEFERRABLE ]
+                      [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ]
+        }</pre><p class="calibre9"><a href="x13546.htm#ADDINGACONSTRAINTTOANEXISTINGTABLE">Example 7-9</a> adds a <tt class="REPLACEABLE">FOREIGN KEY</tt> constraint
+        to the Book Town <tt class="REPLACEABLE">books</tt> table's <tt class="REPLACEABLE">subject_id</tt> column. This
+        constraint references the <tt class="REPLACEABLE">id</tt> column within the <tt class="REPLACEABLE">subjects</tt>
+        table, and will ensure that no values are inserted or modified on the <tt class="REPLACEABLE">subject_id</tt> column
+        with a value which cannot be found in the <tt class="REPLACEABLE">subjects</tt> table's
+        <tt class="REPLACEABLE">id</tt> column.</p><div class="NAVHEADER"><a name="ADDINGACONSTRAINTTOANEXISTINGTABLE"></a><p class="calibre9"><b class="calibre10">Example 7-9. Adding a constraint to an existing table</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">ALTER TABLE books ADD CONSTRAINT legal_subjects</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">                  FOREIGN KEY (subject_id)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">                  REFERENCES subjects (id);</b></tt>
+NOTICE:  ALTER TABLE ... ADD CONSTRAINT will create implicit trigger(s) for
+FOREIGN KEY check(s)
+CREATE</pre></div></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN13925" class="calibre8">Removing a constraint</a></h3><p class="calibre9">As of PostgreSQL 7.1.x, constraints may not be directly removed from a table. The only way to achieve the net
+        effect of dropping a constraint is to create a copy of the table which is nearly identical to the original, with any
+        unwanted constraints omitted. The data can then be copied from the original table to the new table, and the tables renamed
+        using the <tt class="REPLACEABLE">ALTER TABLE</tt> command so that the new copy replaces the original table.</p><div class="NAVHEADER"><p class="calibre9"></p><table class="calibre" border="1" width="100%"><tr class="calibre1"><td class="calibre23"><b class="calibre10">Warning</b></td></tr><tr class="calibre1"><td class="calibre15"><p class="calibre9">Be aware of who is connected to, and accessing, any tables that you wish to restructure with this work-around.
+          Data should not be inserted or modified at any time in the middle of the operation; therefore, you may need to
+          temporarily disallow connection to the database if it is a highly active table, make the modifications, and finally,
+          restart the system when finished.</p></td></tr></table></div><p class="calibre9"><a href="x13546.htm#REMOVINGACONSTRAINT">Example 7-10</a> demonstrates this work-around method for removing a constraint by effectively
+        removing the <tt class="REPLACEABLE">legal_subjects</tt> <tt class="REPLACEABLE">FOREIGN KEY</tt> constraint from the <tt class="REPLACEABLE">books</tt> table (see
+        <a href="x13546.htm#ADDINGACONSTRAINTTOANEXISTINGTABLE">Example 7-9</a>). Notice that
+        the <tt class="REPLACEABLE">books_id_pkey</tt> is removed before the new table is created, so that the new table can
+        be created with an index named <tt class="REPLACEABLE">books_id_ pkey</tt>. This is not necessary, but for the sake of
+        consistency we want to keep the primary key index name the same.</p><div class="NAVHEADER"><a name="REMOVINGACONSTRAINT"></a><p class="calibre9"><b class="calibre10">Example 7-10. Removing a constraint</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">DROP INDEX books_id_pkey;</b></tt>
+DROP
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">CREATE TABLE new_books</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">             (id integer CONSTRAINT books_id_pkey PRIMARY KEY,</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">             title text NOT NULL,</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">             author_id integer,</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">             subject_id integer);</b></tt>
+NOTICE:  CREATE TABLE/PRIMARY KEY will create implicit index 'books_id_pkey'
+for table 'new_books'
+CREATE
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">INSERT INTO new_books SELECT * FROM books;</b></tt>
+INSERT 0 15
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">ALTER TABLE books RENAME TO old_books;</b></tt>
+ALTER
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">ALTER TABLE new_books RENAME TO books;</b></tt>
+ALTER</pre></div></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="INHERITANCE" class="calibre8">Inheritance</a></h2><p class="calibre9">PostgreSQL supports an advanced object-relational mechanism known as <span><i class="EMPHASIS">inheritance</i></span>. Inheritance
+      allows a table to <span><i class="EMPHASIS">inherit</i></span> some of its column attributes from one or more other tables, creating a
+      parent-child relationship. This causes the child table to have each of the same columns and constraints as its inherited
+      table (or tables), as well as its own defined columns.</p><p class="calibre9">When performing a query on an inherited table, the query can be instructed to retrieve either all rows of a table and its
+      descendants, or just the rows in the parent table itself. The child table, on the other hand, will never return rows from
+      its parent.</p><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN13962" class="calibre8">Creating a child table</a></h3><p class="calibre9">A child table is created with the <tt class="REPLACEABLE">CREATE TABLE</tt> SQL command by using the
+        <tt class="REPLACEABLE">INHERITS</tt> clause. This clause consists of the <tt class="REPLACEABLE">INHERITS</tt>
+        keyword, and the name of the table (or tables) from which to inherit.</p><p class="calibre9">Here is the portion of the <tt class="REPLACEABLE">CREATE TABLE</tt> syntax which applies to inheritance:</p><pre class="SCREEN">  CREATE TABLE <tt class="REPLACEABLE"><i class="EMPHASIS">childtable</i></tt> <tt class="REPLACEABLE"><i class="EMPHASIS">definition</i></tt>
+         INHERITS ( <tt class="REPLACEABLE"><i class="EMPHASIS">parenttable</i></tt> [, ...] )</pre><p class="calibre9">In this syntax, <tt class="REPLACEABLE"><i class="EMPHASIS">childtable</i></tt> is the name of the new table to be created,
+        <tt class="REPLACEABLE"><i class="EMPHASIS">definition</i></tt> is the complete table definition (with all the ordinary
+        
+        <tt class="REPLACEABLE">CREATE TABLE</tt> clauses), and <tt class="REPLACEABLE"><i class="EMPHASIS">parenttable</i></tt> is the table whose column
+        structure is to be inherited. More than one parent table may be specified by separating table names with commas.</p><p class="calibre9"><a href="x13546.htm#CREATINGACHILDTABLE">Example 7-11</a> creates a table called <tt class="REPLACEABLE">distinguished_authors</tt>
+        with a single column named <tt class="REPLACEABLE">award</tt> of type <tt class="REPLACEABLE">text</tt>. Since it
+        is instructed to inherit from the <tt class="REPLACEABLE">authors</tt> table by the
+        <tt class="REPLACEABLE">INHERITS</tt> clause it actually is created with four columns; the first three from
+        <tt class="REPLACEABLE">authors</tt>, and the fourth <tt class="REPLACEABLE">awards</tt> column.</p><div class="NAVHEADER"><a name="CREATINGACHILDTABLE"></a><p class="calibre9"><b class="calibre10">Example 7-11. Creating a child table</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">CREATE TABLE distinguished_authors (award text)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">             INHERITS (authors);</b></tt>
+CREATE
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">\d distinguished_authors</b></tt>
+  Table "distinguished_authors"
+ Attribute  |  Type   | Modifier
+------------+---------+----------
+ id         | integer | not null
+ last_name  | text    |
+ first_name | text    |
+ award      | text    |</pre></div><p class="calibre9">As you can see, even though <a href="x13546.htm#CREATINGACHILDTABLE">Example 7-11</a> specified only one column, the
+        <tt class="REPLACEABLE">distinguished_authors</tt> table inherited all of the columns that were originally in the
+        <tt class="REPLACEABLE">authors</tt> table.</p></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN13998" class="calibre8">Using inherited tables</a></h3><p class="calibre9">The relationship between the shared columns of a parent and child table is not purely cosmetic. Inserted values on
+        the <tt class="REPLACEABLE">distinguished_authors</tt> table will <span><i class="EMPHASIS">also</i></span> be visible in the
+        <tt class="REPLACEABLE">authors</tt> table, its parent. However, in the <tt class="REPLACEABLE">authors</tt> table, you will
+        only see the three columns which were inherited. When querying a parent table, you can use the
+        <tt class="REPLACEABLE">ONLY</tt> keyword to specify that rows from child tables are to be omitted from the query
+        results.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>Parent rows are never visible within a query on one of its child tables. Therefore, using the
+          <tt class="REPLACEABLE">ONLY</tt> keyword on a child table would only have an effect if that child table were also
+          inherited by <span><i class="EMPHASIS">another</i></span> table, making it effectively both a parent and a child.</p></blockquote></div><p class="calibre9"><a href="x13546.htm#INSERTINGINTOACHILDTABLE">Example 7-12</a> inserts a new author named <span><i class="EMPHASIS">Neil Simon</i></span> with the award
+        of <span><i class="EMPHASIS">Pulitzer Prize</i></span> into the <tt class="REPLACEABLE">distinguished_authors</tt> table. Notice that
+        the first three inserted values are shared between the parent and child tables.</p><div class="NAVHEADER"><a name="INSERTINGINTOACHILDTABLE"></a><p class="calibre9"><b class="calibre10">Example 7-12. Inserting into a child table</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">INSERT INTO distinguished_authors</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">            VALUES (nextval('author_ids'),</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">            'Simon', 'Neil', 'Pulitzer Prize');</b></tt>
+INSERT 3629421 1</pre></div><p class="calibre9">Since the first three columns of the <tt class="REPLACEABLE">distinguished_authors</tt> table are inherited from
+        the <tt class="REPLACEABLE">authors</tt> table, this author will also appear implicitly as a regular author in the
+        <tt class="REPLACEABLE">authors</tt> table (though the data is not literally inserted into the
+        <tt class="REPLACEABLE">authors</tt> table). Only the
+        <tt class="REPLACEABLE">distinguished_authors</tt> table will show information about awards, however, as inheritance
+        only works one way (descending from parent to child).</p><p class="calibre9"><a href="x13546.htm#SELECTINGWITHINHERITANCE">Example 7-13</a> executes three <tt class="REPLACEABLE">SELECT</tt> statements.  Each of
+        these queries chooses a different target for the <tt class="REPLACEABLE">FROM</tt> clause, while using the same search
+        criteria in the <tt class="REPLACEABLE">WHERE</tt> clause.</p><div class="NAVHEADER"><a name="SELECTINGWITHINHERITANCE"></a><p class="calibre9"><b class="calibre10">Example 7-13. Selecting with inheritance</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT * FROM distinguished_authors</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">         WHERE last_name = 'Simon';</b></tt>
+  id   | last_name | first_name |     award
+-------+-----------+------------+----------------
+ 25043 | Simon     | Neil       | Pulitzer Prize
+(1 row)
+
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT * FROM authors WHERE last_name = 'Simon';</b></tt>
+  id   | last_name | first_name
+-------+-----------+------------
+ 25043 | Simon     | Neil
+(1 row)
+
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT * FROM ONLY authors WHERE last_name = 'Simon';</b></tt>
+ id | last_name | first_name
+----+-----------+------------
+(0 rows)</pre></div><p class="calibre9">Each of the three queries in <a href="x13546.htm#SELECTINGWITHINHERITANCE">Example 7-13</a> look for rows where the
+        <tt class="REPLACEABLE">last_name</tt> column matches the string constant <span><i class="EMPHASIS">Simon</i></span>. The first query
+        selects from the <tt class="REPLACEABLE">distinguished_authors</tt> table, which the data was originally inserted
+        into (in <a href="x13546.htm#INSERTINGINTOACHILDTABLE">Example 7-12</a>), and the requested row is returned.</p><p class="calibre9">The second query in <a href="x13546.htm#SELECTINGWITHINHERITANCE">Example 7-13</a> selects from the parent of
+        <tt class="REPLACEABLE">distinguished_authors</tt>, which is the <tt class="REPLACEABLE">authors</tt> table. Again,
+        a row is retrieved, though this row includes only the columns which are inherited by the
+        <tt class="REPLACEABLE">distinguished_authors</tt>.</p><p class="calibre9">It is important to understand that this data was not literally inserted into both tables, but simply made visible
+        because of the inheritance relationship. This is illustrated by the third and final query in <a href="x13546.htm#SELECTINGWITHINHERITANCE">Example 7-13</a>, which prefixes the <tt class="REPLACEABLE">authors</tt> table name with the
+        <tt class="REPLACEABLE">ONLY</tt> keyword. This keyword indicates that rows are not to be received from child tables, but
+        only from the specified parent; as a result, no rows are returned by the query.</p><p class="calibre9">Some constraints may appear to be violated because of the nature of inherited tables. For example, a column with a
+        <tt class="REPLACEABLE">UNIQUE</tt> constraint placed on it may appear to have the same value twice by including data
+        from inherited children. Make careful use of constraints and inheritance, as a child table does not literally violate
+        such a constraint, though it can appear to if the <tt class="REPLACEABLE">ONLY</tt> keyword is not used when selecting from
+        the parent table.</p></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN14057" class="calibre8">Modifying inherited tables</a></h3><p class="calibre9">As covered in the preceding section, adding values into child and parent tables is fairly straightforward. An
+        insertion of values into a child table will cause values in inherited columns to appear as values in the parent table,
+        though the data itself physically resides in the child table. Insertion of values into a parent table has no effect
+        whatsoever on the child table.</p><p class="calibre9">Likewise, modifying values in a child table is self-explanatory: only the values in the child table are modified,
+        while any values literally in the parent table are unmodified. This is because the data is not literally shared between
+        tables, but can only be <span><i class="EMPHASIS">viewed</i></span> through the hierarchy. A retrieval of rows on the parent table
+        without the <tt class="REPLACEABLE">ONLY</tt> clause will still show both the parent rows, and the modified child
+        rows.</p><p class="calibre9">The effect of modifying existing rows in a parent table is less obvious than the effect of
+        modifying existing rows in a child table. <tt class="REPLACEABLE">UPDATE</tt> and
+        <tt class="REPLACEABLE">DELETE</tt> statements executed on a parent table will, by default, affect not only rows in
+        the parent table, but also any child tables that match the criteria of the statement. <a href="x13546.htm#MODIFYINGPARENTANDCHILDTABLES">Example 7-14</a> performs an <tt class="REPLACEABLE">UPDATE</tt> statement on the
+        <tt class="REPLACEABLE">authors</tt> table. Notice that the row data in the
+        <tt class="REPLACEABLE">distinguished_authors</tt> table is actually affected by this statement.</p><div class="NAVHEADER"><a name="MODIFYINGPARENTANDCHILDTABLES"></a><p class="calibre9"><b class="calibre10">Example 7-14. Modifying parent and child tables</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">UPDATE authors SET first_name = 'Paul'</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">               WHERE last_name = 'Simon';</b></tt>
+UPDATE 1
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT * FROM distinguished_authors;</b></tt>
+  id   | last_name | first_name |     award
+-------+-----------+------------+----------------
+ 25043 | Simon     | Paul       | Pulitzer Prize
+(1 row)</pre></div><p class="calibre9">The <tt class="REPLACEABLE">ONLY</tt> keyword can be used with <tt class="REPLACEABLE">UPDATE</tt>
+        and <tt class="REPLACEABLE">DELETE</tt> in a fashion similar to its use with the
+        <tt class="REPLACEABLE">SELECT</tt> command in order to prevent the type of cascading modification
+        illustrated in <a href="x13546.htm#MODIFYINGPARENTANDCHILDTABLES">Example 7-14</a>. The
+        <tt class="REPLACEABLE">ONLY</tt> keyword should always precede the inherited table name in the SQL syntax.</p><p class="calibre9"><a href="x13546.htm#MODIFYINGPARENTTABLESWITHONLY">Example 7-15</a> demonstrates the use of the <tt class="REPLACEABLE">ONLY</tt> keyword. First, the example inserts a new row for Dr. Seuss into the
+        <tt class="REPLACEABLE">distinguished_authors</tt> table, along with a reference to his Pulitzer Prize. This results in
+        the <tt class="REPLACEABLE">authors</tt> table appearing to have two separate entries for the same author. The old
+        entry (that exists physically in the <tt class="REPLACEABLE">authors</tt> table) is then removed by use of the
+        <tt class="REPLACEABLE">DELETE</tt> SQL command combined with the <tt class="REPLACEABLE">ONLY</tt> keyword.</p><div class="NAVHEADER"><a name="MODIFYINGPARENTTABLESWITHONLY"></a><p class="calibre9"><b class="calibre10">Example 7-15. Modifying parent tables with ONLY</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">INSERT INTO distinguished_authors</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">            VALUES (1809, 'Geisel', </b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">            'Theodor Seuss', 'Pulitzer Prize');</b></tt>
+INSERT 3629488 1
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT * FROM authors</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">         WHERE last_name = 'Geisel';</b></tt>
+  id  | last_name |  first_name
+------+-----------+---------------
+ 1809 | Geisel    | Theodor Seuss
+ 1809 | Geisel    | Theodor Seuss
+(2 rows)
+
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">DELETE FROM ONLY authors </b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       WHERE last_name = 'Geisel';</b></tt>
+DELETE 1</pre></div><p class="calibre9">The end result of <a href="x13546.htm#MODIFYINGPARENTTABLESWITHONLY">Example 7-15</a> is that the record for Dr. Seuss is added to the
+        <tt class="REPLACEABLE">distinguished_authors</tt> table, and subsequently removed from the
+        <tt class="REPLACEABLE">authors</tt> table, as follows:</p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT * FROM authors </b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">         WHERE last_name = 'Geisel';</b></tt>
+  id  | last_name |  first_name
+------+-----------+---------------
+ 1809 | Geisel    | Theodor Seuss
+(1 row)
+
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT * FROM distinguished_authors </b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">         WHERE last_name = 'Geisel';</b></tt>
+  id  | last_name |  first_name   |     award
+------+-----------+---------------+----------------
+ 1809 | Geisel    | Theodor Seuss | Pulitzer Prize
+(1 row)</pre></div></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="c13329.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x14110.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Advanced Features</td><td width="34%" valign="top" class="calibre4"><a href="c13329.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Arrays</td></tr></table></div></div>
+
+{% endraw %}
+

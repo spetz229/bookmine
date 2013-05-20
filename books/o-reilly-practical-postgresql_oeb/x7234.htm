@@ -1,0 +1,43 @@
+---
+layout: page
+title: "Unknown"
+prev: x7050.htm
+next: x7300.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="x7050.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 4. Using SQL with PostgreSQL</td><td width="10%" valign="bottom" class="calibre5"><a href="x7300.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="AEN7234" class="calibre8">Removing Rows with DELETE</a></h1><p class="calibre9">Existing row data within PostgreSQL can be removed with the standard SQL <tt class="REPLACEABLE">DELETE</tt>
+      command. Unless carefully working within transaction blocks, removal via the <tt class="REPLACEABLE">DELETE</tt>
+      command is <span><i class="EMPHASIS">permanent</i></span>, and <span><i class="EMPHASIS">extreme caution</i></span> should therefore be taken before
+      attempting to remove data from your database.</p><p class="calibre9">The syntax to remove one or more rows from a table is as follows:</p><pre class="SCREEN">  DELETE FROM [ ONLY ] <tt class="REPLACEABLE"><i class="EMPHASIS">table</i></tt>
+         [ WHERE <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> ]</pre><p class="calibre9"> </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">DELETE FROM [ ONLY ] </tt><tt class="REPLACEABLE"><i class="EMPHASIS">table</i></tt></dt><dd class="calibre16"><p class="calibre9">              The <tt class="REPLACEABLE">ONLY</tt> keyword may be used to indicate that only the table
+              <tt class="REPLACEABLE"><i class="EMPHASIS">table</i></tt> should have rows removed from it, and none of its sub-tables. This is only relevant if
+              <tt class="REPLACEABLE"><i class="EMPHASIS">table</i></tt> is inherited by any other tables.
+            </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">WHERE </tt><tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt></dt><dd class="calibre16"><p class="calibre9">              The <tt class="REPLACEABLE">WHERE</tt> clause describes under what <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> to delete rows from
+              <tt class="REPLACEABLE"><i class="EMPHASIS">table</i></tt>. If unspecified, <span><i class="EMPHASIS">all rows in the table will be deleted</i></span>.
+            </p></dd></dl></div>
+<p class="calibre9">The <tt class="REPLACEABLE">WHERE</tt> clause is almost always part of a <tt class="REPLACEABLE">DELETE</tt>
+      statement. It specifies which rows in the target table are to be deleted based on its specified conditions, which may be
+      expressed syntactically in the same form as in the <tt class="REPLACEABLE">SELECT</tt> statement.</p><p class="calibre9">It is a good habit to execute a <tt class="REPLACEABLE">SELECT</tt> statement with the intended
+      <tt class="REPLACEABLE">WHERE</tt> clause for your <tt class="REPLACEABLE">DELETE</tt> statement. This allows you
+      to review the data to be deleted before the <tt class="REPLACEABLE">DELETE</tt> statement is actually executed. This
+      technique and a simple <tt class="REPLACEABLE">DELETE</tt> statement are demonstrated in <a href="x7234.htm#DELETINGROWSFROMATABLE">Example 4-57</a>.</p><div class="NAVHEADER"><a name="DELETINGROWSFROMATABLE"></a><p class="calibre9"><b class="calibre10">Example 4-57. Deleting rows from a table</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT * FROM stock</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">         WHERE stock = 0;</b></tt>
+    isbn    | cost  | retail | stock
+------------+-------+--------+-------
+ 0394800753 | 16.00 |  16.95 |     0
+ 0394900014 | 23.00 |  23.95 |     0
+ 0451198492 | 36.00 |  46.95 |     0
+ 0451457994 | 17.00 |  22.95 |     0
+(4 rows)
+
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">DELETE FROM stock</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       WHERE stock = 0;</b></tt>
+DELETE 4</pre></div><p class="calibre9">If a <tt class="REPLACEABLE">WHERE</tt> condition is not specified, the <tt class="REPLACEABLE">DELETE</tt>
+      command removes <span><i class="EMPHASIS">all rows</i></span> within that table, as shown in <a href="x7234.htm#DELETINGALLVALUES">Example 4-58</a>.</p><div class="NAVHEADER"><a name="DELETINGALLVALUES"></a><p class="calibre9"><b class="calibre10">Example 4-58. Deleting all table rows</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">DELETE FROM stock_backup;</b></tt>
+DELETE 16</pre></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="x7050.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x7300.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Modifying Rows with UPDATE</td><td width="34%" valign="top" class="calibre4"><a href="c4890.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Using Sub-Queries</td></tr></table></div></div>
+
+{% endraw %}
+

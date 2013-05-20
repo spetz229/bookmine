@@ -1,0 +1,252 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/apbs04.html
+next: OEBPS/apbs06.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Sinks"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect1_d1e9881" class="calibre1"></a>Sinks</h1></div></div></div><p class="calibre7"></p><p class="calibre7">A sink consumes a stream of data, and produces a result. A sink must always produce a result,
+   and must always produce a single result. This is encoded in the types themselves.</p><p class="calibre7">There is a <code class="literal">Monad</code> instance for sink, making it simple to compose multiple sinks
+   together into a larger sink. You can also use the built-in sink functions to perform most of your
+   work. Like sources, you’ll rarely need to dive into the inner workings. Let’s start off with an
+   example: getting lines from a stream of <code class="literal">Char</code>s (we’ll assume Unix line endings
+   for simplicity).</p><a id="I_programlisting_d1e9895" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">import</code> <code class="nn">Data.Conduit</code>
+<code class="kr">import</code> <code class="kr">qualified</code> <code class="nn">Data.Conduit.List</code> <code class="kr">as</code> <code class="n">CL</code>
+
+<code class="cm">-- Get a single line from the stream.</code>
+<code class="nf">sinkLine</code> <code class="ow">::</code> <code class="kt">Resource</code> <code class="n">m</code> <code class="ow">=&gt;</code> <code class="kt">Sink</code> <code class="kt">Char</code> <code class="n">m</code> <code class="kt">String</code>
+<code class="nf">sinkLine</code> <code class="ow">=</code> <code class="n">sinkState</code>
+    <code class="n">id</code> <code class="cm">-- initial state, nothing at the beginning of the line</code>
+    <code class="n">push</code>
+    <code class="n">close</code>
+  <code class="kr">where</code>
+    <code class="cm">-- On a new line, return the contents up until here</code>
+    <code class="n">push</code> <code class="n">front</code> <code class="s">'</code><code class="se">\n</code><code class="s">'</code> <code class="ow">=</code>
+        <code class="n">return</code> <code class="o">$</code> <code class="kt">StateDone</code> <code class="kt">Nothing</code> <code class="o">$</code> <code class="n">front</code> <code class="kt">[]</code>
+
+    <code class="cm">-- Just another character, add it to the front and keep going</code>
+    <code class="n">push</code> <code class="n">front</code> <code class="n">char</code> <code class="ow">=</code>
+        <code class="n">return</code> <code class="o">$</code> <code class="kt">StateProcessing</code> <code class="o">$</code> <code class="n">front</code> <code class="o">.</code> <code class="p">(</code><code class="n">char</code><code class="kt">:</code><code class="p">)</code>
+
+    <code class="cm">-- Got an EOF before hitting a newline, just give what we have so far</code>
+    <code class="n">close</code> <code class="n">front</code> <code class="ow">=</code> <code class="n">return</code> <code class="o">$</code> <code class="n">front</code> <code class="kt">[]</code>
+
+<code class="cm">-- Get all the lines from the stream, until we hit a blank line or EOF.</code>
+<code class="nf">sinkLines</code> <code class="ow">::</code> <code class="kt">Resource</code> <code class="n">m</code> <code class="ow">=&gt;</code> <code class="kt">Sink</code> <code class="kt">Char</code> <code class="n">m</code> <code class="p">[</code><code class="kt">String</code><code class="p">]</code>
+<code class="nf">sinkLines</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="n">line</code> <code class="ow">&lt;-</code> <code class="n">sinkLine</code>
+    <code class="kr">if</code> <code class="n">null</code> <code class="n">line</code>
+        <code class="kr">then</code> <code class="n">return</code> <code class="kt">[]</code>
+        <code class="kr">else</code> <code class="kr">do</code>
+            <code class="n">lines</code> <code class="ow">&lt;-</code> <code class="n">sinkLines</code>
+            <code class="n">return</code> <code class="o">$</code> <code class="n">line</code> <code class="kt">:</code> <code class="n">lines</code>
+
+<code class="nf">content</code> <code class="ow">::</code> <code class="kt">String</code>
+<code class="nf">content</code> <code class="ow">=</code> <code class="n">unlines</code>
+    <code class="p">[</code> <code class="s">"This is the first line."</code>
+    <code class="p">,</code> <code class="s">"Here's the second."</code>
+    <code class="p">,</code> <code class="s">""</code>
+    <code class="p">,</code> <code class="s">"After the blank."</code>
+    <code class="p">]</code>
+
+<code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="n">lines</code> <code class="ow">&lt;-</code> <code class="n">runResourceT</code> <code class="o">$</code> <code class="kt">CL</code><code class="o">.</code><code class="n">sourceList</code> <code class="n">content</code> <code class="o">$$</code> <code class="n">sinkLines</code>
+    <code class="n">mapM_</code> <code class="n">putStrLn</code> <code class="n">lines</code>
+</pre><p class="calibre7">Running this sample produces the expected output:</p><a id="I_programlisting_d1e9899" class="firstname"></a><pre class="programlistinghaskell">This is the first line.
+Here's the second.</pre><p class="calibre7"><code class="literal">sinkLine</code> demonstrates usage of the <code class="literal">sinkState</code> function, which is very similar to the <code class="literal">sourceState</code> function we just saw. It takes three arguments: an
+      initial state, a push function (takes the current state and next input, and returns a new
+      state and result) and a close function (takes the current state and returns an output). As
+      opposed to <code class="literal">sourceState</code>—which doesn’t need a close
+      function—a sink is required to always return a result.</p><p class="calibre7">Our push function has two clauses. When it gets a newline character, it indicates that
+   processing is complete via <code class="literal">StateDone</code>. The <code class="literal">Nothing</code> indicates
+   that there is no leftover input (we’ll discuss that later). It also gives an output of all the
+   characters it has received. The second clause simply appends the new character to the existing
+   state and indicates that we are still working via <code class="literal">StateProcessing</code>. The close
+   function returns all characters.</p><p class="calibre7"><code class="literal">sinkLines</code> shows how we can use the monadic interface to produce new sinks. If
+   you replace <code class="literal">sinkLine</code> with <code class="literal">getLine</code>, this would look like
+   standard code to pull lines from standard input. This familiar interface should make it easy to
+   get up and running quickly.</p><div class="book" title="Types"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3100021" class="calibre1"></a>Types</h2></div></div></div><p class="calibre7"></p><p class="calibre7">The types for sinks are just a bit more involved than sources. Let’s have a look:</p><a id="I_programlisting_d1e9941" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">type</code> <code class="kt">SinkPush</code> <code class="n">input</code> <code class="n">m</code> <code class="n">output</code> <code class="ow">=</code> <code class="n">input</code> <code class="ow">-&gt;</code> <code class="kt">ResourceT</code> <code class="n">m</code> <code class="p">(</code><code class="kt">SinkResult</code> <code class="n">input</code> <code class="n">m</code> <code class="n">output</code><code class="p">)</code>
+<code class="kr">type</code> <code class="kt">SinkClose</code> <code class="n">m</code> <code class="n">output</code> <code class="ow">=</code> <code class="kt">ResourceT</code> <code class="n">m</code> <code class="n">output</code>
+
+<code class="kr">data</code> <code class="kt">SinkResult</code> <code class="n">input</code> <code class="n">m</code> <code class="n">output</code> <code class="ow">=</code>
+    <code class="kt">Processing</code> <code class="p">(</code><code class="kt">SinkPush</code> <code class="n">input</code> <code class="n">m</code> <code class="n">output</code><code class="p">)</code> <code class="p">(</code><code class="kt">SinkClose</code> <code class="n">m</code> <code class="n">output</code><code class="p">)</code>
+  <code class="o">|</code> <code class="kt">Done</code> <code class="p">(</code><code class="kt">Maybe</code> <code class="n">input</code><code class="p">)</code> <code class="n">output</code>
+
+<code class="kr">data</code> <code class="kt">Sink</code> <code class="n">input</code> <code class="n">m</code> <code class="n">output</code> <code class="ow">=</code>
+    <code class="kt">SinkNoData</code> <code class="n">output</code>
+  <code class="o">|</code> <code class="kt">SinkData</code>
+        <code class="p">{</code> <code class="n">sinkPush</code> <code class="ow">::</code> <code class="kt">SinkPush</code> <code class="n">input</code> <code class="n">m</code> <code class="n">output</code>
+        <code class="p">,</code> <code class="n">sinkClose</code> <code class="ow">::</code> <code class="kt">SinkClose</code> <code class="n">m</code> <code class="n">output</code>
+        <code class="p">}</code>
+  <code class="o">|</code> <code class="kt">SinkLift</code> <code class="p">(</code><code class="kt">ResourceT</code> <code class="n">m</code> <code class="p">(</code><code class="kt">Sink</code> <code class="n">input</code> <code class="n">m</code> <code class="n">output</code><code class="p">))</code>
+</pre><p class="calibre7">Whenever a sink is pushed to, it can either say it needs more data (<code class="literal">Processing</code>) or say it’s all done. When still processing,
+        it
+        must provide updated push and close functions; when done, it returns any
+        leftover input and the output. Fairly straightforward.</p><p class="calibre7">The first real “gotcha” is the three constructors for <code class="literal">Sink</code>. Why do we need
+    <code class="literal">SinkNoData</code>: aren’t sinks all about consuming data? The answer is that we need
+   it to efficiently implement our <code class="literal">Monad</code> instance. When we use
+    <code class="literal">return</code>, we’re giving back a value that requires no data in order to compute it.
+   We could model this with the <code class="literal">SinkData</code> constructor, with something like:</p><a id="I_programlisting_d1e9969" class="firstname"></a><pre class="programlistinghaskell"><code class="nf">myReturn</code> <code class="n">a</code> <code class="ow">=</code> <code class="kt">SinkData</code> <code class="p">(</code><code class="nf">\</code><code class="n">input</code> <code class="ow">-&gt;</code> <code class="n">return</code> <code class="p">(</code><code class="kt">Done</code> <code class="p">(</code><code class="kt">Just</code> <code class="n">input</code><code class="p">)</code> <code class="n">a</code><code class="p">))</code> <code class="p">(</code><code class="n">return</code> <code class="n">a</code><code class="p">)</code>
+</pre><p class="calibre7">But doing so would force reading in an extra bit of input that we don’t need right now, and
+   possibly will never need. (Have a look again at the <code class="literal">sinkLines</code> example.) So
+   instead, we have an extra constructor to indicate that no input is required. Likewise,
+    <code class="literal">SinkLift</code> is provided in order to implement an efficient
+    <code class="literal">MonadTrans</code> instance.</p></div><div class="book" title="Sinks: no helpers"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3100160" class="calibre1"></a>Sinks: no helpers</h2></div></div></div><p class="calibre7"></p><p class="calibre7">Let’s try to implement some sinks on the “bare metal,” without any helper
+        functions.</p><a id="I_programlisting_d1e9989" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">import</code> <code class="nn">Data.Conduit</code>
+<code class="kr">import</code> <code class="nn">System.IO</code>
+<code class="kr">import</code> <code class="nn">Control.Monad.Trans.Resource</code>
+<code class="kr">import</code> <code class="nn">Control.Monad.IO.Class</code> <code class="p">(</code><code class="nf">liftIO</code><code class="p">)</code>
+
+<code class="cm">-- Consume all input and discard it.</code>
+<code class="nf">sinkNull</code> <code class="ow">::</code> <code class="kt">Resource</code> <code class="n">m</code> <code class="ow">=&gt;</code> <code class="kt">Sink</code> <code class="n">a</code> <code class="n">m</code> <code class="nb">()</code>
+<code class="nf">sinkNull</code> <code class="ow">=</code>
+    <code class="kt">SinkData</code> <code class="n">push</code> <code class="n">close</code>
+  <code class="kr">where</code>
+    <code class="n">push</code> <code class="n">_ignored</code> <code class="ow">=</code> <code class="n">return</code> <code class="o">$</code> <code class="kt">Processing</code> <code class="n">push</code> <code class="n">close</code>
+    <code class="n">close</code> <code class="ow">=</code> <code class="n">return</code> <code class="nb">()</code>
+
+<code class="cm">-- Let's stream characters to a file. Here we do need some kind of</code>
+<code class="cm">-- initialization. We do this by initializing in a push function,</code>
+<code class="cm">-- and then returning a different push function for subsequent</code>
+<code class="cm">-- calls. By using withIO, we know that the handle will be closed even</code>
+<code class="cm">-- if there's an exception.</code>
+<code class="nf">sinkFile</code> <code class="ow">::</code> <code class="kt">ResourceIO</code> <code class="n">m</code> <code class="ow">=&gt;</code> <code class="kt">FilePath</code> <code class="ow">-&gt;</code> <code class="kt">Sink</code> <code class="kt">Char</code> <code class="n">m</code> <code class="nb">()</code>
+<code class="nf">sinkFile</code> <code class="n">fp</code> <code class="ow">=</code>
+    <code class="kt">SinkData</code> <code class="n">pushInit</code> <code class="n">closeInit</code>
+  <code class="kr">where</code>
+    <code class="n">pushInit</code> <code class="n">char</code> <code class="ow">=</code> <code class="kr">do</code>
+        <code class="p">(</code><code class="n">releaseKey</code><code class="p">,</code> <code class="n">handle</code><code class="p">)</code> <code class="ow">&lt;-</code> <code class="n">withIO</code> <code class="p">(</code><code class="n">openFile</code> <code class="n">fp</code> <code class="kt">WriteMode</code><code class="p">)</code> <code class="n">hClose</code>
+        <code class="n">push</code> <code class="n">releaseKey</code> <code class="n">handle</code> <code class="n">char</code>
+    <code class="n">closeInit</code> <code class="ow">=</code> <code class="kr">do</code>
+        <code class="cm">-- Never opened a file, so nothing to do here</code>
+        <code class="n">return</code> <code class="nb">()</code>
+
+    <code class="n">push</code> <code class="n">releaseKey</code> <code class="n">handle</code> <code class="n">char</code> <code class="ow">=</code> <code class="kr">do</code>
+        <code class="n">liftIO</code> <code class="o">$</code> <code class="n">hPutChar</code> <code class="n">handle</code> <code class="n">char</code>
+        <code class="n">return</code> <code class="o">$</code> <code class="kt">Processing</code> <code class="p">(</code><code class="n">push</code> <code class="n">releaseKey</code> <code class="n">handle</code><code class="p">)</code> <code class="p">(</code><code class="n">close</code> <code class="n">releaseKey</code> <code class="n">handle</code><code class="p">)</code>
+
+    <code class="n">close</code> <code class="n">releaseKey</code> <code class="kr">_</code> <code class="ow">=</code> <code class="kr">do</code>
+        <code class="cm">-- Close the file handle as soon as possible.</code>
+        <code class="n">return</code> <code class="nb">()</code>
+
+<code class="cm">-- And we'll count how many values were in the stream.</code>
+<code class="nf">count</code> <code class="ow">::</code> <code class="kt">Resource</code> <code class="n">m</code> <code class="ow">=&gt;</code> <code class="kt">Sink</code> <code class="n">a</code> <code class="n">m</code> <code class="kt">Int</code>
+<code class="nf">count</code> <code class="ow">=</code>
+    <code class="kt">SinkData</code> <code class="p">(</code><code class="n">push</code> <code class="mi">0</code><code class="p">)</code> <code class="p">(</code><code class="n">close</code> <code class="mi">0</code><code class="p">)</code>
+  <code class="kr">where</code>
+    <code class="n">push</code> <code class="n">count</code> <code class="n">_ignored</code> <code class="ow">=</code>
+        <code class="n">return</code> <code class="o">$</code> <code class="kt">Processing</code> <code class="p">(</code><code class="n">push</code> <code class="n">count'</code><code class="p">)</code> <code class="p">(</code><code class="n">close</code> <code class="n">count'</code><code class="p">)</code>
+      <code class="kr">where</code>
+        <code class="n">count'</code> <code class="ow">=</code> <code class="n">count</code> <code class="o">+</code> <code class="mi">1</code>
+
+    <code class="n">close</code> <code class="n">count</code> <code class="ow">=</code> <code class="n">return</code> <code class="n">count</code>
+</pre><p class="calibre7">Nothing is particularly complicated to implement. You should notice a common pattern here:
+            declaring your push and close functions in a <code class="literal">where</code> clause, and then
+            using them twice: once for the initial <code class="literal">SinkData</code>, and once for the
+                <code class="literal">Processing</code> constructor. This can become a bit tedious; that’s why
+            we have helper functions.</p></div><div class="book" title="Sinks: with Helpers"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3100230" class="calibre1"></a>Sinks: with Helpers</h2></div></div></div><p class="calibre7"></p><p class="calibre7">Let’s rewrite <code class="literal">sinkFile</code> and <code class="literal">count</code> to take advantage of the
+   helper functions <code class="literal">sinkIO</code> and <code class="literal">sinkState</code>, respectively.</p><a id="I_programlisting_d1e10020" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">import</code> <code class="nn">Data.Conduit</code>
+<code class="kr">import</code> <code class="nn">System.IO</code>
+<code class="kr">import</code> <code class="nn">Control.Monad.IO.Class</code> <code class="p">(</code><code class="nf">liftIO</code><code class="p">)</code>
+
+<code class="cm">-- We never have to touch the release key directly; sinkIO automatically</code>
+<code class="cm">-- releases our resource as soon as we return IODone from our push function,</code>
+<code class="cm">-- or sinkClose is called.</code>
+<code class="nf">sinkFile</code> <code class="ow">::</code> <code class="kt">ResourceIO</code> <code class="n">m</code> <code class="ow">=&gt;</code> <code class="kt">FilePath</code> <code class="ow">-&gt;</code> <code class="kt">Sink</code> <code class="kt">Char</code> <code class="n">m</code> <code class="nb">()</code>
+<code class="nf">sinkFile</code> <code class="n">fp</code> <code class="ow">=</code> <code class="n">sinkIO</code>
+    <code class="p">(</code><code class="n">openFile</code> <code class="n">fp</code> <code class="kt">WriteMode</code><code class="p">)</code>
+    <code class="n">hClose</code>
+    <code class="cm">-- push: notice that we are given the handle and the input</code>
+    <code class="p">(</code><code class="nf">\</code><code class="n">handle</code> <code class="n">char</code> <code class="ow">-&gt;</code> <code class="kr">do</code>
+        <code class="n">liftIO</code> <code class="o">$</code> <code class="n">hPutChar</code> <code class="n">handle</code> <code class="n">char</code>
+        <code class="n">return</code> <code class="kt">IOProcessing</code><code class="p">)</code>
+    <code class="cm">-- close: we're also given the handle, but we don't use it</code>
+    <code class="p">(</code><code class="nf">\</code><code class="n">_handle</code> <code class="ow">-&gt;</code> <code class="n">return</code> <code class="nb">()</code><code class="p">)</code>
+
+<code class="cm">-- And we'll count how many values were in the stream.</code>
+<code class="nf">count</code> <code class="ow">::</code> <code class="kt">Resource</code> <code class="n">m</code> <code class="ow">=&gt;</code> <code class="kt">Sink</code> <code class="n">a</code> <code class="n">m</code> <code class="kt">Int</code>
+<code class="nf">count</code> <code class="ow">=</code> <code class="n">sinkState</code>
+    <code class="mi">0</code>
+    <code class="cm">-- The push function gets both the current state and the next input...</code>
+    <code class="p">(</code><code class="nf">\</code><code class="n">state</code> <code class="n">_ignored</code> <code class="ow">-&gt;</code>
+        <code class="cm">-- and it returns the new state</code>
+        <code class="n">return</code> <code class="o">$</code> <code class="kt">StateProcessing</code> <code class="o">$</code> <code class="n">state</code> <code class="o">+</code> <code class="mi">1</code><code class="p">)</code>
+    <code class="cm">-- The close function gets the final state and returns the output.</code>
+    <code class="p">(</code><code class="nf">\</code><code class="n">state</code> <code class="ow">-&gt;</code> <code class="n">return</code> <code class="n">state</code><code class="p">)</code>
+</pre><p class="calibre7">Nothing dramatic, just slightly shorter, less error-prone code. Using these two helper
+   functions is highly recommended, as it ensures proper resource management and state updating.</p></div><div class="book" title="List Functions"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3100299" class="calibre1"></a>List Functions</h2></div></div></div><p class="calibre7"></p><p class="calibre7">As easy as it is to write your own sinks, you’ll likely want to take advantage of the built-in
+   sinks available in the <code class="function">Data.Conduit.List</code> module. These provide
+   analogues to common list functions, like folding. (The module also has some
+    <code class="literal">Conduit</code>s, like <code class="function">map</code>.)</p><p class="calibre7">If you’re looking for some way to practice with conduits, reimplementing the functions
+        in the <code class="literal">List</code> module—both with and without the helper
+        functions—would be a good start.</p><p class="calibre7">Let’s look at some simple things we can make out of the built-in sinks.</p><a id="I_programlisting_d1e10050" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">import</code> <code class="nn">Data.Conduit</code>
+<code class="kr">import</code> <code class="kr">qualified</code> <code class="nn">Data.Conduit.List</code> <code class="kr">as</code> <code class="n">CL</code>
+<code class="kr">import</code> <code class="nn">Control.Monad.IO.Class</code> <code class="p">(</code><code class="nf">liftIO</code><code class="p">)</code>
+
+<code class="cm">-- A sum function.</code>
+<code class="nf">sum'</code> <code class="ow">::</code> <code class="kt">Resource</code> <code class="n">m</code> <code class="ow">=&gt;</code> <code class="kt">Sink</code> <code class="kt">Int</code> <code class="n">m</code> <code class="kt">Int</code>
+<code class="nf">sum'</code> <code class="ow">=</code> <code class="kt">CL</code><code class="o">.</code><code class="n">fold</code> <code class="p">(</code><code class="o">+</code><code class="p">)</code> <code class="mi">0</code>
+
+<code class="cm">-- Print every input value to standard output.</code>
+<code class="nf">printer</code> <code class="ow">::</code> <code class="p">(</code><code class="kt">Show</code> <code class="n">a</code><code class="p">,</code> <code class="kt">ResourceIO</code> <code class="n">m</code><code class="p">)</code> <code class="ow">=&gt;</code> <code class="kt">Sink</code> <code class="n">a</code> <code class="n">m</code> <code class="nb">()</code>
+<code class="nf">printer</code> <code class="ow">=</code> <code class="kt">CL</code><code class="o">.</code><code class="n">mapM_</code> <code class="p">(</code><code class="n">liftIO</code> <code class="o">.</code> <code class="n">print</code><code class="p">)</code>
+
+<code class="cm">-- Sum up all the values in a stream after the first five.</code>
+<code class="nf">sumSkipFive</code> <code class="ow">::</code> <code class="kt">Resource</code> <code class="n">m</code> <code class="ow">=&gt;</code> <code class="kt">Sink</code> <code class="kt">Int</code> <code class="n">m</code> <code class="kt">Int</code>
+<code class="nf">sumSkipFive</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="kt">CL</code><code class="o">.</code><code class="n">drop</code> <code class="mi">5</code>
+    <code class="kt">CL</code><code class="o">.</code><code class="n">fold</code> <code class="p">(</code><code class="o">+</code><code class="p">)</code> <code class="mi">0</code>
+
+<code class="cm">-- Print each input number and sum the total</code>
+<code class="nf">printSum</code> <code class="ow">::</code> <code class="kt">ResourceIO</code> <code class="n">m</code> <code class="ow">=&gt;</code> <code class="kt">Sink</code> <code class="kt">Int</code> <code class="n">m</code> <code class="kt">Int</code>
+<code class="nf">printSum</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="n">total</code> <code class="ow">&lt;-</code> <code class="kt">CL</code><code class="o">.</code><code class="n">foldM</code> <code class="n">go</code> <code class="mi">0</code>
+    <code class="n">liftIO</code> <code class="o">$</code> <code class="n">putStrLn</code> <code class="o">$</code> <code class="s">"Sum: "</code> <code class="o">++</code> <code class="n">show</code> <code class="n">total</code>
+    <code class="n">return</code> <code class="n">total</code>
+  <code class="kr">where</code>
+    <code class="n">go</code> <code class="n">accum</code> <code class="n">int</code> <code class="ow">=</code> <code class="kr">do</code>
+        <code class="n">liftIO</code> <code class="o">$</code> <code class="n">putStrLn</code> <code class="o">$</code> <code class="s">"New input: "</code> <code class="o">++</code> <code class="n">show</code> <code class="n">int</code>
+        <code class="n">return</code> <code class="o">$</code> <code class="n">accum</code> <code class="o">+</code> <code class="n">int</code>
+</pre></div><div class="book" title="Connecting"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3100371" class="calibre1"></a>Connecting</h2></div></div></div><p class="calibre7"></p><p class="calibre7">At the end of the day, we’re actually going to want to use our sinks. While we could manually
+   call <code class="literal">sinkPush</code> and <code class="literal">sinkClose</code>, it’s tedious. For example:</p><a id="I_programlisting_d1e10064" class="firstname"></a><pre class="programlistinghaskell"><code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">runResourceT</code> <code class="o">$</code> <code class="kr">do</code>
+    <code class="n">res</code> <code class="ow">&lt;-</code>
+        <code class="kr">case</code> <code class="n">printSum</code> <code class="kr">of</code>
+            <code class="kt">SinkData</code> <code class="n">push</code> <code class="n">close</code> <code class="ow">-&gt;</code> <code class="n">loop</code> <code class="p">[</code><code class="mi">1</code><code class="o">..</code><code class="mi">10</code><code class="p">]</code> <code class="n">push</code> <code class="n">close</code>
+            <code class="kt">SinkNoData</code> <code class="n">res</code> <code class="ow">-&gt;</code> <code class="n">return</code> <code class="n">res</code>
+    <code class="n">liftIO</code> <code class="o">$</code> <code class="n">putStrLn</code> <code class="o">$</code> <code class="s">"Got a result: "</code> <code class="o">++</code> <code class="n">show</code> <code class="n">res</code>
+  <code class="kr">where</code>
+    <code class="n">start</code> <code class="p">(</code><code class="kt">SinkData</code> <code class="n">push</code> <code class="n">close</code><code class="p">)</code> <code class="ow">=</code> <code class="n">loop</code> <code class="p">[</code><code class="mi">1</code><code class="o">..</code><code class="mi">10</code><code class="p">]</code> <code class="n">push</code> <code class="n">close</code>
+    <code class="n">start</code> <code class="p">(</code><code class="kt">SinkNoData</code> <code class="n">res</code><code class="p">)</code> <code class="ow">=</code> <code class="n">return</code> <code class="n">res</code>
+    <code class="n">start</code> <code class="p">(</code><code class="kt">SinkLift</code> <code class="n">msink</code><code class="p">)</code> <code class="ow">=</code> <code class="n">msink</code> <code class="o">&gt;&gt;=</code> <code class="n">start</code>
+
+    <code class="n">loop</code> <code class="kt">[]</code> <code class="n">_push</code> <code class="n">close</code> <code class="ow">=</code> <code class="n">close</code>
+    <code class="n">loop</code> <code class="p">(</code><code class="n">x</code><code class="kt">:</code><code class="n">xs</code><code class="p">)</code> <code class="n">push</code> <code class="n">close</code> <code class="ow">=</code> <code class="kr">do</code>
+        <code class="n">mres</code> <code class="ow">&lt;-</code> <code class="n">push</code> <code class="n">x</code>
+        <code class="kr">case</code> <code class="n">mres</code> <code class="kr">of</code>
+            <code class="kt">Done</code> <code class="n">_leftover</code> <code class="n">res</code> <code class="ow">-&gt;</code> <code class="n">return</code> <code class="n">res</code>
+            <code class="kt">Processing</code> <code class="n">push'</code> <code class="n">close'</code> <code class="ow">-&gt;</code> <code class="n">loop</code> <code class="n">xs</code> <code class="n">push'</code> <code class="n">close'</code>
+</pre><p class="calibre7">Instead, the recommended approach is to connect your sink to a source. Not only is this
+   simpler, it’s less error prone, and means you have a lot of flexibility in where your data is
+   coming from. To rewrite the example above:</p><a id="I_programlisting_d1e10068" class="firstname"></a><pre class="programlistinghaskell"><code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">runResourceT</code> <code class="o">$</code> <code class="kr">do</code>
+    <code class="n">res</code> <code class="ow">&lt;-</code> <code class="kt">CL</code><code class="o">.</code><code class="n">sourceList</code> <code class="p">[</code><code class="mi">1</code><code class="o">..</code><code class="mi">10</code><code class="p">]</code> <code class="o">$$</code> <code class="n">printSum</code>
+    <code class="n">liftIO</code> <code class="o">$</code> <code class="n">putStrLn</code> <code class="o">$</code> <code class="s">"Got a result: "</code> <code class="o">++</code> <code class="n">show</code> <code class="n">res</code>
+</pre><p class="calibre7">Connecting takes care of testing for the sink constructor (<code class="literal">SinkData</code> versus
+    <code class="literal">SinkNoData</code> versus <code class="literal">SinkLift</code>), pulling from the source, and
+   pushing to/closing the sink.</p><p class="calibre7">However, there is one thing I wanted to point out from the long-winded example. On the second
+   to last line, we ignore the leftover value of <code class="literal">Done</code>. This brings up the issue of
+    <em class="calibre4">data loss</em>. This is an important topic that has had a lot of thought put into it.
+   Unfortunately, we can’t fully cover it yet, as we haven’t discussed the main culprit in the
+   drama: <code class="literal">Conduit</code>s (the type, not the package).</p><p class="calibre7">But as a quick note here, the leftover value from the <code class="literal">Done</code> constructor is not
+   always ignored. The <code class="literal">Monad</code> instance, for example, uses it to pass data from one
+   sink to the next in a binding. And in fact, the real connect operator <span class="firstname"><em class="calibre4">doesn’t</em></span> always throw
+   away the leftovers. When we cover resumable sources later, we’ll see that the leftover value is
+   put back on the buffer to allow later sinks reusing an existing source to pull the value.</p></div></div></div>
+
+{% endraw %}
+

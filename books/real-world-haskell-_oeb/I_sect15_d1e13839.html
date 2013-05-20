@@ -1,0 +1,152 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect15_d1e13753.html
+next: I_sect15_d1e13904_split_000.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect15_d1e13753.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect15_d1e13904_split_000.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect15_d1e13839" class="calibre27" id="I_sect15_d1e13839"></a><h3 id="title-IDA2URZD" class="docSection1Title">5.12. Writing a Module Header</h3><a name="x_zn" class="calibre27" id="x_zn"></a><p class="docText">Now that we <a name="I_indexterm5_d1e13844" class="calibre27" id="I_indexterm5_d1e13844"></a>have written the bulk of our <i class="docEmphasis">PrettyJSON.hs</i> file, we must go back to the top
+    and add a module declaration:</p><pre class="calibre39">-- file: ch05/PrettyJSON.hs
+module PrettyJSON
+    (
+      renderJValue
+    ) where
+
+import Numeric (showHex)
+import Data.Char (ord)
+import Data.Bits (shiftR, (.&amp;.))
+
+import SimpleJSON (JValue(..))
+import Prettify (Doc, (&lt;&gt;), char, double, fsep, hcat, punctuate, text,
+                 compact, pretty)</pre><br class="calibre48"/>
+<a name="x_Ao" class="calibre27" id="x_Ao"></a><p class="docText">We export just one name from this module: <i class="docEmphasis">renderJValue</i>, our JSON rendering function. The
+    other definitions in the module exist purely to support <i class="docEmphasis">renderJValue</i>, so there's no reason to make them
+    visible to other modules.</p><a name="x_Bo" class="calibre27" id="x_Bo"></a><p class="docText">Regarding imports, the <tt class="calibre34">Numeric</tt> and
+    <tt class="calibre34">Data.Bits</tt> modules are distributed with <span class="docMonofont">GHC</span>. We've already written the
+    <tt class="calibre34">SimpleJSON</tt> module and filled our <tt class="calibre34">Prettify</tt> module
+    with skeletal definitions. Notice that there's no difference in the way we
+    import standard modules from those we've written ourselves.</p><a name="x_Co" class="calibre27" id="x_Co"></a><p class="docText">With each <tt class="calibre34">import</tt> directive,<a name="I_indexterm5_d1e13885" class="calibre27" id="I_indexterm5_d1e13885"></a> we explicitly list each of the names we want to bring into
+    our module's namespace. This is not required. If we omit the list of
+    names, all of the names exported from a module will be available to us.
+    However, it's generally a good idea to write an explicit import list for
+    the following reasons:</p><ul class="calibre18"><li class="calibre19"><p class="docText">An explicit list makes it clear which names we're
+        importing from where. This will make it easier for a reader to look up
+        documentation if he encounters an unfamiliar function.</p></li><li class="calibre19"><p class="docText">Occasionally, a library maintainer will remove or
+        rename a function. If a function disappears from a third-party module
+        that we use, any resulting compilation error is likely to happen long
+        after we've written the module. The explicit list of imported names
+        can act as a reminder to ourselves of where we had been importing the
+        missing name from, which will help us to pinpoint the problem more
+        quickly.</p></li><li class="calibre19"><p class="docText">It is possible that someone will add a name to a
+        module that is identical to a name already in our own code. If we
+        don't use an explicit import list, we'll end up with the same name in
+        our module twice. If we use that name, <span class="docMonofont">GHC</span> will report an error due to the
+        ambiguity. An explicit list lets us avoid the possibility of
+        accidentally importing an unexpected new name.</p></li></ul><a name="x_Go" class="calibre27" id="x_Go"></a><p class="docText">This idea of using explicit imports is a guideline that
+    usually makes sense, not a hard-and-fast rule. Occasionally, we'll need so
+    many names from a module that listing each one becomes messy. In other
+    cases, a module might be so widely used that a moderately experienced
+    Haskell programmer will probably know which names come from that
+    module.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect15_d1e13753.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect15_d1e13904_split_000.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

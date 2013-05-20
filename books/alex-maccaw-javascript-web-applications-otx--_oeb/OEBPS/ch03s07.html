@@ -1,0 +1,57 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch03s06.html
+next: OEBPS/ch03s08.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Storing Data Locally"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect13_d1e3596" class="calibre1"></a>Storing Data Locally</h1></div></div></div><p class="calibre3"><a id="I_indexterm3_d1e3600" class="calibre1"></a><a id="I_indexterm3_d1e3605" class="calibre1"></a><a id="I_indexterm3_d1e3610" class="calibre1"></a><a id="I_indexterm3_d1e3615" class="calibre1"></a>In the past, local data storage was a pain in the neck. The
+    only options available to use were cookies <a id="I_indexterm3_d1e3621" class="calibre1"></a>and plug-ins like Adobe Flash.<a id="I_indexterm3_d1e3625" class="calibre1"></a><a id="I_indexterm3_d1e3628" class="calibre1"></a> Cookies had an antiquated API, couldn’t store much data,
+    and sent all the data back to the server on every request, adding
+    unnecessary overhead. As for Flash, well, let’s try and steer clear of
+    plug-ins if possible.</p><p class="calibre3">Fortunately, support for local storage was included in HTML5 and is
+    implemented in the major browsers.<a id="I_indexterm3_d1e3636" class="calibre1"></a> Unlike cookies, data is stored exclusively on the client
+    side and is never sent to servers. You can also store a great deal more
+    data—the maximum amount differs per browser (and version number, as listed
+    below), but they all offer at least <span class="calibre1">5
+    MB</span> per domain:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre3">IE &gt;= 8</p></li><li class="listitem"><p class="calibre3">Firefox &gt;= 3.5</p></li><li class="listitem"><p class="calibre3">Safari &gt;= 4</p></li><li class="listitem"><p class="calibre3">Chrome &gt;= 4</p></li><li class="listitem"><p class="calibre3">Opera &gt;= 10.6</p></li></ul></div><p class="calibre3">HTML5 <a id="I_indexterm3_d1e3664" class="calibre1"></a>storage comes under the <a class="ulink" href="http://www.w3.org/TR/webstorage">HTML5 Web Storage
+    specification</a>, and consists of two types: <span class="calibre1"><em class="calibre4">local
+    storage</em></span> and <span class="calibre1"><em class="calibre4">session storage</em></span><a id="I_indexterm3_d1e3678" class="calibre1"></a>. Local storage persists after the browser is closed;
+    session storage persists only for the lifetime of the window. Any data
+    stored is scoped by domain and is only accessible to scripts from the
+    domain that originally stored the data.</p><p class="calibre3"><span class="calibre1">You can access and manipulate local
+    storage and session storage using the <code class="literal">local</code></span><span class="calibre1"><code class="literal">Storage</code> and
+    <code class="literal">sessionStorage</code> objects,<a id="I_indexterm3_d1e3694" class="calibre1"></a> respectively. The API is very similar to setting</span>
+    properties on a JavaScript object and, apart from the two objects, is
+    identical for both local and session storage:</p><pre class="screen">// Setting a value
+localStorage["someData"] = "wem";</pre><p class="calibre3">There are a few more features to the WebStorage API:</p><pre class="screen">// How many items are stored
+var itemsStored = localStorage.length;
+
+// Set an item (aliased to a hash syntax)
+localStorage.setItem("someData", "wem");
+
+// Get a stored item, returning null if unknown
+localStorage.getItem("someData"); //=&gt; "wem";
+
+// Delete an item, returning null if unknown
+localStorage.removeItem("someData");
+
+// Clear all items
+localStorage.clear();</pre><p class="calibre3">Data is stored as strings, so if you intend on saving any objects or
+    integers, you’ll have to do your own conversion. To do this using JSON,
+    serialize the objects into JSON before you save them, and deserialize the
+    JSON strings when fetching them:</p><pre class="screen">var object = {some: "object"};
+
+// Serialize and save an object
+localStorage.setItem("seriData", JSON.stringify(object));
+
+// Load and deserialize an object
+var result = JSON.parse(localStorage.getItem("seriData"));</pre><p class="calibre3">If you go over your storage quota (usually 5 MB per host), a
+    <code class="literal">QUOTA_EXCEEDED_ERR</code> will be raised when
+    saving additional data.</p></div></div>
+
+{% endraw %}
+

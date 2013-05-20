@@ -1,0 +1,47 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch14s05.html
+next: OEBPS/ch15s02.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="calibre8"></div><div class="book" title="Chapter 15. Scaffolding and the Site Template"><div class="book"><div class="book"><div class="book"><div class="calibre8"></div><h1 class="title1"><a id="I_chapter4_d1e7253" class="calibre1"></a>Chapter 15. Scaffolding and the Site Template</h1></div></div></div><p class="calibre7">So you’re tired of running small examples, and ready to write a real site? Then you’re at
+    the right chapter. Even with the entire Yesod library at your fingertips, there are still a lot
+    of steps you need to go through to get a production-quality site setup:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">Config file parsing</p></li><li class="listitem"><p class="calibre7">Signal handling (*nix)</p></li><li class="listitem"><p class="calibre7">More efficient static file serving</p></li><li class="listitem"><p class="calibre7">A good file layout</p></li></ul></div><p class="calibre7">The scaffolded site is a combination of many Yesoders’ best practices
+    brought
+    together into a ready-to-use skeleton for your sites. It is highly recommended for all sites.
+    This chapter will explain the overall structure of the scaffolding, how to use it, and some of
+    its less-than-obvious features.</p><p class="calibre7">For the most part, this chapter will not contain code samples. It is recommended that you
+            follow along with an actual scaffolded site.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">Due to the nature of the scaffolded site, it is the most fluid component of Yesod, and
+            can change from version to version. It is possible that the information in this chapter
+            is slightly outdated.</p></div><div class="book" title="How to Scaffold"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect14_d1e7282" class="calibre1"></a>How to Scaffold</h1></div></div></div><p class="calibre7"></p><p class="calibre7">The <code class="function">yesod</code> package installs both a library and an
+   executable (conveniently named <em class="calibre4">yesod</em> as well). This executable
+   provides a few commands (run <em class="calibre4">yesod</em> by itself to get a list). In order to
+   generate a scaffolding, the command is <em class="calibre4">yesod init</em>. This will start a
+   question-and-answer process where you get to provide basic details (your name, the project name,
+   etc). After answering the questions, you will have a site template in a subfolder with the name
+   of your project.</p><p class="calibre7">The most important of these questions is the database backend. You get four choices here:
+      SQLite, PostgreSQL, MongoDB, and tiny. tiny is not a database backend; instead, it is
+      specifying that you do not want to use any database. This option also turns off a few extra
+      dependencies, giving you a leaner site overall. The remainder of this chapter will focus on
+      the scaffoldings for one of the database backends. There will be minor differences for the
+      tiny backend.</p><p class="calibre7">After creating your files, the scaffolder will print a message about getting started. It
+      gives two sets of options for commands: one using <em class="calibre4">cabal</em>,
+      and the other using <em class="calibre4">cabal-dev</em>. <em class="calibre4">cabal-dev</em> is basically a wrapper around cabal that causes all dependencies to be
+      built in a sandbox. Using it is a good way to ensure that installing other packages will not
+      break your site setup. It is strongly recommended. If you don’t have <em class="calibre4">cabal-dev</em>, you can install it by running <em class="calibre4">cabal install
+        cabal-dev</em>.</p><p class="calibre7">Note that you really do need to use the <em class="calibre4">cabal install
+        --only-dependencies</em> (or <em class="calibre4">cabal-dev install
+        --only-dependencies</em>) command. Most likely, you do not yet have all the
+      dependencies your site needs in place. For example, neither the database backends nor the
+      Javascript minifier (<code class="function">hjsmin</code>) are
+      included
+      when installing the <code class="literal">yesod</code> package.</p><p class="calibre7">Finally, to launch your development site, you would use <em class="calibre4">yesod
+    devel</em> (or <em class="calibre4">yesod --dev devel</em>). This site will
+   automatically rebuild and reload whenever you change your code.</p></div></div></div>
+
+{% endraw %}
+

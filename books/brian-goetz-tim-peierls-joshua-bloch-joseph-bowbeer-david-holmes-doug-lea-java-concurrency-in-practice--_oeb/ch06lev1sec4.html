@@ -1,0 +1,62 @@
+---
+layout: page
+title: "Java Concurrency in Practice"
+prev: ch06lev1sec3.html
+next: ch07.html
+book_path: books/brian-goetz-tim-peierls-joshua-bloch-joseph-bowbeer-david-holmes-doug-lea-java-concurrency-in-practice--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a href="21021536.html" class="calibre2"><img src="pixel.jpg" alt="" border="0" class="calibre26"/></a><a name="ch06lev1sec4" class="calibre18" id="ch06lev1sec4"></a>
+<h3 id="title-IDAFQBJJ" class="docSection1Title">Summary</h3>
+<p class="docText1">Structuring applications around the execution of <span class="docEmphasis">tasks</span> can simplify development and facilitate concurrency. The <tt class="calibre25">Executor</tt> framework permits you to decouple task submission from execution policy and supports a rich variety of execution policies; whenever you find yourself creating threads to perform tasks, consider using an <tt class="calibre25">Executor</tt> instead. To maximize the benefit of decomposing an application into tasks, you must identify sensible task boundaries. In some applications, the obvious task boundaries work well, whereas in others some analysis may be required to uncover finer-grained exploitable parallelism.</p>
+<p class="docText1"></p><a name="ch06list17" class="calibre18" id="ch06list17"></a><h5 id="title-IDA1QBJJ" class="docExampleTitle">Listing 6.17. Requesting Travel Quotes Under a Time Budget.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">private class QuoteTask implements Callable&lt;TravelQuote&gt; {
+    private final TravelCompany company;
+    private final TravelInfo travelInfo;
+    ...
+    public TravelQuote call() throws Exception {
+        return company.solicitQuote(travelInfo);
+    }
+}
+
+public List&lt;TravelQuote&gt; getRankedTravelQuotes(
+        TravelInfo travelInfo, Set&lt;TravelCompany&gt; companies,
+        Comparator&lt;TravelQuote&gt; ranking, long time, TimeUnit unit)
+        throws InterruptedException {
+    List&lt;QuoteTask&gt; tasks = new ArrayList&lt;QuoteTask&gt;();
+    for (TravelCompany company : companies)
+        tasks.add(new QuoteTask(company, travelInfo));
+
+    List&lt;Future&lt;TravelQuote&gt;&gt; futures =
+        <span class="docEmphStrong">exec.invokeAll(tasks, time, unit);</span>
+
+    List&lt;TravelQuote&gt; quotes =
+        new ArrayList&lt;TravelQuote&gt;(tasks.size());
+    Iterator&lt;QuoteTask&gt; taskIter = tasks.iterator();
+    for (Future&lt;TravelQuote&gt; f : futures) {
+        QuoteTask task = taskIter.next();
+        try {
+            quotes.add(f.get());
+        } catch (ExecutionException e) {
+            quotes.add(task.getFailureQuote(e.getCause()));
+        } catch (CancellationException e) {
+            quotes.add(task.getTimeoutQuote(e));
+        }
+    }
+
+    Collections.sort(quotes, ranking);
+    return quotes;
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<a href="21021536.html" class="calibre2"><img src="pixel.jpg" alt="" border="0" class="calibre26"/></a>
+<p class="calibre3"> </p>
+
+</div>
+
+{% endraw %}
+

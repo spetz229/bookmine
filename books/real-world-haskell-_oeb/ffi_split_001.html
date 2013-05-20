@@ -1,0 +1,58 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: ffi_split_000.html
+next: I_sect117_d1e37631.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<div class="calibre47"></div><h2 id="title-IDASPUUD" class="docPrefaceTitle">Chapter 17. Interfacing with C: The FFI</h2><a name="x_yG1" class="calibre5" id="x_yG1"></a><p class="docText">Programming<a name="ch17-cprogramminglanguage" class="calibre27" id="ch17-cprogramminglanguage"></a> languages do not exist in perfect isolation. They inhabit an
+  ecosystem of tools and libraries, built up over decades, and often written
+  in a range of programming languages. Good engineering practice suggests we
+  reuse that effort. <a name="ch17-ffihaskellforeign" class="calibre27" id="ch17-ffihaskellforeign"></a><a name="ch17-haskellforeign" class="calibre27" id="ch17-haskellforeign"></a>The <span class="docEmphasis">Haskell Foreign Function Interface</span>
+  (the FFI) is the means by which Haskell code can use, and be used by, code
+  written in other languages. In this chapter, we'll look at how the FFI works
+  and how to produce a Haskell binding to a C library, including how to use an
+  FFI preprocessor to automate much of the work. The challenge: take PCRE, the
+  <a name="I_indexterm17_d1e37601" class="calibre27" id="I_indexterm17_d1e37601"></a>standard Perl-compatible regular expression library,<a name="I_indexterm17_d1e37607" class="calibre27" id="I_indexterm17_d1e37607"></a> and make it usable from Haskell in an efficient and
+  functional way. Throughout, we'll seek to abstract out manual effort
+  required by the C implementation, delegating that work to Haskell to make
+  the interface more robust, yielding a clean, high-level binding. We assume
+  only some basic familiarity with regular expressions.</p><a name="x_zG1" class="calibre5" id="x_zG1"></a><p class="docText">Binding one language to another is a nontrivial task. The
+  binding language needs to understand the calling conventions, type system,
+  data structures, memory allocation mechanisms, and linking strategy of the
+  target language, just to get things working. The task is to carefully align
+  the semantics of both languages so that both can understand the data that
+  passes between them.</p><a name="x_AH1" class="calibre5" id="x_AH1"></a><p class="docText">For Haskell, this technology stack is specified by <a class="docLink" target="_blank" href="http://www.cse.unsw.edu.au/~chak/haskell/ffi/">FFI</a> to the
+  Haskell report. The FFI report describes how to correctly bind Haskell and C
+  together and how to extend bindings to other languages. The standard is
+  designed to be portable so that FFI bindings will work reliably across
+  Haskell <span class="docEmphasis">implementations</span>, operating
+  systems, and C <span class="docEmphasis">compilers</span>.</p><a name="x_BH1" class="calibre5" id="x_BH1"></a><p class="docText">All implementations of Haskell support the FFI, and it is a
+  key technology when using Haskell in a new field. Instead of reimplementing
+  the standard libraries in a domain, we just bind to existing ones written in
+  languages other than Haskell.</p><a name="x_CH1" class="calibre5" id="x_CH1"></a><p class="docText">The FFI adds a new dimension of flexibility to the
+  language: if we need to access raw hardware for some reason (say we're
+  programming new hardware or implementing an operating system), the FFI lets
+  us get access to that hardware. It also gives us a performance escape hatch:
+  if we can't get a code hot spot fast enough, there's always the option of
+  trying again in C. So let's look at what the FFI actually means for writing
+  code.</p>
+<ul class="calibre28"></ul><table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody"><tr class="calibre6"><td valign="middle" class="v1" height="5"><img src="pixel.gif" alt="" border="0" class="calibre8"/></td></tr><tr class="calibre6"><td valign="middle" class="v1"><table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody"><tr class="calibre6"><td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td></tr></table></td><td class="v1"/><td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect116_d1e37427_split_000.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect117_d1e37631.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td></tr></table><table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody"><tr class="calibre6"><td valign="top" class="v2"><span class="calibre9"></span></td></tr></table><!--IP User 2--><td class="calibre7">
+                         
+                      </td><tr class="calibre6"><td colspan="3" valign="bottom" class="calibre7"><br class="calibre20"/><p class="v4"></p><br class="calibre20"/></td></tr></div>
+
+{% endraw %}
+

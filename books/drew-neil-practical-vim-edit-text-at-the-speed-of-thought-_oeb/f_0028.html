@@ -1,0 +1,289 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0027.html
+next: f_0029.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.aim.to.repeat">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 9</td>
+<td class="arr-recipe-name">Compose Repeatable Changes</td>
+</tr>
+</table>
+<p id="N111FC" class="calibre4">
+<span class="calibre5">
+        Vim is optimized for repetition. In order to exploit this, we have to be mindful of how we compose our changes.
+    </span>
+</p>
+<p id="N11200" class="calibre4">
+	  In Vim, we always have more than one way of doing something. In evaluating which way is best, the most obvious metric is efficiency: which technique requires the fewest keystrokes (a.k.a. VimGolf<a id="FNPTR-3" href="f_0031.html#FOOTNOTE-3">[3]</a>). But how should we pick a winner in the event of a tie?
+    </p>
+<p id="N11218" class="calibre4">
+      Suppose that our cursor is positioned on the “h” at the end of this line of text, and we want to delete the word “nigh.”
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/normal_mode/the_end.txt">normal_mode/the_end.txt</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​The end is nigh​</code>​</div>
+</td>
+</tr>
+</table>
+<h3 class="calibre22">Delete Backward</h3>
+<p id="N1122C" class="calibre4">
+		Since our cursor is already at the end of the word, we might begin by deleting backward.
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">{start}</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​The end is nig<span class="shade-fg-white">h</span>​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">db</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​The end is <span class="shade-fg-white">h</span>​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">x</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​The end is<span class="shade-fg-white"> </span>​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N11281" class="calibre4">
+		Pressing <span class="calibre17">db</span> deletes from the cursor’s starting position to the beginning of the word, but it leaves the final “h” intact. We can delete this rogue character by pressing <span class="calibre17">x</span>. That gives us a Vim golf score of 3.
+      </p>
+<h3 class="calibre22">Delete Forward</h3>
+<p id="N11293" class="calibre4">
+		This time, let’s try deleting forward instead.
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">{start}</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​The end is nig<span class="shade-fg-white">h</span>​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">b</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​The end is <span class="shade-fg-white">n</span>igh​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">dw</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​The end is<span class="shade-fg-white"> </span>​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N112E9" class="calibre4">
+        We have to start by maneuvering our cursor into position with the <span class="calibre17">b</span> motion. Once it’s in place, we can excise the word with a single <span class="calibre17">dw</span> command. Once again, our Vim golf score is 3.
+      </p>
+<h3 class="calibre22">Delete an Entire Word</h3>
+<p id="N112FC" class="calibre4">
+		Both of our solutions so far have involved some kind of preparation or clean-up. We can be more surgical by using the <span class="calibre17">aw</span> text object instead of a motion (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">aw</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/motion.html#aw">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>):
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">{start}</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​The end is nig<span class="shade-fg-white">h</span>​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">daw</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​The end i<span class="shade-fg-white">s</span>​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N1134C" class="calibre4">
+        The <span class="calibre17">daw</span> command is easily remembered by the mnemonic <span class="calibre5">delete a word</span>. We’ll go into more detail on text objects in <a xmlns:str="http://exslt.org/strings" href="f_0078.html#sec.text.objects">Tip 51</a>, and <a xmlns:str="http://exslt.org/strings" href="f_0079.html#sec.daw.ciw">Tip 52</a>.
+      </p>
+<h3 class="calibre22">Tie-Breaker: Which Is Most Repeatable?</h3>
+<p id="N11366" class="calibre4">
+        We’ve tried three techniques for deleting a word: <span class="calibre17">dbx</span>, <span class="calibre17">bdw</span>, and <span class="calibre17">daw</span>. In each case, our Vim golf score is 3. So how can we settle the question of which is best?
+      </p>
+<p id="N11375" class="calibre4">
+        Remember, Vim is optimized for repetition. Let’s go through these techniques again. This time, we’ll finish by invoking the dot command and see what happens. I urge you to try these out for yourself.
+      </p>
+<p id="N11380" class="calibre4">
+        The backward deletion technique involves two operations: <span class="calibre17">db</span> deletes to the start of the word and then <span class="calibre17">x</span> deletes a single character. If we invoke the dot command, it repeats the single character deletion (<span class="calibre17">.</span> == <span class="calibre17">x</span>). That’s not what I would call a big win.
+      </p>
+<p id="N1138F" class="calibre4">
+        The forward deletion technique also involves two steps. This time, <span class="calibre17">b</span> is just a plain motion, while <span class="calibre17">dw</span> makes a change. The dot command repeats <span class="calibre17">dw</span>, deleting from the cursor position to the beginning of the next word. It so happens that we’re already at the end of the line. There is no “next word,” so in this context the dot command isn’t useful. But at least it’s shorthand for something longer (<span class="calibre17">.</span> == <span class="calibre17">dw</span>).
+      </p>
+<p id="N113A1" class="calibre4">
+        The final solution only invokes a single operation: <span class="calibre17">daw</span>. This technique doesn’t just remove the word, it also deletes a whitespace character. As a result, our cursor ends up on the last character of the word “is.” If we invoke the dot command, it will repeat the instruction to delete a word. This time, the dot command does something truly useful (<span class="calibre17">.</span> == <span class="calibre17">daw</span>).
+      </p>
+<h3 class="calibre22">Discussion</h3>
+<p id="N113B1" class="calibre4">
+        The <span class="calibre17">daw</span> technique invests the most power into the dot command, so I declare it the winner of this round.
+      </p>
+<p id="N113B7" class="calibre4">
+        Making effective use of the dot command often requires some forethought. If you notice that you have to make the same small change in a handful of places, you can attempt to compose your changes in such a way that they can be repeated with the dot command. Recognizing those opportunities takes practice. But if you develop a habit of making your changes repeatable wherever possible, then Vim will reward you for it.
+      </p>
+<p id="N113BA" class="calibre4">
+        Sometimes, I won’t see an opportunity to use the dot command. After making a change—and finding that I need to perform an identical edit—I realize that the dot command is primed and ready to do the work for me. It makes me grin every time.
+		</p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

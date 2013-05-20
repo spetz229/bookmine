@@ -1,0 +1,63 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch03s03.html
+next: OEBPS/ch03s05.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Addressing References"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect13_d1e2925" class="calibre1"></a>Addressing References</h1></div></div></div><p class="calibre3"><a id="I_indexterm3_d1e2929" class="calibre1"></a><a id="I_indexterm3_d1e2934" class="calibre1"></a><a id="I_indexterm3_d1e2937" class="calibre1"></a>If you’ve been observing closely, you might have spotted a
+    bug relating to the references in our ORM. We’re not cloning instances
+    when they’re returned by <code class="literal">find()</code> or when
+    we’re saving them, so if we change any properties, they’re changed on the
+    original asset. This is a problem because we only want assets to update
+    when we call the <code class="literal">update()</code>
+    function:<a id="I_indexterm3_d1e2947" class="calibre1"></a><a id="I_indexterm3_d1e2952" class="calibre1"></a></p><pre class="screen">var asset = new Asset({name: "foo"});
+asset.save();
+
+// Assert passes correctly
+assertEqual( Asset.find(asset.id).name, "foo" );
+
+// Let's change a property, but not call update()
+asset.name = "wem";
+
+// Oh dear! This assert fails, as the asset's name is now "wem"
+assertEqual( Asset.find(asset.id).name, "foo" );</pre><p class="calibre3">Let’s fix that by creating a new object during the <code class="literal">find()</code> operation.<a id="I_indexterm3_d1e2962" class="calibre1"></a> We’ll also need to duplicate the object whenever we create
+    or update the record:</p><pre class="screen">Asset.extend({
+  find: function(id){
+    var record = this.records[id];
+    if ( !record ) throw("Unknown record");
+    return record.dup();
+  }
+});
+
+Asset.include({
+  create: function(){
+    this.newRecord = false;
+    this.parent.records[this.id] = this.dup();
+  },
+
+  update: function(){
+    this.parent.records[this.id] = this.dup();
+  },
+
+  dup: function(){
+    return jQuery.extend(true, {}, this);
+  }
+});</pre><p class="calibre3">We have another problem—<code class="literal">Model.records</code> is an object shared by every
+    model:</p><pre class="screen">assertEqual( Asset.records, Person.records );</pre><p class="calibre3">This has the unfortunate side effect of mixing up all the
+    records:</p><pre class="screen">var asset = Asset.init();
+asset.save();
+
+assert( asset in Person.records );</pre><p class="calibre3">The solution is to set a new <code class="literal">records</code> object whenever we create a new model.
+    <code class="literal">Model.created()</code><a id="I_indexterm3_d1e2986" class="calibre1"></a><a id="I_indexterm3_d1e2989" class="calibre1"></a> is the callback for new object creation, so we can set any
+    objects that are specific to the model in there:</p><pre class="screen">Model.extend({
+  created: function(){
+    this.records = {};
+  }
+});</pre></div></div>
+
+{% endraw %}
+

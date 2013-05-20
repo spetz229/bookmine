@@ -1,0 +1,22 @@
+---
+layout: page
+title: "Unknown"
+prev: r23115.htm
+next: r23217.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="r23115.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4"/><td width="10%" valign="bottom" class="calibre5"><a href="r23217.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><h1 class="calibre7"><a name="SQL-CLOSE" class="calibre8">CLOSE</a></h1><div class="NAVHEADER"><a name="AEN23169"></a><h2 class="SECT">Name</h2>CLOSE -- Closes a previously defined cursor object.</div><div class="NAVHEADER"><a name="AEN23172"></a><h2 class="SECT">Synopsis</h2><pre class="SCREEN">CLOSE <tt class="REPLACEABLE"><i class="EMPHASIS">cursor</i></tt></pre><div class="NAVHEADER"><a name="R2-SQL-CLOSE-1"></a><h3 class="AUTHOR">Parameters</h3><p class="calibre9"> </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE"><i class="EMPHASIS">cursor</i></tt></dt><dd class="calibre16"><p class="calibre9">The name of a currently open cursor that you wish to close.</p></dd></dl></div>
+</div><div class="NAVHEADER"><a name="R2-SQL-CLOSE-2"></a><h3 class="AUTHOR">Results</h3><p class="calibre9"> </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">CLOSE</tt></dt><dd class="calibre16"><p class="calibre9">The message returned when the cursor is successfully closed.
+          </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">NOTICE: PerformPortalClose: portal "</tt><tt class="REPLACEABLE"><i class="EMPHASIS">cursor</i></tt><tt class="REPLACEABLE">" not found</tt></dt><dd class="calibre16"><p class="calibre9">The notice returned if the specified <tt class="REPLACEABLE"><i class="EMPHASIS">cursor</i></tt> is either not declared, or not open.</p></dd></dl></div>
+</div></div><div class="NAVHEADER"><a name="AEN23201"></a><h2 class="SECT">Description</h2><p class="calibre9">The <tt class="REPLACEABLE">CLOSE</tt> command closes an open cursor and frees the resources it was using.  Cursors should always be closed after they are no longer needed. Once a cursor is closed, further operations are not allowed on it.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>Executing a <tt class="REPLACEABLE">COMMIT</tt> or <tt class="REPLACEABLE">ROLLBACK</tt> terminates the current transaction, closing all open cursors.</p></blockquote></div></div><div class="NAVHEADER"><a name="R1-SQL-CLOSE-2"></a><h2 class="SECT">Examples</h2><p class="calibre9">The following example opens a transaction, declares the <tt class="REPLACEABLE">cur_publishers</tt> cursor, and closes it:</p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">BEGIN;</b></tt>
+BEGIN
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">DECLARE cur_publishers CURSOR FOR SELECT * FROM publishers;</b></tt>
+SELECT
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">CLOSE cur_publishers;</b></tt>
+CLOSE</pre></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="r23115.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="r23217.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">BEGIN</td><td width="34%" valign="top" class="calibre4"><a href="c22759.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">CLUSTER</td></tr></table></div></div>
+
+{% endraw %}
+

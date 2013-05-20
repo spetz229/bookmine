@@ -1,0 +1,32 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch02.html
+next: OEBPS/ch02s03.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Event Ordering"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect12_d1e1755" class="calibre1"></a>Event Ordering</h1></div></div></div><p class="calibre3"><a id="I_indexterm2_d1e1759" class="calibre1"></a><a id="I_indexterm2_d1e1764" class="calibre1"></a>Before we go any further, it’s important to discuss event
+    ordering. If an element and one of its ancestors have an event handler for
+    the same event type, which one should fire first when the event is
+    triggered? Well, you won’t be surprised to hear that Netscape and
+    Microsoft had different ideas.</p><p class="calibre3">Netscape 4 supported event <span class="calibre1"><em class="calibre4">capturing</em></span><a id="I_indexterm2_d1e1772" class="calibre1"></a>, which triggers event listeners from the top-most ancestor
+    to the element in question—i.e., from the outside in.</p><p class="calibre3">Microsoft endorsed event <span class="calibre1"><em class="calibre4">bubbling</em></span><a id="I_indexterm2_d1e1780" class="calibre1"></a>, which triggers event listeners from the element,
+    propagating up through its ancestors—i.e., from the inside out.</p><p class="calibre3">Event bubbling makes more sense to me, and it is likely to be the
+    model used in day-to-day development. The W3C compromised and stipulated
+    support for both event models in their specification. Events conforming to
+    the W3C model are first captured until they reach the target element;
+    then, they bubble up again.</p><p class="calibre3">You can choose the type of event handler you want to register,
+    capturing or bubbling, which is where the <code class="literal">useCapture</code> argument to <code class="literal">addEventListener()</code> comes into the picture. If
+    the last argument to <code class="literal">addEventListener()</code>
+    is <code class="literal">true</code>, the event handler is set for
+    the capturing phase; if it is <code class="literal">false</code>,
+    the event handler is set for the bubbling phase:</p><pre class="screen">// Use bubbling by passing false as the last argument
+button.addEventListener("click", function(){ /* ... */ }, false);</pre><p class="calibre3">The vast majority of the time, you’ll probably be using event
+    bubbling. If in doubt, pass <code class="literal">false</code> as
+    the last argument to <code class="literal">addEventListener()</code>.</p></div></div>
+
+{% endraw %}
+

@@ -1,0 +1,136 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: databases_readingresults.html
+next: databases_errors.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="databases_readingresults.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="databases_errors.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="databases_metadata" class="calibre27" id="databases_metadata"></a><h3 id="title-IDAR4MWE" class="docSection1Title">21.10. Database Metadata</h3><a name="x_Ed" class="calibre27" id="x_Ed"></a><p class="docText">Sometimes<a name="I_indexterm21_d1e45157" class="calibre27" id="I_indexterm21_d1e45157"></a><a name="I_indexterm21_d1e45162" class="calibre27" id="I_indexterm21_d1e45162"></a> it can be useful for a program to learn information about
+    the database itself. For instance, a program may want to see what tables
+    exist so that it can automatically create missing tables or upgrade the
+    database schema. In some cases, a program may need to alter its behavior
+    depending on the database backend in use.</p><a name="x_Fd" class="calibre27" id="x_Fd"></a><p class="docText">First, there is a <tt class="calibre34">getTables</tt> function<a name="I_indexterm21_d1e45171" class="calibre27" id="I_indexterm21_d1e45171"></a> that will obtain a list of defined tables in a database.
+    You can also use the <tt class="calibre34">describeTable</tt>
+    function,<a name="I_indexterm21_d1e45178" class="calibre27" id="I_indexterm21_d1e45178"></a> which will provide information about the defined columns in
+    a given table.</p><a name="x_Gd" class="calibre27" id="x_Gd"></a><p class="docText">You can learn about the database server in use by calling
+    <tt class="calibre34">dbServerVer</tt> and <tt class="calibre34">proxiedClientName</tt>, for
+    instance. The <tt class="calibre34">dbTransactionSupport</tt>
+    function can be used to determine whether or not a given database supports
+    transactions. Let's look at an example of some of these items:</p><pre class="calibre39">ghci&gt; <b class="calibre40">conn &lt;- connectSqlite3 "test1.db"</b>ghci&gt; <b class="calibre40">getTables conn</b>
+["test"]
+ghci&gt; <b class="calibre40">proxiedClientName conn</b>
+"sqlite3"
+ghci&gt; <b class="calibre40">dbServerVer conn</b>
+"3.5.6"
+ghci&gt; <b class="calibre40">dbTransactionSupport conn</b>
+Trueghci&gt; <b class="calibre40">disconnect conn</b></pre><a name="x_Hd" class="calibre27" id="x_Hd"></a><p class="docText">You can also learn about the results of a specific query
+    by obtaining information from its statement. The <tt class="calibre34">describeResult</tt> function returns <tt class="calibre34">[(String, SqlColDesc)]</tt>, a list of pairs. The
+    first item gives the column name, and the second provides information
+    about the column: the type, the size, and whether it may be NULL. The full
+    specification is given in the HDBC API reference.</p><a name="databases_metadatad1e45529" class="calibre27" id="databases_metadatad1e45529"></a><div class="docNote"><p class="docNormalTitle">NOTE</p><p class="calibre37"></p><p class="docText">Some databases may not be able to provide all this metadata. In
+      these circumstances, an exception will be raised. Sqlite3, for instance,
+      does not support <tt class="calibre34">describeResult</tt> or
+      <tt class="calibre34">describeTable</tt> as of this
+      writing.</p></div>
+<a href="21061538.html" class="calibre2"><img src="pixel.gif" alt="" border="0" class="calibre31"/></a><ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="databases_readingresults.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="databases_errors.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

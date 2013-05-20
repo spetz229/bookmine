@@ -1,0 +1,37 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0144.html
+next: f_0146.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.colder">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 106</td>
+<td class="arr-recipe-name">Recall Results from a Previous Quickfix List</td>
+</tr>
+</table>
+<p id="N1B220" class="calibre4">
+<span class="calibre5">
+        When we update the quickfix list, Vim doesn’t overwrite the previous contents. It saves the results of older quickfix lists, allowing us to refer back to them.
+    </span>
+</p>
+<p id="N1B229" class="calibre4">
+		We can recall an older version of the quickfix list (Vim holds onto the last ten lists) by running the <code class="cf">:colder</code> command (sadly, there is no <code class="cf">:warmer</code> command). To revert from an old quickfix list back to a newer one, we run <code class="cf">:cnewer</code>. Note that both <code class="cf">:colder</code> and <code class="cf">:cnewer</code> commands can accept a count, which causes the respective command to be run the specified number of times.
+    </p>
+<p id="N1B245" class="calibre4">
+      If we open the quickfix window after running <code class="cf">:colder</code> or <code class="cf">:cnewer</code>, its status line will indicate the command that was run to generate that particular list.
+    </p>
+<p id="N1B24E" class="calibre4">
+      You can think of the <code class="cf">:colder</code> and <code class="cf">:cnewer</code> commands as being like undo and redo for the quickfix list. That means it’s cheap for us to try out commands that repopulate the quickfix list because we can always run <code class="cf">:colder</code> to revert to the previous list. Also, instead of repeating a <code class="cf">:make</code> or <code class="cf">:grep</code> command, we could pull up the results from the last time it was executed (unless we’ve changed any files). This can be a real time saver, especially if the command takes a long time to run.
+    </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

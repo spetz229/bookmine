@@ -1,0 +1,282 @@
+---
+layout: page
+title: "Learning GNU Emacs, 3rd Edition"
+prev: OEBPS/ch11s05.html
+next: OEBPS/ch11s07.html
+book_path: books/learning-gnu-emacs--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h1 class="title"><a id="gnu3-CHP-11-SECT-6" class="calibre1"></a>Customizing Existing Modes</h1></div></div></div><p class="copyright">Now that you understand <a id="gnu3-CHP-11-ITERM-2849" class="calibre2"></a>
+            <a id="gnu3-CHP-11-ITERM-2850" class="calibre2"></a>some
+of what goes into programming a major mode, you may decide you want
+to customize an existing one. Luckily, in most cases, you
+don't have to worry about changing any
+mode's existing Lisp code to do this; you may not
+even have to look at the code. All Emacs major modes have
+"hooks" for letting you add your
+own code to them. Appropriately, these are called
+<span><em class="calibre7">mode-hooks</em></span>. Every built-in major mode in Emacs
+has a mode hook called <em class="calibre7"><code class="calibre21">mode-name</code></em>
+            <span><strong class="calibre5">-hook</strong></span>, where
+<em class="calibre7"><code class="calibre21">mode-name</code></em> is the name of the mode or the
+function that invokes it. For example, C mode has <span><strong class="calibre5">c-mode-hook</strong></span>, shell mode has <span><strong class="calibre5">shell-mode-hook</strong></span>, etc.</p><p class="copyright">What exactly is a hook? It is a variable whose value is some Lisp
+code to run when the mode is invoked. When you invoke a mode, you run
+a Lisp function that typically does many things (e.g., sets up key
+bindings for special commands, creates buffers and local variables,
+etc.); the last thing a mode-invoking function usually does is run
+the mode's hook if it exists. Thus, hooks are
+"positioned" to give you a chance
+to override anything the mode's code may have set
+up. For example, any key bindings you define override the
+mode's default bindings.</p><p class="copyright">We saw earlier that Lisp code can be used as the value of a Lisp
+variable; this use comes in handy when you create hooks. Before we
+show you exactly how to create a hook, we need to introduce yet
+another Lisp primitive function: <span><strong class="calibre5">lambda</strong></span>. <span><strong class="calibre5">lambda</strong></span> is very much like <span><strong class="calibre5">defun</strong></span> in that it is used to define functions;
+the difference is that <span><strong class="calibre5">lambda</strong></span>
+defines functions that don't have names (or, in Lisp
+parlance, "anonymous functions").
+The format of <span><strong class="calibre5">lambda</strong></span> is:</p><a id="I_11_tt637" class="calibre2"></a><pre class="programlisting">(lambda (<em class="calibre7"><code class="calibre32">args</code></em>) 
+  <em class="calibre7"><code class="calibre32">code</code></em>)</pre><p class="copyright">where <em class="calibre7"><code class="calibre21">args</code></em> are arguments to the function
+and <em class="calibre7"><code class="calibre21">code</code></em> is the body of the function. To
+assign a lambda function as the value of a variable, you need to
+"quote" it to prevent it from being
+evaluated (run). That is, you use the form:</p><a id="I_11_tt638" class="calibre2"></a><pre class="programlisting">(setq <em class="calibre7"><code class="calibre32">var-name</code></em> 
+      '(lambda ( )
+         <em class="calibre7"><code class="calibre32">code</code></em>))</pre><p class="copyright">Therefore, to create code for a mode hook, you could use the form:</p><a id="I_11_tt639" class="calibre2"></a><pre class="programlisting">(setq <em class="calibre7"><code class="calibre32">mode-name</code></em>-hook
+      '(lambda ( )
+         <em class="calibre7"><code class="calibre32">code for mode hook</code></em>))</pre><p class="copyright">However, it's quite possible that the mode you want
+to customize already has hooks defined. If you use the
+<code class="calibre21">setq</code> form, you override whatever hooks already
+exist. To avoid this, you can use the function
+<code class="calibre21">add-hook</code> instead:</p><a id="I_11_tt640" class="calibre2"></a><pre class="programlisting">(add-hook <em class="calibre7"><code class="calibre32">'mode-name</code></em>-hook
+      '(lambda ( )
+  <em class="calibre7"><code class="calibre32">code for mode hook</code></em>))</pre><p class="copyright">The most common thing done with mode hooks is to change one or more
+of the key bindings for a mode's special commands.
+Here is an example: in <a class="calibre2" href="ch07.html" title="Chapter 7. Simple Text Formatting and Specialized Editing">Chapter 7</a> we saw that
+picture mode is a useful tool for creating simple line drawings.
+Several commands in picture mode set the default drawing direction.
+The command to set the direction to
+"down," <span><strong class="calibre5">picture-movement-down</strong></span>, is bound to <span><strong class="calibre5">C-c </strong></span>. (<span><strong class="calibre5">C-c</strong></span>
+followed by a period). This is not as mnemonic a binding as <span><strong class="calibre5">C-c &lt;</strong></span> for <span><strong class="calibre5">picture-movement-left</strong></span> or <span><strong class="calibre5">C-c ^</strong></span> for <span><strong class="calibre5">picture-movement-up</strong></span>, so let's
+say you want to make <span><strong class="calibre5">C-c v</strong></span> the
+binding for <span><strong class="calibre5">picture-movement-down</strong></span>
+instead. The keymap for picture mode is, not surprisingly, called
+<span><strong class="calibre5">picture-mode-map</strong></span>, so the code you
+need to set this key binding is this:</p><a id="I_11_tt641" class="calibre2"></a><pre class="programlisting">(define-key picture-mode-map "\C-cv" 'picture-movement-down)</pre><p class="copyright">The hook for picture mode is called <span><strong class="calibre5">edit-picture-hook</strong></span> (because <span><strong class="calibre5">edit-picture</strong></span> is the command that invokes
+picture mode). So, to put this code into the hook for picture mode,
+the following should go into your <code class="calibre21">.emacs </code>file:</p><a id="I_11_tt642" class="calibre2"></a><pre class="programlisting">(add-hook 'edit-picture-hook
+      '(lambda ( )
+         (define-key picture-mode-map "\C-cv" 'picture-movement-down)))</pre><p class="copyright">This instruction creates a <span><strong class="calibre5">lambda</strong></span>
+function with the one key binding command as its body. Then, whenever
+you enter picture mode (starting with the next time you invoke
+Emacs), this binding will be in effect.</p><p class="copyright">As a slightly more complex example, let's say you
+create a lot of HTML pages. You use HTML mode (see <a class="calibre2" href="ch08.html" title="Chapter 8. Markup Language Support">Chapter 8</a>), but you find that there are no Emacs
+commands that enter standard <code class="calibre21">head</code> and
+<code class="calibre21">title</code> tags, despite the fact that the help text
+reminds you of their importance. You want to write your own functions
+to insert these strings, and you want to bind them to keystrokes in
+HTML mode.</p><p class="copyright">To do this, you first need to write the functions that insert the tag
+strings. The simplest approach would just be to insert the text:</p><a id="I_11_tt643" class="calibre2"></a><pre class="programlisting">(defun html-head ( )
+  (interactive)
+  (insert "&lt;head&gt;&lt;/head&gt;"))
+
+(defun html-title( )
+  (interactive)
+  (insert "&lt;title&gt;&lt;/title&gt;"))</pre><p class="copyright">Remember that the calls to <code class="calibre21">(interactive)</code> are
+necessary so that Emacs can use these functions as user commands.</p><p class="copyright">The next step is to write code that binds these functions to
+keystrokes in HTML mode's keymap, which is called
+<span><strong class="calibre5">html-mode-map</strong></span>, using the techniques
+described in <a class="calibre2" href="ch10.html" title="Chapter 10. Customizing Emacs">Chapter 10</a>. Assume you want to bind
+these functions to <span><strong class="calibre5">C-c C-h</strong></span> (head)
+and <span><strong class="calibre5">C-c C-t</strong></span> (title). <span><strong class="calibre5">C-c</strong></span> is used as a prefix key in many Emacs
+modes, such as the language modes we saw in the last chapter. Again,
+this is no problem:</p><a id="I_11_tt644" class="calibre2"></a><pre class="programlisting">(define-key html-mode-map"\C-c\C-h" 'html-head)
+(define-key html-mode-map"\C-c\C-t" 'html-title))</pre><p class="copyright">Finally, you need to convert these lines of Lisp into a value for
+<span><strong class="calibre5">html-mode-hook</strong></span>. Here is the code to
+do this:</p><a id="I_11_tt645" class="calibre2"></a><pre class="programlisting">(add-hook 'html-mode-hook 
+      '(lambda ( )
+         (define-key html-mode-map"\C-c\C-h" 'html-head)
+         (define-key html-mode-map"\C-c\C-t" 'html-title)))</pre><p class="copyright">If you put this code in your <code class="calibre21">.emacs </code>file,
+together with the earlier function definitions, you get the desired
+functionality whenever you use HTML mode.</p><p class="copyright">If you try using these functions, though, you'll
+find they have some noticeable drawbacks compared to the other tag
+insertion commands in HTML mode. For one thing, while the other
+helper commands leave your cursor in between the opening and closing
+tags, our insertions leave the cursor after the closing tag, which is
+not only inconsistent, but it's much less helpful.
+Also, while the other tags you insert can be customized in terms of
+your preferred capitalization, or wrapped around existing content in
+the document, our simple-minded <span><strong class="calibre5">insert</strong></span> calls give us no such capabilities.</p><p class="copyright">Luckily, it's not hard to add the smarts we want. It
+turns out that HTML mode is defined in the file
+<span><em class="calibre7">sgml-mode.el</em></span> (we learned this by applying
+help's handy <span><strong class="calibre5">describe-function</strong></span> command, <span><strong class="calibre5">C-h f</strong></span>, to the mode-defining function HTML
+mode. Armed with this knowledge, it was an easy matter to pull up and
+study the Lisp code that makes it work using the <span><strong class="calibre5">find-library-file</strong></span> utility shown in
+"A Treasure Trove of Examples"
+earlier in this chapter. A little quick hunting to find a parallel
+example revealed that the tag support is implemented using a skeletal
+function generator. Without going into too much detail, it turns out
+that the code we want to use is this:</p><a id="I_11_tt646" class="calibre2"></a><pre class="programlisting">(define-skeleton html-head
+  "HTML document header section."
+  nil
+  "&lt;head&gt;" _ "&lt;/head&gt;")
+
+(define-skeleton html-title
+  "HTML document title."
+  nil
+  "&lt;title&gt;" _ "&lt;/title&gt;")</pre><p class="copyright">The define-skeleton function sets up the skeletal HTML code to be
+inserted, and it does this by writing a Lisp function based on the
+template you pass it. Its first argument is the name of the Lisp
+function to define, and the next is a documentation string for that
+function explaining what it inserts. After that comes an optional
+prompt that can be used to customize the content to be inserted. We
+don't need any customization, so we leave it as
+<code class="calibre21">nil</code> to skip the prompt. Finally comes the list of
+strings to be inserted, and we mark where we want the cursor to end
+up with "<code class="calibre21">_</code>". (To
+learn more about the way this skeleton system works, invoke <span><strong class="calibre5">describe-function</strong></span> on <span><strong class="calibre5">insert-skeleton</strong></span>.)</p><p class="copyright">With these changes, our new commands work just like the other
+insertion tools in HTML mode. Even more than the specific Lisp code
+that came out of this example, the <span><em class="calibre7">technique</em></span> we
+used to create it is worth learning. If you can develop the skills
+and habits involved in tracking down an example from the built-in
+libraries that is close to what you want, and digging into how it
+works just enough to come up with a variant that solves your problem,
+you'll be well on your way to becoming the friendly
+Emacs Lisp guru your friends rely on when they need a cool new trick.</p><p class="copyright">Here is a third example. Let's say you program in C,
+and you want a Lisp function that counts the number of C function
+definitions in a file. The following function does the trick; it is
+somewhat similar to the <span><strong class="calibre5">count-lines-buffer</strong></span> example earlier in the
+chapter. The function goes through the current buffer looking for
+(and counting) C function definitions by searching for
+<code class="calibre21">{</code> at the beginning of a line (admittedly, this
+simplistic approach assumes a particular and rigid C coding style):</p><a id="I_11_tt647" class="calibre2"></a><pre class="programlisting">(defun count-functions-buffer ( )
+"Count the number of C function definitions in the buffer."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (let ((count 0))
+      (while (re-search-forward "^{" nil t)
+        (setq count (1+ count)))
+      (message "%d functions defined." count))))</pre><p class="copyright">The <span><strong class="calibre5">re-search-forward</strong></span> call in this
+function has two extra arguments; the third (last) of these means
+"if not found, just return <code class="calibre21">nil</code>,
+don't signal an error." The second
+argument must be set to <code class="calibre21">nil</code>, its default, so that
+the third argument can be supplied.<sup class="calibre6">[<a id="gnu3-CHP-11-FNOTE-11" href="#ftn.gnu3-CHP-11-FNOTE-11" class="calibre2">11</a>]</sup>
+         </p><p class="copyright">Now assume we want to bind this function to <span><strong class="calibre5">C-c
+f</strong></span> in C mode. Here is how we would set the value of
+<span><strong class="calibre5">c-mode-hook</strong></span>:</p><a id="I_11_tt648" class="calibre2"></a><pre class="programlisting">(add-hook 'c-mode-hook 
+      '(lambda ( )
+         (define-key c-mode-map "\C-cf" 'count-functions-buffer)))</pre><p class="copyright">Put this code and the function definition given earlier in your
+<code class="calibre21">.emacs</code> file, and this functionality will be
+available to you in C mode.</p><p class="copyright">As a final example of mode hooks, we'll make good on
+a promise from the previous chapter. When discussing C++ mode, we
+noted that the commands <span><strong class="calibre5">c-forward-into-nomenclature</strong></span> and <span><strong class="calibre5">c-backward-into-nomenclature</strong></span> are included as
+alternatives to <span><strong class="calibre5">forward-word</strong></span> and
+<span><strong class="calibre5">backward-word</strong></span> that treat
+<code class="calibre21">WordsLikeThis</code> as three words instead of one, and
+that this feature is useful for C++ programmers. The question is how
+to make the keystrokes that normally invoke <span><strong class="calibre5">forward-word</strong></span> and <span><strong class="calibre5">backward-word</strong></span> invoke the new commands instead.</p><p class="copyright">At first, you might think the answer is simply to create a hook for
+C++ mode that rebinds <span><strong class="calibre5">M-f</strong></span> and
+<span><strong class="calibre5">M-b</strong></span>, the default bindings for
+<span><strong class="calibre5">forward-word</strong></span> and <span><strong class="calibre5">backward-word</strong></span>, to the new commands, like this:</p><a id="I_11_tt649" class="calibre2"></a><pre class="programlisting">(add-hook 'c++-mode-hook 
+      '(lambda ( )
+         (define-key c++-mode-map "\ef" 
+           'c-forward-into-nomenclature)
+         (define-key c++-mode-map "\eb" 
+           'c-backward-into-nomenclature)))</pre><p class="copyright">(Notice that we are using <span><strong class="calibre5">c++-mode-map</strong></span>, the local keymap for C++ mode,
+for our key bindings.) But what if those keys have already been
+rebound, or what if <span><strong class="calibre5">forward-word</strong></span> and
+<span><strong class="calibre5">backward-word</strong></span> are also bound to
+other keystroke sequences (which they usually are anyway)? We need a
+way to find out what keystrokes are bound to these functions, so that
+we can reset <span><em class="calibre7">all</em></span> of them to the new functions.</p><p class="copyright">Luckily, an obscure function gives us this information, <span><strong class="calibre5">where-is-internal</strong></span>. This function implements
+the "guts" of the <span><strong class="calibre5">where-is</strong></span> help command, which we will see in
+<a class="calibre2" href="ch14.html" title="Chapter 14. The Help System">Chapter 14</a>. <span><strong class="calibre5">where-is-internal</strong></span> returns a list of keystroke
+atoms that are bound to the function given as an argument. We can use
+this list in a <span><strong class="calibre5">while</strong></span> loop to do all
+of the rebinding necessary. Here is the code:</p><a id="I_11_tt650" class="calibre2"></a><pre class="programlisting">(add-hook 'c++-mode-hook
+      '(lambda ( )
+         (let ((fbinds (where-is-internal 'forward-word))
+               (bbinds (where-is-internal 'backward-word)))
+           (while fbinds
+             (define-key c++-mode-map (car fbinds)
+               'c-forward-into-nomenclature)
+             (setq fbinds (cdr fbinds)))
+           (while bbinds
+             (define-key c++-mode-map (car bbinds)
+               'c-backward-into-nomenclature)
+             (setq bbinds (cdr bbinds))))))</pre><p class="copyright">The two lines in the top of the <span><strong class="calibre5">let</strong></span>
+statement get all of the key bindings of the commands <span><strong class="calibre5">forward-word</strong></span> and <span><strong class="calibre5">backward-word</strong></span> into the local variables
+<span><strong class="calibre5">fbinds</strong></span> and <span><strong class="calibre5">bbinds</strong></span>, respectively.</p><p class="copyright">After that, there are two <span><strong class="calibre5">while</strong></span>
+loops that work like the <span><strong class="calibre5">print-stack</strong></span>
+function of the calculator mode shown earlier in this chapter. This
+use of <span><strong class="calibre5">while</strong></span> is a very common Lisp
+programming construct: it iterates through the elements of a list by
+taking the first element (the <span><strong class="calibre5">car</strong></span>),
+using it in some way, and deleting it from the list
+(<code class="calibre21">(setq</code> 
+            <em class="calibre7"><code class="calibre21">list</code></em>
+            <code class="calibre21">(cdr</code>
+            <em class="calibre7"><code class="calibre21">list</code></em>
+            <code class="calibre21">)</code>). The
+loop finishes when the list becomes empty (<code class="calibre21">nil</code>),
+causing the <span><strong class="calibre5">while</strong></span> test to fail.</p><p class="copyright">In this case, the first <span><strong class="calibre5">while</strong></span> loop
+takes each of the bindings that <span><strong class="calibre5">where-is-internal</strong></span> found for <span><strong class="calibre5">forward-word</strong></span> and creates a binding in C++
+mode's local keymap, <span><strong class="calibre5">c++-mode-map</strong></span>, for the new command <span><strong class="calibre5">c-forward-into-nomenclature</strong></span>. The second
+<span><strong class="calibre5">while</strong></span> loop does the same for
+<span><strong class="calibre5">backward-word</strong></span> and <span><strong class="calibre5">c-backward-into-nomenclature</strong></span>.</p><p class="copyright">The surrounding code installs these loops as a hook to C++ mode, so
+that the rebinding takes place only when C++ mode is invoked and is
+active only in buffers that are in that mode.</p><p class="copyright">One final word about hooks: you may have noticed that some of the
+mode customizations we have shown in previous chapters include hooks
+and others do not. For example, the code in the previous chapter to
+set your preferred C or C++ indentation style included a hook:</p><a id="I_11_tt651" class="calibre2"></a><pre class="programlisting">(add-hook 'c-mode-hook
+      '(lambda ( )
+         (c-set-style "<em class="calibre7"><code class="calibre32">stylename</code></em>")
+         (c-toggle-auto-state)))</pre><p class="copyright">whereas the code that sets an alternative C preprocessor command name
+for the <span><strong class="calibre5">c-macro-expand</strong></span> command did
+not:</p><a id="I_11_tt652" class="calibre2"></a><pre class="programlisting">(setq c-macro-preprocessor "/usr/local/lib/cpp -C")</pre><p class="copyright">Why is this? Actually, the correct way to customize any mode is
+through its hook—for example, the preceding example should
+really be:</p><a id="I_11_tt653" class="calibre2"></a><pre class="programlisting">(add-hook 'c-mode-hook
+      '(lambda ( )
+         (setq c-macro-preprocessor "/usr/local/lib/cpp -C")))</pre><p class="copyright">If you merely want to set values of variables, you can get away
+without a hook, but a hook is strictly required if you want to run
+functions like <span><strong class="calibre5">c-set-style</strong></span> or those
+used to bind keystrokes. The precise reason for this dichotomy takes
+us into the murky depths of Lisp language design, but
+it's essentially as follows.</p><p class="copyright">Variables that are local to modes, like <span><strong class="calibre5">c-macro-preprocessor</strong></span>, do not exist if you
+don't invoke the mode in which they are defined. So,
+if you aren't editing C or C++ code, then <span><strong class="calibre5">c-macro-preprocessor</strong></span> doesn't
+exist in your running Emacs, because you haven't
+loaded C mode (see below). Yet if your <span><em class="calibre7">.emacs</em></span>
+file contains a <span><strong class="calibre5">setq</strong></span> to
+set this variable's value, then you call the
+variable into existence whether or not you ever use C mode. Emacs can
+deal with this: when it loads C mode, it notices that you have
+already set the variable's value and does not
+override it.</p><p class="copyright">However, the situation is different for functions. If you put a call
+to a mode-local function like <span><strong class="calibre5">c-set-style</strong></span> in your <span><em class="calibre7">.emacs</em></span>
+file, then (in most cases) Emacs complains, with the
+message <code class="calibre21">Error in init file</code>, because it does not
+know about this function and thus cannot assume anything about what
+it does. Therefore you must attach this function to a hook for C
+mode: by the time Emacs runs your hook, it has already loaded the
+mode and therefore knows what the function does.</p><p class="copyright">These examples of hooks are only the briefest indication of how far
+you can go in customizing Emacs's major modes. The
+best part is that, with hooks, you can do an incredible amount of
+customization without touching the code that implements the modes. In
+exchange, you should remember, when you do write your own modes, to
+think about useful places to put hooks so others can <a id="gnu3-CHP-11-ITERM-2851" class="calibre2"></a>
+            <a id="gnu3-CHP-11-ITERM-2852" class="calibre2"></a>take advantage of
+them.</p><div class="book"><br class="book"/><hr class="calibre4"/><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-11-FNOTE-11" href="#gnu3-CHP-11-FNOTE-11" class="calibre2">11</a>] </sup>The second
+argument to <span><strong class="calibre5">re-search-forward</strong></span>—and other search
+functions—gives a bound to the search: if given an integer
+value <em class="calibre7"><code class="calibre21">n</code></em> don't search past
+character position <em class="calibre7"><code class="calibre21">n</code></em>. A value of
+<code class="calibre21">nil</code>, the default, means don't
+give the search a bound.</p></div></div></div></div>
+
+{% endraw %}
+

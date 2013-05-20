@@ -1,0 +1,388 @@
+---
+layout: page
+title: "Эффективное использование C++. 55 верных способов улучшить структуру и код ваших программ"
+prev: OEBPS/section45.xhtml
+next: OEBPS/section47.xhtml
+book_path: books/effektivnoe-ispoljzovanie-c--vernih-sposobov-uluchshitj-strukturu-i-kod-vashih-programm_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <div class="calibre">
+      <div class="title1">
+        <h2 class="calibre3">Правило 25: Подумайте о поддержке функции swap, не возбуждающей исключений</h2>
+      </div>
+      <p class="calibre2">swap – интересная функция. Изначально она появилась в библиотеке STL и с тех пор стала, во-первых, основой для написания программ, безопасных в смысле исключений (см. правило 29), а во-вторых, общим механизмом решения задачи и присваивания самому себе (см. правило 11). Раз уж swap настолько полезна, то важно реализовать ее правильно, но рука об руку с особой важностью идут и особые сложности. В этом правиле мы исследуем, что они собой представляют и как с ними бороться.</p>
+      <p class="calibre2">Чтобы обменять (swap) значения двух объектов, нужно присвоить каждому из них значение другого. По умолчанию такой обмен осуществляет стандартный алгоритм swap. Его типичная реализация не расходится с вашими ожиданиями:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">namespace std {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;typename T&gt; // типичная реализация std::swap</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void swap(T&amp; a, T&amp; b) // меняет местами значения a и b</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">T temp(a);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">a = b;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">b = temp;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Коль скоро тип поддерживает копирование (с помощью конструктора копирования и оператора присваивания), реализация swap по умолчанию позволяет объектам этого типа обмениваться значениями без всяких дополнительных усилий с вашей стороны.</p>
+      <p class="calibre2">Стандартная реализация swap, может быть, не приведет вас в восторг. Она включает копирование трех объектов: a в temp, b в a и temp – в b. Для некоторых типов ни одна из этих операция в действительности не является необходимой. Для таких типов swap по умолчанию – быстрый путь на медленную дорожку.</p>
+      <p class="calibre2">Среди таких типов сразу стоит выделить те, что состоят в основном из указателей на другой тип, содержащий реальные данные. Общее название для таких проектных решений: «идиома pimpl» (pointer to implementation – указатель на реализацию – см. правило 31). Спроектированный так класс Widget может быть объявлен следующим образом:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class WidgetImpl { // класс для данных Widget</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public: // детали несущественны</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">private:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">int a,b,c; // возможно, много данных –</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::vector&lt;double&gt; v; // копирование обойдется дорого</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class Widget { // класс, использующий идиому pimpl</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Widget(const Widget&amp; rhs);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Widget&amp; operator=(const Widget&amp; rhs) // чтоб скопировать Widget, копируем</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{ // его объект WidgetImpl. Детали</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">... // реализации operator= как такового</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">*pimpl = *(rhs.pimpl); // см. в правилах 10, 11 и 12</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">private:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">WidgetImpl *pimpl; // указатель на объект с данными</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}; // этого Widget</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Чтобы обменять значения двух объектов Widget, нужно лишь обменять значениями их указатели pimpl, но алгоритм swap по умолчанию об этом знать не может. Вместо этого он не только трижды выполнит операцию копирования Widget, но еще и три раза скопирует Widgetlmpl. Очень неэффективно!</p>
+      <p class="calibre2">А нам бы хотелось сообщить функции std::swap, что при обмене объектов Widget нужно обменять значения хранящихся в них указателей pimpl. И такой способ существует: специализировать std::swap для класса Widget. Ниже приведена основная идея, хотя в таком виде код не скомпилируется:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">namespace std {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;&gt; // это специализированная версия</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void swap&lt;Widget&gt;(Widget&amp; a, // std::swap, когда T есть</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Widget&amp; b) // Widget; <em class="calibre5">не скомпилируется</em></code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">swap(a.pimpl, b.pimpl); // для обмена двух Widget просто</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">} // обмениваем их указатели pimpl</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Строка «template &lt;&gt;» в начале функции говорит о том, что это <em class="calibre5">полная специализация шаблона</em> std::swap, а «&lt;Widget&gt;» после имени функции говорит о том, что это специализация для случая, когда T есть Widget. Другими словами, когда общий шаблон swap применяется к Widget, то должна быть использована эта реализация. Вообще-то не допускается изменять содержимое пространства имен std, но разрешено вводить полные специализации стандартных шаблонов (подобных swap) для созданных нами типов (например, Widget). Что мы и делаем.</p>
+      <p class="calibre2">Как я уже сказал, эта функция не скомпилируется. Дело в том, что она пытается получить доступ к указателям pimpl внутри a и b, а они закрыты. Мы можем объявить нашу специализацию другом класса, но соглашение требует поступить иначе: нужно объявить в классе Widget открытую функцию-член по имени swap, которая осуществит реальный обмен значениями, а затем специализация std::swap вызовет эту функцию-член:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Widget { // все как раньше, за исключением</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public: // добавления функции-члена swap</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void swap(Widget&amp; other)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">using std::swap; // необходимость в этом объявлении</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// объясняется далее</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">swap(pimpl, other.pimpl); // чтобы обменять значениями два объекта</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">} // Widget,обмениваем указатели pimpl</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">namespace std {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;&gt; // переделанная версия</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void swap&lt;Widget&gt;(Widget&amp; a, // std::swap</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Widget&amp; b)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">a.swap(b); // чтобы обменять значениями Widget,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">} // вызываем функцию-член swap</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Этот вариант не только компилируется, но и полностью согласован с STL-контейнерами, каждый из которых предоставляет и открытую функцию-член swap, и специализированную версию std::swap, которая вызывает эту функцию-член.</p>
+      <p class="calibre2">Предположим, однако, что Widget и Widgetlmpl – это не обычные, а <em class="calibre5">шаблонные</em> классы. Возможно, это понадобилось для того, чтобы можно было параметризировать тип данных, хранимых в Widgetlmpl:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;typename T&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class WidgetImpl {...};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;typename T&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class Widget {...};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Поместить функцию-член swap в Widget (и при необходимости в Widgetlmpl) в этом случае так же легко, как и раньше, но мы сталкиваемся с проблемой, касающейся специализации std::swap. Вот что мы хотим написать:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">namespace std {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;typename T&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void swap&lt;Widget&lt;T&gt;&gt;(Widget&lt;T&gt;&amp; a, // ошибка! Недопустимый код</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Widget&lt;T&gt;&amp; b)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{ a.swap(b);}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Выглядит совершенно разумно, но все равно неправильно. Мы пытаемся частично специализировать шаблон функции (std::swap), но, хотя C++ допускает частичную специализацию шаблонов класса, он не разрешает этого для шаблонов функций. Этот код не должен компилироваться (если только некоторые компиляторы не пропустят его по ошибке).</p>
+      <p class="calibre2">Когда вам нужно «частично специализировать» шаблон функции, лучше просто добавить перегруженную версию. Примерно так:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">namespace std {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;typename T&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void swap(Widget&lt;T&gt;&amp; a, // перегрузка std::swap</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Widget&lt;T&gt;&amp; b) // (отметим отсутствие &lt;...&gt; после</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{ a.swap(b);} // “swap”), далее объяснено, почему</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">} // этот код некорректен</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Вообще, перегрузка шаблонных функций – нормальное решение, но std – это специальное пространство имен, и правила, которым оно подчиняется, тоже специальные. Можно полностью специализировать шаблоны в std, но нельзя добавлять в std новые шаблоны (или классы, или функции, или что-либо еще). Содержимое std определяется исключительно комитетом по стандартизации C++, и нам запрещено пополнять список того, что они решили включить туда. К сожалению, форма этого запрета может привести вас в смятение. Программы, которые нарушают его, почти всегда компилируются и исполняются, но их поведение не определено! Если вы не хотите, чтобы ваши программы вели себя непредсказуемым образом, то не должны добавлять ничего в std.</p>
+      <p class="calibre2">Что же делать? Нам по-прежнему нужен способ, чтобы разрешить другим людям вызывать swap и иметь более эффективную шаблонную версию. Ответ прост. Мы, как и раньше, объявляем свободную функцию swap, которая вызывает функцию-член swap, но не говорим, что это специализация или перегруженный вариант std::swap. Например, если вся функциональность, касающаяся Widget, находится в пространстве имен WidgetStuff, то это будет выглядеть так:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">namespace WidgetStuff {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">... // шаблонный WidgetImpl и т. п.</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">template&lt;typename T&gt; // как и раньше, включая</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class Widget {...}; // функцию-член swap</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">template&lt;typename T&gt; // свободная функция swap</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void swap(Widget&lt;T&gt;&amp; a, // не входит в пространство имен std</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Widget&lt;T&gt;&amp; b)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">a.swap(b);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Теперь если кто-то вызовет swap для двух объектов Widget, то согласно правилам поиска имен в C++ (а точнее, согласно правилу <em class="calibre5">учета зависимостей от аргументов)</em> будет найдена специфичная для Widget версия в пространстве имен WidgetStuff. А это как раз то, что мы хотим.</p>
+      <p class="calibre2">Этот подход работает одинаково хорошо для классов и шаблонов классов, поэтому кажется, что именно его и следует всегда использовать. К сожалению, для классов есть причина, по которой надо специализировать std::swap (я опишу ее ниже), поэтому если вы хотите иметь собственную специфичную для класса версию swap, вызываемую в любых контекстах (а вы, без сомнения, хотите), то придется написать и свободную функцию swap в том же пространстве имен, где находится ваш класс, и специализацию std::swap.</p>
+      <p class="calibre2">Кстати, если вы не пользуетесь пространствам имен, все вышесказанное остается в силе (то есть вам нужна свободная функция swap, которая вызывает функцию-член swap). Но зачем засорять глобальное пространство имен вашими классами, шаблонами, функциями, перечислениями и перечисляемыми константами, определениями типов typedef? Разве вы не имеете понятия о приличиях?</p>
+      <p class="calibre2">Все, что я написал до сих пор, представляет интерес для авторов функции swap, но стоит посмотреть на ситуацию с точки зрения пользователя. Предположим, вы пишете шаблон функции, в котором хотите поменять значениями два объекта:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;typename T&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void doSomething(T&amp; obj1, T&amp; obj2)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">swap(obj1, obj2);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Какая версия swap должна здесь вызываться? Общая – из пространства std, о существовании которой вы точно знаете; ее специализация главного из std, которая может, существует, а может, нет; или специфичная для класса T, существование которой также под вопросом и которая может находиться в каком-то пространстве имен (но заведомо не в std)? Вам хотелось бы вызвать специфичную для T версию, если она существует, а в противном случае к общей версии из std. Вот как удовлетворить это желание:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;typename T&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void doSomething(T&amp; obj1, T&amp; obj2)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">using std::swap; // сделать std::swap доступной этой функции</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">swap(obj1, obj2); // вызвать лучший вариант swap для объектов типа T</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Когда компилятор встречает вызов swap, он ищет, какую версию вызвать. Правила разрешения имен в C++ гарантируют, что будет найдена любая специфичная для типа T версия в глобальной области видимости или в том же пространстве имен, что и T. (Например, если T – это Widget в пространстве имен Widget-Stuff, компилятор проанализирует аргументы и найдет именно эту версию.) Если же версии swap, специфичной для T, не существует, то компилятор возьмет swap из std благодаря объявлению using, которая делает std::swap видимой. Но даже в этом случае компилятор предпочтет специализацию std::swap для типа T общему шаблону.</p>
+      <p class="calibre2">Таким образом, заставить компилятор вызвать нужную вам версию swap достаточно просто. Единственное, о чем следует позаботиться, – не квалифицировать вызов именем пространства имен, потому что это влияет на способ выбора функции. Например, если вы напишете вызов следующим образом:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">std::swap(obj1, obj2): // неправильный способ вызова swap</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">то заставите компилятор рассматривать только swap из пространства std (включая все специализации шаблонов), исключив возможность отыскания более подходящей версии, специфичной для типа T, даже если она где-то определена. К сожалению, некоторые программисты по ошибке квалифицируют вызов swap таким образом, поэтому важно предоставлять в своем классе полную специализацию std::swap, тогда даже в таком, неправильно написанном коде специфичная для типа реализация swap окажется доступной. (Подобный код присутствует в некоторых реализациях стандартной библиотеки, поэтому в ваших интересах – сделать все, чтобы он работал эффективно).</p>
+      <p class="calibre2">Итак, мы обсудили реализацию swap по умолчанию, в виде функции-члена класса, в виде свободной функции и в виде специализации std::swap, а также вызовы swap. Теперь подведем итоги.</p>
+      <p class="calibre2">Во-первых, если реализация swap по умолчанию обеспечивает приемлемую эффективность для ваших классов или шаблонов классов, то вам не нужно делать ничего. Всякий, кто попытается обменять значения объектов вашего класса, получит версию по умолчанию, и она будет прекрасно работать.</p>
+      <p class="calibre2">Во-вторых, если реализация по умолчанию swap недостаточно эффективна (что почти всегда означает, что ваш класс или шаблон использует некоторую вариацию идиомы pimpl), сделайте следующее:</p>
+      <p class="calibre2">1) предоставьте открытую функцию-член, которая эффективно обменивает значения двух объектов вашего типа. По причинам, которые я сейчас объясню, эта функция никогда не должна возбуждать исключений;</p>
+      <p class="calibre2">2) предоставьте свободную функцию swap в том же пространстве имен, что и ваш класс или шаблон. Пусть она вызывает вашу функцию-член;</p>
+      <p class="calibre2">3) если вы пишете класс (а не шаблон), специализируйте std::swap для вашего класса. Пусть она также вызывает вашу функцию-член.</p>
+      <p class="calibre2">Наконец, если вы вызываете swap, убедитесь, что включено using-объявление, которое вводит std::swap в область видимости вашей функции, а затем вызывайте swap без квалификации пространства имен.</p>
+      <p class="calibre2">Я еще забыл предупредить, что версия функции-члена swap никогда не должна возбуждать исключений. Дело в том, что одно из наиболее частых применений swap – помочь классам (и шаблонам классов) в предоставлении надежных гарантий безопасности исключений. В правиле 29 вы найдете подробную информацию на эту тему, а сейчас лишь подчеркнем, что в основе этого приема лежит предположение о том, что swap, реализованная в виде функции-члена, никогда не возбуждает исключений. Это ограничение касается только функции-члена! Оно не относится к реализации swap в виде свободной функции, поскольку стандартная версия swap по умолчанию основана на конструкторах копирования и операторе присваивания, а этим функциям разрешено возбуждать исключения. Когда вы пишете собственную версию swap, то обычно представляете не просто эффективный способ обмена значений, а такой, при котором не возбуждаются исключения. Общее правил таково: эти две характеристики swap идут рука об руку, потому что высокоэффективные операции обмена всегда основаны на операциях над встроенными типами (такими как указатели, лежащие в основе идиомы pimpl), а операции над встроенными типами никогда не возбуждают исключений.</p>
+      <div class="subtitle">
+        <p class="subtitle1">
+          <strong class="calibre4">
+            <em class="calibre5">Что следует помнить</em>
+          </strong>
+        </p>
+      </div>
+      <p class="calibre2">• Предоставьте функцию-член swap, если std::swap работает с вашим типом неэффективно. Убедитесь, что она не возбуждает исключений.</p>
+      <p class="calibre2">• Если вы предоставляете функцию-член swap, то также предоставьте свободную функцию, вызывающую функцию-член. Для классов (не шаблонов) специализируйте также std::swap.</p>
+      <p class="calibre2">• Когда вызывается swap, используйте using-объявление, вводящее std::swap в область видимости, и вызывайте swap без квалификатора пространства имен.</p>
+      <p class="calibre2">• Допускается предоставление полной специализации шаблонов, находящихся в пространстве имен std, для пользовательских типов, но никогда не пытайтесь добавить в пространство std что-либо новое.</p>
+    </div>
+  </div>
+
+{% endraw %}
+

@@ -1,0 +1,340 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0116.html
+next: f_0118.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.search.offsets">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 83</td>
+<td class="arr-recipe-name">Offset the Cursor to the End of a Search Match</td>
+</tr>
+</table>
+<p id="N18DC8" class="calibre4">
+<span class="calibre5">
+        A search offset can be used to position the cursor a fixed number of characters away from the start or end of a match. In this tip, we’ll study an example where, by placing the cursor at the end of a match, we’re able to complete a series of changes using the Dot Formula.
+    </span>
+</p>
+<p id="N18DD8" class="calibre4">
+      Each time we execute a search command, our cursor is positioned on the first character of the match. This default seems reasonable, but sometimes we might rather have the cursor positioned at the end of a search match. Vim makes this possible using its search offset feature (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">search-offset</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/pattern.html#search-offset">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>).
+    </p>
+<p id="N18DDF" class="calibre4">
+      Let’s study an example. In this excerpt, the author has consistently abbreviated the word “language”:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/search/langs.txt">search/langs.txt</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​Aim to learn a new programming lang each year.​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​Which lang did you pick up last year?​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​Which langs would you like to learn?​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N18DF5" class="calibre4">
+      How would you go about expanding all three occurrences of “lang” to the full word? One solution would be to use the substitute command: <code class="cf">:%s/lang/language/g</code>. But let’s see if we can find an alternative that uses the Dot Formula. We might learn something along the way.
+    </p>
+<p id="N18DFB" class="calibre4">
+      First let’s tackle this without using a search offset. We’ll start by searching for the string that we want to modify: <code class="cf">/lang</code>
+<span class="calibre17">&lt;CR&gt;</span>. That places our cursor at the start of the first match. From there, we can append at the end of the word by typing <span class="calibre17">ea</span>
+<code class="cf">uage&lt;Esc&gt;</code>. Appending at the end of a word is such a common task that <span class="calibre17">ea</span> should flow from your fingers as though it were a single command.
+    </p>
+<p id="N18E0B" class="calibre4">
+      Now we just need to maneuver our cursor into the right position, and the dot command should take care of the rest. We can amend the next occurrence of “lang” by typing <span class="calibre17">ne.</span> - <span class="calibre17">n</span> jumps to the start of the next match; then <span class="calibre17">e</span> moves us to the end of the word, and <span class="calibre17">.</span> appends the letters required to complete the word. That’s three keystrokes. We haven’t achieved the ideal Dot Formula, but at least it gets the job done.
+    </p>
+<p id="N18E1A" class="calibre4">
+      Or does it? If we bash out the same command sequence a second time, <span class="calibre17">ne.</span>, we’ll end up mangling the final word. Can you see why? The final occurrence of “lang” is actually an abbreviation of “languages” (note the plural). So if we blindly repeat our suboptimal Dot Formula, we’ll create the frankenword “langsuage.” Clearly, this is one scenario where placing the cursor at the end of the match, rather than at the end of the word, would be preferable.
+    </p>
+<p id="N18E20" class="calibre4">
+<a xmlns:str="http://exslt.org/strings" href="#table.improved-workflow">Table 23, ​<em class="calibre5">Improved Workflow Using Search Offset</em>​</a> shows an improved workflow.
+    </p>
+<hr class="calibre37"/>
+<div class="figurecaption" id="table.improved-workflow">Table 23. Improved Workflow Using Search Offset</div>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">{start}</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">A</span>im to learn a new programming lang each year.​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Which lang did you pick up last year?​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Which langs would you like to learn?​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">/lang/e</code>
+<span class="calibre17">&lt;CR&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Aim to learn a new programming <span class="shade-fg-black">lan<span class="shade-fg-white">g</span>
+</span> each year.​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Which <span class="shade-fg-black">lang</span> did you pick up last year?​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Which <span class="shade-fg-black">lang</span>s would you like to learn?​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">a</span>
+<code class="cf">uage&lt;Esc&gt;</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Aim to learn a new programming <span class="shade-fg-black">lang</span>uag<span class="shade-fg-white">e</span> each year.​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Which <span class="shade-fg-black">lang</span> did you pick up last year?​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Which <span class="shade-fg-black">lang</span>s would you like to learn?​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">n</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Aim to learn a new programming <span class="shade-fg-black">lang</span>uage each year.​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Which <span class="shade-fg-black">lan<span class="shade-fg-white">g</span>
+</span> did you pick up last year?​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Which <span class="shade-fg-black">lang</span>s would you like to learn?​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">.</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Aim to learn a new programming <span class="shade-fg-black">lang</span>uage each year.​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Which <span class="shade-fg-black">lang</span>uag<span class="shade-fg-white">e</span> did you pick up last year?​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Which <span class="shade-fg-black">lang</span>s would you like to learn?​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">n.</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Aim to learn a new programming <span class="shade-fg-black">lang</span>uage each year.​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Which <span class="shade-fg-black">lang</span>uage did you pick up last year?​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Which <span class="shade-fg-black">lang</span>uag<span class="shade-fg-white">e</span>s would you like to learn?​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<hr class="calibre37"/>
+<p id="N18F2C" class="calibre4">
+      Here, we search for <code class="cf">/lang/e</code>
+<span class="calibre17">&lt;CR&gt;</span>, which places the cursor at the end of the search match, exactly where we need it. Each time we use the <span class="calibre17">n</span> command, our cursor is positioned at the end of the next search match, setting us up perfectly to use the dot command. The search offset has enabled us to achieve an ideal Dot Formula.
+    </p>
+<p id="N18F3A" class="calibre4">
+      In the real world, it won’t always be obvious when a search offset will come in handy. Suppose that we started off by executing the search command without the offset. Then, after pressing <span class="calibre17">n</span> a couple of times, we realize that we’d prefer to place the cursor at the end of the match. That’s no problem: we could simply run <code class="cf">//e</code>
+<span class="calibre17">&lt;CR&gt;</span>. When we leave the search field blank like this, Vim reuses the pattern from the previous search. So this repeats the last search but with an offset.
+    </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

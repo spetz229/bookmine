@@ -1,0 +1,62 @@
+---
+layout: page
+title: "Seven Databases in Seven Weeks (for Greg Kennedy)"
+prev: f_0016.html
+next: f_0018.html
+book_path: books/seven-databases-in-seven-weeks--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="N10364" class="calibre18">2.1 That’s Post-greS-Q-L</h2>
+<div class="sidebar">
+<div class="sidebar-title">So, What’s with the Name?</div>
+<div class="calibre2">
+<p id="N1036B" class="calibre5">
+      PostgreSQL has existed in the current project incarnation since 1995, but its roots are considerably older. The original project was written at Berkeley in the early 1970s and called the Interactive Graphics and Retrieval System, or “Ingres” for short. In the 1980s, an improved version was launched post-Ingres—shortened to Postgres. The project ended at Berkeley proper in 1993 but was picked up again by the open source community as Postgres95. It was later renamed to PostgreSQL in 1996 to denote its rather new SQL support and has remained so ever since.
+    </p>
+</div>
+</div>
+<p id="N10373" class="calibre5">
+    PostgreSQL is by far the oldest and most battle-tested database in this book. It has plug-ins for natural-language parsing, multidimensional indexing, geographic queries, custom datatypes, and much more. It has sophisticated transaction handling, has built-in stored procedures for a dozen languages, and runs on a variety of platforms. PostgreSQL has built-in Unicode support, sequences, table inheritance, and subselects, and it is one of the most ANSI SQL--compliant relational databases on the market. It’s fast and reliable, can handle terabytes of data, and has been proven to run in high-profile production projects such as Skype, France’s Caisse Nationale d’Allocations Familiales (CNAF), and the United States’ Federal Aviation Administration (FAA).
+  </p>
+<p id="N10376" class="calibre5">
+    You can install PostgreSQL in many ways, depending on your operating system.<a id="FNPTR-3" href="f_0021.html#FOOTNOTE-3">[3]</a> Beyond the basic install, we’ll need to extend Postgres with the following contributed packages: <code class="cf">tablefunc</code>, <code class="cf">dict_xsyn</code>, <code class="cf">fuzzystrmatch</code>, <code class="cf">pg_trgm</code>, and <code class="cf">cube</code>. You can refer to the website for installation instructions.<a id="FNPTR-4" href="f_0021.html#FOOTNOTE-4">[4]</a>
+</p>
+<p id="N10398" class="calibre5">
+      Once you have Postgres installed, create a schema called <code class="cf">book</code> using the following command:
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">createdb book</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N103AD" class="calibre5">
+      We’ll be using the <code class="cf">book</code> schema for the remainder of this chapter. Next, run the following command to ensure your contrib packages have been installed correctly:
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">psql book -c "SELECT '1'::cube;"</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N103C2" class="calibre5">
+      Seek out the online docs for more information if you receive an error message.
+    </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre3"/>
+</div>
+
+{% endraw %}
+

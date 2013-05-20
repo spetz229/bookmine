@@ -1,0 +1,452 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect128_d1e52276.html
+next: I_sect128_d1e52674.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect128_d1e52276.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect128_d1e52674.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect128_d1e52318" class="calibre27" id="I_sect128_d1e52318"></a><h3 id="title-IDARZBOB" class="docSection1Title">28.8. A Concurrent Web Link Checker</h3><a name="x_dM1" class="calibre27" id="x_dM1"></a><p class="docText">As a practical<a name="I_indexterm28_d1e52323" class="calibre27" id="I_indexterm28_d1e52323"></a> example of using <tt class="calibre34">STM</tt>, we will develop a
+    program that checks an HTML file for broken links—that is, URLs that
+    either point to bad web pages or dead servers. This is a good problem to
+    address via concurrency: if we try to talk to a dead server, it will take
+    up to two minutes before our connection attempt times out. If we use
+    multiple threads, we can still get useful work done while one or two are
+    stuck talking to slow or dead servers.</p><a name="x_eM1" class="calibre27" id="x_eM1"></a><p class="docText">We can't simply create one thread per URL, because that
+    may overburden either our CPU or our network connection if (as we expect)
+    most of the links are live and responsive. Instead, we use a fixed number
+    of worker threads, which fetch URLs to download from a queue:</p><pre class="calibre39">-- file: ch28/Check.hs
+{-# LANGUAGE FlexibleContexts, GeneralizedNewtypeDeriving,
+             PatternGuards #-}
+
+import Control.Concurrent (forkIO)
+import Control.Concurrent.STM
+import Control.Exception (catch, finally)
+import Control.Monad.Error
+import Control.Monad.State
+import Data.Char (isControl)
+import Data.List (nub)
+import Network.URI
+import Prelude hiding (catch)
+import System.Console.GetOpt
+import System.Environment (getArgs)
+import System.Exit (ExitCode(..), exitWith)
+import System.IO (hFlush, hPutStrLn, stderr, stdout)
+import Text.Printf (printf)
+import qualified Data.ByteString.Lazy.Char8 as B
+import qualified Data.Set as S
+
+-- This requires the HTTP package, which is not bundled with GHC
+import Network.HTTP
+
+type URL = B.ByteString
+
+data Task = Check URL | Done</pre><br class="calibre48"/>
+<a name="x_fM1" class="calibre27" id="x_fM1"></a><p class="docText">Our <tt class="calibre34">main</tt> function
+    provides the top-level scaffolding for our program:</p><pre class="calibre39">-- file: ch28/Check.hs
+main :: IO ()
+main = do
+    (files,k) &lt;- parseArgs
+    let n = length files
+
+    -- count of broken links
+    badCount &lt;- newTVarIO (0 :: Int)
+
+    -- for reporting broken links
+    badLinks &lt;- newTChanIO
+
+    -- for sending jobs to workers
+    jobs &lt;- newTChanIO
+
+    -- the number of workers currently running
+    workers &lt;- newTVarIO k
+
+    -- one thread reports bad links to stdout
+    forkIO $ writeBadLinks badLinks
+
+    -- start worker threads
+    forkTimes k workers (worker badLinks jobs badCount)
+
+    -- read links from files, and enqueue them as jobs
+    stats &lt;- execJob (mapM_ checkURLs files)
+                     (JobState S.empty 0 jobs)
+
+    -- enqueue "please finish" messages
+    atomically $ replicateM_ k (writeTChan jobs Done)
+
+    waitFor workers
+
+    broken &lt;- atomically $ readTVar badCount
+
+    printf fmt broken
+               (linksFound stats)
+               (S.size (linksSeen stats))
+               n
+  where
+    fmt   = "Found %d broken links. " ++
+            "Checked %d links (%d unique) in %d files.\n"</pre><br class="calibre48"/>
+<a name="x_gM1" class="calibre27" id="x_gM1"></a><p class="docText">When we are in the IO monad, we can create
+    new TVar values using the <tt class="calibre34">newTVarIO</tt> function.
+    There are also counterparts for creating TMVar and
+    TChan values.</p><a name="x_hM1" class="calibre27" id="x_hM1"></a><p class="docText">Notice that we use the <i class="docEmphasis">printf</i> function to print a report at the end.
+    Unlike its counterpart in C, the Haskell <i class="docEmphasis">printf</i> function can check its argument types
+    and their numbers at runtime:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:m +Text.Printf</b>ghci&gt; <b class="calibre40">printf "%d and %d\n" (3::Int)</b>
+3 and *** Exception: Printf.printf: argument list ended prematurely
+ghci&gt; <b class="calibre40">printf "%s and %d\n" "foo" (3::Int)</b>
+foo and 3</pre><a name="x_iM1" class="calibre27" id="x_iM1"></a><p class="docText">Try evaluating <tt class="calibre34">printf "%d" True</tt> at the
+    <i class="docEmphasis">ghci</i> prompt, and see what
+    happens.</p><a name="x_jM1" class="calibre27" id="x_jM1"></a><p class="docText">Several short functions support <tt class="calibre34">main</tt>:</p><pre class="calibre39">-- file: ch28/Check.hs
+modifyTVar_ :: TVar a -&gt; (a -&gt; a) -&gt; STM ()
+modifyTVar_ tv f = readTVar tv &gt;&gt;= writeTVar tv . f
+
+forkTimes :: Int -&gt; TVar Int -&gt; IO () -&gt; IO ()
+forkTimes k alive act =
+  replicateM_ k . forkIO $
+    act
+    `finally`
+    (atomically $ modifyTVar_ alive (subtract 1))</pre><br class="calibre48"/>
+<a name="x_kM1" class="calibre27" id="x_kM1"></a><p class="docText">The <i class="docEmphasis">forkTimes</i>
+    function starts a number of identical worker threads and decreases the
+    "alive" count each time a thread exits. We use a <i class="docEmphasis">finally</i> combinator to ensure that the count is
+    always decremented, no matter how the thread terminates.</p><a name="x_lM1" class="calibre27" id="x_lM1"></a><p class="docText">Next, the <i class="docEmphasis">writeBadLinks</i> function prints each broken or
+    dead link to <tt class="calibre34">stdout</tt>:</p><pre class="calibre39">-- file: ch28/Check.hs
+writeBadLinks :: TChan String -&gt; IO ()
+writeBadLinks c =
+  forever $
+    atomically (readTChan c) &gt;&gt;= putStrLn &gt;&gt; hFlush stdout</pre><br class="calibre48"/>
+<a name="x_mM1" class="calibre27" id="x_mM1"></a><p class="docText">We use the <i class="docEmphasis">forever</i>
+    combinator in the preceding code, which repeats an action <span class="docEmphasis">endlessly</span>:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:m +Control.Monad</b>ghci&gt; <b class="calibre40">:type forever</b>
+forever :: (Monad m) =&gt; m a -&gt; m ()</pre><a name="x_nM1" class="calibre27" id="x_nM1"></a><p class="docText">Our <i class="docEmphasis">waitFor</i> function
+    uses <i class="docEmphasis">check</i>, which calls <i class="docEmphasis">retry</i> if its argument evaluates to
+    <tt class="calibre34">False</tt>:</p><pre class="calibre39">-- file: ch28/Check.hs
+waitFor :: TVar Int -&gt; IO ()
+waitFor alive = atomically $ do
+  count &lt;- readTVar alive
+  check (count == 0)</pre><br class="calibre48"/>
+<a name="I_sect128_d1e52318d1e52714" class="calibre27" id="I_sect128_d1e52318d1e52714"></a><h4 id="title-IDAV4BOB" class="docSection1Title">28.8.1. Checking a Link</h4><a name="x_oM1" class="calibre27" id="x_oM1"></a><p class="docText">Here is a naive function to check the state of a link.
+      This code is similar to the podcatcher that we developed in <a class="docLink" href="webclient_split_000.html#webclient">Chapter 22</a>, with a few small differences:</p><pre class="calibre39">-- file: ch28/Check.hs
+getStatus :: URI -&gt; IO (Either String Int)
+getStatus = chase (5 :: Int)
+  where
+    chase 0 _ = bail "too many redirects"
+    chase n u = do
+      resp &lt;- getHead u
+      case resp of
+        Left err -&gt; bail (show err)
+        Right r -&gt;
+          case rspCode r of
+            (3,_,_) -&gt;
+               case findHeader HdrLocation r of
+                 Nothing -&gt; bail (show r)
+                 Just u' -&gt;
+                   case parseURI u' of
+                     Nothing -&gt; bail "bad URL"
+                     Just url -&gt; chase (n-1) url
+            (a,b,c) -&gt; return . Right $ a * 100 + b * 10 + c
+    bail = return . Left
+
+getHead :: URI -&gt; IO (Result Response)
+getHead uri = simpleHTTP Request { rqURI = uri,
+                                   rqMethod = HEAD,
+                                   rqHeaders = [],
+                                   rqBody = "" }</pre><br class="calibre48"/>
+<a name="x_pM1" class="calibre27" id="x_pM1"></a><p class="docText">We follow an HTTP redirect response just a few times,
+      in order to avoid endless redirect loops. To determine whether a URL is
+      valid, we use the HTTP standard's HEAD verb, which uses less bandwidth
+      than a full GET.</p><a name="x_VO1" class="calibre27" id="x_VO1"></a><p class="docText">This code has the classic "marching off the right
+      of the screen" style that we have learned to be wary of. Here is
+      a rewrite that offers greater clarity via the ErrorT monad
+      transformer and a few generally useful functions:</p><pre class="calibre39">-- file: ch28/Check.hs
+getStatusE = runErrorT . chase (5 :: Int)
+  where
+    chase :: Int -&gt; URI -&gt; ErrorT String IO Int
+    chase 0 _ = throwError "too many redirects"
+    chase n u = do
+      r &lt;- embedEither show =&lt;&lt; liftIO (getHead u)
+      case rspCode r of
+        (3,_,_) -&gt; do
+            u'  &lt;- embedMaybe (show r)  $ findHeader HdrLocation r
+            url &lt;- embedMaybe "bad URL" $ parseURI u'
+            chase (n-1) url
+        (a,b,c) -&gt; return $ a*100 + b*10 + c
+
+-- This function is defined in Control.Arrow.
+left :: (a -&gt; c) -&gt; Either a b -&gt; Either c b
+left f (Left x)  = Left (f x)
+left _ (Right x) = Right x
+
+-- Some handy embedding functions.
+embedEither :: (MonadError e m) =&gt; (s -&gt; e) -&gt; Either s a -&gt; m a
+embedEither f = either (throwError . f) return
+
+embedMaybe :: (MonadError e m) =&gt; e -&gt; Maybe a -&gt; m a
+embedMaybe err = maybe (throwError err) return</pre><br class="calibre48"/>
+<a name="I_sect128_d1e52318d1e52735" class="calibre27" id="I_sect128_d1e52318d1e52735"></a><h4 id="title-IDAU5BOB" class="docSection1Title">28.8.2. Worker Threads</h4><a name="x_qM1" class="calibre27" id="x_qM1"></a><p class="docText">Each worker thread reads a task off the shared queue.
+      It either checks the given URL or exits:</p><pre class="calibre39">-- file: ch28/Check.hs
+worker :: TChan String -&gt; TChan Task -&gt; TVar Int -&gt; IO ()
+worker badLinks jobQueue badCount = loop
+  where
+    -- Consume jobs until we are told to exit.
+    loop = do
+        job &lt;- atomically $ readTChan jobQueue
+        case job of
+            Done  -&gt; return ()
+            Check x -&gt; checkOne (B.unpack x) &gt;&gt; loop
+
+    -- Check a single link.
+    checkOne url = case parseURI url of
+        Just uri -&gt; do
+            code &lt;- getStatus uri `catch` (return . Left . show) 
+            case code of
+                Right 200 -&gt; return ()
+                Right n   -&gt; report (show n)
+                Left err  -&gt; report err
+        _ -&gt; report "invalid URL"
+
+        where report s = atomically $ do
+                           modifyTVar_ badCount (+1)
+                           writeTChan badLinks (url ++ " " ++ s)</pre><br class="calibre48"/>
+<a name="I_sect128_d1e52318d1e52742" class="calibre27" id="I_sect128_d1e52318d1e52742"></a><h4 id="title-IDACY0NB" class="docSection1Title">28.8.3. Finding Links</h4><a name="x_rM1" class="calibre27" id="x_rM1"></a><p class="docText">We structure our link finding around a state monad
+      transformer stacked on the IO monad. Our state tracks links
+      that we have already seen (so we don't check a repeated link more than
+      once), the total number of links we have encountered, and the queue to
+      which we should add the links that we will be checking:</p><pre class="calibre39">-- file: ch28/Check.hs
+data JobState = JobState { linksSeen :: S.Set URL,
+                           linksFound :: Int,
+                           linkQueue :: TChan Task }
+
+newtype Job a = Job { runJob :: StateT JobState IO a }
+    deriving (Monad, MonadState JobState, MonadIO)
+
+execJob :: Job a -&gt; JobState -&gt; IO JobState
+execJob = execStateT . runJob</pre><br class="calibre48"/>
+<a name="x_sM1" class="calibre27" id="x_sM1"></a><p class="docText">Strictly speaking, for a small standalone program, we
+      don't need the <tt class="calibre34">newtype</tt> wrapper, but we include it here as
+      an example of good practice (it costs only a few lines of code,
+      anyway).</p><a name="x_tM1" class="calibre27" id="x_tM1"></a><p class="docText">The <tt class="calibre34">main</tt> function
+      maps <i class="docEmphasis">checkURLs</i> over each input
+      file, so <i class="docEmphasis">checkURLs</i> needs only to
+      read a single file:</p><pre class="calibre39">-- file: ch28/Check.hs
+checkURLs :: FilePath -&gt; Job ()
+checkURLs f = do
+    src &lt;- liftIO $ B.readFile f
+    let urls = extractLinks src
+    filterM seenURI urls &gt;&gt;= sendJobs
+    updateStats (length urls)
+
+updateStats :: Int -&gt; Job ()
+updateStats a = modify $ \s -&gt;
+    s { linksFound = linksFound s + a }
+
+-- | Add a link to the set we have seen.
+insertURI :: URL -&gt; Job ()
+insertURI c = modify $ \s -&gt;
+    s { linksSeen = S.insert c (linksSeen s) }
+
+-- | If we have seen a link, return False.  Otherwise, record that we
+-- have seen it, and return True.
+seenURI :: URL -&gt; Job Bool
+seenURI url = do
+    seen &lt;- (not . S.member url) `liftM` gets linksSeen
+    insertURI url
+    return seen
+
+sendJobs :: [URL] -&gt; Job ()
+sendJobs js = do
+    c &lt;- gets linkQueue
+    liftIO . atomically $ mapM_ (writeTChan c . Check) js</pre><br class="calibre48"/>
+<a name="x_uM1" class="calibre27" id="x_uM1"></a><p class="docText">Our <i class="docEmphasis">extractLinks</i>
+      function doesn't attempt to properly parse an HTML or text file.
+      Instead, it looks for strings that appear to be URLs and treats them as
+      "good enough":</p><pre class="calibre39">-- file: ch28/Check.hs
+extractLinks :: B.ByteString -&gt; [URL]
+extractLinks = concatMap uris . B.lines
+  where uris s      = filter looksOkay (B.splitWith isDelim s)
+        isDelim c   = isControl c || c `elem` " &lt;&gt;\"{}|\\^[]`"
+        looksOkay s = http `B.isPrefixOf` s
+        http        = B.pack "http:"</pre><br class="calibre48"/>
+<a name="stm_urlcheck_parseArgs" class="calibre27" id="stm_urlcheck_parseArgs"></a><h4 id="title-IDAUZ0NB" class="docSection1Title">28.8.4. Command-Line Parsing</h4><a name="x_vM1" class="calibre27" id="x_vM1"></a><p class="docText">To parse our command-line arguments, we use the
+      <tt class="calibre34">System.Console.GetOpt</tt> module. It provides useful code for
+      parsing arguments, but it is slightly involved to use:</p><pre class="calibre39">-- file: ch28/Check.hs
+data Flag = Help | N Int
+            deriving Eq
+
+parseArgs :: IO ([String], Int)
+parseArgs = do
+    argv &lt;- getArgs
+    case parse argv of
+        ([], files, [])                     -&gt; return (nub files, 16)
+        (opts, files, [])
+            | Help `elem` opts              -&gt; help
+            | [N n] &lt;- filter (/=Help) opts -&gt; return (nub files, n)
+        (_,_,errs)                          -&gt; die errs
+  where
+    parse argv = getOpt Permute options argv
+    header     = "Usage: urlcheck [-h] [-n n] [file ...]"
+    info       = usageInfo header options
+    dump       = hPutStrLn stderr
+    die errs   = dump (concat errs ++ info) &gt;&gt; exitWith (ExitFailure 1)
+    help       = dump info                  &gt;&gt; exitWith ExitSuccess</pre><br class="calibre48"/>
+<a name="x_wM1" class="calibre27" id="x_wM1"></a><p class="docText">The <i class="docEmphasis">getOpt</i>
+      function takes three arguments:</p><ul class="calibre18"><li class="calibre19"><p class="docText">An argument ordering, which specifies whether
+          options can be mixed with other arguments (<tt class="calibre34">Permute</tt>,
+          which we used earlier) or must appear before them.</p></li><li class="calibre19"><p class="docText">A list of option definitions. Each consists of a
+          list of short names for the option, a list of long names for the
+          option, a description of the option (e.g., whether it accepts an
+          argument), and an explanation for users.</p></li><li class="calibre19"><p class="docText">A list of the arguments and options, as returned by
+          <i class="docEmphasis">getArgs</i>.</p></li></ul><a name="x_AN1" class="calibre27" id="x_AN1"></a><p class="docText">The function returns a triple that consists of the
+      parsed options, the remaining arguments, and any error messages that
+      arose.</p><a name="x_BN1" class="calibre27" id="x_BN1"></a><p class="docText">We use the Flag algebraic data type to
+      represent the options that our program can accept:</p><pre class="calibre39">-- file: ch28/Check.hs
+options :: [OptDescr Flag]
+options = [ Option ['h'] ["help"] (NoArg Help)
+                   "Show this help message",
+            Option ['n'] []       (ReqArg (\s -&gt; N (read s)) "N")
+                   "Number of concurrent connections (default 16)" ]</pre><br class="calibre48"/>
+<a name="x_CN1" class="calibre27" id="x_CN1"></a><p class="docText">Our <span class="docMonofont">options</span> list describes each
+      option that we accept. Each description must be able to create a
+      Flag value. Take a look at our uses of <tt class="calibre34">NoArg</tt>
+      and <tt class="calibre34">ReqArg</tt> in the preceding code. These are constructors
+      for the <tt class="calibre34">GetOpt</tt> module's ArgDescr type:</p><pre class="calibre39">-- file: ch28/GetOpt.hs
+data ArgDescr a = NoArg a
+                | ReqArg (String -&gt; a) String
+                | OptArg (Maybe String -&gt; a) String</pre><br class="calibre48"/>
+<p class="docText">The constructors have the following meanings:</p><dl class="docList1"><dt class="calibre48"><br class="calibre48"/><p class="calibre37"><span class="docPubcolor">
+<span class="docPubcolor"><span class="docMonofont">NoArg</span></span>
+</span></p></dt><dd class="calibre49"><p class="docText">Accepts a parameter that will represent this option. In our
+            case, if a user invokes our program with <i class="docEmphasis">-h</i> or
+            <i class="docEmphasis">--help</i>, we will use the value
+            <tt class="calibre34">Help</tt>.</p></dd><dt class="calibre48"><br class="calibre48"/><p class="calibre37"><span class="docPubcolor">
+<span class="docPubcolor"><span class="docMonofont">ReqArg</span></span>
+</span></p></dt><dd class="calibre49"><p class="docText">Accepts a function that maps a required argument to a value.
+            Its second argument is used when printing help. Here, we convert a
+            string into an integer, and pass it to our Flag
+            type's <tt class="calibre34">N</tt> constructor.</p></dd><dt class="calibre48"><br class="calibre48"/><p class="calibre37"><span class="docPubcolor">
+<span class="docPubcolor"><span class="docMonofont">OptArg</span></span>
+</span></p></dt><dd class="calibre49"><p class="docText">Similar to the <tt class="calibre34">ReqArg</tt> constructor, but it
+            permits the use of options that can be used without
+            arguments.</p></dd></dl><a name="I_sect128_d1e52318d1e52893" class="calibre27" id="I_sect128_d1e52318d1e52893"></a><h4 id="title-IDAF30NB" class="docSection1Title">28.8.5. Pattern Guards</h4><a name="x_GN1" class="calibre27" id="x_GN1"></a><p class="docText">We sneaked one last language extension into our
+      definition of <i class="docEmphasis">parseArgs</i>. Pattern
+      guards let us write more concise guard expressions. They are enabled via
+      the <tt class="calibre34">PatternGuards</tt> language extension. <a name="I_indexterm28_d1e52638" class="calibre27" id="I_indexterm28_d1e52638"></a><a name="I_indexterm28_d1e52641" class="calibre27" id="I_indexterm28_d1e52641"></a></p><a name="x_HN1" class="calibre27" id="x_HN1"></a><p class="docText">A pattern guard has three components: a pattern, a
+      <tt class="calibre34">&lt;-</tt> symbol, and an expression. The expression is
+      evaluated and matched against the pattern. If it matches, any variables
+      present in the pattern are bound. We can mix pattern guards and normal
+      Bool guard expressions in a single guard by separating them
+      with commas:</p><pre class="calibre39">-- file: ch28/PatternGuard.hs
+{-# LANGUAGE PatternGuards #-}
+
+testme x xs | Just y &lt;- lookup x xs, y &gt; 3 = y
+            | otherwise                    = 0</pre><br class="calibre48"/>
+<a name="x_IN1" class="calibre27" id="x_IN1"></a><p class="docText">In this example, we return a value from the alist
+      <span class="docMonofont">xs</span> if its associated key <span class="docMonofont">x</span> is
+      present, provided the value is greater than 3. This definition is
+      equivalent to the following:</p><pre class="calibre39">-- file: ch28/PatternGuard.hs
+testme_noguards x xs = case lookup x xs of
+                         Just y | y &gt; 3 -&gt; y
+                         _              -&gt; 0</pre><br class="calibre48"/>
+<a name="x_JN1" class="calibre27" id="x_JN1"></a><p class="docText">Pattern guards let us "collapse" a
+      collection of guards and <tt class="calibre34">case</tt>
+      expressions into a single guard, allowing us to write more succinct and
+      descriptive guards.</p>
+<a href="21061538.html" class="calibre2"><img src="pixel.gif" alt="" border="0" class="calibre31"/></a><ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect128_d1e52276.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect128_d1e52674.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

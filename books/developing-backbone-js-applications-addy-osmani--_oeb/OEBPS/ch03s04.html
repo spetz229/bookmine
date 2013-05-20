@@ -1,0 +1,80 @@
+---
+layout: page
+title: "Developing Backbone.js Applications"
+prev: OEBPS/ch03s03.html
+next: OEBPS/ch03s05.html
+book_path: books/developing-backbone-js-applications-addy-osmani--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="MongoDB Ruby Driver"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="mongodb-ruby-driver" class="calibre1"></a>MongoDB Ruby Driver</h1></div></div></div><div class="book" title="Getting started"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="getting-started" class="calibre1"></a>Getting started</h2></div></div></div><p class="calibre6">
+      Once the MongoDB Ruby driver is installed, we can begin to use it
+      to connect to a Mongo database. To create a connection using
+      localhost, we simply specify the driver as a dependency. Assuming
+      we’re using the default port we can then connect as follows:
+    </p><pre class="programlistingjavascript"><code class="nb">require</code> <code class="s">'mongo'</code>
+
+<code class="c"># where 'learning-mongo' is the name of our database:</code>
+<code class="nx">db</code> <code class="o">=</code> <code class="no">Connection</code><code class="o">.</code><code class="nx">new</code><code class="o">.</code><code class="nx">db</code><code class="p">(</code><code class="s">'learning-mongo'</code><code class="p">);</code>
+</pre><p class="calibre6">
+      We probably also want to place some data into
+      <span class="firstname">“<span class="firstname">learning-mongo</span>”</span>. It could be as simple as a note, so
+      why don’t we go ahead and begin a notes collection?:
+    </p><p class="calibre6">
+      <code class="literal">ruby notes = db.collection('notes')</code> Something
+      interesting worth noting is that at this point, we haven’t
+      actually created the database nor the collection we’re referencing
+      above.
+    </p><p class="calibre6">
+      Neither of these items exist in Mongo (just yet) but as we’re
+      working with a new database but they will once we insert some real
+      data.
+    </p><p class="calibre6">
+      A new note could be defined using key/value pairs as follows and
+      then inserted into <span class="firstname">“<span class="firstname">learning-mongo</span>”</span> using
+      <code class="literal">collection.insert()</code>:
+    </p><pre class="programlistingjavascript"><code class="nx">our_note</code> <code class="o">=</code> <code class="p">{</code> <code class="ss">:text</code> <code class="o">=&gt;</code> <code class="s">'Remember the milk'</code><code class="p">,</code> <code class="ss">:remindInterval</code> <code class="o">=&gt;</code> <code class="s">'weekly'</code><code class="p">}</code>
+<code class="nx">note_id</code> <code class="o">=</code> <code class="nx">notes</code><code class="o">.</code><code class="nx">insert</code><code class="p">(</code><code class="nx">our_note</code><code class="p">)</code>
+</pre><p class="calibre6">
+      What is returned from inserting a note into the notes collection
+      is an <code class="literal">ObjectId</code> reference for the note from
+      Mongo. This is useful as we can re-use it to locate the same
+      document in our database.
+    </p><pre class="programlistingjavascript"><code class="nx">note</code> <code class="o">=</code> <code class="nx">notes</code><code class="o">.</code><code class="nx">find</code><code class="p">(</code> <code class="ss">:id</code> <code class="o">=&gt;</code> <code class="nx">note_id</code> <code class="p">)</code><code class="o">.</code><code class="nx">first</code>
+</pre><p class="calibre6">
+      This can also be used in conjunction with Mongo’s
+      <code class="literal">collection.update()</code> method and
+      <a class="ulink" href="http://www.mongodb.org/display/DOCS/Updating">query</a>
+      operators (i.e <code class="literal">$set</code>) to replace fields in an
+      existing document.
+    </p><p class="calibre6">
+      We might update an entire document as follows:
+    </p><pre class="programlistingjavascript"><code class="nx">note</code> <code class="o">=</code> <code class="nx">notes</code><code class="o">.</code><code class="nx">find</code><code class="p">(</code> <code class="ss">:id</code> <code class="o">=&gt;</code> <code class="nx">note_id</code> <code class="p">)</code><code class="o">.</code><code class="nx">first</code>
+<code class="nx">note</code><code class="o">[</code><code class="ss">:text</code><code class="o">]</code> <code class="o">=</code> <code class="s">'Remember the bread'</code>
+<code class="nx">notes</code><code class="o">.</code><code class="nx">update</code><code class="p">({</code> <code class="ss">:_id</code> <code class="o">=&gt;</code> <code class="nx">note_id</code> <code class="p">},</code> <code class="nx">note</code><code class="p">)</code>
+</pre><p class="calibre6">
+      or using <code class="literal">$set</code>, update an existing document
+      without overwriting the entire object as like this:
+    </p><pre class="programlistingjavascript"><code class="nx">notes</code><code class="o">.</code><code class="nx">update</code><code class="p">({</code> <code class="ss">:_id</code> <code class="o">=&gt;</code> <code class="nx">note_id</code> <code class="p">},</code> <code class="s">'$set'</code> <code class="o">=&gt;</code> <code class="p">{</code> <code class="ss">:text</code> <code class="o">=</code> <code class="o">&gt;</code> <code class="s">'Remember the bread'</code> <code class="p">})</code>
+</pre><p class="calibre6">
+      Useful to know: Almost each MongoDB document has an _id field as
+      it’s first attribute. This can normally be of any type, however a
+      special BSON datatype is provided for object ids. It’s a 12-byte
+      binary value that has a high probability of being unique when
+      allocated.
+    </p><p class="calibre6">
+      Note: Whilst we opted for the MongoDB Ruby Driver for this stack,
+      you may also be interested in
+      <span class="firstname"><strong class="calibre8">DataMapper</strong></span> - a solution which
+      allows us to use the same API to talk to a number of different
+      datastores. This works well for both relational and non-relational
+      databases and more information is available on the official
+      <a class="ulink" href="http://datamapper.org/why.html">project page</a>.
+      <a class="ulink" href="http://sinatra-book.gittr.com/#datamapper">Sinatra:
+      The Book</a> also contains a brief tutorial on DataMapper for
+      anyone interested in exploring it further.
+    </p></div></div></div>
+
+{% endraw %}
+

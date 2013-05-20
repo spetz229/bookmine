@@ -1,0 +1,88 @@
+---
+layout: page
+title: "Understanding the Linux Kernel, 3rd Edition"
+prev: understandlk-CHP-4-SECT-4.html
+next: understandlk-CHP-4-SECT-6.html
+book_path: books/understanding-the-linux-kernel-rd-edition_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a name="understandlk-CHP-4-SECT-5"></a>
+<h3 class="docSection1Title">4.5. Exception Handling</h3><a name="IDX-CHP-4-1167"></a>
+<a name="IDX-CHP-4-1168"></a>
+<a name="IDX-CHP-4-1169"></a>
+<a name="IDX-CHP-4-1170"></a>
+<p class="docText1">Most exceptions issued by the CPU are interpreted by Linux as error conditions. When one of them occurs, the kernel sends a signal to the process that caused the exception to notify it of an anomalous condition. If, for instance, a process performs a division by zero, the CPU raises a "Divide error<a name="IDX-CHP-4-1171"></a> 
+" exception, and the corresponding exception handler sends a <tt class="calibre25">SIGFPE</tt> signal to the current process, which then takes the necessary steps to recover or (if no signal handler is set for that signal) abort.</p>
+<p class="docText1">There are a couple of cases, however, where Linux exploits CPU exceptions to manage hardware resources more efficiently. A first case is already described in the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-3-SECT-3.html#understandlk-CHP-3-SECT-3.4">Saving and Loading the FPU, MMX, and XMM Registers</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-3.html#understandlk-CHP-3">Chapter 3</a>. The "Device not available<a name="IDX-CHP-4-1172"></a> 
+" exception is used together with the <tt class="calibre25">TS</tt> flag of the <tt class="calibre25">cr0</tt><a name="IDX-CHP-4-1173"></a> 
+ register to force the kernel to load the floating point registers of the CPU with new values. A second case involves the "Page Fault<a name="IDX-CHP-4-1174"></a> 
+" exception, which is used to defer allocating new page frames to the process until the last possible moment. The corresponding handler is complex because the exception may, or may not, denote an error condition (see the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-9-SECT-4.html#understandlk-CHP-9-SECT-4">Page Fault Exception Handler</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-9.html#understandlk-CHP-9">Chapter 9</a>).</p>
+<p class="docText1">Exception handlers have a standard structure consisting of three steps:</p>
+<div class="calibre44"><ol class="docList1" type="1"><li class="calibre12"><div class="calibre45"><p class="docList">Save the contents of most registers in the Kernel Mode stack (this part is coded in assembly language).</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Handle the exception by means of a high-level C function.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Exit from the handler by means of the <tt class="calibre25">ret_from_exception( )</tt> function.</p></div></li></ol></div>
+<p class="docText1">To take advantage of exceptions, the IDT must be properly initialized with an exception handler function for each recognized exception. It is the job of the <tt class="calibre25">trap_init( )</tt> function to insert the final valuesthe functions that handle the exceptionsinto all IDT entries that refer to nonmaskable interrupts and exceptions. This is accomplished through the <tt class="calibre25">set_trap_gate( )</tt>, <tt class="calibre25">set_intr_gate( )</tt>, <tt class="calibre25">set_system_gate( )</tt>, <tt class="calibre25">set_system_intr_gate( )</tt>, and <tt class="calibre25">set_task_gate( )</tt> functions:</p>
+<pre class="calibre27">
+    set_trap_gate(0,&amp;divide_error);
+    set_trap_gate(1,&amp;debug);
+    set_intr_gate(2,&amp;nmi);
+    set_system_intr_gate(3,&amp;int3);
+    set_system_gate(4,&amp;overflow);
+    set_system_gate(5,&amp;bounds);
+    set_trap_gate(6,&amp;invalid_op);
+    set_trap_gate(7,&amp;device_not_available);
+    set_task_gate(8,31);
+    set_trap_gate(9,&amp;coprocessor_segment_overrun);
+    set_trap_gate(10,&amp;invalid_TSS);
+    set_trap_gate(11,&amp;segment_not_present);
+    set_trap_gate(12,&amp;stack_segment);
+    set_trap_gate(13,&amp;general_protection);
+    set_intr_gate(14,&amp;page_fault);
+    set_trap_gate(16,&amp;coprocessor_error);
+    set_trap_gate(17,&amp;alignment_check);
+    set_trap_gate(18,&amp;machine_check);
+    set_trap_gate(19,&amp;simd_coprocessor_error);
+    set_system_gate(128,&amp;system_call);</pre><br class="calibre7"/>
+<p class="docText1">The "Double fault" exception is handled by means of a task gate instead of a trap or system gate, because it denotes a serious kernel misbehavior. Thus, the exception handler that tries to print out the register values does not trust the current value of the <tt class="calibre25">esp</tt> register. When such an exception occurs, the CPU fetches the Task Gate Descriptor stored in the entry at index 8 of the IDT. This descriptor points to the special TSS segment descriptor stored in the 32<sup class="calibre37">nd</sup> entry of the GDT. Next, the CPU loads the <tt class="calibre25">eip</tt> and <tt class="calibre25">esp</tt> registers with the values stored in the corresponding TSS segment. As a result, the processor executes the <tt class="calibre25">doublefault_fn()</tt> exception handler on its own private stack.</p>
+<p class="docText1">Now we will look at what a typical exception handler does once it is invoked. Our description of exception handling will be a bit sketchy for lack of space. In particular we won't be able to cover:</p>
+<div class="calibre44"><ol class="docList1" type="1"><li class="calibre12"><div class="calibre45"><p class="docList">The signal codes (see <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-11-SECT-1.html#understandlk-CHP-11-TABLE-8">Table 11-8</a> in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-11.html#understandlk-CHP-11">Chapter 11</a>) sent by some handlers to the User Mode processes.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Exceptions that occur when the kernel is operating in MS-DOS<a name="IDX-CHP-4-1175"></a> 
+ emulation mode (vm86 mode), which must be dealt with differently.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">"Debug<a name="IDX-CHP-4-1176"></a> 
+" exceptions.</p></div></li></ol></div>
+<a name="understandlk-CHP-4-SECT-5.1"></a>
+<h4 class="docSection2Title">4.5.1. Saving the Registers for the Exception Handler</h4><a name="IDX-CHP-4-1177"></a>
+<p class="docText1">Let's use <tt class="calibre25">handler_name</tt> to denote the name of a generic exception handler. (The actual names of all the exception handlers appear on the list of macros in the previous section.) Each exception handler starts with the following assembly language instructions:</p>
+<pre class="calibre27">
+    handler_name<tt class="calibre25"><i class="docEmphasis">:</i></tt>
+        pushl $0 /* only for some exceptions */
+        pushl $do_handler_name
+        jmp error_code</pre><br class="calibre7"/>
+<p class="docText1">If the control unit is not supposed to automatically insert a hardware error code on the stack when the exception occurs, the corresponding assembly language fragment includes a <tt class="calibre25">pushl $0</tt> instruction to pad the stack with a null value. Then the address of the high-level C function is pushed on the stack; its name consists of the exception handler name prefixed by <tt class="calibre25">do_</tt>.</p>
+<p class="docText1">The assembly language fragment labeled as <tt class="calibre25">error_code</tt> is the same for all exception handlers except the one for the "Device not available<a name="IDX-CHP-4-1178"></a> 
+" exception (see the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-3-SECT-3.html#understandlk-CHP-3-SECT-3.4">Saving and Loading the FPU, MMX, and XMM Registers</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-3.html#understandlk-CHP-3">Chapter 3</a>). The code performs the following steps:</p>
+<div class="calibre44"><ol class="docList1" type="1"><li class="calibre12"><div class="calibre45"><p class="docList">Saves the registers that might be used by the high-level C function on the stack.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Issues a <tt class="calibre25">cld</tt><a name="IDX-CHP-4-1179"></a> 
+ instruction to clear the direction flag <tt class="calibre25">DF</tt> of <tt class="calibre25">eflags</tt><a name="IDX-CHP-4-1180"></a> 
+, thus making sure that autoincreases on the <tt class="calibre25">edi</tt> and <tt class="calibre25">esi</tt> registers will be used with string instructions<a name="IDX-CHP-4-1181"></a> 
+.<sup class="docFootnote"><a class="pcalibre5 docLink pcalibre1" href="#understandlk-CHP-4-FN7">[*]</a></sup></p><blockquote class="calibre22"><p class="docFootnote2"><sup class="calibre24"><a name="understandlk-CHP-4-FN7">[*]</a></sup> A single assembly language "string instruction," such as <tt class="calibre42">rep;movsb</tt><a name="IDX-CHP-4-1182"></a> 
+, is able to act on a whole block of data (string).</p></blockquote></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Copies the hardware error code saved in the stack at location <tt class="calibre25">esp+36</tt> in <tt class="calibre25">edx</tt>. Stores the value -1 in the same stack location. As we'll see in the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-11-SECT-3.html#understandlk-CHP-11-SECT-3.3">Reexecution of System Calls</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-11.html#understandlk-CHP-11">Chapter 11</a>, this value is used to separate <tt class="calibre25">0x80</tt> exceptions from other exceptions.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Loads <tt class="calibre25">edi</tt> with the address of the high-level <tt class="calibre25">do_handler_name( )</tt> C function saved in the stack at location <tt class="calibre25">esp+32</tt>; writes the contents of <tt class="calibre25">es</tt> in that stack location.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Loads in the <tt class="calibre25">eax</tt> register the current top location of the Kernel Mode stack. This address identifies the memory cell containing the last register value saved in step 1.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Loads the user data Segment Selector into the <tt class="calibre25">ds</tt> and <tt class="calibre25">es</tt> registers.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Invokes the high-level C function whose address is now stored in <tt class="calibre25">edi</tt>.</p></div></li></ol></div>
+<p class="docText1">The invoked function receives its arguments from the <tt class="calibre25">eax</tt> and <tt class="calibre25">edx</tt> registers rather than from the stack. We have already run into a function that gets its arguments from the CPU registers: the <tt class="calibre25">_ _switch_to( )</tt> function, discussed in the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-3-SECT-3.html#understandlk-CHP-3-SECT-3.3">Performing the Process Switch</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-3.html#understandlk-CHP-3">Chapter 3</a>.</p>
+<a name="understandlk-CHP-4-SECT-5.2"></a>
+<h4 class="docSection2Title">4.5.2. Entering and Leaving the Exception Handler</h4><a name="IDX-CHP-4-1183"></a>
+<a name="IDX-CHP-4-1184"></a>
+<p class="docText1">As already explained, the names of the C functions that implement exception handlers always consist of the prefix <tt class="calibre25">do_</tt> followed by the handler name. Most of these functions invoke the <i class="docEmphasis">do_trap()</i> function to store the hardware error code and the exception vector in the process descriptor of <tt class="calibre25">current</tt>, and then send a suitable signal to that process:</p>
+<pre class="calibre27">
+    current-&gt;thread.error_code = error_code;
+    current-&gt;thread.trap_no = vector;
+    force_sig(sig_number, current);</pre><br class="calibre7"/>
+<p class="docText1">The current process takes care of the signal right after the termination of the exception handler. The signal will be handled either in User Mode by the process's own signal handler (if it exists) or in Kernel Mode. In the latter case, the kernel usually kills the process (see <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-11.html#understandlk-CHP-11">Chapter 11</a>). The signals sent by the exception handlers are listed in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-4-SECT-2.html#understandlk-CHP-4-TABLE-1">Table 4-1</a>.</p>
+<p class="docText1">The exception handler always checks whether the exception occurred in User Mode or in Kernel Mode and, in the latter case, whether it was due to an invalid argument passed to a system call. We'll describe in the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-10-SECT-4.html#understandlk-CHP-10-SECT-4.3">Dynamic Address Checking: The Fix-up Code</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-10.html#understandlk-CHP-10">Chapter 10</a> how the kernel defends itself against invalid arguments passed to system calls. Any other exception raised in Kernel Mode is due to a kernel bug. In this case, the exception handler knows the kernel is misbehaving. In order to avoid data corruption on the hard disks, the handler invokes the <tt class="calibre25">die( )</tt> function, which prints the contents of all CPU registers on the console (this dump is called <span class="docEmphasis">kernel oops</span><a name="IDX-CHP-4-1185"></a> 
+) and terminates the <tt class="calibre25">current</tt> process by calling <tt class="calibre25">do_exit( )</tt> (see "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-3-SECT-5.html#understandlk-CHP-3-SECT-5.1">Process Termination</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-3.html#understandlk-CHP-3">Chapter 3</a>).</p>
+<p class="docText1">When the C function that implements the exception handling terminates, the code performs a <tt class="calibre25">jmp</tt> instruction to the <tt class="calibre25">ret_from_exception( )</tt> function. This function is described in the later section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-4-SECT-9.html#understandlk-CHP-4-SECT-9">Returning from Interrupts and Exceptions</a>."</p>
+
+<br class="calibre7"/>
+
+</div>
+
+{% endraw %}
+

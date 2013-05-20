@@ -1,0 +1,353 @@
+---
+layout: page
+title: "Unknown"
+prev: x22084.htm
+next: x22669.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="x22084.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 13. LXP</td><td width="10%" valign="bottom" class="calibre5"><a href="x22669.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="CONTENTINCLUSION" class="calibre8">Content Inclusion</a></h1><p class="calibre9">The heart of LXP's content management is its content inclusion workhorse: the
+     <tt class="REPLACEABLE">&lt;include&gt;</tt> tag. The <tt class="REPLACEABLE">&lt;include&gt;</tt> tag can operate
+     in one of many ways, depending either on the explicit value of the <tt class="REPLACEABLE">method</tt> attribute with
+     which it is initiated, or the implicit context determined by its attributes.</p><p class="calibre9">The <tt class="REPLACEABLE">&lt;include&gt;</tt> tag can be used, in its simplest form, to simply include a flat
+     HTML file, such as a standard header, sidebar, and footer. In its more advanced incarnations, the
+     <tt class="REPLACEABLE">&lt;include&gt;</tt> tag can be used to parse token-delimited files by using arbitrary tokens,
+     parse basic XML documents, embed PHP output inline within the LXP document, make direct SQL queries, and, of course, include
+     other LXP documents.</p><p class="calibre9"><a href="x22143.htm#LXPINCLUSIONMETHODS">Table 13-1</a> lists each of the LXP inclusion methods available to the
+     <tt class="REPLACEABLE">&lt;include&gt;</tt> tag. The method in the first column is value that you supply to the
+     <tt class="REPLACEABLE">&lt;include&gt;</tt> tag's method attribute. The alias in the second column describes any
+     alternative names that you can use to invoke the same method. The "Implied by" column shows any attribute values which would
+     imply a method (bypassing the need for an explicit <tt class="REPLACEABLE">method</tt> attribute), and the "Description"
+     column gives a brief description of the method itself.</p><div class="NAVHEADER"><a name="LXPINCLUSIONMETHODS"></a><p class="calibre9"><b class="calibre10">Table 13-1. LXP inclusion methods</b></p><table border="1" width="100%" class="calibre"><thead class="calibre11"><tr class="calibre12"><th width="2" valign="TOP" class="calibre13"><p class="calibre9">Method</p></th><th width="4" valign="TOP" class="calibre13"><p class="calibre9">Aliases</p></th><th width="8" valign="TOP" class="calibre13"><p class="calibre9">Implied by</p></th><th width="14" valign="TOP" class="calibre13"><p class="calibre9">Description</p></th></tr></thead><tbody class="calibre14"><tr class="calibre12"><td width="2" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">LXP</tt></p></td><td width="4" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE"/></p></td><td width="8" valign="TOP" class="calibre15"><p class="calibre9"><span><i class="EMPHASIS">.lxp</i></span> extension ending <tt class="REPLACEABLE">src</tt> attribute</p></td><td width="14" valign="TOP" class="calibre15"><p class="calibre9">Processes the source file through <span><i class="EMPHASIS">mod_lxp</i></span></p></td></tr><tr class="calibre12"><td width="2" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">flat</tt></p></td><td width="4" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE"/></p></td><td width="8" valign="TOP" class="calibre15"><p class="calibre9">Unrecognized extension in <tt class="REPLACEABLE">src</tt> attribute, and no <tt class="REPLACEABLE">sql</tt> or <tt class="REPLACEABLE">query</tt> attribute</p></td><td width="14" valign="TOP" class="calibre15"><p class="calibre9">Displays a file's literal contents</p></td></tr><tr class="calibre12"><td width="2" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">parsed</tt></p></td><td width="4" valign="TOP" class="calibre15"><p class="calibre9"> </p></td><td width="8" valign="TOP" class="calibre15"><p class="calibre9"> </p></td><td width="14" valign="TOP" class="calibre15"><p class="calibre9">Parses a token-delimited file, and breaks it up into accessible <tt class="REPLACEABLE">&lt;field&gt;</tt> values</p></td></tr><tr class="calibre12"><td width="2" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">XML</tt></p></td><td width="4" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">RSS</tt>, <tt class="REPLACEABLE">RDF</tt></p></td><td width="8" valign="TOP" class="calibre15"><p class="calibre9"><span><i class="EMPHASIS">.xml</i></span>, <span><i class="EMPHASIS">.rdf</i></span> or <span><i class="EMPHASIS">.rss</i></span> extension at the end of the <tt class="REPLACEABLE">src</tt> attribute</p></td><td width="14" valign="TOP" class="calibre15"><p class="calibre9">Parses a well-formed XML file, and breaks it up into accessible <tt class="REPLACEABLE">&lt;field&gt;</tt> values</p></td></tr><tr class="calibre12"><td width="2" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">local</tt></p></td><td width="4" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">Apache</tt></p></td><td width="8" valign="TOP" class="calibre15"><p class="calibre9"><span><i class="EMPHASIS">.php</i></span>, <span><i class="EMPHASIS">.php3</i></span>, or <span><i class="EMPHASIS">.phtml</i></span> extension at the end of the <tt class="REPLACEABLE">src</tt> attribute</p></td><td width="14" valign="TOP" class="calibre15"><p class="calibre9">Displays output of an Apache subrequest with a <tt class="REPLACEABLE">src</tt> attribute describing a system filename</p></td></tr><tr class="calibre12"><td width="2" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">URI</tt></p></td><td width="4" valign="TOP" class="calibre15"><p class="calibre9"> </p></td><td width="8" valign="TOP" class="calibre15"><p class="calibre9"> </p></td><td width="14" valign="TOP" class="calibre15"><p class="calibre9">Displays output of an Apache subrequest with a <tt class="REPLACEABLE">src</tt> attribute describing an HTTP URI</p></td></tr><tr class="calibre12"><td width="2" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">SQL</tt></p></td><td width="4" valign="TOP" class="calibre15"><p class="calibre9"> </p></td><td width="8" valign="TOP" class="calibre15"><p class="calibre9">Existence of <tt class="REPLACEABLE">sql</tt> or <tt class="REPLACEABLE">query</tt> attribute</p></td><td width="14" valign="TOP" class="calibre15"><p class="calibre9">Executes a SQL statement, making query results accessible both as variables, and with the <tt class="REPLACEABLE">&lt;field&gt;</tt> tag</p></td></tr></tbody></table></div><p class="calibre9">The source of content inclusion is invariably defined in the <tt class="REPLACEABLE">src</tt> attribute of the
+     <tt class="REPLACEABLE">&lt;include&gt;</tt> tag. In most cases this is a system filename, though it may describe a
+     database source or Apache URI request, depending on the method. When you include a file described by a relative path (one
+     that is not explicitly defined from the root of the filesystem), LXP will use the working directory of the LXP document
+     which is performing the inclusion.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>To prevent accidental infinite recursion (e.g., including a file that includes itself), LXP documents may only
+       include to the depth specified in the <span><i class="EMPHASIS">lxp.conf</i></span> file's
+       <tt class="REPLACEABLE">MaxIncludeDepth</tt> directive (see <a href="x21206.htm#LXPCONF">the Section called <i class="EMPHASIS">Nuts and Bolts: Configuring lxp.conf</i></a>"). The default maximum include
+       depth is 15.</p></blockquote></div><div class="NAVHEADER"><h2 class="SECT"><a name="INCLUDINGLXP" class="calibre8">Including LXP Files</a></h2><p class="calibre9">Any LXP file can be included within another LXP file, if the Apache server has read access to the document specified
+       in the <tt class="REPLACEABLE">src</tt> attribute. Any variables set in the including LXP document will be both
+       accessible, and modifiable, by the included LXP document.</p><p class="calibre9">To include an LXP file, open an LXP region, and use the following syntax where
+       <tt class="REPLACEABLE"><i class="EMPHASIS">lxpfile</i></tt> is the name of the LXP file you wish to include:</p><pre class="SCREEN">  &lt;include src="<tt class="REPLACEABLE"><i class="EMPHASIS">lxpfile</i></tt>" /&gt;</pre><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>When an LXP file is included, it is parsed as if it had been directly called. Therefore, you must still use the
+         <tt class="REPLACEABLE">&lt;lxp&gt;</tt> tag to open an LXP region in the included LXP document before you are able
+         to use LXP tags within it.</p></blockquote></div><p class="calibre9">Since the output of the included LXP document is embedded in place of the
+       <tt class="REPLACEABLE">&lt;include&gt;</tt> tag itself, no closing tag is necessary with this inclusion method.  In
+       this case, the <tt class="REPLACEABLE">&lt;include&gt;</tt> tag should be an empty-element tag (i.e., with a trailing
+       slash). If the LXP file you are including does not have an extension ending in <span><i class="EMPHASIS">.lxp</i></span>, you may force it
+       to be parsed by the LXP module by using the <tt class="REPLACEABLE">method="lxp"</tt> attribute.</p><p class="calibre9">Suppose that you have an LXP application that provides different content depending on the virtual host accessing the
+       site. Each virtual host's <tt class="REPLACEABLE">DocumentRoot</tt> could store just a single
+       <span><i class="EMPHASIS">index.lxp</i></span> file, configured to include the root LXP application from another directory. <a href="x22143.htm#INCLUDINGANLXPDOCUMENT">Example 13-21</a> demonstrates such a simple top-level file, which sets two protected LXP variables, and
+       includes the root LXP file.</p><div class="NAVHEADER"><a name="INCLUDINGANLXPDOCUMENT"></a><p class="calibre9"><b class="calibre10">Example 13-21. Including an LXP document</b></p><pre class="SCREEN">&lt;lxp&gt;
+  &lt;setvar lxp.virtual_host="0" /&gt;
+  &lt;setvar lxp.access_level="1" /&gt;
+  &lt;include src="../application/index.lxp" /&gt;
+&lt;/lxp&gt;</pre></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="INCLUDINGFLATFILES" class="calibre8">Including Flat Files</a></h2><p class="calibre9"><span><i class="EMPHASIS">Flat file</i></span> is a term used to refer to a plain-text document. A flat file is a non-parsed
+       document (such as a simple HTML document, or text file), as far as the server is concerned.</p><p class="calibre9">As with the inclusion of LXP documents, the <span><i class="EMPHASIS">flat file</i></span> inclusion method does not require a
+       closing tag, and should therefore be used as an empty-element tag with a trailing slash. To include a flat file, open an
+       LXP region, and use the following syntax where <tt class="REPLACEABLE"><i class="EMPHASIS">flatfile</i></tt> is the name of the file you wish
+       to include:</p><pre class="SCREEN">  &lt;include src="<tt class="REPLACEABLE"><i class="EMPHASIS">flatfile</i></tt>" /&gt;</pre><p class="calibre9">If the flat file you are including has a recognized file extension, you may force it to be displayed literally by
+       using the <tt class="REPLACEABLE">method="flat"</tt> attribute. <a href="x22143.htm#INCLUDINGFLATFILESEXAMPLE">Example 13-22</a>
+       demonstrates an LXP document which includes three HTML files, from a relative directory called <span><i class="EMPHASIS">parts</i></span>,
+       to be used as a header, sidebar, and footer. Since their extensions do not imply any more complex method, the files are
+       included as-is in the main document. </p><div class="NAVHEADER"><a name="INCLUDINGFLATFILESEXAMPLE"></a><p class="calibre9"><b class="calibre10">Example 13-22. Including flat files</b></p><pre class="SCREEN">&lt;lxp&gt;
+  &lt;include src="parts/header.html" /&gt;
+  &lt;include src="parts/leftbar.html" /&gt;
+    Welcome to my home page.&lt;br /&gt;
+  &lt;include src="parts/footer.html /&gt;
+&lt;/lxp&gt;</pre></div><p class="calibre9">As you can see, this sort of inclusion can make web sites with consistent themes far easier to maintain by
+       modularizing components in a manner similar to what is done when using server-side-includes or PHP's
+       <tt class="REPLACEABLE">readfile()</tt> function.  In addition, flat file inclusion allows you to achieve this modularity without
+       having to leave the simplicity and elegance of mark-up design. This is certainly not the full extent of the
+       <span><i class="EMPHASIS">&lt;include&gt;</i></span> tag's power, as you will find out in subsequent sections.</p></div><div class="NAVHEADER"><h2 class="SECT"><a name="INCLUDINGPARSED" class="calibre8">Including Token-Delimited Files</a></h2><p class="calibre9">A common function of many dynamic web sites is to post the contents of token-delimited files (such as Linux Today's
+       <span><i class="EMPHASIS">headlines</i></span> file) on their web site in some kind of programmatically filtered format. These filters
+       generally are implemented differently from page to page, and site to site, and rely on somewhat involved algorithms to
+       pull apart the data and put it back together again into a useful format.</p><p class="calibre9">The LXP approach to displaying such files is with the use of the <tt class="REPLACEABLE">&lt;include&gt;</tt>
+       tag, by specifying the <tt class="REPLACEABLE">method="parsed"</tt> attribute. This use of the
+       <tt class="REPLACEABLE">&lt;include&gt;</tt> tag breaks up the parsed <span><i class="EMPHASIS">fields</i></span> into sequential
+       values, accessible via the general-purpose LXP <tt class="REPLACEABLE">&lt;field&gt;</tt> tag.</p><p class="calibre9">Blocks are delimited from one another by the value supplied to the <tt class="REPLACEABLE">delimiter</tt>
+       attribute. Within a block, <span><i class="EMPHASIS">fields</i></span> are separated from one another by each newline (symbolically,
+       <tt class="REPLACEABLE">\n</tt>, a literal line-wrap) found within the block. You may optionally specify a different
+       field delimiter value using the <tt class="REPLACEABLE">separator</tt> attribute.</p><p class="calibre9">The parsed method for the <tt class="REPLACEABLE">&lt;include&gt;</tt> tag requires a closing
+       <tt class="REPLACEABLE">&lt;/include&gt;</tt> tag, because for each block that LXP reads from the file, it loops back
+       to the beginning of the <tt class="REPLACEABLE">&lt;include&gt;</tt> tag and re-iterates the mark-up until the last
+       block is processed.</p><p class="calibre9">If you wish to limit the number of blocks to be displayed, the last block number can be specified with the
+       <tt class="REPLACEABLE">lastblock</tt> attribute. Additionally, the <tt class="REPLACEABLE">firstblock</tt>
+       attribute can be used to skip any leading blocks (e.g., an introductory statement that might be embedded at the top of the
+       text file preceding the first delimiter).</p><p class="calibre9">Here is an example of such a token-delimited file, from <span><i class="EMPHASIS">www.linuxtoday.com</i></span>:</p><pre class="SCREEN">Welcome to lthead.txt.  Fields are delimited by two ampersands.
+The first field is the headline.  The second field is the URL to the story.
+The third field is the date the story was posted.
+Have Fun! (webmaster@linuxtoday.com)
+&amp;&amp;
+LinuxProgramming: python-dev summary 2001-06-21 - 2001-07-05
+http://linuxtoday.com/news_story.php3?ltsn=2001-07-05-019-21-OS-SW
+Jul 5, 2001, 21:30:38
+&amp;&amp;
+Chicago Sun-Times: Test drive Linux using friendly tryout software
+http://linuxtoday.com/news_story.php3?ltsn=2001-07-05-018-21-PS-CY
+Jul 5, 2001, 21:00:48
+&amp;&amp;
+[...]</pre><p class="calibre9"><a href="x22143.htm#INCLUDINGATOKENDELIMITEDFILE">Example 13-23</a> opens the file <span><i class="EMPHASIS">/home/web/headlines/lthead.txt</i></span>,
+       and parses it into blocks using the <tt class="REPLACEABLE">&amp;&amp;</tt> character sequence as the block
+       delimiter.</p><div class="NAVHEADER"><a name="INCLUDINGATOKENDELIMITEDFILE"></a><p class="calibre9"><b class="calibre10">Example 13-23. Including a token-delimited file</b></p><pre class="SCREEN">&lt;lxp&gt;
+  &lt;include src="/home/web/headlines/lthead.txt" delimiter="&amp;&amp;"
+           firstblock="2" lastblock="4" method="parsed"&gt;
+    &lt;table border="0" cellspacing="1"&gt;&lt;tr&gt;
+      &lt;td bgcolor="#ffffff" width="100%"&gt;
+        &lt;div class="content"&gt;
+         - &lt;field /&gt;
+        &lt;/div&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;&lt;tr&gt;
+      &lt;td bgcolor="#e0e0e8" width="100%"&gt;
+        &lt;strong&gt;
+        &lt;field type="url" link="Read More..." target="_blank" /&gt;
+        &lt;/strong&gt;&lt;br /&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;&lt;/table&gt;
+  &lt;/include&gt;
+&lt;/lxp&gt;</pre></div><p class="calibre9">When an inclusion such as the one in <a href="x22143.htm#INCLUDINGATOKENDELIMITEDFILE">Example 13-23</a> is processed, the
+       <tt class="REPLACEABLE">&lt;field&gt;</tt> tags are replaced with the field values found within the parsed blocks.
+       Fields are assigned to <tt class="REPLACEABLE">&lt;field&gt;</tt> tags in the order in which they are found.</p><p class="calibre9">As you can see in <a href="x22143.htm#INCLUDINGATOKENDELIMITEDFILE">Example 13-23</a>, you may also specify an alternate
+       <tt class="REPLACEABLE">type</tt> attribute for an LXP <tt class="REPLACEABLE">&lt;field&gt;</tt>.  Valid types in
+       a parsed inclusion are <tt class="REPLACEABLE">hidden</tt> (this hides the field if there is a value that you wish to
+       skip over, and not display) and <tt class="REPLACEABLE">url</tt>.</p><p class="calibre9">The <tt class="REPLACEABLE">hidden</tt> type is used for a field which you wish to merely skip over. Since
+       token-delimited files have no identifying name for each block, each field must be processed in the order that is
+       encountered by LXP in the source file. Therefore, a field can be assigned a <tt class="REPLACEABLE">type="hidden"</tt>
+       attribute in order to skip it rather than display it, allowing you to display fields that are past it in the file.</p><p class="calibre9">The <tt class="REPLACEABLE">url</tt> type is useful in this context when you know that a particular field will
+       be a URL, as it creates a hyperlink to that URL (with an HTML <tt class="REPLACEABLE">&lt;a&gt;</tt> tag), rather than
+       just displaying the URL itself. You can set the text of the generated hyperlink to appear as an arbitrary value, other
+       than just the URL itself (such as the <tt class="REPLACEABLE">Read More...</tt> value used in <a href="x22143.htm#INCLUDINGATOKENDELIMITEDFILE">Example 13-23</a>), by specifying the value of the <tt class="REPLACEABLE">link</tt> attribute
+       within the <tt class="REPLACEABLE">&lt;field&gt;</tt> tag.</p><p class="calibre9">Here is example output of what you would see from LXP, after parsing the mark-up from <a href="x22143.htm#INCLUDINGATOKENDELIMITEDFILE">Example 13-23</a>:</p><pre class="SCREEN">
+&lt;table border="0" cellspacing="1"&gt;&lt;tr&gt;
+  &lt;td bgcolor="#ffffff" width="100%"&gt;
+    &lt;div class="content"&gt;
+     - LinuxProgramming: python-dev summary 2001-06-21 - 2001-07-05
+    &lt;/div&gt;
+  &lt;/td&gt;
+&lt;/tr&gt;&lt;tr&gt;
+  &lt;td bgcolor="#e0e0e8" width="100%"&gt;
+    &lt;strong&gt;
+    &lt;a href="http://linuxtoday.com/news_story.php3?ltsn=2001-07-05-019-21-OS-SW"
+target="_blank"&gt;Read More...&lt;/a&gt;
+    &lt;/strong&gt;&lt;br /&gt;
+  &lt;/td&gt;
+&lt;/tr&gt;&lt;/table&gt;
+
+&lt;table border="0" cellspacing="1"&gt;&lt;tr&gt;
+  &lt;td bgcolor="#ffffff" width="100%"&gt;
+    &lt;div class="content"&gt;
+     - Chicago Sun-Times: Test drive Linux using friendly tryout software
+    &lt;/div&gt;
+  &lt;/td&gt;
+&lt;/tr&gt;&lt;tr&gt;
+  &lt;td bgcolor="#e0e0e8" width="100%"&gt;
+    &lt;strong&gt;
+    &lt;a href="http://linuxtoday.com/news_story.php3?ltsn=2001-07-05-018-21-PS-CY"
+target="_blank"&gt;Read More...&lt;/a&gt;
+    &lt;/strong&gt;&lt;br /&gt;
+  &lt;/td&gt;
+&lt;/tr&gt;&lt;/table&gt;
+
+[...]</pre><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>When using an LXP <tt class="REPLACEABLE">&lt;field type="url"&gt;</tt> tag, you can pass non-LXP attributes
+         such as <tt class="REPLACEABLE">class</tt>, or <tt class="REPLACEABLE">target</tt>, and they will be placed in
+         the generated <tt class="REPLACEABLE">&lt;a&gt;</tt> tag.</p></blockquote></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="INCLUDINGRSS" class="calibre8">Including XML, RSS and RDF Files</a></h2><p class="calibre9">To include an external well-formed XML document, the approach is very similar to the
+       <tt class="REPLACEABLE">parsed</tt> method. The <tt class="REPLACEABLE">method</tt> attribute may be set to either
+       <tt class="REPLACEABLE">XML</tt>, <tt class="REPLACEABLE">RSS</tt>, or <tt class="REPLACEABLE">RDF</tt> to
+       explicitly set the method to XML parsing. Including a <tt class="REPLACEABLE">src</tt> attribute that ends in any of
+       the <span><i class="EMPHASIS">.xml</i></span>, <span><i class="EMPHASIS">.rss</i></span>, or <span><i class="EMPHASIS">.rdf</i></span> extensions will implicitly invoke
+       this method as well.</p><p class="calibre9">The <tt class="REPLACEABLE">delimiter</tt> attribute in this context sets the name of the element (tag) within
+       which to look for element fields to parse. For example, most of the relevant fields in an RDF file are contained directly
+       within the <tt class="REPLACEABLE">&lt;item&gt;</tt> element; for this reason, <tt class="REPLACEABLE">item</tt>
+       is the default delimiter element. For each delimiting element found, the entire
+       <tt class="REPLACEABLE">&lt;include&gt;</tt> region will be looped through once.</p><p class="calibre9">Like the <tt class="REPLACEABLE">parsed</tt> method, the <tt class="REPLACEABLE">XML</tt> method uses the
+       generalized <tt class="REPLACEABLE">&lt;field&gt;</tt> tag to display the contents of a field value. In this context,
+       a field value refers to the character data within a named element (tag) inside the delimiting element. Field values will
+       be displayed in the order in which they appear in the XML file unless a <tt class="REPLACEABLE">name</tt> attribute is
+       set within the <tt class="REPLACEABLE">&lt;field&gt;</tt> tag, assigning the name of the element field to output. For
+       example, a <tt class="REPLACEABLE">name="title"</tt> attribute refers to the character data within
+       <tt class="REPLACEABLE">&lt;title&gt;</tt> and <tt class="REPLACEABLE">&lt;/title&gt;</tt> in the source XML document.</p><p class="calibre9">As an example, suppose that you have an XML source document called <span><i class="EMPHASIS">languages.xml</i></span> that describes
+       languages related to PostgreSQL, with the following structure:</p><pre class="SCREEN">&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;languages&gt;
+  &lt;language&gt;
+    &lt;name&gt;C&lt;/name&gt;
+    &lt;notes&gt;Built-in language.&lt;/notes&gt;
+  &lt;/language&gt;
+  &lt;language&gt;
+    &lt;name&gt;LXP&lt;/name&gt;
+    &lt;notes&gt;Web-based content language.&lt;/notes&gt;
+  &lt;/language&gt;
+  &lt;language&gt;
+    &lt;name&gt;PL/pgSQL&lt;/name&gt;
+    &lt;notes&gt;PostgreSQL procedural language.&lt;/notes&gt;
+  &lt;/language&gt;
+&lt;/languages&gt;</pre><p class="calibre9">In this scheme, notice that each language is described within the <tt class="REPLACEABLE">&lt;language&gt;</tt>
+       element. To parse such an XML file in the same manner as the RDF example described earlier, set the
+       <tt class="REPLACEABLE">delimiter</tt> attribute of the <tt class="REPLACEABLE">&lt;include&gt;</tt> tag to
+       <tt class="REPLACEABLE">language</tt> and the <tt class="REPLACEABLE">src</tt> attribute to
+       <tt class="REPLACEABLE">languages.xml</tt>. This is demonstrated in <a href="x22143.htm#INCLUDINGANXMLFILE">Example 13-24</a>.</p><div class="NAVHEADER"><a name="INCLUDINGANXMLFILE"></a><p class="calibre9"><b class="calibre10">Example 13-24. Including an XML file</b></p><pre class="SCREEN">&lt;lxp&gt;
+  &lt;include src="languages.xml" delimiter="language" method="xml"&gt;
+    Language Name: &lt;field name="name" /&gt;&lt;br /&gt;
+    Language Notes: &lt;field name="notes" /&gt;&lt;br /&gt;
+    &lt;hr /&gt;
+  &lt;/include&gt;
+&lt;/lxp&gt;</pre></div><p class="calibre9">When processed, the output of <a href="x22143.htm#INCLUDINGANXMLFILE">Example 13-24</a> would look like this:</p><pre class="SCREEN">    
+    Language Name: C&lt;br /&gt;
+    Language Notes: Built-in language.&lt;br /&gt;
+    &lt;hr /&gt;
+    
+    Language Name: LXP&lt;br /&gt;
+    Language Notes: Web-based content language.&lt;br /&gt;
+    &lt;hr /&gt;
+    
+    Language Name: PL/pgSQL&lt;br /&gt;
+    Language Notes: PostgreSQL procedural language.&lt;br /&gt;
+    &lt;hr /&gt;
+</pre><p class="calibre9"><a href="x22143.htm#INCLUDINGANRDFFILE">Example 13-25</a> demonstrates the display of a simple RDF XML document. This example differs from
+       <a href="x22143.htm#INCLUDINGANXMLFILE">Example 13-24</a> in that it addresses, specifically, an RDF document. As a result, the
+       <tt class="REPLACEABLE">delimiter</tt> attribute can be omitted, since the default value of <span><i class="EMPHASIS">item</i></span>
+       is appropriate for the RDF schema.</p><div class="NAVHEADER"><a name="INCLUDINGANRDFFILE"></a><p class="calibre9"><b class="calibre10">Example 13-25. Including an RDF file</b></p><pre class="SCREEN">&lt;lxp&gt;
+  &lt;include src="/home/web/ports/headlines/slashdot.rdf" lastblock="5"&gt;
+  &lt;table border="0" cellspacing="1"&gt;&lt;tr&gt;
+    &lt;td bgcolor="#ffffff" width="100%"&gt;
+      &lt;div class="content"&gt;- &lt;field name="title"&gt;&lt;/div&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;&lt;tr&gt;
+    &lt;td bgcolor="#e0e0e8" width="100%"&gt;
+      &lt;strong&gt;
+        &lt;field name="link" type="url" link="Read More..." target="_blank"&gt;
+      &lt;/strong&gt;&lt;br /&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;&lt;/table&gt;
+  &lt;/include&gt;
+&lt;/lxp&gt;</pre></div><p class="calibre9">Notice also the use of the <tt class="REPLACEABLE">lastblock</tt> attribute in <a href="x22143.htm#INCLUDINGANRDFFILE">Example 13-25</a>, which was also
+       described in <a href="x22143.htm#INCLUDINGPARSED">the Section called <i class="EMPHASIS">Including Token-Delimited Files</i></a>" earlier in this chapter. Both the <tt class="REPLACEABLE">firstblock</tt> and <tt class="REPLACEABLE">lastblock</tt>
+       attributes can also be used with XML, RDF, and RSS files to limit and offset which blocks of data are displayed.</p><div class="NAVHEADER"><p class="calibre9"></p><table class="calibre" border="1" width="100%"><tr class="calibre1"><td class="calibre23"><b class="calibre10">Warning</b></td></tr><tr class="calibre1"><td class="calibre15"><p class="calibre9">Remember that any XML document you attempt to include through LXP <span><i class="EMPHASIS">must</i></span> be well-formed, or the
+         parser will fail. XML parse errors should appear in the Apache error log, prefixed with <tt class="REPLACEABLE">[lxp] XML Parse Error</tt>.</p></td></tr></table></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="INCLUDINGNONLXP" class="calibre8">Including External Content Types</a></h2><p class="calibre9">To include an external content-type configured within Apache, the <tt class="REPLACEABLE">&lt;include&gt;</tt>
+       tag can be invoked with either the <tt class="REPLACEABLE">URI</tt> or <tt class="REPLACEABLE">local</tt> method.
+       Each performs a subrequest to Apache, meaning that the inclusion is processed as if it is a direct request to Apache, with
+       the output embedded at the location of the <tt class="REPLACEABLE">&lt;include&gt;</tt> tag in the LXP
+       document.</p><p class="calibre9">The difference between these two methods is that the <tt class="REPLACEABLE">URI</tt> method accepts a
+       <tt class="REPLACEABLE">src</tt> attribute of the form that Apache would literally accept from a web browser, prefixed
+       with a forward-slash, and beginning at the document root directory of the configured host (e.g.,
+       <span><i class="EMPHASIS">/example.php</i></span>). Alternatively, the <tt class="REPLACEABLE">local</tt> method tells Apache directly
+       where the file is located on the local filesystem (e.g., <span><i class="EMPHASIS">/home/web/default/example.php</i></span>).</p><p class="calibre9"><a href="x22143.htm#INCLUDINGOTHERCONTENTTYPES">Example 13-26</a> shows an LXP file which includes a PHP script in two ways. Note that
+       each of these methods goes through Apache, and will thus be reliant on Apache to be properly configured for the requested
+       content type, and especially in the case of the <tt class="REPLACEABLE">local</tt> method, have the necessary rights
+       on the directory containing the included script.</p><div class="NAVHEADER"><a name="INCLUDINGOTHERCONTENTTYPES"></a><p class="calibre9"><b class="calibre10">Example 13-26. Including other content types</b></p><pre class="SCREEN">&lt;lxp&gt;
+  An example PHP script:&lt;br /&gt;
+  &lt;include src="/example.php" method="URI" /&gt;
+  &lt;hr /&gt;
+  The same PHP script, using the local method:&lt;br /&gt;
+  &lt;include src="/home/web/default/example.php" method="local" /&gt;
+&lt;/lxp&gt;</pre></div><p class="calibre9">Omitting the <tt class="REPLACEABLE">method</tt> attribute when including a document (specified by the a
+       <tt class="REPLACEABLE">src</tt> attribute) with a name ending with any of the common PHP extensions
+       (<span><i class="EMPHASIS">.php</i></span>, <span><i class="EMPHASIS">.php3</i></span>, and <span><i class="EMPHASIS">.phtml</i></span>) results in the method being
+       implied as <tt class="REPLACEABLE">local</tt>. As of LXP 0.8, however, there is no way to imply the
+       <tt class="REPLACEABLE">URI</tt> method. You must therefore specify <tt class="REPLACEABLE">method="URI"</tt> to
+       use the URI method.</p></div><div class="NAVHEADER"><h2 class="SECT"><a name="DIRECTSQL" class="calibre8">Including SQL Content</a></h2><p class="calibre9">The <span><i class="EMPHASIS">SQL</i></span> method in LXP offers a great amount of power through direct connectivity to PostgreSQL.
+       It allows for the embedding of 100% dynamic, database results directly within a web page without the need to call out to a
+       programming language, create explicit connection or statement programming objects, or even to parse and format the
+       results.</p><p class="calibre9">To use the <span><i class="EMPHASIS">SQL</i></span> method, you may either explicitly use the
+       <tt class="REPLACEABLE">&lt;include&gt;</tt> tag with a <tt class="REPLACEABLE">method</tt> attribute of
+       <tt class="REPLACEABLE">SQL</tt>, or implicitly define the <tt class="REPLACEABLE">&lt;include&gt;</tt> tag as
+       using the <span><i class="EMPHASIS">SQL</i></span> method by setting the value of the <tt class="REPLACEABLE">sql</tt> attribute to
+       the SQL statement you wish to execute.  In the following example, the SQL method is implied as a result of specifying a
+       value for the <tt class="REPLACEABLE">sql</tt> attribute:</p><pre class="SCREEN">  &lt;include sql="SELECT * FROM pg_database"&gt;</pre><p class="calibre9">Like each of the parsing methods, the <tt class="REPLACEABLE">&lt;include&gt;</tt> tag loops between its opening
+       <tt class="REPLACEABLE">&lt;include&gt;</tt> and closing <tt class="REPLACEABLE">&lt;/include&gt;</tt> tags for
+       each row returned from a successfully executed SQL query.</p><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN22510" class="calibre8">Setting the database source</a></h3><p class="calibre9">When using the <span><i class="EMPHASIS">SQL</i></span> inclusion method, the <tt class="REPLACEABLE">src</tt> attribute is
+         used within the <tt class="REPLACEABLE">&lt;include&gt;</tt> tag to define the database source to connect to. If
+         this attribute is omitted, LXP will attempt to connect to its persistent database connection, if one exists.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>While there exists a single persistent database connection for each Apache
+           <span><i class="EMPHASIS">httpd</i></span> process, the LXP module actually maintains the connection—not Apache.</p></blockquote></div><p class="calibre9">The format of this connection string will be familiar to anyone who has connected to PostgreSQL through C or PHP.
+         It is a single, character string, within which there are several sub-attributes describing the data source. Available
+         sub-attributes are shown in <a href="x22143.htm#DATABASECONNECTIONATTRIBUTES">Table 13-2</a>.</p><div class="NAVHEADER"><a name="DATABASECONNECTIONATTRIBUTES"></a><p class="calibre9"><b class="calibre10">Table 13-2. Database Connection Attributes</b></p><table border="1" class="calibre"><thead class="calibre11"><tr class="calibre12"><th width="50%" valign="TOP" class="calibre13"><p class="calibre9">Attribute</p></th><th width="50%" valign="TOP" class="calibre13"><p class="calibre9">Description</p></th></tr></thead><tbody class="calibre14"><tr class="calibre12"><td width="50%" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">dbname</tt></p></td><td width="50%" valign="TOP" class="calibre15"><p class="calibre9">The database to connect with (defaults to the same name as the connecting user)</p></td></tr><tr class="calibre12"><td width="50%" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">host</tt></p></td><td width="50%" valign="TOP" class="calibre15"><p class="calibre9">The hostname to connect to</p></td></tr><tr class="calibre12"><td width="50%" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">user</tt></p></td><td width="50%" valign="TOP" class="calibre15"><p class="calibre9">The username to connect with (defaults to the user running Apache)</p></td></tr><tr class="calibre12"><td width="50%" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">password</tt></p></td><td width="50%" valign="TOP" class="calibre15"><p class="calibre9">The password to use, if authentication is required</p></td></tr><tr class="calibre12"><td width="50%" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">port</tt></p></td><td width="50%" valign="TOP" class="calibre15"><p class="calibre9">The port to connect to (Defaults to 5432)</p></td></tr></tbody></table></div><p class="calibre9">Within the <tt class="REPLACEABLE">src</tt> attribute's value, attribute pairs are separated by whitespace, and an equal
+         sign separates each attribute from its value.  The order in which the database attributes appear is not
+         important.</p><p class="calibre9"><a href="x22143.htm#CONNECTINGTOANONDEFAULTDATABASE">Example 13-27</a> shows the execution of a SQL query, which uses a connection to a
+         database called <tt class="REPLACEABLE">example</tt>, on a host named <tt class="REPLACEABLE">db_server</tt>, with the username <tt class="REPLACEABLE">john</tt>.</p><div class="NAVHEADER"><a name="CONNECTINGTOANONDEFAULTDATABASE"></a><p class="calibre9"><b class="calibre10">Example 13-27. Connecting to a non-default database</b></p><pre class="SCREEN">&lt;lxp&gt;
+  &lt;include sql="SELECT * FROM users ORDER BY username ASC"
+           src="dbname=example host=db_server user=john"&gt;
+    User: &lt;field /&gt;&lt;br /&gt;
+  &lt;/include&gt;
+&lt;/lxp&gt;</pre></div><div class="NAVHEADER"><p class="calibre9"></p><table class="calibre" border="1" width="100%"><tr class="calibre1"><td class="calibre23"><b class="calibre10">Warning</b></td></tr><tr class="calibre1"><td class="calibre15"><p class="calibre9">For LXP 0.8, if you wish to nest a SQL include within another SQL include,
+           the nested include <span><i class="EMPHASIS">must</i></span> have an explicit <tt class="REPLACEABLE">src</tt> attribute defined,
+           even if it is connecting to the default database connection. This restriction is corrected with LXP 0.8.1.</p></td></tr></table></div></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN22577" class="calibre8">Accessing column values</a></h3><p class="calibre9">Column values can be accessed in one of two ways while iterating through a SQL inclusion region; either through
+         the general <tt class="REPLACEABLE">&lt;field&gt;</tt> tag, or through the <tt class="REPLACEABLE">this</tt>
+         object, which is populated with a value for each column upon each row iteration.</p><p class="calibre9">Like the XML inclusion, a <tt class="REPLACEABLE">name</tt> attribute can be applied to a
+         <tt class="REPLACEABLE">&lt;field&gt;</tt> tag in order to specify which column is to be displayed. Otherwise, the
+         column values are displayed in the order they were targeted by the query, from left to right, with each successive use
+         of the <tt class="REPLACEABLE">&lt;field&gt;</tt> tag.</p><p class="calibre9">Alternatively, the values of each column can be accessed by a variable named <tt class="REPLACEABLE">this.</tt><tt class="REPLACEABLE"><i class="EMPHASIS">column</i></tt>,
+         where <tt class="REPLACEABLE"><i class="EMPHASIS">column</i></tt> is the name of the column to be identified. For example, the following two tags 
+         would output the same value within an included SQL region:</p><pre class="SCREEN">  &lt;field name="id" /&gt;
+  &lt;putvar name="this.id" /&gt;</pre><p class="calibre9">The main reason for the existence of the <tt class="REPLACEABLE">this</tt> object is so that branching logic,
+         and variable substitution, can be performed using the values of the returned SQL result set. <a href="x22143.htm#INCLUDINGSQLCONTENTEXAMPLE">Example 13-28</a> executes a SQL query, and formats its output conditionally through the use of
+         branching logic.</p><div class="NAVHEADER"><a name="INCLUDINGSQLCONTENTEXAMPLE"></a><p class="calibre9"><b class="calibre10">Example 13-28. Including SQL content</b></p><pre class="SCREEN">&lt;lxp&gt;
+  &lt;include sql="SELECT datname, datdba AS user_id FROM pg_database"&gt;
+    &lt;if this.user_id="$userid"&gt;
+      &lt;strong&gt;&lt;field /&gt;&lt;/strong&gt;&lt;br /&gt;
+      &lt;setvar owned_databases="$owned_databases @this.datname" /&gt;
+    &lt;/if&gt;
+    &lt;else&gt;
+      &lt;field /&gt;&lt;br /&gt;
+    &lt;/else&gt;
+  &lt;/include&gt;
+&lt;/lxp&gt;</pre></div></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN22601" class="calibre8">Accessing SQL meta-data</a></h3><p class="calibre9">When executing a SQL query, some special variable values containing data about the current result set are assigned
+         to an LXP object called <tt class="REPLACEABLE">sql</tt>. These are:</p><p class="calibre9"></p><ul class="calibre21"><li class="calibre22"><p class="calibre9"><tt class="REPLACEABLE">sql.numrows</tt></p></li><li class="calibre22"><p class="calibre9"><tt class="REPLACEABLE">sql.numcols</tt></p></li><li class="calibre22"><p class="calibre9"><tt class="REPLACEABLE">sql.numfields</tt> (alias to <tt class="REPLACEABLE">sql.numcols</tt>)</p></li><li class="calibre22"><p class="calibre9"><tt class="REPLACEABLE">sql.row</tt></p></li><li class="calibre22"><p class="calibre9"><tt class="REPLACEABLE">sql.offset</tt></p></li></ul><p class="calibre9">The <tt class="REPLACEABLE">sql.numrows</tt> variable value contains the number of rows retrieved by the
+         query. The <tt class="REPLACEABLE">sql.numcols</tt> (and its <tt class="REPLACEABLE">sql.numfields</tt> alias)
+         variable value contains the number of columns in each row.  When looping between
+         <tt class="REPLACEABLE">&lt;include&gt;</tt> and <tt class="REPLACEABLE">&lt;/include&gt;</tt>, the
+         <tt class="REPLACEABLE">sql.row</tt> variable value contains the numeric index of the current row, counting from
+         1, while the <tt class="REPLACEABLE">sql.offset</tt> variable value contains the
+         numeric index of the current row counting from 0.</p><p class="calibre9"><a href="x22143.htm#USINGSQLOBJECTVARIABLEVALUES">Example 13-29</a> uses the the <tt class="REPLACEABLE">sql.row</tt> variable to
+         display the current row index within the looped <tt class="REPLACEABLE">&lt;include&gt;</tt> region. In addition,
+         the <tt class="REPLACEABLE">sql.numrows</tt> variable is used after the query results are displayed to show how many
+         rows were retrieved.</p><div class="NAVHEADER"><a name="USINGSQLOBJECTVARIABLEVALUES"></a><p class="calibre9"><b class="calibre10">Example 13-29. Using SQL object variable values</b></p><pre class="SCREEN">&lt;lxp&gt;
+  &lt;include sql="SELECT * FROM pg_user ORDER BY usename LIMIT 5"&gt;
+    User #&lt;putvar name="sql.row" /&gt;: &lt;putvar name="this.usename" /&gt;&lt;br /&gt;
+  &lt;/include&gt;
+  &lt;br /&gt;
+  Selected &lt;putvar name="sql.numrows" /&gt; rows.
+&lt;/lxp&gt;</pre></div><p class="calibre9">The output of <a href="x22143.htm#USINGSQLOBJECTVARIABLEVALUES">Example 13-29</a> would look like this:</p><pre class="SCREEN">    
+    User #1: allen&lt;br /&gt;
+    
+    User #2: barbara&lt;br /&gt;
+    
+    User #3: ben&lt;br /&gt;
+    
+    User #4: corwin&lt;br /&gt;
+    
+    User #5: david&lt;br /&gt;
+  
+  &lt;br /&gt;
+  Selected 5 rows.
+</pre></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN22645" class="calibre8">Setting SQL object variables</a></h3><p class="calibre9">If you prefer to execute a SQL query only as a means to have access to the result set returned (bypassing the
+         automatic looping iteration of the <tt class="REPLACEABLE">&lt;include&gt;</tt> tag), you may supply the
+         <tt class="REPLACEABLE">setvars</tt> attribute with the name of an LXP object to be populated with the query
+         results, and immediately close the region with a closing <tt class="REPLACEABLE">&lt;/include&gt;</tt> tag.</p><p class="calibre9">For result sets with a single row returned, this approach sets a variable named 
+         <tt class="REPLACEABLE"><i class="EMPHASIS">object</i></tt>.<tt class="REPLACEABLE"><i class="EMPHASIS">column</i></tt> for each
+         column in the row, where <tt class="REPLACEABLE"><i class="EMPHASIS">object</i></tt> is the name specified by the <tt class="REPLACEABLE">setvars</tt>
+         attribute, and <tt class="REPLACEABLE"><i class="EMPHASIS">column</i></tt> is the name of a column returned by the query. For result sets with
+         more than a single row, square-brackets containing an offset describing the row number are appended to the column name
+         (e.g., <tt class="REPLACEABLE">object.column[0]</tt>, <tt class="REPLACEABLE">object.column[1]</tt>, etc.).</p><p class="calibre9"><a href="x22143.htm#SELECTINGSQLRESULTSINTOANLXPOBJECT">Example 13-30</a> executes a query on the
+         <tt class="REPLACEABLE">pg_user</tt> table, to retrieve three columns about a particular user.</p><div class="NAVHEADER"><a name="SELECTINGSQLRESULTSINTOANLXPOBJECT"></a><p class="calibre9"><b class="calibre10">Example 13-30. Selecting SQL results into an LXP object</b></p><pre class="SCREEN">&lt;lxp&gt;
+  &lt;include sql="SELECT usename, usesuper, usecreatedb
+                       FROM pg_user
+                       WHERE usesysid = $userid"
+           setvars="userinfo"&gt;&lt;/include&gt;
+  
+  &lt;if sql.numrows="1"&gt;
+    User name: &lt;putvar name="userinfo.usename"&gt;&lt;br /&gt;
+    &lt;if userinfo.usecreatedb='t'&gt;
+      &lt;strong&gt;This user can create databases.&lt;/strong&gt;&lt;br /&gt;
+    &lt;/if&gt;
+    &lt;if userinfo.usesuper='t'&gt;
+      &lt;strong&gt;This user is a superuser.&lt;/strong&gt;&lt;br /&gt;
+    &lt;/if&gt;
+  &lt;/if&gt;
+  &lt;else&gt;
+    Error: No user was found.
+  &lt;/else&gt;
+&lt;/lxp&gt;</pre></div></div></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="x22084.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x22669.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Loop Iteration</td><td width="34%" valign="top" class="calibre4"><a href="lxp.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Displaying Foreign Tags with &lt;xtag&gt;</td></tr></table></div></div>
+
+{% endraw %}
+

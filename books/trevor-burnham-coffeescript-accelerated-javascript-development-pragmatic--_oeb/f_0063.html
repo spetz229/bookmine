@@ -1,0 +1,198 @@
+---
+layout: page
+title: "CoffeeScript (for jay muratore)"
+prev: f_0062.html
+next: f_0064.html
+book_path: books/trevor-burnham-coffeescript-accelerated-javascript-development-pragmatic--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 class="calibre13">A1.3 Modules and Classes</h2>
+<p id="N145ED" class="calibre5">Answers to Section 4.7, <a href="f_0044.html#sec.classesExercises">​<em class="emph">Exercises</em>​</a>:</p>
+<ol class="calibre24">
+<li class="calibre3">
+<p id="N145F6" class="calibre5">
+          Why doesn’t this give us the same old aphorism twice?
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">root = global ? window</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">root.aphorism = <em class="string">'Fool me 8 or more times, shame on me'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">do</strong> restoreOldAphorism = <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  aphorism = <em class="string">'Fool me once, shame on you'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  console.log aphorism</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console.log aphorism</code>
+</td>
+</tr>
+</table>
+<p id="N14624" class="calibre5">
+          The issue here is that <code class="cf">restoreOldAphorism</code> declares a variable called <code class="cf">aphorism</code> in its own scope. The compiler doesn’t realize that setting <code class="cf">root.aphorism</code> has created a variable with the same name in the global scope; its scoping rules only apply to simple assignments of the form <code class="cf">aphorism = ...</code>.
+        </p>
+<p id="N14633" class="calibre5">
+          It’s fine to read <code class="cf">root.aphorism</code> as just <code class="cf">aphorism</code>, but assignments have to be made to <code class="cf">root.aphorism</code>.
+        </p>
+</li>
+<li class="calibre3">
+<p id="N14640" class="calibre5">
+          The following code is confusing because it uses <code class="cf">@wishesLeft</code> to refer to both a property of the prototype and a property of the instance:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">Genie = <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">Genie::wishesLeft = 3</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">Genie::grantWish = <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">if</strong> @wishesLeft &gt; 0</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    console.log <em class="string">'Your wish is granted!'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    @wishesLeft--</code>
+</td>
+</tr>
+</table>
+<p id="N1466C" class="calibre5">
+          The result is that <span class="emph">each</span> genie will grant three wishes, rather than enforcing a total limit of three wishes.
+        </p>
+<p id="N14672" class="calibre5">
+          To understand why, consider this:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">@wishesLeft--</code>
+</td>
+</tr>
+</table>
+<p id="N14680" class="calibre5">
+          This is equivalent to <code class="cf">@wishesLeft = @wishesLeft - 1</code>. The first time this line is run on a <code class="cf">Genie</code> instance (let’s call it <code class="cf">genie1</code>), it reads <code class="cf">Genie::wishesLeft</code>, subtracts 1 from it, and then assigns that value to a new instance property, <code class="cf">genie1.wishesLeft</code>!
+        </p>
+<p id="N14692" class="calibre5">
+          You can read prototype properties from an object as if the property were attached to the object, but when you write <code class="cf">obj.x = y</code>, you’re always setting the value of a property on the object itself (potentially shadowing a prototype property).
+        </p>
+<p id="N14698" class="calibre5">
+          As a rule, you should never use the same name for a prototype property and an instance property. The best solution in this case is to replace both <code class="cf">Genie::wishesLeft</code> and <code class="cf">@wishesLeft</code> with <code class="cf">Genie.wishesLeft</code>.
+        </p>
+</li>
+<li class="calibre3">
+<p id="N146A5" class="calibre5">
+          The answer is based on the definitions given:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">class</strong> Season</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">class</strong> Spring <strong class="prompt">extends</strong> Season</code>
+</td>
+</tr>
+</table>
+<p id="N146BD" class="calibre5">
+          Both <code class="cf">(new Season).__proto__.__proto__</code> and <code class="cf">(new Spring).__proto__.__proto__.__proto__</code> are equal to <code class="cf">{}.__proto__</code>, the default object prototype.
+        </p>
+</li>
+<li class="calibre3">
+<p id="N146CA" class="calibre5">
+          Bound functions on classes work as you were probably hoping. When you call <code class="cf">foo = new Foo()</code>, instance methods defined on <code class="cf">Foo</code> with <code class="cf">=&gt;</code> are automatically bound to the instance context.
+        </p>
+<p id="N146D6" class="calibre5">
+          This is the behavior you want 95 percent of the time. However, there is a overhead from bound functions (in both code size and instantiation time), so they may not be suitable for performance-critical code.
+        </p>
+</li>
+</ol>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

@@ -1,0 +1,226 @@
+---
+layout: page
+title: "CoffeeScript (for jay muratore)"
+prev: f_0037.html
+next: f_0039.html
+book_path: books/trevor-burnham-coffeescript-accelerated-javascript-development-pragmatic--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="sec.modules" class="calibre13">4.1 Modules: Splitting Up Apps</h2>
+<p id="N127FA" class="calibre5">
+      In a browser environment, JavaScript doesn’t care about files. No matter how many files you may have, it’s just a bunch of lines. So, if two files in an application happen to declare global-scope variables with the same name, well, they’re just going to have to fight it out. May the best code win.
+    </p>
+<p id="N1280B" class="calibre5">
+      This is a huge problem for complex JavaScript apps. If a team is splitting up a project, how can they be sure that they aren’t overwriting each other’s variables? How can you be sure that open-source code you drop in doesn’t conflict with your own?
+    </p>
+<p id="N1280E" class="calibre5">
+      The solution is <span class="emph">namespacing</span>. In JavaScript (and therefore CoffeeScript), every function has its own namespace. A variable declared in a function is never visible outside of that function. So, a common JavaScript convention is to make each file a <span class="emph">module</span> by wrapping it in a function, which is immediately executed. Server-side environments like Node.js, which implement the CommonJS specification, always treat each file as a separate module.
+    </p>
+<p id="N1281B" class="calibre5">
+      As mentioned in <a href="f_0014.html#sb.wrapper">​<em class="emph">JavaScript, Under Wraps</em>​</a>, the CoffeeScript compiler wraps each <code class="cf">coffee</code> file in an anonymous function wrapper, unless it’s invoked with the <code class="cf">--bare</code> flag. CoffeeScript also prevents you from declaring global variables by mistake, which in JavaScript is as easy as forgetting the <code class="cf">var</code> keyword. So the question is, how do you share data between modules?
+    </p>
+<p id="N1282A" class="calibre5">
+      The answer is you attach them to an existing global variable. One option is to use the <span class="emph">root object</span>, which is the only object whose properties can be referenced without qualification. In a browser environment, the root object is <code class="cf">window</code>. In Node, it’s <code class="cf">global</code>.
+      </p>
+<p id="N1283F" class="calibre5">
+      In fact, all of the globals you’re used to dealing with are actually properties of the root object. For instance, <code class="cf">parseInt</code> is actually <code class="cf">window.parseInt</code>/<code class="cf">global.parseInt</code>, and <code class="cf">Math</code> is <code class="cf">window.Math</code>/<code class="cf">global.Math</code>. Even the objects that define the built-in types, like <code class="cf">String</code>, are actually <code class="cf">window.String</code>/<code class="cf">global.String</code>.
+      </p>
+<p id="N12862" class="calibre5">
+      In JavaScript, attaching variables to the root object is easy—in fact, it’s commonly done by mistake when the <code class="cf">var</code> keyword is omitted. In CoffeeScript, on the other hand, you need to be explicit:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">root = global ? window<em class="comment"></em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<em class="comment"># file1.coffee</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">root.emergencyNumber = 911<em class="comment"></em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<em class="comment"># file2.coffee</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console.log emergencyNumber<em class="comment">              # '911'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">emergencyNumber is root.emergencyNumber<em class="comment">  # true</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N12890" class="calibre5">
+      The first line defines <code class="cf">root</code> to be <code class="cf">global</code> if it exists, and <code class="cf">window</code> otherwise, ensuring compatibility with both Node and browser environments.
+    </p>
+<div class="sidebar" id="sb.caution.globals">
+<div class="sidebar-title">Caution: Globals and Implicit Declarations</div>
+<div class="calibre1">
+<p id="N128A0" class="calibre5">
+        While you can get globals without referencing the root object, you can’t set them that way. This is an easy mistake to make:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">root = global ? window<em class="comment"></em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">
+<em class="comment"># file1.coffee</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">root.dogName = <em class="string">'Fido'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">dogName is root.dogName<em class="comment">  # true</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">
+<em class="comment"># file2.coffee</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">console.log dogName<em class="comment">      # undefined</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">dogName = <em class="string">'Bingo'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">dogName is root.dogName<em class="comment">  # false</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N128E1" class="calibre5">
+        Why is <code class="cf1">dogName</code> undefined at the start of the second module? Because a variable with the same name is assigned later on. CoffeeScript interprets that as a new variable declaration, and all variable declarations in CoffeeScript are automatically moved to the top of the scope.
+      </p>
+<p id="N128E7" class="calibre5">
+        So remember: always, always, <span class="emph">always</span> use the root object when setting a global variable! Statements of the form <code class="cf1">x = y</code> will never change the value of <code class="cf1">x</code> in other modules.
+      </p>
+</div>
+</div>
+<p id="N128F3" class="calibre5">
+      Node has another special object called <code class="cf">exports</code>. Usually, you’ll want to use that instead of <code class="cf">global</code> (more on that in Section 6.2, <a href="f_0055.html#sec.nodeExports">​<em class="emph">Modularizing Code with ’exports’ and ’require’</em>​</a>). I used <code class="cf">global ? window</code> in the example above rather than <code class="cf">exports ? window</code> so that the code looks the same in every environment; an alternative would be to use a library, like RequireJS, that allows you to modularize code the same way in every environment without using objects like <code class="cf">global</code> and <code class="cf">window</code> that are available everywhere by default.<a id="FNPTR-32" href="f_0044.html#FOOTNOTE-32">[32]</a>
+</p>
+<p id="N12910" class="calibre5">
+      Of course, it’s considered poor practice to put every little thing in the global namespace. Instead, it’s much more natural to package variables into cleanly referenced objects. Here’s an example:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">root = global ? window</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">root.httpCodes =</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  movedPermanently: 301</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  pageNotFound:     404</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  serverError:      500</code>
+</td>
+</tr>
+</table>
+<p id="N1292A" class="calibre5">
+      Once this module has run, other modules can reference <code class="cf">httpCodes.pageNotFound</code>, for instance.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

@@ -1,0 +1,135 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0147.html
+next: f_0149.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="N1B537">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 108</td>
+<td class="arr-recipe-name">Call grep Without Leaving Vim</td>
+</tr>
+</table>
+<p id="N1B53E" class="calibre4">
+<span class="calibre5">
+        Vim’s <code class="cf">:grep</code> command acts as a wrapper to an external <code class="cf">grep</code> (or <code class="cf">grep</code>-like) program. Using this wrapper, we can have <code class="cf">grep</code> search for a pattern across multiple files without leaving Vim, and then we can navigate the results using the quickfix list. 
+    </span>
+</p>
+<p id="N1B55A" class="calibre4">
+      First we’ll step through a workflow where <code class="cf">grep</code> and Vim run independently without talking to each other. We’ll examine the weaknesses with this approach before considering an integrated solution that solves these problems.
+    </p>
+<h3 class="calibre22">Using grep from the Command Line</h3>
+<p id="N1B564" class="calibre4">
+        Suppose that we’re working on something in Vim and we need to find every occurrence of the word “Waldo” in all files in the current directory. Leaving Vim, we run the following in the shell: 
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ grep -n Waldo *</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​department-store.txt:1:Waldo is beside the boot counter.​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​goldrush.txt:6:Waldo is studying his clipboard.​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​goldrush.txt:9:The penny farthing is 10 paces ahead of Waldo.​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1B58A" class="calibre4">
+        By default, <code class="cf">grep</code> prints one line of output for each match, displaying the contents of the matching line and the name of the file. The <code class="cf">-n</code> flag tells <code class="cf">grep</code> to include the line number in the printed output.
+      </p>
+<p id="N1B596" class="calibre4">
+        So what can we do with this output? Well, we could just treat it as a table of contents. For each line in the result list, we could open the file and specify the line number. For example, to open <code class="cf">goldrush.txt</code> at line 9, we could run this from the shell:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ vim goldrush.txt +9</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1B5A9" class="calibre4">
+        Surely our tools can integrate better than this.
+      </p>
+<h3 class="calibre22">Calling grep from Inside Vim</h3>
+<p id="N1B5B0" class="calibre4">
+        Vim’s <code class="cf">:grep</code> command is a wrapper for the external <code class="cf">grep</code> program (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">:grep</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/quickfix.html#:grep">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>).
+
+        Instead of running <code class="cf">grep</code> in the shell, we could execute this directly from Vim:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:grep Waldo *</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1B5CD" class="calibre4">
+        Behind the scenes, Vim executes <code class="cf">grep -n Waldo *</code> in the shell for us. Rather than printing <code class="cf">grep</code>’s output, Vim does something much more useful. It parses the results and builds a quickfix list from them. We can navigate through the results using the <code class="cf">:cnext</code>/<code class="cf">:cprev</code> commands and all of the other techniques that we explored in <a xmlns:str="http://exslt.org/strings" href="f_0142.html#chp.quickfix">Chapter 17, ​<em class="calibre5">Compile Code and Navigate Errors <br class="calibre1"/>with the Quickfix List</em>​</a>.
+      </p>
+<p id="N1B5E0" class="calibre4">
+        Even though we simply called <code class="cf">:grep Waldo *</code>, Vim automatically included the <code class="cf">-n</code> flag, telling <code class="cf">grep</code> to include line numbers in the output. That’s why when we navigate through the quickfix list, it takes us directly to each matching line.
+      </p>
+<p id="N1B5EC" class="calibre4">
+        Suppose we want to run a case-insensitive <code class="cf">grep</code>. We supply <code class="cf">grep</code> with the <code class="cf">-i</code> flag:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:grep -i Waldo *</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1B612" class="calibre4">
+        Behind the scenes, Vim executes <code class="cf">grep -n -i Waldo *</code>. Note that the default <code class="cf">-n</code> flag is still present. We can pass along any other flags to <code class="cf">grep</code> in the same manner if we want to tweak its behavior.
+		</p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

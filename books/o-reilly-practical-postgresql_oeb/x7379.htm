@@ -1,0 +1,106 @@
+---
+layout: page
+title: "Unknown"
+prev: x7300.htm
+next: x7543.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="x7300.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 4. Using SQL with PostgreSQL</td><td width="10%" valign="bottom" class="calibre5"><a href="x7543.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="AEN7379" class="calibre8">Using Views</a></h1><p class="calibre9">While working with SQL, times will often arise when you would like your statements to be re-usable.  This is especially the case
+      when working with large or intricate queries. There are few things more frustrating then having to re-type a long query
+      over and over again within <span><i class="EMPHASIS">psql</i></span>. Furthermore, it can be highly inefficient to pass excessively large
+      queries over a network to your PostgreSQL server for commonly executed routines.</p><p class="calibre9">This is where <span><i class="EMPHASIS">views</i></span> can come in handy. Views can be thought of as stored queries, which allow you to
+      create a database object that functions very similarly to a table, but whose contents are dynamically and directly
+      reflective only of the rows which it is defined to select. Views are quite flexible in practice, in that they may address
+      common, simple queries to a single table, as well as extraordinarily complicated ones which may span across several
+      tables.</p><div class="NAVHEADER"><h2 class="SECT"><a name="AEN7390" class="calibre8">Creating a View</a></h2><p class="calibre9">The following is the syntax for creating a view:</p><pre class="SCREEN">  CREATE VIEW <tt class="REPLACEABLE"><i class="EMPHASIS">view</i></tt>
+           AS <tt class="REPLACEABLE"><i class="EMPHASIS">query</i></tt></pre><p class="calibre9"> </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE"><i class="EMPHASIS">view</i></tt></dt><dd class="calibre16"><p class="calibre9">                The name (identifier) of the view that you wish to create.
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE"><i class="EMPHASIS">query</i></tt></dt><dd class="calibre16"><p class="calibre9">The complete SQL <tt class="REPLACEABLE">SELECT</tt> query that defines the content of the view.</p></dd></dl></div>
+<p class="calibre9">Imagine that you have a table called <tt class="REPLACEABLE">shipments</tt> that relates a unique shipping identifier with a
+        customer identifier, a book ISBN, and a timestamp reflecting when the book was shipped. This table is shown in <a href="x7379.htm#THESHIPMENTSTABLEAPPLYING">Table 4-1</a>.</p><div class="NAVHEADER"><a name="THESHIPMENTSTABLEAPPLYING"></a><p class="calibre9"><b class="calibre10">Table 4-1. The shipments table</b></p><table border="1" width="100%" class="calibre"><thead class="calibre11"><tr class="calibre12"><th width="4" valign="TOP" class="calibre13"><p class="calibre9">Column</p></th><th width="4" valign="TOP" class="calibre13"><p class="calibre9">Type</p></th><th width="20" valign="TOP" class="calibre13"><p class="calibre9">Modifier</p></th></tr></thead><tbody class="calibre14"><tr class="calibre12"><td width="4" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">id</tt></p></td><td width="4" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">integer</tt></p></td><td width="20" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">NOT NULL DEFAULT nextval('shipments_ship_id_seq')</tt></p></td></tr><tr class="calibre12"><td width="4" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">customer_id</tt></p></td><td width="4" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">integer</tt></p></td><td width="20" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE"/></p></td></tr><tr class="calibre12"><td width="4" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">isbn</tt></p></td><td width="4" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">text</tt></p></td><td width="20" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE"/></p></td></tr><tr class="calibre12"><td width="4" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">ship_date</tt></p></td><td width="4" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">timestamp</tt></p></td><td width="20" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE"/></p></td></tr></tbody></table></div><p class="calibre9">Now, imagine that you are interested in seeing how many shipments have been made and logged into this table.  There are
+        several ways that you can achieve the results you are looking for, but to keep things simple, you can begin with a query like
+        this:</p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT COUNT(*) FROM shipments;</b></tt>
+ count
+-------
+    32
+(1 row)</pre><p class="calibre9">Remember that the asterisk (<tt class="REPLACEABLE">*</tt>) symbol in this query simply indicates to PostgreSQL
+        that all rows should be counted, regardless of <tt class="REPLACEABLE">NULL</tt> values that may exist in an otherwise
+        specified column name. The query counts the number of total rows that  return from the query, and thus the number of
+        logged shipments.</p><p class="calibre9">Increasing the complexity of this query, a <tt class="REPLACEABLE">JOIN</tt> clause can be attached to join the
+        <tt class="REPLACEABLE">shipments</tt> information with the <tt class="REPLACEABLE">editions</tt> and
+        <tt class="REPLACEABLE">books</tt> tables, in order to retrieve the title of each shipped book.  Furthermore, a
+        <tt class="REPLACEABLE">GROUP BY</tt> clause can be added to the query in order to aggregate the shipments by their
+        titles.</p><p class="calibre9">Recall that by aggregating by the <tt class="REPLACEABLE">title</tt> column, the
+        <tt class="REPLACEABLE">count()</tt> function will count the number of rows per aggregated row (in this case, per
+        unique title). Finally, a <tt class="REPLACEABLE">max()</tt> function can be applied to the
+        <tt class="REPLACEABLE">ship_date</tt> column of the <tt class="REPLACEABLE">shipments</tt> table in order to see
+        the most recently shipped copy of each book, along with the counted number shipped:</p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT count(*) AS num_shipped, max(ship_date), title</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM shipments</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       JOIN editions USING (isbn)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       NATURAL JOIN books AS b (book_id)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       GROUP BY b.title</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       ORDER BY num_shipped DESC;</b></tt>
+ num_shipped |          max           |            title
+-------------+------------------------+-----------------------------
+           5 | 2001-08-13 09:47:04-07 | The Cat in the Hat
+           5 | 2001-08-14 13:45:51-07 | The Shining
+           4 | 2001-08-11 09:55:05-07 | Bartholomew and the Oobleck
+           3 | 2001-08-14 13:49:00-07 | Franklin in the Dark
+           3 | 2001-08-15 11:57:40-07 | Goodnight Moon
+           3 | 2001-08-14 13:41:39-07 | The Tell-Tale Heart
+           2 | 2001-08-15 14:02:01-07 | 2001: A Space Odyssey
+           2 | 2001-08-14 08:42:58-07 | Dune
+           2 | 2001-08-07 13:00:48-07 | Little Women
+           2 | 2001-08-09 09:30:46-07 | The Velveteen Rabbit
+           1 | 2001-08-14 07:33:47-07 | Dynamic Anatomy
+(11 rows)</pre><p class="calibre9">While obviously an informative query, the syntax can be somewhat too unwieldy to repeat frequently.
+        <a href="x7379.htm#CREATINGAVIEW">Example 4-62</a> demonstrates creating a view on this same query with the <tt class="REPLACEABLE">CREATE VIEW</tt>
+        command.</p><div class="NAVHEADER"><a name="CREATINGAVIEW"></a><p class="calibre9"><b class="calibre10">Example 4-62. Creating a view</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">CREATE VIEW recent_shipments</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       AS SELECT count(*) AS num_shipped, max(ship_date), title</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">          FROM shipments</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">          JOIN editions USING (isbn)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">          NATURAL JOIN books AS b (book_id)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">          GROUP BY b.title</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">          ORDER BY num_shipped DESC;</b></tt>
+CREATE</pre></div><p class="calibre9">The <tt class="REPLACEABLE">CREATE</tt> server response in <a href="x7379.htm#CREATINGAVIEW">Example 4-62</a> confirms that the view
+        was accurately created. As a result, the Book Town database should now have a view called
+        <tt class="REPLACEABLE">recent_shipments</tt> that will show each title that has been shipped from Book Town, how many
+        of each title was shipped, and when the most recent shipment of that title occurred.</p></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN7515" class="calibre8">Applying Views</a></h2><p class="calibre9">The key difference in the functionality of a view is that instead of having to type a long query, only a simple
+        <tt class="REPLACEABLE">SELECT</tt> command is needed, as shown in <a href="x7379.htm#USINGAVIEW">Example 4-63</a>.</p><div class="NAVHEADER"><a name="USINGAVIEW"></a><p class="calibre9"><b class="calibre10">Example 4-63. Using a view</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT * FROM recent_shipments;</b></tt>
+ num_shipped |          max           |            title
+-------------+------------------------+-----------------------------
+           5 | 2001-08-13 09:47:04-07 | The Cat in the Hat
+           5 | 2001-08-14 13:45:51-07 | The Shining
+           4 | 2001-08-11 09:55:05-07 | Bartholomew and the Oobleck
+           3 | 2001-08-14 13:49:00-07 | Franklin in the Dark
+           3 | 2001-08-15 11:57:40-07 | Goodnight Moon
+           3 | 2001-08-14 13:41:39-07 | The Tell-Tale Heart
+           2 | 2001-08-15 14:02:01-07 | 2001: A Space Odyssey
+           2 | 2001-08-14 08:42:58-07 | Dune
+           2 | 2001-08-07 13:00:48-07 | Little Women
+           2 | 2001-08-09 09:30:46-07 | The Velveteen Rabbit
+           1 | 2001-08-14 07:33:47-07 | Dynamic Anatomy
+(11 rows)
+
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT * FROM recent_shipments</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       ORDER BY max DESC</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       LIMIT 3;</b></tt>
+ num_shipped |          max           |         title
+-------------+------------------------+-----------------------
+           2 | 2001-08-15 14:02:01-07 | 2001: A Space Odyssey
+           3 | 2001-08-15 11:57:40-07 | Goodnight Moon
+           3 | 2001-08-14 13:49:00-07 | Franklin in the Dark
+(3 rows)</pre></div><p class="calibre9"><a href="x7379.htm#USINGAVIEW">Example 4-63</a> further demonstrates that, even though the view was created with an
+        <tt class="REPLACEABLE">ORDER BY</tt> clause, the order of the view's result set itself can be re-sorted. This is
+        achieved by passing an <tt class="REPLACEABLE">ORDER BY</tt> clause to the <tt class="REPLACEABLE">SELECT</tt>
+        command which is querying the view.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>Any attempt to use <tt class="REPLACEABLE">DELETE</tt> or <tt class="REPLACEABLE">UPDATE</tt>
+          on a view will result in an error, as a view itself does not contain data. The view is merely a window to another
+          set of data, despite its similar functional appearance to a table, and is not itself a modifiable data set.</p></blockquote></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN7536" class="calibre8">Destroying a view</a></h2><p class="calibre9">The syntax to permanently destroy a view is entered as follows, where <tt class="REPLACEABLE"><i class="EMPHASIS">view</i></tt> is the name of the view
+        to be destroyed:</p><pre class="SCREEN">  DROP VIEW <tt class="REPLACEABLE"><i class="EMPHASIS">view</i></tt></pre><p class="calibre9">The destruction of a view will have no effect on the data that the view utilizes. A view exists purely as a means
+        to observe data in other tables, and may be safely destroyed without losing data (though the query described by the view
+        will, of course, be lost).  Thus any attempts to alter or delete from a view will fail.</p></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="x7300.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x7543.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Using Sub-Queries</td><td width="34%" valign="top" class="calibre4"><a href="c4890.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Further SQL Application</td></tr></table></div></div>
+
+{% endraw %}
+

@@ -1,0 +1,517 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0056.html
+next: f_0058.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.cmdline.shell">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 35</td>
+<td class="arr-recipe-name">Run Commands in the Shell</td>
+</tr>
+</table>
+<p id="N13623" class="calibre4">
+<span class="calibre5">
+        We can easily invoke external programs without leaving Vim. Best of all, we can send the contents of a buffer as standard input to a command or use the standard output from an external command to populate our buffer.
+    </span>
+</p>
+<p id="N13633" class="calibre4">
+      The commands discussed in this tip work best when used from Vim inside a terminal. If you’re using GVim (or MacVim), then things may not work quite as smoothly. That shouldn’t come as a great surprise. It’s much easier for Vim to delegate work to the shell if Vim itself is already running inside a shell. GVim does some things better, but this is one area where terminal Vim has the edge.
+    </p>
+<h3 class="calibre22">Executing Programs in the Shell</h3>
+<p id="N1363A" class="calibre4">
+        From Vim’s Command-Line mode, we can invoke external programs in the shell by prefixing them with a bang symbol (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">:!</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/various.html#:!">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). For example, if we want to examine the contents of the current directory, we could run the following:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:!ls</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​duplicate.todo        loop.js​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​emails.csv            practical-vim.html​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​foobar.js             shopping-list.todo​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​history-scrollers.vim​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​Press ENTER or type command to continue​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N13669" class="calibre4">
+        Note the difference between <code class="cf">:!ls</code> and <code class="cf">:ls</code>—the former calls the <code class="cf">ls</code> command in the shell, whereas <code class="cf">:ls</code> calls Vim’s built-in command, which shows the contents of the buffer list.
+      </p>
+<p id="N13678" class="calibre4">
+        On Vim’s command line, the <code class="cf">%</code> symbol is shorthand for the current file name (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">cmdline-special</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/cmdline.html#cmdline-special">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). We can exploit this to run external commands that do something with the current file. For example, if we’re working on a Ruby file, we could execute it by running this:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:!ruby %</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N13695" class="calibre4">
+        Vim also provides a set of filename modifiers, which allow us to extract information from the current filename, such as its path or extension (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">filename-modifiers</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/cmdline.html#filename-modifiers">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). Skip ahead to <a xmlns:str="http://exslt.org/strings" href="f_0069.html#sec.non.existent.dirs">Tip 44</a>, for an example of how these can be used.
+      </p>
+<p id="N136A0" class="calibre4">
+        The <code class="cf">:!{cmd}</code> syntax is great for firing one-off commands, but what if we want to run several commands in the shell? In that case, we can use Vim’s <code class="cf">:shell</code> command to start an interactive shell session (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">:shell</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/various.html#:shell">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>):
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:shell</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ pwd</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​/Users/drew/books/PracticalVim/code/ex_mode​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ ls</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​duplicate.todo        loop.js​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​emails.csv            practical-vim.html​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​foobar.js             shopping-list.todo​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​history-scrollers.vim​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ exit</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N136DF" class="calibre4">
+        The <code class="cf">exit</code> command kills the shell and returns us to Vim.
+      </p>
+<div class="sidebar">
+<div class="sidebar-title">Putting Vim in the Background</div>
+<div class="calibre1">
+<p id="N136EF" class="calibre4">
+        The <code class="cf1">:shell</code> command is a feature provided by Vim, which lets us switch to an interactive shell. But if we’re already running Vim in a terminal, then we also have access to built-in shell commands. For example, the bash shell supports job control, which allows us to suspend a job by putting it into the background and then lets us resume it later by bringing it back into the foreground.
+      </p>
+<p id="N136FD" class="calibre4">
+        Suppose that we’re running Vim inside a bash shell and we want to execute a series of shell commands. Pressing <span class="calibre17">Ctrl</span>-<span class="calibre17">z</span> suspends the process that’s running Vim and returns control to bash. The Vim process sits idle in the background, allowing us to interact with our bash session as normal. We can inspect the list of jobs by running this command:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix4" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline4" valign="top">
+<div class="calibre38">
+​<code class="calibre39">​<strong class="prompt">$ jobs</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix4" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline4" valign="top">
+<div class="calibre38">
+​<code class="calibre39">​[1]+ Stopped            vim​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N13717" class="calibre4">
+        In bash, we can use the <code class="cf1">fg</code> command to resume a suspended job, bringing it back into the foreground. That brings Vim back to life exactly as we left it. The <span class="calibre17">Ctrl</span>-<span class="calibre17">z</span> and <code class="cf1">fg</code> commands are quicker and easier to use than Vim’s equivalent <code class="cf1">:shell</code> and <code class="cf1">exit</code> commands. For more information, run <code class="cf1">man bash</code> and read the section on job control.
+      </p>
+</div>
+</div>
+<h3 class="calibre22">Using the Contents of a Buffer for Standard Input or Output</h3>
+<p id="N13742" class="calibre4">
+        When we use the <code class="cf">:!{cmd}</code> syntax, Vim echoes output from the <code class="cf">{cmd}</code>. This works fine if the command produces little or no output, but it’s not very helpful if the command produces many lines of output. As an alternative, we can use the <code class="cf">:read !{cmd}</code> command, which puts the output from the <code class="cf">{cmd}</code> into our current buffer (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">read!</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/insert.html#read!">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>).
+      </p>
+<p id="N1375A" class="calibre4">
+        The <code class="cf">:read !{cmd}</code> command lets us direct standard output into a buffer. As you might expect, the <code class="cf">:write !{cmd}</code> does the inverse: it uses the contents of the buffer as standard input for the specified <code class="cf">{cmd}</code> (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">:write_c</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/editing.html#:write_c">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). Skip ahead to <a xmlns:str="http://exslt.org/strings" href="f_0070.html#sec.write.sudo">Tip 45</a>, to see an example of this feature in use.
+      </p>
+<p id="N13778" class="calibre4">
+        The bang symbol can take on different meanings depending on where it is placed within the command line. Compare these commands:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:write !sh</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:write ! sh</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:write! sh</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N13792" class="calibre4">
+        The first two commands pass the contents of the buffer as standard input to the external <code class="cf">sh</code> command. The last command writes the contents of the buffer to a file called <code class="cf">sh</code> by calling the <code class="cf">:write!</code> command. In this case, the bang tells Vim to overwrite any existing <code class="cf">sh</code> file. As you can see, the placement of the bang symbol can drastically alter the outcome. Take care when composing this sort of command!
+      </p>
+<p id="N137A1" class="calibre4">
+        The effect of the <code class="cf">:write !sh</code> command is that each line of the current buffer is executed in the shell. Refer to <strong xmlns:str="http://exslt.org/strings" class="calibre10">rename-files</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/tips.html#rename-files">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a> for a nice example of this command in use.
+      </p>
+<h3 class="calibre22">Filtering the Contents of a Buffer Through an External Command</h3>
+<p id="N137AF" class="calibre4">
+        The <code class="cf">:!{cmd}</code> command takes on a different meaning when it’s given a range. The lines specified by <code class="cf">[range]</code> are passed as standard input for the <code class="cf">{cmd}</code>, and then the output from <code class="cf">{cmd}</code> overwrites the original contents of <code class="cf">[range]</code>. Or to put it another way, the <code class="cf">[range]</code> is filtered through the specified <code class="cf">{cmd}</code> (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">:range!</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/change.html#:range!">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). Vim defines a filter as “a program that accepts text as standard input, changes it some way, and sends it to standard output.”
+      </p>
+<p id="N137DA" class="calibre4">
+        As a demonstration, let’s use the external <code class="cf">sort</code> command to rearrange the records in this CSV file:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/ex_mode/emails.csv">ex_mode/emails.csv</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​first name,last name,email​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​john,smith,john@example.com​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​drew,neil,drew@vimcasts.org​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​jane,doe,jane@example.com​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N137FA" class="calibre4">
+        We’ll sort the records by the second field: last name. We can use the <code class="cf">-t’,’</code> option to tell the <code class="cf">sort</code> command that fields are separated with commas, and we can use the <code class="cf">-k2</code> flag to indicate that the second field is to be used for the sort.
+      </p>
+<p id="N13806" class="calibre4">
+        The first line of the file contains header information. We want to leave it at the top of the file, so we’ll exclude it from the sort operation by using a range of <code class="cf">:2,$</code>. This command line does what we want:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:2,$!sort -t',' -k2</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N13819" class="calibre4">
+        The records in our CSV file should now be sorted by last name:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​first name,last name,email​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​jane,doe,jane@example.com​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​drew,neil,drew@vimcasts.org​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​john,smith,john@example.com​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1383A" class="calibre4">
+        Vim provides a convenient shortcut for setting the range of a <code class="cf">:[range]!{filter}</code> command such as this. The <span class="calibre17">!{motion}</span> operator command drops us into Command-Line mode and prepopulates the <code class="cf">[range]</code> with the lines covered by the specified <code class="cf">{motion}</code> (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">!</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/change.html#!">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). For example, if we place our cursor on line 2 and then invoke <span class="calibre17">!G</span>, Vim opens a prompt with the <code class="cf">:.,$!</code> range set up for us. We still have to type out the rest of the <code class="cf">{filter}</code> command, but it saves a little work.
+      </p>
+<h3 class="calibre22">Discussion</h3>
+<p id="N1385F" class="calibre4">
+        When operating Vim, we’re never more than a couple of keystrokes away from the shell. This table summarizes a selection of the most useful methods for calling external commands:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Command</th>
+<th class="hlines">Effect</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">:shell</code>
+</p>
+</td>
+<td class="calibre24">
+<p class="last-para-in-cell">
+		  Start a shell (return to Vim by typing <code class="cf">exit</code>)</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">:!{cmd}</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Execute <code class="cf">{cmd}</code> with the shell</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">:read !{cmd}</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Execute <code class="cf">{cmd}</code> in the shell and insert its standard output below the cursor</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">:[range]write !{cmd}</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Execute <code class="cf">{cmd}</code> in the shell with <code class="cf">[range]</code> lines as standard input</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">:[range]!{filter}</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Filter the specified <code class="cf">[range]</code> through external program <code class="cf">{filter}</code>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N138DD" class="calibre4">
+        Vim gives special treatment to some commands. For example, both <code class="cf">make</code> and <code class="cf">grep</code> have wrapper commands. Not only are they easy to execute from inside Vim, but their output is parsed and used to populate the quickfix list. These commands are covered in greater depth in both <a xmlns:str="http://exslt.org/strings" href="f_0142.html#chp.quickfix">Chapter 17, ​<em class="calibre5">Compile Code and Navigate Errors <br class="calibre1"/>with the Quickfix List</em>​</a>, and <a xmlns:str="http://exslt.org/strings" href="f_0147.html#chp.grep">Chapter 18, ​<em class="calibre5">Search Project-Wide <br class="calibre1"/>with grep, vimgrep, and Others</em>​</a>.
+      </p>
+
+<div class="footnotes">
+<h4 class="calibre20">Footnotes</h4>
+<table cellspacing="3" class="table-of-contents">
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-7" href="f_0049.html#FNPTR-7">[7]</a>
+</td>
+<td class="calibre8">
+<p id="N1286B" class="calibre4">
+<a href="http://en.wikipedia.org/wiki/Teleprinter">http://en.wikipedia.org/wiki/Teleprinter</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-8" href="f_0049.html#FNPTR-8">[8]</a>
+</td>
+<td class="calibre8">
+<p id="N12899" class="calibre4">
+<a href="http://www.theregister.co.uk/2003/09/11/bill_joys_greatest_gift/">http://www.theregister.co.uk/2003/09/11/bill_joys_greatest_gift/</a>
+</p>
+</td>
+</tr>
+</table>
+</div>
+<div class="copyright">Copyright © 2012, The Pragmatic Bookshelf.</div>
+
+
+
+
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

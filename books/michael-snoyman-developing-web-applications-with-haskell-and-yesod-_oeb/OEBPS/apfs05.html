@@ -1,0 +1,110 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/apfs04.html
+next: OEBPS/apfs06.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="xml-hamlet"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect1_d1e11820" class="calibre1"></a>xml-hamlet</h1></div></div></div><p class="calibre7"></p><p class="calibre7">Thanks to the simplicity of Haskell’s data type system, creating
+            XML content with the <code class="literal">Text.XML API</code> is easy, if a bit verbose. The
+            following code:</p><a id="I_programlisting_d1e11829" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE OverloadedStrings #-}</code>
+<code class="kr">import</code> <code class="nn">Text.XML</code>
+<code class="kr">import</code> <code class="nn">Prelude</code> <code class="kr">hiding</code> <code class="p">(</code><code class="nf">writeFile</code><code class="p">)</code>
+
+<code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code>
+    <code class="n">writeFile</code> <code class="n">def</code> <code class="s">"test3.xml"</code> <code class="o">$</code> <code class="kt">Document</code> <code class="p">(</code><code class="kt">Prologue</code> <code class="kt">[]</code> <code class="kt">Nothing</code> <code class="kt">[]</code><code class="p">)</code> <code class="n">root</code> <code class="kt">[]</code>
+  <code class="kr">where</code>
+    <code class="n">root</code> <code class="ow">=</code> <code class="kt">Element</code> <code class="s">"html"</code> <code class="kt">[]</code>
+        <code class="p">[</code> <code class="kt">NodeElement</code> <code class="o">$</code> <code class="kt">Element</code> <code class="s">"head"</code> <code class="kt">[]</code>
+            <code class="p">[</code> <code class="kt">NodeElement</code> <code class="o">$</code> <code class="kt">Element</code> <code class="s">"title"</code> <code class="kt">[]</code>
+                <code class="p">[</code> <code class="kt">NodeContent</code> <code class="s">"My "</code>
+                <code class="p">,</code> <code class="kt">NodeElement</code> <code class="o">$</code> <code class="kt">Element</code> <code class="s">"b"</code> <code class="kt">[]</code>
+                    <code class="p">[</code> <code class="kt">NodeContent</code> <code class="s">"Title"</code>
+                    <code class="p">]</code>
+                <code class="p">]</code>
+            <code class="p">]</code>
+        <code class="p">,</code> <code class="kt">NodeElement</code> <code class="o">$</code> <code class="kt">Element</code> <code class="s">"body"</code> <code class="kt">[]</code>
+            <code class="p">[</code> <code class="kt">NodeElement</code> <code class="o">$</code> <code class="kt">Element</code> <code class="s">"p"</code> <code class="kt">[]</code>
+                <code class="p">[</code> <code class="kt">NodeContent</code> <code class="s">"foo bar baz"</code>
+                <code class="p">]</code>
+            <code class="p">]</code>
+        <code class="p">]</code>
+</pre><p class="calibre7">produces</p><a id="I_programlisting_d1e11833" class="firstname"></a><pre class="programlistinghaskell">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;html&gt;&lt;head&gt;&lt;title&gt;My &lt;b&gt;Title&lt;/b&gt;&lt;/title&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;foo bar baz&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</pre><p class="calibre7">This is leaps and bounds easier than having to deal with an imperative,
+            mutable-value-based API (cough, Java, cough), but it’s far from pleasant, and obscures
+            what we’re really trying to achieve. To simplify things, we have the <code class="function">xml-hamlet</code> package, which uses Quasi-Quotation to allow
+            you to type in your XML in a natural syntax. For example, the above could be rewritten
+            as:</p><a id="I_programlisting_d1e11840" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE OverloadedStrings #-}</code>
+<code class="cm">{-# LANGUAGE QuasiQuotes #-}</code>
+<code class="kr">import</code> <code class="nn">Text.XML</code>
+<code class="kr">import</code> <code class="nn">Text.Hamlet.XML</code>
+<code class="kr">import</code> <code class="nn">Prelude</code> <code class="kr">hiding</code> <code class="p">(</code><code class="nf">writeFile</code><code class="p">)</code>
+
+<code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code>
+    <code class="n">writeFile</code> <code class="n">def</code> <code class="s">"test3.xml"</code> <code class="o">$</code> <code class="kt">Document</code> <code class="p">(</code><code class="kt">Prologue</code> <code class="kt">[]</code> <code class="kt">Nothing</code> <code class="kt">[]</code><code class="p">)</code> <code class="n">root</code> <code class="kt">[]</code>
+  <code class="kr">where</code>
+    <code class="n">root</code> <code class="ow">=</code> <code class="kt">Element</code> <code class="s">"html"</code> <code class="kt">[]</code> <code class="p">[</code><code class="n">xml</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">head</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">title</code><code class="o">&gt;</code>
+        <code class="kt">My</code> <code class="o">#</code>
+        <code class="o">&lt;</code><code class="n">b</code><code class="o">&gt;</code><code class="kt">Title</code>
+<code class="o">&lt;</code><code class="n">body</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code><code class="n">foo</code> <code class="n">bar</code> <code class="n">baz</code>
+<code class="o">|</code><code class="p">]</code>
+</pre><p class="calibre7">Let’s make a few points:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">The syntax is almost identical to normal Hamlet, except URL-interpolation (@{...}) has been
+    removed. As such:</p><div class="book"><ul class="itemizedlist2"><li class="listitem"><p class="calibre7 pcalibre">No close tags.</p></li><li class="listitem"><p class="calibre7 pcalibre">Whitespace-sensitive.</p></li><li class="listitem"><p class="calibre7 pcalibre">If you want to have whitespace at the end of a line, use a # at the end. At the beginning,
+      use a backslash.</p></li></ul></div></li><li class="listitem"><p class="calibre7">An <code class="literal">xml</code> interpolation will return a list of <code class="literal">Node</code>s. So you still need to wrap up the output in all the normal
+                    <code class="literal">Document</code> and root <code class="literal">Element</code> constructs.</p></li><li class="listitem"><p class="calibre7">There is no support for the special <code class="literal">.class</code> and
+                    <code class="literal">#id</code> attribute forms.</p></li></ul></div><p class="calibre7">And like normal Hamlet, you can use variable interpolation and control structures. So a
+   slightly more complex example would be:</p><a id="I_programlisting_d1e11885" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE OverloadedStrings #-}</code>
+<code class="cm">{-# LANGUAGE QuasiQuotes #-}</code>
+<code class="kr">import</code> <code class="nn">Text.XML</code>
+<code class="kr">import</code> <code class="nn">Text.Hamlet.XML</code>
+<code class="kr">import</code> <code class="nn">Prelude</code> <code class="kr">hiding</code> <code class="p">(</code><code class="nf">writeFile</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Data.Text</code> <code class="p">(</code><code class="kt">Text</code><code class="p">,</code> <code class="nf">pack</code><code class="p">)</code>
+
+<code class="kr">data</code> <code class="kt">Person</code> <code class="ow">=</code> <code class="kt">Person</code>
+    <code class="p">{</code> <code class="n">personName</code> <code class="ow">::</code> <code class="kt">Text</code>
+    <code class="p">,</code> <code class="n">personAge</code> <code class="ow">::</code> <code class="kt">Int</code>
+    <code class="p">}</code>
+
+<code class="nf">people</code> <code class="ow">::</code> <code class="p">[</code><code class="kt">Person</code><code class="p">]</code>
+<code class="nf">people</code> <code class="ow">=</code>
+    <code class="p">[</code> <code class="kt">Person</code> <code class="s">"Michael"</code> <code class="mi">26</code>
+    <code class="p">,</code> <code class="kt">Person</code> <code class="s">"Miriam"</code> <code class="mi">25</code>
+    <code class="p">,</code> <code class="kt">Person</code> <code class="s">"Eliezer"</code> <code class="mi">3</code>
+    <code class="p">,</code> <code class="kt">Person</code> <code class="s">"Gavriella"</code> <code class="mi">1</code>
+    <code class="p">]</code>
+
+<code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code>
+    <code class="n">writeFile</code> <code class="n">def</code> <code class="s">"people.xml"</code> <code class="o">$</code> <code class="kt">Document</code> <code class="p">(</code><code class="kt">Prologue</code> <code class="kt">[]</code> <code class="kt">Nothing</code> <code class="kt">[]</code><code class="p">)</code> <code class="n">root</code> <code class="kt">[]</code>
+  <code class="kr">where</code>
+    <code class="n">root</code> <code class="ow">=</code> <code class="kt">Element</code> <code class="s">"html"</code> <code class="kt">[]</code> <code class="p">[</code><code class="n">xml</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">head</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">title</code><code class="o">&gt;</code><code class="kt">Some</code> <code class="kt">People</code>
+<code class="o">&lt;</code><code class="n">body</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">h1</code><code class="o">&gt;</code><code class="kt">Some</code> <code class="kt">People</code>
+    <code class="o">$</code><code class="kr">if</code> <code class="n">null</code> <code class="n">people</code>
+        <code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code><code class="kt">There</code> <code class="n">are</code> <code class="n">no</code> <code class="n">people</code><code class="o">.</code>
+    <code class="o">$</code><code class="kr">else</code>
+        <code class="o">&lt;</code><code class="n">dl</code><code class="o">&gt;</code>
+            <code class="o">$</code><code class="n">forall</code> <code class="n">person</code> <code class="ow">&lt;-</code> <code class="n">people</code>
+                <code class="o">^</code><code class="p">{</code><code class="n">personNodes</code> <code class="n">person</code><code class="p">}</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">personNodes</code> <code class="ow">::</code> <code class="kt">Person</code> <code class="ow">-&gt;</code> <code class="p">[</code><code class="kt">Node</code><code class="p">]</code>
+<code class="nf">personNodes</code> <code class="n">person</code> <code class="ow">=</code> <code class="p">[</code><code class="n">xml</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">dt</code><code class="o">&gt;#</code><code class="p">{</code><code class="n">personName</code> <code class="n">person</code><code class="p">}</code>
+<code class="o">&lt;</code><code class="n">dd</code><code class="o">&gt;#</code><code class="p">{</code><code class="n">pack</code> <code class="o">$</code> <code class="n">show</code> <code class="o">$</code> <code class="n">personAge</code> <code class="n">person</code><code class="p">}</code>
+<code class="o">|</code><code class="p">]</code>
+</pre><p class="calibre7">A few more notes:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">The caret-interpolation (^{...}) takes a list of nodes, and so can easily embed
+                other <code class="literal">xml</code>-quotations.</p></li><li class="listitem"><p class="calibre7">Unlike Hamlet, hash-interpolations (#{...}) are not polymorphic, and can <span class="firstname"><em class="calibre4">only</em></span> accept <code class="literal">Text</code> values.</p></li></ul></div></div></div>
+
+{% endraw %}
+

@@ -1,0 +1,48 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch08s03.html
+next: OEBPS/ch09.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Perceived Speed"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect18_d1e7907" class="calibre1"></a>Perceived Speed</h1></div></div></div><p class="calibre3"><a id="I_indexterm8_d1e7911" class="calibre1"></a><a id="I_indexterm8_d1e7916" class="calibre1"></a><a id="I_indexterm8_d1e7919" class="calibre1"></a>Speed is a critical but often neglected part of UI design
+    because it makes a huge difference to the user experience (UX)<a id="I_indexterm8_d1e7925" class="calibre1"></a> and can have a direct impact on revenue. Companies, such as
+    the following, are studying its implications all the time:</p><div class="book"><dl class="book"><dt class="calibre8"><span class="calibre1">Amazon</span></dt><dd class="calibre9"><p class="calibre3">100 ms of extra load time caused a 1% drop in sales (source:
+          Greg Linden, Amazon).</p></dd><dt class="calibre8"><span class="calibre1">Google</span></dt><dd class="calibre9"><p class="calibre3">500 ms of extra load time caused 20% fewer searches (source:
+          Marrissa Mayer, Google).</p></dd><dt class="calibre8"><span class="calibre1">Yahoo!</span></dt><dd class="calibre9"><p class="calibre3">400 ms of extra load time caused a 5–9% increase in the number
+          of people who clicked “back” before the page even loaded (source:
+          Nicole Sullivan, Yahoo!).</p></dd></dl></div><p class="calibre3">Perceived speed is just as important as actual speed because this is
+    what users are going to notice. So, the key is to make users think an
+    application is fast, even if in reality it isn’t. The ability to do this
+    is one of the benefits of JavaScript applications—UI doesn’t block, even
+    if a background request is taking a while.</p><p class="calibre3">Let’s take the chat room scenario again. A user sends a new message,
+    firing off an Ajax request to the server. We could wait until the message
+    performs a roundtrip through the server and clients before appending it to
+    the chat log. However, that would introduce a couple of seconds’ latency
+    between the time a user submitted a new message and when it appeared in
+    her chat log. The application would seem slow, which would definitely hurt
+    the user experience.</p><p class="calibre3">Instead, why not create the new message locally, thereby immediately
+    adding it to the chat log? From a user’s perspective, it seems like the
+    message has been sent instantly. Users won’t know (or care) that the
+    message hasn’t yet been delivered to other clients in the chat room.
+    They’ll just be happy with a fast and snappy user experience.</p><p class="calibre3">Aside from interactions, one of the slowest parts of Web
+    applications is loading in new data. It’s important to do intelligent
+    preloading<a id="I_indexterm8_d1e7956" class="calibre1"></a> to try to[ predict what a user will need before he actually
+    asks for it. Then, cache the data in memory; if the user needs it
+    subsequently, you shouldn’t have to request it again from the server. Upon
+    startup, the application should preload commonly used data. Users are more
+    likely to be forgiving of slower initial load times than once the
+    application’s loaded.</p><p class="calibre3">You should always give users feedback when they interact with your
+    application, usually with some sort of visual indicator. In business
+    jargon this is called <span class="calibre1"><em class="calibre4">expectation managment</em></span><a id="I_indexterm8_d1e7966" class="calibre1"></a>, making sure clients are aware of a project’s status and
+    ETA. The same applies to UX—users will be more patient if they’re given an
+    indication that something’s happening. While users are waiting for new
+    data, show them a message or a spinner. If a file’s being uploaded, show a
+    progress bar and an estimated duration. All this gives a perception of
+    speed, improving the user experience.<a id="I_indexterm8_d1e7970" class="calibre1"></a></p></div></div>
+
+{% endraw %}
+

@@ -1,0 +1,140 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0079.html
+next: f_0081.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.marks">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 53</td>
+<td class="arr-recipe-name">Mark Your Place and Snap Back to It</td>
+</tr>
+</table>
+<p id="N159F0" class="calibre4">
+<span class="calibre5">
+        Vim’s marks allow us to jump quickly to locations of interest within a document. We can set marks manually, but Vim also keeps track of certain points of interest for us automatically.
+    </span>
+</p>
+<p id="N15A06" class="calibre4">
+      The <span class="calibre17">m{a-zA-Z}</span> command marks the current cursor location with the designated letter (<strong xmlns:str="http://exslt.org/strings" class="calibre10">m</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/motion.html#m">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). Lowercase marks are local to each individual buffer, whereas uppercase marks are globally accessible. We’ll learn more about them in <a xmlns:str="http://exslt.org/strings" href="f_0086.html#sec.global.marks">Tip 58</a>. Vim does nothing to indicate that a mark has been set, but if you’ve done it right, then you should be able to jump directly to your mark with only two keystrokes from anywhere in the file.
+    </p>
+<p id="N15A1E" class="calibre4">
+      Vim provides two Normal mode commands for jumping to a mark. (Pay attention—they look similar!) <span class="calibre17">'{mark}</span> moves to the line where a mark was set, positioning the cursor on the first non-whitespace character. The <span class="calibre17">✎{mark}</span> command moves the cursor to the exact position where a mark was set, restoring the line <span class="calibre5">and</span> the column at once (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">mark-motions</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/motion.html#mark-motions">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>).
+    </p>
+<p id="N15A3D" class="calibre4">
+      If you commit only one of these commands to memory, go with <span class="calibre17">✎{mark}</span>. Whether you care about restoring the exact position or just getting to the right line, this command will get you there. The only time you have to use the <span class="calibre17">'{mark}</span> form is in the context of an Ex command (see <a xmlns:str="http://exslt.org/strings" href="f_0050.html#sec.ex.address">Tip 28</a>).
+    </p>
+<p id="N15A4A" class="calibre4">
+      The <span class="calibre17">mm</span> and <span class="calibre17">✎m</span> commands make a handy pair. Respectively, they set the mark <code class="cf">m</code> and jump to it. <a xmlns:str="http://exslt.org/strings" href="f_0091.html#sec.swap.words">​<em class="calibre5">Swap Two Words</em>​</a>, shows one example of how they can be used for a quick mark-then-snap-back maneuver.
+    </p>
+<h3 class="calibre22">Automatic Marks</h3>
+<p id="N15A68" class="calibre4">
+        We can set up to twenty-six lowercase marks per buffer. That’s one mark for each letter of the alphabet, and it’s way more than you’re ever likely to need! In Vim’s predecessor, <code class="cf">vi</code>, there was no such thing as Visual mode. Back then, marks would have been a much more important feature than they are now. Many of the tasks that would have required a mark in <code class="cf">vi</code> can be done in Vim using Visual mode.
+      </p>
+<p id="N15A79" class="calibre4">
+        But marks have not become obsolete in Vim; they still have their uses. In particular, the marks that Vim sets for us automatically can be really handy. They include the marks shown in <a xmlns:str="http://exslt.org/strings" href="#table.marks">Table 14, ​<em class="calibre5">Vim’s Automatic Marks</em>​</a>.
+      </p>
+<hr class="calibre37"/>
+<div class="figurecaption" id="table.marks">Table 14. Vim’s Automatic Marks</div>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">“</code>
+</p>
+</td>
+<td class="calibre24">
+<p class="last-para-in-cell">Position before the last jump within current file</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">‘.</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Location of last change</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">‘^</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Location of last insertion</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">‘[</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Start of last change or yank</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">‘]</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">End of last change or yank</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">‘&lt;</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Start of last visual selection</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">‘&gt;</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">End of last visual selection</p>
+</td>
+</tr>
+</tbody>
+</table>
+<hr class="calibre37"/>
+<p id="N15AD4" class="calibre4">
+        The <code class="cf">``</code> mark complements the jump list (<a xmlns:str="http://exslt.org/strings" href="f_0083.html#sec.jump.list">Tip 55</a>), and we’ll see a use for it in the next tip. The <code class="cf">`.</code> complements the change list, which is covered by <a xmlns:str="http://exslt.org/strings" href="f_0084.html#sec.change.list">Tip 56</a>.
+      </p>
+<p id="N15AEA" class="calibre4">
+        The start and end of the last visual selection are both recorded automatically as marks, so we might even consider Visual mode to be a fancy interface to the underlying marks feature.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

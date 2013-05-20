@@ -1,0 +1,348 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: deftypes_alias.html
+next: deftypes_pattern.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="deftypes_alias.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="deftypes_pattern.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="deftypes_adt" class="calibre27" id="deftypes_adt"></a><h3 id="title-IDAVKWSB" class="docSection1Title">3.3. Algebraic Data Types</h3><a name="x_M4" class="calibre27" id="x_M4"></a><p class="docText">The familiar Bool is<a name="ch03-algebraicdt" class="calibre27" id="ch03-algebraicdt"></a><a name="ch03-typesalgebric" class="calibre27" id="ch03-typesalgebric"></a> the simplest common example of a category of type called an
+    <span class="docEmphasis">algebraic data type</span>. An algebraic data type can have
+    more than one value constructor:</p><pre class="calibre39">-- file: ch03/Bool.hs
+data Bool = False | True</pre><br class="calibre48"/>
+<a name="x_N4" class="calibre27" id="x_N4"></a><p class="docText">The Bool type has two value constructors,
+    <tt class="calibre34">TRue</tt> and <tt class="calibre34">False</tt>. Each value constructor is
+    separated in the definition by<a name="I_indexterm3_d1e5977" class="calibre27" id="I_indexterm3_d1e5977"></a><a name="I_indexterm3_d1e5980" class="calibre27" id="I_indexterm3_d1e5980"></a> a <tt class="calibre34">|</tt> character, which we
+    can read as "or"—we can construct a Bool that
+    has the value <tt class="calibre34">true</tt>, or the value <tt class="calibre34">False</tt>. When a
+    type has more than one value constructor, they are usually referred to as
+    <span class="docEmphasis">alternatives</span> or <span class="docEmphasis">cases</span>.
+    We<a name="I_indexterm3_d1e6007" class="calibre27" id="I_indexterm3_d1e6007"></a><a name="I_indexterm3_d1e6010" class="calibre27" id="I_indexterm3_d1e6010"></a> can use any one of the alternatives to create a value of
+    that type.</p><a name="deftypes_adtd1e6081" class="calibre27" id="deftypes_adtd1e6081"></a><div class="docNote"><p class="docNormalTitle">NOTE</p><p class="calibre37"><a name="x_Qf" class="calibre27" id="x_Qf"></a></p><p class="docText">Although the phrase "algebraic data type"
+      is long, we're being careful to avoid using the <a name="I_indexterm3_d1e6022" class="calibre27" id="I_indexterm3_d1e6022"></a><a name="I_indexterm3_d1e6025" class="calibre27" id="I_indexterm3_d1e6025"></a>acronym "ADT," which is already widely
+      understood to stand for "<span class="docEmphasis">abstract</span> data
+      type." Since Haskell supports both algebraic and abstract data
+      types, we'll be explicit and avoid the acronym entirely.</p></div><a name="x_O4" class="calibre27" id="x_O4"></a><p class="docText">Each of an algebraic data type's value constructors can
+    take zero or more arguments. As an example, here's one way we might
+    represent billing information:</p><pre class="calibre39">-- file: ch03/BookStore.hs
+type CardHolder = String
+type CardNumber = String
+type Address = [String]
+
+data BillingInfo = CreditCard CardNumber CardHolder Address
+                 | CashOnDelivery
+                 | Invoice CustomerID
+                   deriving (Show)</pre><br class="calibre48"/>
+<a name="x_P4" class="calibre27" id="x_P4"></a><p class="docText">Here, we're saying that we support three ways to bill our
+    customers. If they want to pay by credit card, they must supply a card
+    number, the holder's name, and the holder's billing address as arguments
+    to the <tt class="calibre34">CreditCard</tt> value constructor. Alternatively, they can
+    pay the person who delivers their shipment. Since we don't need to store
+    any extra information about this, we specify no arguments for the
+    <tt class="calibre34">CashOnDelivery</tt> constructor. Finally, we can send an invoice
+    to the specified customer, in which case, we need her
+    <tt class="calibre34">CustomerID</tt> as an argument to the <tt class="calibre34">Invoice</tt>
+    constructor.</p><a name="x_Rf" class="calibre27" id="x_Rf"></a><p class="docText">When we use a value constructor to create a value of type
+    <tt class="calibre34">BillingInfo</tt>, we must supply the arguments that it
+    requires:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type CreditCard</b>
+CreditCard :: CardNumber -&gt; CardHolder -&gt; Address -&gt; BillingInfo
+ghci&gt; <b class="calibre40">CreditCard "2901650221064486" "Thomas Gradgrind" ["Dickens", "England"]</b>
+CreditCard "2901650221064486" "Thomas Gradgrind" ["Dickens","England"]
+ghci&gt; <b class="calibre40">:type it</b>
+it :: BillingInfo
+ghci&gt; <b class="calibre40">Invoice</b>
+
+&lt;interactive&gt;:1:0:
+    No instance for (Show (CustomerID -&gt; BillingInfo))
+      arising from a use of `print' at &lt;interactive&gt;:1:0-6
+    Possible fix:
+      add an instance declaration for (Show (CustomerID -&gt; BillingInfo))
+    In the expression: print it
+    In a stmt of a 'do' expression: print it
+ghci&gt; <b class="calibre40">:type it</b>
+it :: BillingInfo</pre><p class="docText">The <tt class="calibre34">No instance</tt> error message<a name="I_indexterm3_d1e6092" class="calibre27" id="I_indexterm3_d1e6092"></a> arose because we did not supply an argument to the
+    <tt class="calibre34">Invoice</tt> constructor. As a result, we were trying to print the
+    <tt class="calibre34">Invoice</tt> constructor itself. That constructor requires an
+    argument and returns a value, so it is a function. We cannot print
+    functions in Haskell, which is ultimately why the interpreter
+    complained.</p><a name="deftypes_adtd1e6174" class="calibre27" id="deftypes_adtd1e6174"></a><h4 id="title-IDAQPWSB" class="docSection1Title">3.3.1. Tuples, Algebraic Data Types, and When to Use Each</h4><a name="x_Sf" class="calibre27" id="x_Sf"></a><p class="docText">There<a name="I_indexterm3_d1e6112" class="calibre27" id="I_indexterm3_d1e6112"></a><a name="I_indexterm3_d1e6117" class="calibre27" id="I_indexterm3_d1e6117"></a> is some overlap between tuples and user-defined algebraic
+      data types. If we want, we can represent our BookInfo type
+      from earlier as an <tt class="calibre34">(Int, String, [String])</tt> tuple:</p><pre class="calibre39">ghci&gt; <b class="calibre40">Book 2 "The Wealth of Networks" ["Yochai Benkler"]</b>
+Book 2 "The Wealth of Networks" ["Yochai Benkler"]
+ghci&gt; <b class="calibre40">(2, "The Wealth of Networks", ["Yochai Benkler"])</b>
+(2,"The Wealth of Networks",["Yochai Benkler"])</pre><a name="x_Tf" class="calibre27" id="x_Tf"></a><p class="docText">Algebraic data types allow us to distinguish between
+      otherwise identical pieces of <span class="docEmphasis">information</span>. Two tuples with elements of
+      the same type are structurally identical, so they have the same
+      type:</p><pre class="calibre39">-- file: ch03/Distinction.hs
+a = ("Porpoise", "Grey")
+b = ("Table", "Oak")</pre><br class="calibre48"/>
+<a name="x_tB1" class="calibre27" id="x_tB1"></a><p class="docText">Since they have different names, two algebraic data
+      types have distinct types even if they are otherwise structurally
+      equivalent:</p><pre class="calibre39">-- file: ch03/Distinction.hs
+data Cetacean = Cetacean String String
+data Furniture = Furniture String String
+
+c = Cetacean "Porpoise" "Grey"
+d = Furniture "Table" "Oak"</pre><br class="calibre48"/>
+<a name="x_uB1" class="calibre27" id="x_uB1"></a><p class="docText">This lets us bring the type system to bear in writing
+      programs with fewer bugs. With the tuples we just defined, we could
+      conceivably pass a description of a whale to a function expecting a
+      chair, and the type system could not help us. With the algebraic data
+      types, there is no such possibility of confusion.</p><a name="x_vB1" class="calibre27" id="x_vB1"></a><p class="docText">Here is a more subtle example. Consider the following
+      representations of<a name="I_indexterm3_d1e6155" class="calibre27" id="I_indexterm3_d1e6155"></a> a two-<span class="docEmphasis">dimensional</span>
+      vector:</p><pre class="calibre39">-- file: ch03/AlgebraicVector.hs
+-- x and y coordinates or lengths.
+data Cartesian2D = Cartesian2D Double Double
+                   deriving (Eq, Show)
+
+-- Angle and distance (magnitude).
+data Polar2D = Polar2D Double Double
+               deriving (Eq, Show)</pre><br class="calibre48"/>
+<a name="x_Uf" class="calibre27" id="x_Uf"></a><p class="docText">The Cartesian and polar forms use the same types for
+      their two elements. However, the <span class="docEmphasis">meanings</span> of the
+      elements are different. Because Cartesian2D and
+      Polar2D are distinct types, the type system will not let us
+      accidentally use a <tt class="calibre34">Cartesian2D</tt> value where a
+      <tt class="calibre34">Polar2D</tt> is expected, or vice versa.</p><pre class="calibre39">ghci&gt; <b class="calibre40">Cartesian2D (sqrt 2) (sqrt 2) == Polar2D (pi / 4) 2</b>
+
+&lt;interactive&gt;:1:33:
+    Couldn't match expected type `Cartesian2D'
+           against inferred type `Polar2D'
+    In the second argument of `(==)', namely `Polar2D (pi / 4) 2'
+    In the expression:
+          Cartesian2D (sqrt 2) (sqrt 2) == Polar2D (pi / 4) 2
+    In the definition of `it':
+        it = Cartesian2D (sqrt 2) (sqrt 2) == Polar2D (pi / 4) 2
+</pre><a name="x_Vf" class="calibre27" id="x_Vf"></a><p class="docText">The <i class="docEmphasis">(==)</i>
+      operator<a name="I_indexterm3_d1e6193" class="calibre27" id="I_indexterm3_d1e6193"></a> requires its arguments to have the same type.</p><p class="calibre37"><table border="0" cellspacing="0" cellpadding="1" width="90%" class="calibre41"><tr class="calibre16"><td class="v3"><table width="100%" border="0" cellspacing="0" cellpadding="6" class="calibre42"><tr class="calibre16"><td width="60" valign="top" class="v3"><img src="tip_yellow.gif" alt="" class="calibre43"/></td><td valign="top" class="v3"><p class="docNormalTitle">Comparing for equality</p><a name="x_cf" class="calibre27" id="x_cf"></a><p class="docText">Notice that in the <tt class="calibre34">deriving</tt> clause for
+        our vector types, we added another word, <tt class="calibre34">Eq</tt>. This causes
+        the Haskell implementation to generate code that lets us compare the
+        values for equality.</p></td></tr></table></td></tr></table></p><br class="calibre48"/><a name="x_Wf" class="calibre27" id="x_Wf"></a><p class="docText">If we use tuples to represent these values, we could
+      quickly land ourselves in hot water by mixing the two representations
+      inappropriately:</p><pre class="calibre39">ghci&gt; <b class="calibre40">(1, 2) == (1, 2)</b>
+True
+</pre><a name="x_Xf" class="calibre27" id="x_Xf"></a><p class="docText">The type system can't rescue us here: as far as it's
+      concerned, we're comparing two (Double, Double) pairs,
+      which is a perfectly valid thing to do. Indeed, we cannot tell by
+      inspection which of these values is supposed to be polar or Cartesian,
+      but <tt class="calibre34">(1,2)</tt> has a different meaning in each
+      representation.</p><a name="x_Yf" class="calibre27" id="x_Yf"></a><p class="docText">There is no hard and fast rule for deciding when it's
+      better to use a tuple or a distinct data type, but here's a rule of
+      thumb. If you're using compound values widely in your code (as almost
+      all nontrivial programs do), adding <tt class="calibre34">data</tt> declarations will benefit you in both
+      type safety and readability. For smaller, localized uses, a tuple is
+      usually fine.</p><a name="deftypes_adt_comp" class="calibre27" id="deftypes_adt_comp"></a><h4 id="title-IDA4TWSB" class="docSection1Title">3.3.2. Analogues to Algebraic Data Types in Other Languages</h4><a name="x_Q4" class="calibre27" id="x_Q4"></a><p class="docText">Algebraic data types provide a single powerful way to
+      describe data types. Other languages often need several different
+      features to achieve the same degree of expressiveness. Here are some
+      analogues from C and C++, which might make what we can do with algebraic
+      data types and how they relate to concepts that might be more familiar
+      easier to understand.</p><a name="deftypes_adt_compd1e6301" class="calibre27" id="deftypes_adt_compd1e6301"></a><h5 id="title-IDAFUWSB" class="docSection3Title">3.3.2.1. The structure</h5><a name="x_R4" class="calibre27" id="x_R4"></a><p class="docText">With just one constructor,<a name="I_indexterm3_d1e6239" class="calibre27" id="I_indexterm3_d1e6239"></a><a name="I_indexterm3_d1e6242" class="calibre27" id="I_indexterm3_d1e6242"></a><a name="I_indexterm3_d1e6245" class="calibre27" id="I_indexterm3_d1e6245"></a> an algebraic data type is similar to a tuple: it groups
+        related values together into a compound value. It corresponds to a
+        <tt class="calibre34">struct</tt> in C or C++, and its components correspond to the
+        fields of a <tt class="calibre34">struct</tt>. <a name="I_indexterm3_d1e6257" class="calibre27" id="I_indexterm3_d1e6257"></a>Here's a C equivalent of the <tt class="calibre34">BookInfo</tt> type that we defined
+        earlier:</p><pre class="calibre39">struct book_info {
+    int id;
+    char *name;
+    char **authors;
+};</pre><br class="calibre48"/>
+<a name="x_Zf" class="calibre27" id="x_Zf"></a><p class="docText">The main difference between the two is that the fields
+        in the Haskell type are<a name="I_indexterm3_d1e6269" class="calibre27" id="I_indexterm3_d1e6269"></a><a name="I_indexterm3_d1e6272" class="calibre27" id="I_indexterm3_d1e6272"></a> anonymous and positional:</p><pre class="calibre39">-- file: ch03/BookStore.hs
+data BookInfo = Book Int String [String]
+                deriving (Show)</pre><br class="calibre48"/>
+<a name="x_af" class="calibre27" id="x_af"></a><p class="docText">By <span class="docEmphasis">positional</span>, we mean that the
+        section number is in the first field of the Haskell type and the title
+        is in the second. We refer to them by location, not by name.</p><a name="x_bf" class="calibre27" id="x_bf"></a><p class="docText">Later in this chapter in <a class="docLink" href="deftypes_pattern.html#deftypes_pattern">Section 3.4</a>, we'll see how to access the fields of a
+        BookStore value. In <a class="docLink" href="deftypes_record.html#deftypes_record">Section 3.5</a>,
+        also in this chapter, we'll introduce an alternate syntax for defining
+        data types that looks a little more C-like.</p><a name="deftypes_adt_compd1e6359" class="calibre27" id="deftypes_adt_compd1e6359"></a><h5 id="title-IDARWWSB" class="docSection3Title">3.3.2.2. The enumeration</h5><a name="x_U4" class="calibre27" id="x_U4"></a><p class="docText">Algebraic data types<a name="I_indexterm3_d1e6297" class="calibre27" id="I_indexterm3_d1e6297"></a><a name="I_indexterm3_d1e6300" class="calibre27" id="I_indexterm3_d1e6300"></a> also serve where we'd use an <tt class="calibre34">enum</tt> in C or
+        C++ to represent a range of symbolic values. Such algebraic data types
+        are sometimes referred to as <span class="docEmphasis">enumeration types</span>.
+        Here's an example from C:</p><pre class="calibre39">enum roygbiv {
+    red,
+    orange,
+    yellow,
+    green,
+    blue,
+    indigo,
+    violet,
+};</pre><br class="calibre48"/>
+<a name="x_EL" class="calibre27" id="x_EL"></a><p class="docText">And here's a Haskell equivalent:</p><pre class="calibre39">-- file: ch03/Roygbiv.hs
+
+data Roygbiv = Red
+             | Orange
+             | Yellow
+             | Green
+             | Blue
+             | Indigo
+             | Violet
+               deriving (Eq, Show)</pre><br class="calibre48"/>
+<a name="x_wB1" class="calibre27" id="x_wB1"></a><p class="docText">We can try these out in <i class="docEmphasis">ghci</i>:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type Yellow</b>
+Yellow :: Roygbiv
+ghci&gt; <b class="calibre40">:type Red</b>
+Red :: Roygbiv
+ghci&gt; <b class="calibre40">Red == Yellow</b>
+False
+ghci&gt; <b class="calibre40">Green == Green</b>
+True</pre><a name="x_df" class="calibre27" id="x_df"></a><p class="docText">In C, the elements of an <tt class="calibre34">enum</tt> are
+        integers. We can use an integer in a context where an
+        <tt class="calibre34">enum</tt> is expected and vice versa—a C compiler will
+        automatically convert values between the two types. This can be a
+        source of nasty bugs. In Haskell, this kind of problem does not occur.
+        For example, we cannot use a Roygbiv value where an
+        <tt class="calibre34">Int</tt> is expected:</p><pre class="calibre39">ghci&gt; <b class="calibre40">take 3 "foobar"</b>
+"foo"
+ghci&gt; <b class="calibre40">take Red "foobar"</b>
+
+&lt;interactive&gt;:1:5:
+    Couldn't match expected type `Int' against inferred type `Roygbiv'
+    In the first argument of `take', namely `Red'
+    In the expression: take Red "foobar"
+    In the definition of `it': it = take Red "foobar"</pre><a name="deftypes_adt_compd1e6434" class="calibre27" id="deftypes_adt_compd1e6434"></a><h5 id="title-IDAFZWSB" class="docSection3Title">3.3.2.3. The discriminated union</h5><a name="x_S4" class="calibre27" id="x_S4"></a><p class="docText">If an algebraic data<a name="I_indexterm3_d1e6372" class="calibre27" id="I_indexterm3_d1e6372"></a><a name="I_indexterm3_d1e6375" class="calibre27" id="I_indexterm3_d1e6375"></a> type has multiple alternatives, we can think of it as
+        similar to a <tt class="calibre34">union</tt> in C or C++. A big difference between
+        the two is that a union doesn't tell us which alternative is actually
+        present; we have to explicitly and manually track which alternative
+        we're using, usually in another field of an enclosing struct. This
+        means that unions can be sources of nasty bugs, where our notion of
+        which alternative we should be using is incorrect:</p><pre class="calibre39">enum shape_type {
+    shape_circle,
+    shape_poly,
+};
+
+struct circle {
+    struct vector centre;
+    float radius;
+};
+
+struct poly {
+    size_t num_vertices;
+    struct vector *vertices;
+};
+
+struct shape 
+{
+    enum shape_type type;
+    union {
+	struct circle circle;
+	struct poly poly;
+    } shape;
+};</pre><br class="calibre48"/>
+<a name="x_ef" class="calibre27" id="x_ef"></a><p class="docText">In this example, the <tt class="calibre34">union</tt> can contain
+        valid data for either a <tt class="calibre34">struct circle</tt> or a <tt class="calibre34">struct
+        poly</tt>. We have to use the <tt class="calibre34">enum shape_type</tt> by hand
+        to indicate which kind of value is currently stored in the
+        <tt class="calibre34">union</tt>.</p><a name="x_ff" class="calibre27" id="x_ff"></a><p class="docText">The Haskell version of this code is both dramatically
+        shorter and safer than the C equivalent:</p><pre class="calibre39">-- file: ch03/ShapeUnion.hs
+type Vector = (Double, Double)
+
+data Shape = Circle Vector Double
+           | Poly [Vector]</pre><br class="calibre48"/>
+<a name="x_T4" class="calibre27" id="x_T4"></a><p class="docText">If we create a Shape value using the
+        <tt class="calibre34">Circle</tt> constructor, the fact that we created a
+        <tt class="calibre34">Circle</tt> is stored. When we later use a
+        <tt class="calibre34">Circle</tt>, we can't accidentally treat it as a
+        <tt class="calibre34">Square</tt>. We will see why in the next section <a class="docLink" href="deftypes_pattern.html#deftypes_pattern">Section 3.4</a>.</p><p class="calibre37"><table border="0" cellspacing="0" cellpadding="1" width="90%" class="calibre41"><tr class="calibre16"><td class="v3"><table width="100%" border="0" cellspacing="0" cellpadding="6" class="calibre42"><tr class="calibre16"><td width="60" valign="top" class="v3"><img src="tip_yellow.gif" alt="" class="calibre43"/></td><td valign="top" class="v3"><p class="docNormalTitle">A few notes</p><a name="x_V4" class="calibre27" id="x_V4"></a><p class="docText">After reading the preceding sections, it should now
+          be clear that <span class="docEmphasis">all</span> of the data types that we
+          define with the <tt class="calibre34">data</tt> keyword are algebraic data types.
+          Some may have just one alternative, while others have several, but
+          they're all using the same machinery.</p></td></tr></table></td></tr></table></p><br class="calibre48"/>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="deftypes_alias.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="deftypes_pattern.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

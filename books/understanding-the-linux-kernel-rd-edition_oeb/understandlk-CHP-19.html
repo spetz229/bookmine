@@ -1,0 +1,31 @@
+---
+layout: page
+title: "Understanding the Linux Kernel, 3rd Edition"
+prev: understandlk-CHP-18-SECT-7.html
+next: understandlk-CHP-19-SECT-1.html
+book_path: books/understanding-the-linux-kernel-rd-edition_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a name="understandlk-CHP-19"></a>
+<div class="calibre23"></div><h2 class="docPrefaceTitle">Chapter 19. Process Communication</h2>
+<p class="docText1">This chapter explains how User Mode processes can synchronize their actions and exchange data. We already covered several synchronization topics in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-5.html#understandlk-CHP-5">Chapter 5</a>, but the actors there were kernel control paths, not User Mode programs. We are now ready, after having discussed I/O management and filesystems at length, to extend the discussion to User Mode processes. These processes must rely on the kernel to facilitate interprocess synchronization and communication.</p>
+<p class="docText1">As we saw in the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-12-SECT-7.html#understandlk-CHP-12-SECT-7.1">Linux File Locking</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-12.html#understandlk-CHP-12">Chapter 12</a>, a form of synchronization among User Mode processes can be achieved by creating a (possibly empty) file and using suitable VFS system calls to lock and unlock it. While processes can similarly share data via temporary files protected by locks, this approach is costly because it requires accesses to the filesystem on disk. For this reason, all Unix kernels include a set of system calls that supports process communication without interacting with the filesystem; furthermore, several wrapper functions were developed and inserted in suitable libraries to expedite how processes issue their synchronization requests to the kernel.</p>
+<p class="docText1">As usual, application programmers have a variety of needs that call for different communication mechanisms. Here are the basic mechanisms that Unix systems offer to allow interprocess communication:</p>
+<a name="IDX-CHP-19-4518"></a><dl class="docText1"><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">Pipes and FIFOs (named pipes)</span></span></p></dt>
+<dd class="calibre20"><p class="docList">Best suited to implement producer/consumer interactions among processes. Some processes fill the pipe with data, while others extract data from the pipe. They are covered in the sections "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-19-SECT-1.html#understandlk-CHP-19-SECT-1">Pipes</a>" and "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-19-SECT-2.html#understandlk-CHP-19-SECT-2">FIFOs</a>."</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">Semaphores</span></span></p></dt>
+<dd class="calibre20"><p class="docList">Represent, as the name implies, the User Mode version of the kernel semaphores discussed in the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-5-SECT-2.html#understandlk-CHP-5-SECT-2.8">Semaphores</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-5.html#understandlk-CHP-5">Chapter 5</a>. They are described in the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-19-SECT-3.html#understandlk-CHP-19-SECT-3">System V IPC</a>."</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">Messages</span></span></p></dt>
+<dd class="calibre20"><p class="docList">Allow processes to exchange messages (short blocks of data) by reading and writing them in predefined message queues. The Linux kernel offers two different versions of messages: System V IPC messages (covered in the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-19-SECT-3.html#understandlk-CHP-19-SECT-3">System V IPC</a>") and POSIX messages (described in the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-19-SECT-4.html#understandlk-CHP-19-SECT-4">POSIX Message Queues</a>").</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">Shared memory regions</span></span></p></dt>
+<dd class="calibre20"><p class="docList">Allow processes to exchange information via a shared block of memory. In applications that must share large amounts of data, this can be the most efficient form of process communication. They are described in the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-19-SECT-3.html#understandlk-CHP-19-SECT-3">System V IPC</a>."</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">Sockets</span></span></p></dt>
+<dd class="calibre20"><p class="docList">Allow processes on different computers to exchange data through a network. Sockets can also be used as a communication tool for processes located on the same host computer; the X Window System<a name="IDX-CHP-19-4518"></a> 
+ graphic interface, for instance, uses a socket to allow client programs to exchange data with the X server.</p></dd></dl>
+<a href="31071535.html"><img src="pixel.jpg" alt="" border="0" class="calibre19"/></a>
+<br class="calibre7"/>
+
+</div>
+
+{% endraw %}
+

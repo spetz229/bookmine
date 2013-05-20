@@ -1,0 +1,72 @@
+---
+layout: page
+title: "Unknown"
+prev: x21206.htm
+next: x21491.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="x21206.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 13. LXP</td><td width="10%" valign="bottom" class="calibre5"><a href="x21491.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="AEN21430" class="calibre8">Understanding LXP Mark-Up</a></h1><p class="calibre9">While LXP performs programmatic tasks, one of the aims of LXP is to achieve these tasks without having to change the
+    general syntax that one uses when putting together HTML (or XHTML) mark-up. On the server, an LXP document appears to be a
+    normal HTML file with some unfamiliar <span><i class="EMPHASIS">tags</i></span>.</p><p class="calibre9">Here is an introductory example of a simple LXP document:</p><pre class="SCREEN">&lt;lxp&gt;
+  &lt;dock type="init"&gt;
+    &lt;include src="parts/init.lxp" /&gt;
+  &lt;/dock&gt;
+  &lt;include src="parts/head.html" /&gt;
+  
+  &lt;h1&gt;Welcome&lt;/h1&gt;
+  
+  &lt;hr width="400"&gt;
+  
+  &lt;if lxp.authenticated='t'&gt;
+    Welcome to my webpage, &lt;putcookie name="user" /&gt;
+  &lt;/if&gt;
+  &lt;else&gt;
+    &lt;strong&gt;Please login.&lt;/strong&gt;
+    &lt;include src="parts/login.lxp" /&gt;
+  &lt;/else&gt;
+  
+  &lt;include src="parts/foot.html" /&gt;
+&lt;/lxp&gt;</pre><div class="NAVHEADER"><h2 class="SECT"><a name="AEN21439" class="calibre8">LXP Tags</a></h2><p class="calibre9">A tag (formally called an <span><i class="EMPHASIS">element</i></span>) is defined as a structure in a document beginning with a
+      less-than symbol (<tt class="REPLACEABLE">&lt;</tt>) and ending with a greater-than symbol
+      (<tt class="REPLACEABLE">&gt;</tt>). Tags always begin with a name, which defines the nature of the tag, and can
+      optionally have a set of space-delimited <span><i class="EMPHASIS">attributes</i></span>. Attributes are always described in the form of a
+      <tt class="REPLACEABLE"><i class="EMPHASIS">name</i></tt><tt class="REPLACEABLE">=</tt><tt class="REPLACEABLE"><i class="EMPHASIS">value</i></tt> pair, where 
+      <tt class="REPLACEABLE"><i class="EMPHASIS">name</i></tt> is an attribute name unique to that tag, and <tt class="REPLACEABLE"><i class="EMPHASIS">value</i></tt> is some arbitrary value
+      assigned to that attribute.</p><p class="calibre9">All of LXP's tags follow the same general structure of any mark-up language. Tags begin a <span><i class="EMPHASIS">region</i></span>
+      (or <span><i class="EMPHASIS">block</i></span>) with an <span><i class="EMPHASIS">opening</i></span> tag (e.g.,
+      <tt class="REPLACEABLE">&lt;tag&gt;</tt>), and close each region with an associated slash-prefixed
+      <span><i class="EMPHASIS">closing</i></span> tag (e.g., <tt class="REPLACEABLE">&lt;/tag&gt;</tt>.</p><p class="calibre9">As with HTML and XML, some tags do not require closing. These are called <span><i class="EMPHASIS">empty element</i></span> tags, and
+      do not define a region, but perform a one-time operation. Empty element tags are typically characterized by a trailing
+      forward slash at the end of the tag (e.g., <tt class="REPLACEABLE">&lt;tag /&gt;</tt>.</p><p class="calibre9">LXP's parser does not syntactically require trailing-slashes in empty element tags, though omitting them can cause
+      unpredictable behavior in some circumstances. For example, nesting the <tt class="REPLACEABLE">&lt;include&gt;</tt> tag
+      can cause some confusion to branching logic if trailing slashes are omitted. This is because the
+      <tt class="REPLACEABLE">&lt;include&gt;</tt> tag may be either an empty-element tag (as in the case of an external
+      document inclusion), or an opening tag requiring a closing tag (as in the case of the direct SQL inclusion).</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>It is a good idea to be in the habit of using trailing slashes in empty-element tags. In HTML, some tags do not
+        formally require a trailing slash (e.g., <tt class="REPLACEABLE">&lt;br&gt;</tt> versus XHTML's
+        <tt class="REPLACEABLE">&lt;br /&gt;</tt>). With the rise of XHTML and XML, however, requirements for
+        mark-up–based documents are becoming more strict.</p></blockquote></div><p class="calibre9">Both opening and empty-element tags have names, and may also contain some number of attributes. While the name
+      describes the intent of a tag, the attributes typically define the <span><i class="EMPHASIS">details</i></span> of the operation to be
+      performed, and vary in their meaning from tag to tag. A closing tag should only have a name, immediately following its
+      initial forward slash (e.g., <tt class="REPLACEABLE">&lt;/tag&gt;</tt>).</p><p class="calibre9">LXP tag and attribute names are generally case-insensitive, though there are times when an attribute name refers
+      literally to a variable's name (such as in the <tt class="REPLACEABLE">&lt;if&gt;</tt> tag). In these instances, case
+      can matter, depending on the case conventions you use with your variables. The examples in this document prefer lowercase,
+      following the lead of the XHTML standard (which defines element names and attributes as all lowercase).</p><p class="calibre9"><a href="x21430.htm#ASIMPLELXPMARKUPREGION">Example 13-6</a> shows a simple LXP mark-up region with one opening tag, one closing tag, and
+      two empty-element tags within their defined region.</p><div class="NAVHEADER"><a name="ASIMPLELXPMARKUPREGION"></a><p class="calibre9"><b class="calibre10">Example 13-6. A Simple LXP mark-up region</b></p><pre class="SCREEN">&lt;lxp&gt;
+  &lt;setvar example="test" /&gt;
+  &lt;putvar name="example" /&gt;
+&lt;/lxp&gt;</pre></div><p class="calibre9">LXP aims for simplicity and seamlessness in application development, and this basic structural aspect of LXP is an
+      example of this ethic.</p></div><div class="NAVHEADER"><h2 class="SECT"><a name="LXPREGIONS" class="calibre8">LXP Regions</a></h2><p class="calibre9">Arguably the most important LXP tag is the <tt class="REPLACEABLE">&lt;lxp&gt;</tt> tag itself, which enables an
+      <span><i class="EMPHASIS">LXP region</i></span>. This is similar to a &lt;script&gt; tag, or the PHP short tag, in that it instructs the
+      LXP module to begin looking for LXP content.</p><p class="calibre9">Unlike PHP, however, while parsing an LXP region the module will simply ignore any tags that it does not recognize as
+      an LXP tag. The <tt class="REPLACEABLE">&lt;lxp&gt;</tt> tag simply enables the ability to use LXP tags in a given
+      region without impairing your ability to write normal HTML mark-up (though the effect of LXP tags can control which parts
+      of the HTML are displayed).</p><p class="calibre9">It should follow from this discussion that <tt class="REPLACEABLE">&lt;/lxp&gt;</tt> closes an LXP region and
+      disables the ability to use LXP tags until the next <tt class="REPLACEABLE">&lt;lxp&gt;</tt> tag is opened.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>An LXP document does not automatically look for LXP tags. A document will be rendered faster if LXP regions are
+        limited to areas requiring LXP capabilities, as it is more involved to parse an LXP region for dynamic content than it is
+        to process a plain HTML region.</p></blockquote></div></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="x21206.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x21491.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Installing and Configuring LXP</td><td width="34%" valign="top" class="calibre4"><a href="lxp.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">LXP Variables and Objects</td></tr></table></div></div>
+
+{% endraw %}
+

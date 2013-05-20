@@ -1,0 +1,1169 @@
+---
+layout: page
+title: "Seven Databases in Seven Weeks (for Greg Kennedy)"
+prev: f_0037.html
+next: f_0039.html
+book_path: books/seven-databases-in-seven-weeks--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="N166FE" class="calibre18">5.4 Day 3: Replica Sets, Sharding, GeoSpatial, and GridFS</h2>
+<p id="N16702" class="calibre5">
+    Mongo has a powerful ability to store and query data in a variety of ways. But then again, so can other databases. What makes document databases unique is their ability to efficiently handle arbitrarily nested, schemaless data documents. What makes Mongo special in the realm of document stores is its ability to scale across several servers, by replicating (copying data to other servers) or sharding collections (splitting a collection into pieces) and performing queries in parallel. Both promote availability. 
+  </p>
+<div xmlns:str="http://exslt.org/strings" class="calibre2">
+<img src="images/mongo-crud.png" alt="images/mongo-crud.png" class="calibre27"/>
+</div>
+<h3 class="calibre20">Replica Sets</h3>
+<p id="N16713" class="calibre5">
+      Mongo was built to scale out, not to run stand-alone. It was built for data consistency and partition tolerance, but sharding data has a cost: if one part of a collection is lost, the whole thing is compromised. What good is querying against a collection of countries that contains only  the western hemisphere? Mongo deals with this implicit sharding weakness in a simple manner: duplication. You should rarely run a single Mongo instance in production but rather replicate the stored data across multiple services.
+    </p>
+<p id="N1671C" class="calibre5">
+      Rather than muck with our existing database, today we’ll start from scratch and spawn a few new servers. Mongo’s default port is 27017, so we’ll start up each server on other ports. Recall you must create the data directories first, so create three of them:
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ mkdir  ./mongo1 ./mongo2 ./mongo3​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1672B" class="calibre5">
+      Next we’ll fire up the Mongo servers. This time we’ll add the <code class="cf">replSet</code> flag with the name <code class="cf1">book</code> and specify the ports. While we’re at it, let’s turn on the REST flag so we can use the web interface.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ mongod --replSet book --dbpath ./mongo1 --port 27011 --rest​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N16740" class="calibre5">
+      Open another terminal window, and run the next command, which launches another server, pointing to a different directory, available on another port. Then open a third terminal to start the third server.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ mongod --replSet book --dbpath ./mongo2 --port 27012 --rest​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ mongod --replSet book --dbpath ./mongo3 --port 27013 --rest​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N16752" class="calibre5">
+      Notice that you get a lot of this noise on the output.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​[startReplSets] replSet can't get local.system.replset config from self \​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  or any seed (EMPTYCONFIG)​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N16764" class="calibre5">
+      That’s a good thing; we’ve yet to initialize our replica set, and Mongo is letting us know that. Fire up a <code class="cf">mongo</code> shell to one of the servers, and execute the <code class="cf">rs.initiate</code> function.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ mongo localhost:27011​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​&gt; rs.initiate({​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  _id: <em class="string">'book'</em>,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  members: [​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    {_id: 1, host: <em class="string">'localhost:27011'</em>},​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    {_id: 2, host: <em class="string">'localhost:27012'</em>},​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    {_id: 3, host: <em class="string">'localhost:27013'</em>}​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  ]​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​})​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​&gt; rs.status()​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N167A0" class="calibre5">
+      Notice we’re using a new object called <code class="cf">rs</code> (replica set). Like other objects, it has a <code class="cf">help</code> method you can call. Running the <code class="cf">status</code> command will let us know when our replica set is running, so just keep checking the status for completion before continuing. If you watch the three server outputs, you should see that one server outputs this line:
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​[rs Manager] replSet PRIMARY​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N167B8" class="calibre5">
+      And two servers will have the following output:
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​[rs_sync] replSet SECONDARY​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N167C7" class="calibre5">
+<code class="cf">PRIMARY</code> will be the master server. Chances are, this will be the server on port 27011 (since it started first); however, if it’s not, go ahead and fire up a console to the primary. Just insert any old thing on the command line, and we’ll try an experiment.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​&gt; db.echo.insert({ say : <em class="string">'HELLO!'</em> })​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N167DB" class="calibre5">
+      After the insert, exit the console, and then let’s test that our change has been replicated by shutting down the master node; pressing <span class="calibre35">Ctrl</span>+<span class="calibre35">C</span> is sufficient. If you watch the logs of the remaining two servers, you should see that one of the two has now been promoted to master (it will output the <code class="cf">replSet PRIMARY</code> line). Open a console into that machine (for us it was <code class="cf1">localhost:27012</code>), and <code class="cf">db.echo.find</code> should contain your value.
+    </p>
+<p id="N167ED" class="calibre5">
+      We’ll play one more round of our console-shuffle game. Open a console into the remaining <code class="cf">SECONDARY</code> server. Just to be sure, run the <code class="cf">isMaster</code> function. Ours looked like this:
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ mongo localhost:27013​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​MongoDB shell version: 1.6.2​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​connecting to: localhost:27013/test​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​&gt; db.isMaster()​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​{​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  "setName" : <em class="string">"book"</em>,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  "ismaster" : false,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  "secondary" : true,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  "hosts" : [​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <em class="string">"localhost:27013"</em>,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <em class="string">"localhost:27012"</em>,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    <em class="string">"localhost:27011"</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  ],​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  "primary" : <em class="string">"localhost:27012"</em>,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  "ok" : 1​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​}​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1683D" class="calibre5">
+      In this shell, let’s attempt to insert another value.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​&gt; db.echo.insert({ say : <em class="string">'is this thing on?'</em> })​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​not master​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N16852" class="calibre5">
+      The message <code class="cf1">not master</code> is letting us know that we cannot write to a secondary node. Nor can you directly read from it. There is only one master per replica set, and you must interact with it. It is the gatekeeper to the set.
+    </p>
+<p id="N16858" class="calibre5">
+      Replicating data has its own issues not found in single-source databases. In the Mongo setup, one problem is deciding who gets promoted when a master node goes down. Mongo deals with this by giving each <code class="cf">mongod</code> service a vote, and the one with the freshest data is elected the new master. Right now you should still have two <code class="cf">mongod</code> services running. Go ahead and shut down the current master. Remember, when we did this with three nodes, one of the others just got promoted to be the new master. But this time something different happened. The output of the last remaining server will be something like this:
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​[ReplSetHealthPollTask] replSet info localhost:27012 is now down (or...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​[rs Manager] replSet can<em class="string">'t see a majority, will not try to elect self</em>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N16872" class="calibre5">
+      This comes down to the Mongo philosophy of server setups and the reason we should always have an odd number of servers (three, five, and so on).
+    </p>
+<p id="N16875" class="calibre5">
+      Go ahead and relaunch the other servers and watch the logs. When the nodes are brought back up, they go into a recovery state and attempt to resync their data with the new master node. “What a minute!?” (we hear you cry). “So, what if the original master had data that did not yet propagate?” Those operations are dropped. A write in a Mongo replica set isn’t considered successful until most nodes have a copy of the data.
+      </p>
+<h4 class="calibre21">The Problem with Even Nodes</h4>
+<p id="N16880" class="calibre5">
+      The concept of replication is easy enough to grasp: you write to one MongoDB server, and that data is duplicated across others within the replica set. If one server is unavailable, then one of the others can be promoted and serve requests. But there are more ways a server can be unavailable than a server crash. Sometimes, the network connection between nodes is down. In that case, Mongo dictates that <span class="calibre6">a majority of nodes that can still communicate make up the network</span>.
+      </p>
+<p id="N1688B" class="calibre5">
+      MongoDB expects an odd number of total nodes in the replica set.  Consider a five-node network, for example.  If connection issues split it into a three-node fragment and a two-node fragment, the larger fragment has a clear majority and can elect a master and continue servicing requests. With no clear majority, a quorum couldn’t be reached.
+      </p>
+<p id="N1688E" class="calibre5">
+      To see why an odd number of nodes is preferred, consider what might happen to a four-node replica set.  Say a network partition causes two of the servers to lose connectivity from the other two. One set will have the original master, but since it can’t see a <span class="calibre6">clear majority</span> of the network, the master steps down.  The other set will similarly be unable to elect a master because it too can’t communicate with a clear majority of nodes.  Both sets are now unable to process requests and the system is effectively down.  Having an odd number of total nodes would have made this particular scenario—a fragmented network where each fragment has less than a clear majority—less likely to occur.
+      </p>
+<p id="N16894" class="calibre5">
+      Some databases (e.g., CouchDB) are built to allow multiple masters, but Mongo is not, and so it isn’t prepared to resolve data updates between them. MongoDB deals with conflicts between multiple masters by simply not allowing them.
+      </p>
+<p id="N16897" class="calibre5">
+      Unlike, say, Riak, Mongo always knows the most recent value; the client needn’t decide. Mongo’s concern is strong consistency on writes, and preventing a multimaster scenario is not a bad method for achieving it.
+      </p>
+<div class="sidebar">
+<div class="sidebar-title">Voting and Arbiters</div>
+<div class="calibre2">
+<p id="N1689E" class="calibre5">
+          You may not always want to have an odd number of servers replicating data. In that case, you can either launch an arbiter (generally recommended) or increase voting rights on your servers (generally not recommended). In Mongo, an arbiter is a voting but nonreplicating server in the replica set. You launch it just like any other server, but on configuration set a flag, like this: <code class="cf2">{_id: 3, host: ’localhost:27013’, arbiterOnly : true}.</code> Arbiters are useful for breaking ties, like the U.S. vice president in the Senate. By default each <code class="cf2">mongod</code> instance has a single vote.
+        </p>
+</div>
+</div>
+<h3 class="calibre20">Sharding</h3>
+<p id="N168BA" class="calibre5">
+      One of the central reasons for Mongo to exist is to safely and quickly handle very large datasets. The clearest method of achieving this is through horizontal sharding by value ranges—or just <span class="calibre6">sharding</span> for brevity. Rather than a single server hosting all values in a collection, some range of values are split (or in other words, sharded) onto other servers. For example, in our phone numbers collection, we may put all phone numbers less than 1-500-000-0000 onto Mongo server  A  and put numbers greater than or equal to 1-500-000-0001 onto a server B. Mongo makes this easier by autosharding, managing this division for you.
+    </p>
+<p id="N168CC" class="calibre5">
+      Let’s launch a couple of (nonreplicating) <code class="cf">mongod</code> servers. Like replica sets, there’s a special parameter necessary to be considered a shard server (which just means this server is capable of sharding).
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ mkdir ./mongo4 ./mongo5​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ mongod --shardsvr --dbpath ./mongo4 --port 27014​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ mongod --shardsvr --dbpath ./mongo5 --port 27015​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N168E4" class="calibre5">
+      Now we need a server to actually keep track of our keys. Imagine we created a table to store city names alphabetically. We need some way to know that (for example) cities starting with A--N go to server mongo4 and O--Z go to server mongo5. In Mongo you create a <span class="calibre6">config server</span> (which is just a regular <code class="cf">mongod</code>) that keeps track of which server (mongo4 or mongo5) owns what values.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ mkdir ./mongoconfig​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ mongod --configsvr --dbpath ./mongoconfig --port 27016​</code>​</div>
+</td>
+</tr>
+</table>
+<div class="sidebar">
+<div class="sidebar-title">mongos vs. mongoconfig</div>
+<div class="calibre2">
+<p id="N16903" class="calibre5">
+        You may wonder why Mongo separates <code class="cf2">configuration</code> and the <code class="cf2">mongos</code> <span class="calibre6">point of entry</span> into two different servers. This is because in production environments they will generally live on different physical servers. The config server (itself replicated) manages the sharded information for other sharded servers, while <code class="cf2">mongos</code> will likely live on your local application server where clients can easily connect (without needing to manage which shards to connect to).
+      </p>
+</div>
+</div>
+<p id="N16919" class="calibre5">
+      Finally, we need to run a fourth server called <code class="cf">mongos</code>,  which is the single point of entry for our clients. The <code class="cf">mongos</code> server will connect to the <code class="cf">mongoconfig</code> config server to keep track of the sharding information stored there. We’ll set it on port 27020 with a <code class="cf">chunkSize</code> of 1. (Our <code class="cf">chunkSize</code> is 1MB, which is the smallest value allowed. This is just for our small dataset, so we can watch sharding take place. In production you’d use the default or a much bigger number.) We point <code class="cf">mongos</code> to the config server:port with the <code class="cf">--configdb</code> flag.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ mongos --configdb localhost:27016 --chunkSize 1 --port 27020​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1693D" class="calibre5">
+      A neat thing about <code class="cf">mongos</code> is that it is a lightweight clone of a full <code class="cf">mongod</code> server. Nearly any command you can throw at a <code class="cf">mongod</code>, you can throw at a <code class="cf">mongos</code>, which makes it the perfect go-between for clients to connect to multiple sharded servers. A picture of our server setup may help (Figure 23, <a href="#fig.mongo.shards">​<em class="calibre6">Our little baby sharded cluster</em>​</a>).
+    </p>
+<div class="figure" id="fig.mongo.shards">
+<div class="calibre2">
+<img xmlns:str="http://exslt.org/strings" src="images/mongo-shards.png" alt="images/mongo-shards.png" class="calibre27"/>
+</div>
+<div class="figurecaption">
+<hr class="calibre28"/>Figure 23. Our little baby sharded cluster</div>
+</div>
+<p id="N16960" class="calibre5">
+      Now let’s jump into the <code class="cf">mongos</code>  server console on the admin database. We’re going to configure some sharding.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ mongo localhost:27020/admin​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​&gt; db.runCommand( { addshard : <em class="string">"localhost:27014"</em> } )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​{ "shardAdded" : <em class="string">"shard0000"</em>, "ok" : 1 }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​&gt; db.runCommand( { addshard : <em class="string">"localhost:27015"</em> } )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​{ "shardAdded" : <em class="string">"shard0001"</em>, "ok" : 1 }​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1698A" class="calibre5">
+      With that set up, now we have to give it the database and collection to shard and the field to shard by (in our case, the city name).
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​&gt; db.runCommand( { enablesharding : <em class="string">"test"</em> } )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​{ "ok" : 1 }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​&gt; db.runCommand( { shardcollection : <em class="string">"test.cities"</em>, key : {name : 1} } )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​{ "collectionsharded" : <em class="string">"test.cities"</em>, "ok" : 1 }​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N169AB" class="calibre5">
+      With all that setup out of the way, let’s load some data. If you download the book code, you’ll find a 12MB data file named <code class="cf">mongo_cities1000.json</code> that contains data for every city in the world with a population of more than 1,000 people. Download that file, and run the following import script that imports the data into our <code class="cf">mongos</code> server:
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ mongoimport -h localhost:27020 -db test --collection cities \​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  --type json mongo_cities1000.json​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N169C3" class="calibre5">
+      From the <code class="cf">mongos</code> console, type <code class="cf">use test</code> to go back to the <code class="cf">test</code> environment from the <code class="cf">admin</code> environment.
+      </p>
+<h3 id="sec.mongo.geo" class="calibre20">GeoSpatial Queries</h3>
+<p id="N169DD" class="calibre5">
+      Mongo has a neat trick built into it. Although we’ve focused on server setups today, no day would be complete without a little bit of razzle-dazzle, and that’s Mongo’s ability to quickly perform geospatial queries. First connect to the <code class="cf">mongos</code> sharded server.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ mongo localhost:27020​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N169FB" class="calibre5">
+    The core of the geospatial secret lies in indexing. It’s a special form of indexing geographic data called <span class="calibre6">geohash</span> that not only finds values of a specific value or range quickly but finds nearby values quickly in ad hoc queries. Conveniently, at the end of our previous section, we installed a lot of geographic data. So to query it, step 1 is to index the data on the location field. The <code class="cf1">2d</code> index must be set on any two value fields, in our case a hash (for example, <code class="cf">{ longitude:1.48453, latitude:42.57205 }</code>), but it could easily have been an array (for example, <code class="cf">[1.48453, 42.57205]</code>).
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​&gt; db.cities.ensureIndex({ location : <em class="string">"2d"</em> })​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N16A1B" class="calibre5">
+    If we were not dealing with a sharded collection, we could easily query for cities at or near a location. However, the following will  work only with nonsharded collections in our current version of Mongo.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​&gt; db.cities.find({ location : { $near : [45.52, -122.67] } }).limit(5)​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N16A2A" class="calibre5">
+      This should be patched in future versions for sharded collections. But in the meantime, to query a sharded <code class="cf">cities</code> collection for other cities near a location, use the <code class="cf">geoNear</code> command. Here is a sample of what it can return:
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​&gt; db.runCommand({geoNear : <em class="string">'cities'</em>, near : [45.52, -122.67],​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  num : 5, maxDistance : 1})​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​{​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  "ns" : <em class="string">"test.cities"</em>,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  "near" : <em class="string">"1000110001000000011100101011100011001001110001111110"</em>,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  "results" : [​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      "dis" : 0.007105400003747849,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      "obj" : {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        "_id" : ObjectId(<em class="string">"4d81c216a5d037634ca98df6"</em>),​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        "name" : <em class="string">"Portland"</em>,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​        ...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​      }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    },​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    ...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  ],​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  "stats" : {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    "time" : 0,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    "btreelocs" : 53,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    "nscanned" : 49,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    "objectsLoaded" : 6,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    "avgDistance" : 0.02166813996454613,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    "maxDistance" : 0.07991909980773926​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  },​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  "ok" : 1​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​}​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N16A99" class="calibre5">
+<code class="cf">geoNear</code> also helps with troubleshooting geospatial commands. It returns a gold mine of useful information such as distance from the queried point, average and max distance of the returned set, and index information.
+    </p>
+<h3 class="calibre20">GridFS</h3>
+<p id="N16AA8" class="calibre5">
+      One downside of a distributed system can be the lack of a single coherent filesystem. Say you operate a website where users can upload images of themselves. If you run several web servers on several different nodes, you must manually replicate the uploaded image to each web server’s disk or create some alternative central system. Mongo handles this scenario by its own distributed filesystem called GridFS.
+    </p>
+<p id="N16AB7" class="calibre5">
+      Mongo comes bundled with a command-line tool for interacting with the GridFS. The great thing is we don’t have to set up anything special to use it. If we list the files in the <code class="cf">mongos</code> managed shards using the command <code class="cf">mongofiles</code>, we get an empty list.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ mongofiles -h localhost:27020 list​</code>​</div>
+</td>
+</tr>
+</table>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​connected to: localhost:27020​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N16AD6" class="calibre5">
+      But upload any file.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ mongofiles -h localhost:27020 put my_file.txt​</code>​</div>
+</td>
+</tr>
+</table>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​connected to: localhost:27020​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​added file: { _id: ObjectId('4d81cc96939936015f974859'), filename: "my_file.txt", \​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  chunkSize: 262144, uploadDate: new Date(1300352150507), \​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  md5: "844ab0d45e3bded0d48c2e77ed4f3b0e", length: 3067 }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​done!​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N16AFB" class="calibre5">
+      And <span class="calibre6">voila</span>! If we list the contents of <code class="cf">mongofiles</code>, we’ll find the uploaded name name.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ mongofiles -h localhost:27020 list​</code>​</div>
+</td>
+</tr>
+</table>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​connected to: localhost:27020​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​my_file.txt     3067​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N16B1D" class="calibre5">
+      Back in our <code class="cf">mongo</code> console, we can see the collections Mongo stores the data in.
+    </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​&gt; show collections​</code>​</div>
+</td>
+</tr>
+</table>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​cities​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​fs.chunks​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​fs.files​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​system.indexes​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N16B44" class="calibre5">
+      Since they’re just plain old collections, they can be replicated or queried like any other.
+      </p>
+<h3 class="calibre20">Day 3 Wrap-Up</h3>
+<p id="N16B51" class="calibre5">
+      This wraps up our investigation of MongoDB. Today we focused on how Mongo enhances data durability with replica sets and supports horizontal scaling with sharding. We looked at good server configurations and how Mongo provides the <code class="cf">mongos</code> server to act as a relay for handling autosharding between multiple nodes. Finally, we toyed with some of Mongo’s built-in tools, such as geospatial queries and GridFS.
+    </p>
+<h4 class="calibre21">Day 3 Homework</h4>
+<p class="calibre5">
+<strong class="calibre32">Find</strong>
+</p>
+<ol class="calibre33">
+<li class="calibre23">
+<p id="N16B62" class="calibre5">Read the full replica set configuration options in the online docs.</p>
+</li>
+<li class="calibre23">
+<p id="N16B66" class="calibre5">Find out how to create a spherical geo index.</p>
+</li>
+</ol>
+<p class="calibre5">
+<strong class="calibre32">Do</strong>
+</p>
+<ol class="calibre33">
+<li class="calibre23">
+<p id="N16B70" class="calibre5">Mongo has support for bounding shapes (namely, squares and circles). Find all cities within a 50-mile box around the center of London.<a id="FNPTR-39" href="f_0039.html#FOOTNOTE-39">[39]</a>
+</p>
+</li>
+<li class="calibre23">
+<p id="N16B79" class="calibre5">Run six servers: three servers in a replica set, and each replica set is one of two shards. Run a config server and mongos. Run GridFS across them (this is the final exam).</p>
+</li>
+</ol>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre3"/>
+</div>
+
+{% endraw %}
+

@@ -1,0 +1,25 @@
+---
+layout: page
+title: "Understanding the Linux Kernel, 3rd Edition"
+prev: understandlk-CHP-7-SECT-6.html
+next: understandlk-CHP-8-SECT-1.html
+book_path: books/understanding-the-linux-kernel-rd-edition_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a name="understandlk-CHP-8"></a>
+<div class="calibre23"></div><h2 class="docPrefaceTitle">Chapter 8. Memory Management</h2>
+<p class="docText1">We saw in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-2.html#understandlk-CHP-2">Chapter 2</a> how Linux takes advantage of 80 x 86's segmentation and paging circuits to translate logical addresses into physical ones. We also mentioned that some portion of RAM is permanently assigned to the kernel and used to store both the kernel code and the static kernel data structures.</p>
+<p class="docText1">The remaining part of the RAM is called <span class="docEmphasis">dynamic memory</span><a name="IDX-CHP-8-1970"></a> 
+. It is a valuable resource, needed not only by the processes but also by the kernel itself. In fact, the performance of the entire system depends on how efficiently dynamic memory is managed. Therefore, all current multitasking operating systems try to optimize the use of dynamic memory, assigning it only when it is needed and freeing it as soon as possible. <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-8-SECT-1.html#understandlk-CHP-8-FIG-1">Figure 8-1</a> shows schematically the page frames used as dynamic memory; see the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-2-SECT-5.html#understandlk-CHP-2-SECT-5.3">Physical Memory Layout</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-2.html#understandlk-CHP-2">Chapter 2</a> for details.</p>
+<p class="docText1">This chapter, which consists of three main sections, describes how the kernel allocates dynamic memory for its own use. The sections "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-8-SECT-1.html#understandlk-CHP-8-SECT-1">Page Frame Management</a>" and "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-8-SECT-2.html#understandlk-CHP-8-SECT-2">Memory Area Management</a>" illustrate two different techniques for handling physically contiguous memory areas, while the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-8-SECT-3.html#understandlk-CHP-8-SECT-3">Noncontiguous Memory Area Management</a>" illustrates a third technique that handles noncontiguous memory areas. In these sections we'll cover topics such as memory zones, kernel mappings, the buddy system, the slab cache, and memory pools.</p>
+<a href="31071535.html"><img src="pixel.jpg" alt="" border="0" class="calibre19"/></a>
+<br class="calibre7"/>
+
+</div>
+
+{% endraw %}
+

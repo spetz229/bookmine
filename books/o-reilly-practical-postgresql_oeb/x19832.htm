@@ -1,0 +1,414 @@
+---
+layout: page
+title: "Unknown"
+prev: x19712.htm
+next: x20238.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="x19712.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 11. PL/pgSQL</td><td width="10%" valign="bottom" class="calibre5"><a href="x20238.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="AEN19832" class="calibre8">Using Variables</a></h1><p class="calibre9">Variables are used within PL/pgSQL code to store modifiable data of an explicitly stated type.  All variables that you will be using within a code block must be declared under the <tt class="REPLACEABLE">DECLARE</tt> keyword.  If a variable is not initialized to a default value when it is declared, its value will default to the SQL <tt class="REPLACEABLE">NULL</tt> type.  </p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>As you will read later on in <a href="x20238.htm">the Section called <i class="EMPHASIS">Controlling Program Flow</i></a>," there is a type of statement known as the
+       <tt class="REPLACEABLE">FOR</tt> loop that initializes a variable used for iteration.  The
+       <tt class="REPLACEABLE">FOR</tt> loop's iteration variable does not have to be pre-declared in the
+       <tt class="REPLACEABLE">DECLARE</tt> section for the block the loop is located within; hence, the
+       <tt class="REPLACEABLE">FOR</tt> loop is the only exception to the rule that all PL/pgSQL variables must be declared
+       at the beginning of the block they are located within.</p></blockquote></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN19844" class="calibre8">Data types</a></h2><p class="calibre9">Variables in PL/pgSQL can be represented by any of SQL's standard data types, such as an
+       <tt class="REPLACEABLE">INTEGER</tt> or <tt class="REPLACEABLE">CHAR</tt>.  In addition to SQL data types,
+       PL/pgSQL also provides the additional <tt class="REPLACEABLE">RECORD</tt> data type, which is designed to allow you to
+       store row information without specifying the columns that will be supplied when data is inserted into the variable.  More
+       information on using <tt class="REPLACEABLE">RECORD</tt> data types is provided later in this chapter.  For further
+       information on standard SQL data types, see <a href="x2632.htm">the Section called <i class="EMPHASIS">Data Types</i> in Chapter 3</a>" in Chapter 3;
+       the following is a brief list of commonly used data types in PL/pgSQL:</p><p class="calibre9"></p><ul class="calibre21"><li class="calibre22"><p class="calibre9"><tt class="REPLACEABLE">boolean</tt></p></li><li class="calibre22"><p class="calibre9"><tt class="REPLACEABLE">text</tt></p></li><li class="calibre22"><p class="calibre9"><tt class="REPLACEABLE">char</tt></p></li><li class="calibre22"><p class="calibre9"><tt class="REPLACEABLE">integer</tt></p></li><li class="calibre22"><p class="calibre9"><tt class="REPLACEABLE">double precision</tt></p></li><li class="calibre22"><p class="calibre9"><tt class="REPLACEABLE">date</tt></p></li><li class="calibre22"><p class="calibre9"><tt class="REPLACEABLE">time</tt></p></li></ul></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN19878" class="calibre8">Declaration</a></h2><p class="calibre9">For variables to be available to the code within a PL/pgSQL code block, they must be declared in the declarations
+       section of the block, which is denoted by the <tt class="REPLACEABLE">DECLARE</tt> keyword at the beginning of the
+       block.  Variables declared in a block will be available to all sub-blocks within it, but remember that (as mentioned in
+       <a href="x19712.htm">the Section called <i class="EMPHASIS">Language Structure</i></a>" earlier in this chapter) variables declared within a sub-block are destroyed when that sub-block
+       ends, and are not available for use by their parent blocks.  The format for declaring a variable is shown in <a href="x19832.htm#DECLARINGAPLPGSQLVARIABLE">Example 11-11</a>.</p><div class="NAVHEADER"><a name="DECLARINGAPLPGSQLVARIABLE"></a><p class="calibre9"><b class="calibre10">Example 11-11. Declaring a PL/pgSQL variable</b></p><pre class="SCREEN"><tt class="REPLACEABLE"><i class="EMPHASIS">variable_name data_type</i></tt> [ := <tt class="REPLACEABLE"><i class="EMPHASIS">value</i></tt> ];</pre></div><p class="calibre9">As you can see by <a href="x19832.htm#DECLARINGAPLPGSQLVARIABLE">Example 11-11</a>, you declare a variable by providing its name and type
+       (in that order), then end the declaration with a semicolon.</p><p class="calibre9"><a href="x19832.htm#VARIABLEDECLARATIONEXAMPLES">Example 11-12</a> shows the declaration of a variable of the
+       <tt class="REPLACEABLE">INTEGER</tt> data type, a variable of the <tt class="REPLACEABLE">VARCHAR</tt> data type
+       (the value in parentheses denotes that this variable type holds ten characters), and a variable of the FLOAT data
+       type.</p><div class="NAVHEADER"><a name="VARIABLEDECLARATIONEXAMPLES"></a><p class="calibre9"><b class="calibre10">Example 11-12. Variable Declarations</b></p><pre class="SCREEN">CREATE FUNCTION <tt class="REPLACEABLE"><i class="EMPHASIS">identifier</i></tt> (<tt class="REPLACEABLE"><i class="EMPHASIS">arguments</i></tt>) RETURNS <tt class="REPLACEABLE"><i class="EMPHASIS">type</i></tt> AS '
+  DECLARE
+     
+     -- Declare an integer.
+    subject_id INTEGER;
+     
+     -- Declare a variable length character.
+    book_title VARCHAR(10);
+      
+      -- Declare a floating point number.
+    book_price FLOAT;
+  
+  BEGIN
+    <tt class="REPLACEABLE"><i class="EMPHASIS">statements</i></tt>
+  END;
+' LANGUAGE 'plpgsql';</pre></div><p class="calibre9">You may also specify additional options for a variable.  Adding the <tt class="REPLACEABLE">CONSTANT</tt>
+        keyword indicates that a variable will be created as a constant.  Constants are discussed later in this section.</p><p class="calibre9">The <tt class="REPLACEABLE">NOT NULL</tt> keywords indicate that a variable cannot be set as
+        <tt class="REPLACEABLE">NULL</tt>.  A variable declared as <tt class="REPLACEABLE">NOT NULL</tt> will cause a
+        run-time error if it is set to <tt class="REPLACEABLE">NULL</tt> within the code block.  Due to the fact that all
+        variables are set to <tt class="REPLACEABLE">NULL</tt> when declared without a default value, a default value must be
+        provided for any variable that is declared as <tt class="REPLACEABLE">NOT NULL</tt>.</p><p class="calibre9">The <tt class="REPLACEABLE">DEFAULT</tt> keyword allows you to provide a default value for a variable.
+        Alternatively, you can use the <tt class="REPLACEABLE">:=</tt> operator without specifying the
+        <tt class="REPLACEABLE">DEFAULT</tt> keyword, to the same effect.</p><p class="calibre9">The following illustrates the use of these options within a variable declaration:</p><pre class="SCREEN"> <tt class="REPLACEABLE"><i class="EMPHASIS">variable_name</i></tt> [ CONSTANT ] <tt class="REPLACEABLE"><i class="EMPHASIS">data_type</i></tt> [ NOT NULL ] [ { DEFAULT | := } <tt class="REPLACEABLE"><i class="EMPHASIS">value</i></tt> ];</pre><p class="calibre9"><a href="x19832.htm#OPTIONALVARIABLEEXAMPLES">Example 11-13</a> shows the declaration of a constant variable with the default value of
+        5, the declaration of a variable with the value of 10 which cannot be set to <tt class="REPLACEABLE">NULL</tt>, and
+        the declaration of a character with the default value of one <span><i class="EMPHASIS">a</i></span>.</p><div class="NAVHEADER"><a name="OPTIONALVARIABLEEXAMPLES"></a><p class="calibre9"><b class="calibre10">Example 11-13. Using variable declaration options</b></p><pre class="SCREEN">CREATE FUNCTION example_function () RETURNS text AS '
+  DECLARE
+    
+    -- Declare a constant integer with a
+    -- default value of 5.
+    five CONSTANT INTEGER := 5;
+    
+    -- Declare an integer with a default
+    -- value of 100 that cannot be NULL.
+    ten INTEGER NOT NULL := 10;
+    
+    -- Declare a character with
+    -- a default value of "a".
+    letter CHAR DEFAULT ''a'';
+  
+  BEGIN
+  return letter;
+  END;
+' LANGUAGE 'plpgsql';</pre></div><div class="NAVHEADER"><p class="calibre9"></p><table class="calibre" border="1" width="100%"><tr class="calibre1"><td class="calibre23"><b class="calibre10">Warning</b></td></tr><tr class="calibre1"><td class="calibre15"><p class="calibre9">The <tt class="REPLACEABLE">RENAME</tt> keyword covered in online documentation for PL/pgSQL, which is intended
+        to rename existing variables to new names, does not work at all in PL/pgSQL (as of PostgreSQL 7.1.x). The use of this
+        keyword on an existing variable indiscriminately causes a parsing error. It is therefore not recommended, nor documented
+        in this chapter.</p></td></tr></table></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN19930" class="calibre8">Assignment</a></h2><p class="calibre9">Variable assignment is done with PL/pgSQL's assignment operator (<tt class="REPLACEABLE">:=</tt>), in the form of
+      <tt class="REPLACEABLE"><i class="EMPHASIS">left_variable</i></tt> <tt class="REPLACEABLE">:=</tt> <tt class="REPLACEABLE"><i class="EMPHASIS">right_variable</i></tt>, in which the value of
+      the right variable is assigned to the left variable. Also valid is <tt class="REPLACEABLE"><i class="EMPHASIS">left_variable</i></tt> <tt class="REPLACEABLE">:=</tt> <tt class="REPLACEABLE"><i class="EMPHASIS">expression</i></tt>,
+      which assigns the left-hand variable the value of the expression on the right side of the assignment operator.</p><p class="calibre9">Variables can be assigned default values within the declaration section of a PL/pgSQL code block.  This is known as
+      <span><i class="EMPHASIS">default value assignment</i></span>, and is done by using the assignment operator (<tt class="REPLACEABLE">:=</tt>) on
+      the same line as the variable's declaration.  This topic is discussed in more detail later in this section, but <a href="x19832.htm#DEFAULTVALUEASSIGNMENT">Example 11-14</a> provides a quick demonstration.</p><div class="NAVHEADER"><a name="DEFAULTVALUEASSIGNMENT"></a><p class="calibre9"><b class="calibre10">Example 11-14. Default value assignment</b></p><pre class="SCREEN">CREATE FUNCTION <tt class="REPLACEABLE"><i class="EMPHASIS">identifier</i></tt> (<tt class="REPLACEABLE"><i class="EMPHASIS">arguments</i></tt>) RETURNS <tt class="REPLACEABLE"><i class="EMPHASIS">type</i></tt> AS '
+  DECLARE
+    an_integer int4 := 10;
+  BEGIN
+    <tt class="REPLACEABLE"><i class="EMPHASIS">statement;</i></tt>
+    [...]
+  END;
+' LANGUAGE 'plpgsql';</pre></div><p class="calibre9">It is also possible to use a <tt class="REPLACEABLE">SELECT INTO</tt> statement to assign variables the results
+      of queries.  This use of <tt class="REPLACEABLE">SELECT INTO</tt> is different from the SQL command
+      <tt class="REPLACEABLE">SELECT INTO</tt>, which assigns the results of a query to a new table.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>To assign the results of a query to a new table within PL/pgSQL, use the alternative SQL syntax
+        <tt class="REPLACEABLE">CREATE TABLE AS SELECT</tt>).</p></blockquote></div><p class="calibre9"><tt class="REPLACEABLE">SELECT INTO</tt> is primarily used to assign row and record information to variables
+      declared as <tt class="REPLACEABLE">%ROWTYPE</tt> or <tt class="REPLACEABLE">RECORD</tt> types.  To use
+      <tt class="REPLACEABLE">SELECT INTO</tt> with a normal variable, the variable in question must be the same type as the
+      column you reference in the SQL <tt class="REPLACEABLE">SELECT</tt> statement provided.  The syntax of
+      <tt class="REPLACEABLE">SELECT INTO</tt> statement is shown in the following syntax:</p><pre class="SCREEN">CREATE FUNCTION <tt class="REPLACEABLE"><i class="EMPHASIS">identifier</i></tt> (<tt class="REPLACEABLE"><i class="EMPHASIS">arguments</i></tt>) RETURNS <tt class="REPLACEABLE"><i class="EMPHASIS">type</i></tt> AS '
+  DECLARE
+    <tt class="REPLACEABLE"><i class="EMPHASIS">statement;</i></tt>
+  BEGIN
+    SELECT INTO <tt class="REPLACEABLE"><i class="EMPHASIS">target_variable</i></tt> [, ...] <tt class="REPLACEABLE"><i class="EMPHASIS">target_column [, ...]</i></tt> <tt class="REPLACEABLE"><i class="EMPHASIS">select_clauses</i></tt>;
+  END;
+' LANGUAGE 'plpgsql';</pre><p class="calibre9">In this syntax, <tt class="REPLACEABLE"><i class="EMPHASIS">target_variable</i></tt> is the name of a variable that is being populated with values,
+      and <tt class="REPLACEABLE"><i class="EMPHASIS">select_clauses</i></tt> consists of any supported SQL <tt class="REPLACEABLE">SELECT</tt> clauses that
+      would ordinarily follow the target column list in a <tt class="REPLACEABLE">SELECT</tt> statement.</p><p class="calibre9"><a href="x19832.htm#USINGSELECTINTOWITHPLPGSQL">Example 11-15</a> shows a simple function that demonstrates the use of a
+      <tt class="REPLACEABLE">SELECT INTO</tt> statement.  The <tt class="REPLACEABLE">ALIAS</tt> keyword is described in
+      <a href="x19832.htm#ARGUMENTVARIABLES">the Section called <i class="EMPHASIS">Argument Variables</i></a>," later in this chapter.  See <a href="x20238.htm">the Section called <i class="EMPHASIS">Controlling Program Flow</i></a>" for examples of
+      using <tt class="REPLACEABLE">SELECT INTO</tt> with <tt class="REPLACEABLE">RECORD</tt> and
+      <tt class="REPLACEABLE">%ROWTYPE</tt> variables.</p><div class="NAVHEADER"><a name="USINGSELECTINTOWITHPLPGSQL"></a><p class="calibre9"><b class="calibre10">Example 11-15. Using the SELECT INTO statement</b></p><pre class="SCREEN">CREATE FUNCTION get_customer_id (text,text) RETURNS integer AS '
+  DECLARE
+    
+    -- Declare aliases for user input.
+    l_name ALIAS FOR $1;
+    f_name ALIAS FOR $2;
+    
+    -- Declare a variable to hold the customer ID number.
+    customer_id INTEGER;
+  
+  BEGIN
+    
+    -- Retrieve the customer ID number of the customer whose first and last
+    --  name match the values supplied as function arguments.
+    SELECT INTO customer_id id FROM customers
+      WHERE last_name = l_name AND first_name = f_name;
+    
+    -- Return the ID number.
+    RETURN customer_id;
+  END;
+' LANGUAGE 'plpgsql';</pre></div><p class="calibre9"><a href="x19832.htm#GETCUSTOMERIDFUNCTIONRESULT">Example 11-16</a> shows the results of the
+      <tt class="REPLACEABLE">get_customer_id()</tt> function when passed the arguments
+      <span><i class="EMPHASIS">Jackson</i></span> and <span><i class="EMPHASIS">Annie</i></span>.  The number returned is the correct ID
+      number for Annie Jackson in the <tt class="REPLACEABLE">customers</tt> table.</p><div class="NAVHEADER"><a name="GETCUSTOMERIDFUNCTIONRESULT"></a><p class="calibre9"><b class="calibre10">Example 11-16. Result of the get_customer_id( ) function</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT get_customer_id('Jackson','Annie');</b></tt>
+ get_customer_id
+-----------------
+ 107
+(1 row)</pre></div><p class="calibre9">If you wish to assign multiple column values to multiple variables, you may do so by using two comma-delimited
+       groups of variable names and column names, separated from one another by white space. <a href="x19832.htm#USINGSELECTINTOWITHMULTIPLECOLUMNS">Example 11-17</a> creates essentially an inverse function to the
+       <tt class="REPLACEABLE">get_customer_id()</tt> function created in <a href="x19832.htm#USINGSELECTINTOWITHPLPGSQL">Example 11-15</a>.</p><div class="NAVHEADER"><a name="USINGSELECTINTOWITHMULTIPLECOLUMNS"></a><p class="calibre9"><b class="calibre10">Example 11-17. Using SELECT INTO with multiple columns</b></p><pre class="SCREEN">CREATE FUNCTION get_customer_name (integer) RETURNS text AS '
+  DECLARE
+    
+    -- Declare aliases for user input.
+    customer_id ALIAS FOR $1;
+    
+    -- Declare variables to hold the customer name.
+    customer_fname TEXT;
+    customer_lname TEXT;
+  
+  BEGIN
+    
+    -- Retrieve the customer first and last name for the customer
+    -- whose ID matches the value supplied as a function argument.
+    SELECT INTO customer_fname, customer_lname
+                first_name, last_name
+                FROM customers WHERE id = customer_id;
+    
+    -- Return the name.
+    RETURN customer_fname || '' '' || customer_lname;
+  
+  END;
+' LANGUAGE 'plpgsql';</pre></div><p class="calibre9"><a href="x19832.htm#GETCUSTOMERNAMEFUNCTIONRESULT">Example 11-18</a> shows the results of the
+      <tt class="REPLACEABLE">get_customer_name()</tt> function, when passed an argument of 107.</p><div class="NAVHEADER"><a name="GETCUSTOMERNAMEFUNCTIONRESULT"></a><p class="calibre9"><b class="calibre10">Example 11-18. Result of the get_customer_name( ) function</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT get_customer_name(107);</b></tt>
+ get_customer_name
+-------------------
+ Annie Jackson
+ (1 row)</pre></div><p class="calibre9">Use the special <tt class="REPLACEABLE">FOUND</tt> Boolean variable directly after a <tt class="REPLACEABLE">SELECT INTO</tt>
+      statement to check whether or not the statement successfully inserted a value into the specified
+      variable.  You can also use <tt class="REPLACEABLE">ISNULL</tt> or <tt class="REPLACEABLE">IS NULL</tt> to find out
+      if the specified variable is <tt class="REPLACEABLE">NULL</tt> after being selected into (in most situations, this
+      would mean the <tt class="REPLACEABLE">SELECT INTO</tt> statement failed).</p><p class="calibre9"><tt class="REPLACEABLE">FOUND, IS NULL</tt>, and <tt class="REPLACEABLE">ISNULL</tt> should be used within a
+      conditional (<tt class="REPLACEABLE">IF/THEN</tt>) statement.  PL/pgSQL's conditional statements are detailed in the
+      "Controlling Program Flow" section of this chapter.  <a href="x19832.htm#USINGTHEFOUNDBOOLEAN">Example 11-19</a> is a basic demonstration of how
+      the <tt class="REPLACEABLE">FOUND</tt> Boolean could be used with the
+      <tt class="REPLACEABLE">get_customer_id()</tt> function.</p><div class="NAVHEADER"><a name="USINGTHEFOUNDBOOLEAN"></a><p class="calibre9"><b class="calibre10">Example 11-19. Using the FOUND boolean in get_customer_id( )</b></p><pre class="SCREEN">[...]
+    SELECT INTO customer_id id FROM customers
+          WHERE last_name = l_name AND first_name = f_name;
+     
+     -- If a match could not be found, return -1 (another function calling
+     -- this function could then be made to interpret a -1 as an error.
+    IF NOT FOUND THEN
+      return -1;
+    END IF;
+[...]</pre></div><p class="calibre9"><a href="x19832.htm#RESULTSOFTHEFOUNDBOOLEAN">Example 11-20</a> shows that <tt class="REPLACEABLE">get_customer_id( )</tt> now
+      returns a <tt class="REPLACEABLE">–1</tt> value when passed the name of a non-existent customer.</p><div class="NAVHEADER"><a name="RESULTSOFTHEFOUNDBOOLEAN"></a><p class="calibre9"><b class="calibre10">Example 11-20. Result of the new get_customer_id( ) function</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT get_customer_id('Schmoe','Joe');</b></tt>
+ get_customer_id
+-----------------
+ -1
+(1 row)</pre></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="ARGUMENTVARIABLES" class="calibre8">Argument Variables</a></h2><p class="calibre9">PL/pgSQL functions can accept argument variables of different types.  Function arguments allow you to pass
+      information from the user into the function that the function may require.  Arguments greatly extend the possible uses of
+      PL/pgSQL functions.  User input generally provides a function with the data it will either operate on or use for operation.
+      Users pass arguments to functions when the function is called by including them within parentheses, separated by
+      commas.</p><p class="calibre9">Arguments must follow the argument list defined when the function is first created.  <a href="x19832.htm#FUNCTIONCALLEXAMPLES">Example 11-21</a> shows a pair of example function calls from <span><i class="EMPHASIS">psql</i></span>.</p><div class="NAVHEADER"><a name="FUNCTIONCALLEXAMPLES"></a><p class="calibre9"><b class="calibre10">Example 11-21. Function call examples</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT get_author('John');</b></tt>
+  get_author
+--------------
+ John Worsley
+(1 row)
+
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT get_author(1111);</b></tt>
+  get_author
+--------------
+ Ariel Denham
+(1 row)</pre></div><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b> The <tt class="REPLACEABLE">get_author(text)</tt> and <tt class="REPLACEABLE">get_author(integer)</tt>
+         functions are discussed later in this chapter.</p></blockquote></div><p class="calibre9">Each function argument that is received by a function is incrementally assigned to an identifier that begins with the
+      dollar sign (<tt class="REPLACEABLE">$</tt>) and is labeled with the argument number. The identifier
+      <tt class="REPLACEABLE">$1</tt> is used for the first argument, <tt class="REPLACEABLE">$2</tt> is used for the
+      second argument, and so forth. The maximum number of function arguments that can be processed is sixteen, so the argument
+      identifiers can range from <tt class="REPLACEABLE">$1</tt> to <tt class="REPLACEABLE">$16</tt>.  <a href="x19832.htm#DIRECTLYUSINGARGUMENTVARIABLES">Example 11-22</a> shows a function that doubles an integer argument variable that is passed to
+      it.</p><div class="NAVHEADER"><a name="DIRECTLYUSINGARGUMENTVARIABLES"></a><p class="calibre9"><b class="calibre10">Example 11-22. Directly using argument variables</b></p><pre class="SCREEN">CREATE FUNCTION double_price (float) RETURNS float AS '
+  DECLARE
+  BEGIN
+     
+     -- Return the argument variable multiplied by two.
+    return $1 * 2;
+  
+  END;
+' LANGUAGE 'plpgsql';</pre></div><p class="calibre9">Referencing arguments with the dollar sign and the argument's order number can become confusing in functions that
+      accept a large number of arguments.  To help in functions where the ability to better distinguish argument variables from
+      one another is needed (or just when you wish to use a more meaningful name for an argument variable), PL/pgSQL allows you
+      to create variable <span><i class="EMPHASIS">aliases</i></span>.</p><p class="calibre9">Aliases are created with the <tt class="REPLACEABLE">ALIAS</tt> keyword and give you the ability to designate an
+      alternate identifier to use when referencing argument variables.  All aliases must be declared in the declaration section
+      of a block before they can be used (just like normal variables).  <a href="x19832.htm#ALIASKEYWORDSYNTAX">Example 11-23</a> shows the syntax of
+      the <tt class="REPLACEABLE">ALIAS</tt> keyword.</p><div class="NAVHEADER"><a name="ALIASKEYWORDSYNTAX"></a><p class="calibre9"><b class="calibre10">Example 11-23. Syntax of the ALIAS keyword</b></p><pre class="SCREEN">CREATE FUNCTION <tt class="REPLACEABLE"><i class="EMPHASIS">function_identifier</i></tt> (<tt class="REPLACEABLE"><i class="EMPHASIS">arguments</i></tt>) RETURNS <tt class="REPLACEABLE"><i class="EMPHASIS">type</i></tt> AS '
+  DECLARE
+    <tt class="REPLACEABLE"><i class="EMPHASIS">identifier</i></tt> ALIAS FOR $1;
+    <tt class="REPLACEABLE"><i class="EMPHASIS">identifier</i></tt> ALIAS FOR $2;
+  BEGIN
+    [...]
+  END;
+' LANGUAGE 'plpgsql';</pre></div><p class="calibre9"><a href="x19832.htm#USINGPLPGSQLALIASES">Example 11-24</a> creates a simple function to demonstrate the use of aliases in a PL/pgSQL
+      function.  The <tt class="REPLACEABLE">triple_ price()</tt> function accepts a floating point number as the
+      price and returns that number multiplied by three.</p><div class="NAVHEADER"><a name="USINGPLPGSQLALIASES"></a><p class="calibre9"><b class="calibre10">Example 11-24. Using PL/pgSQL aliases</b></p><pre class="SCREEN">CREATE FUNCTION triple_price (float) RETURNS float AS '
+  DECLARE
+     
+     -- Declare input_price as an alias for the argument variable
+     -- normally referenced with the $1 identifier.
+    input_price ALIAS FOR $1;
+  
+  BEGIN
+     
+     -- Return the input price multiplied by three.
+    
+    RETURN input_price * 3;
+  
+  END;
+ ' LANGUAGE 'plpgsql';
+</pre></div><p class="calibre9">Now, if we use the <tt class="REPLACEABLE">triple_ price</tt> function within a SQL
+      <tt class="REPLACEABLE">SELECT</tt> statement in a client such as <span><i class="EMPHASIS">psql</i></span>, we receive the results
+      shown in <a href="x19832.htm#DOUBLEPRICEFUNCTIONRESULT">Example 11-25</a>.</p><div class="NAVHEADER"><a name="DOUBLEPRICEFUNCTIONRESULT"></a><p class="calibre9"><b class="calibre10">Example 11-25. Result of the triple_price( ) function</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT double_price(12.50);</b></tt>
+ double_price
+--------------
+           25
+(1 row)</pre></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN20101" class="calibre8">Returning Variables</a></h2><p class="calibre9">PL/pgSQL functions must return a value that matches the data type specified as their return type in the
+      <tt class="REPLACEABLE">CREATE FUNCTION</tt> command that created them.  Values are returned with a
+      <tt class="REPLACEABLE">RETURN</tt> statement.  A <tt class="REPLACEABLE">RETURN</tt> statement is typically
+      located at the end of a function, but will also often be located within an <tt class="REPLACEABLE">IF</tt> statement or
+      other statement that directs the flow of the function.  If a function's <tt class="REPLACEABLE">RETURN</tt> statement
+      is located within one of these control statements, you should still include a return statement at the end of the function
+      (even if the function is designed to never reach that last <tt class="REPLACEABLE">RETURN</tt> statement). The syntax
+      of a <tt class="REPLACEABLE">RETURN</tt> statement is shown in <a href="x19832.htm#RETURNSTATEMENTSYNTAX">Example 11-26</a>.</p><div class="NAVHEADER"><a name="RETURNSTATEMENTSYNTAX"></a><p class="calibre9"><b class="calibre10">Example 11-26. Syntax of the RETURN statement</b></p><pre class="SCREEN">CREATE FUNCTION <tt class="REPLACEABLE"><i class="EMPHASIS">function_identifier</i></tt> (<tt class="REPLACEABLE"><i class="EMPHASIS">arguments</i></tt>) RETURNS <tt class="REPLACEABLE"><i class="EMPHASIS">type</i></tt> AS '
+  DECLARE
+    <tt class="REPLACEABLE"><i class="EMPHASIS">declaration;</i></tt>
+    [...]
+  BEGIN
+    <tt class="REPLACEABLE"><i class="EMPHASIS">statement;</i></tt>
+    [...]
+    RETURN { <tt class="REPLACEABLE"><i class="EMPHASIS">variable_name</i></tt> | <tt class="REPLACEABLE"><i class="EMPHASIS">value</i></tt> }
+  END;
+' LANGUAGE 'plpgsql';</pre></div><p class="calibre9"> For a demonstration of the <tt class="REPLACEABLE">RETURN</tt> statement, examine any PL/pgSQL function example
+      within this chapter.</p></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN20124" class="calibre8">Attributes</a></h2><p class="calibre9">PL/pgSQL provides variable <span><i class="EMPHASIS">attributes</i></span> to assist you in working with database
+      objects. These attributes are <tt class="REPLACEABLE">%TYPE</tt> and <tt class="REPLACEABLE">%ROWTYPE</tt>. Use
+      attributes to declare a variable to match the type of a database object (using the <tt class="REPLACEABLE">%TYPE</tt>
+      attribute) or to match the row structure of a row (with the <tt class="REPLACEABLE">%ROWTYPE</tt> attribute).  A
+      variable should be declared using an attribute when it will be used within the code block to hold values taken from a
+      database object. Knowledge of the database object's type is not required when using attributes to declare variables.  If an
+      object's type changes in the future, your variable's type will automatically change to that data type without any extra
+      code.  </p><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN20132" class="calibre8">The %TYPE attribute</a></h3><p class="calibre9">The <tt class="REPLACEABLE">%TYPE</tt> attribute is used to declare a variable with the data type of a
+        referenced database object (most commonly a table column). The format for declaring a variable in this manner is shown in
+        <a href="x19832.htm#DECLARINGAVARIABLEWITHATYPE">Example 11-27</a>.  </p><div class="NAVHEADER"><a name="DECLARINGAVARIABLEWITHATYPE"></a><p class="calibre9"><b class="calibre10">Example 11-27. Declaring a variable using %TYPE</b></p><pre class="SCREEN"><tt class="REPLACEABLE"><i class="EMPHASIS">variable_name</i></tt> <tt class="REPLACEABLE"><i class="EMPHASIS">table_name</i></tt>.<tt class="REPLACEABLE"><i class="EMPHASIS">column_name</i></tt>%TYPE</pre></div><p class="calibre9"><a href="x19832.htm#USINGTYPEATTRIBUTE">Example 11-28</a> shows the code for a function that uses <tt class="REPLACEABLE">%TYPE</tt>
+        to store the last name of an author. This function uses string concatenation with the concatenation operator
+        (<tt class="REPLACEABLE">||</tt>), which is documented in a later section. The use of the
+        
+        <tt class="REPLACEABLE">SELECT INTO</tt> statement was discussed earlier in this chapter.</p><p class="calibre9">Focus on the use of the <tt class="REPLACEABLE">%TYPE</tt> attribute in <a href="x19832.htm#USINGTYPEATTRIBUTE">Example 11-28</a>.
+        Essentially, a variable is declared as being the same type as a column within the
+        <tt class="REPLACEABLE">authors</tt> table.  <tt class="REPLACEABLE">SELECT</tt> is then used to find a row with
+        a <tt class="REPLACEABLE">first_name</tt> field that matches the name the user passed to the function.
+        The <tt class="REPLACEABLE">SELECT</tt> statement retrieves the value of that row's
+        <tt class="REPLACEABLE">last_name</tt> column and insert it into the <tt class="REPLACEABLE">l_name</tt>
+        variable. An example of the user's input to the function is shown right after <a href="x19832.htm#USINGTYPEATTRIBUTE">Example 11-28</a>, in
+        <a href="x19832.htm#TYPEATTRIBUTERESULTS">Example 11-29</a>, and more examples of user input can be found later in this chapter.</p><div class="NAVHEADER"><a name="USINGTYPEATTRIBUTE"></a><p class="calibre9"><b class="calibre10">Example 11-28. Using the %TYPE attribute</b></p><pre class="SCREEN">CREATE FUNCTION get_author (text) RETURNS text AS '
+  DECLARE
+      
+      -- Declare an alias for the function argument,
+      -- which should be the first name of an author.
+     f_name ALIAS FOR $1;
+       
+       -- Declare a variable with the same type as
+       -- the last_name field of the authors table.
+     l_name authors.last_name%TYPE;
+  
+  BEGIN
+      
+      -- Retrieve the last name of an author from the
+      -- authors table whose first name matches the
+      -- argument received by the function, and
+      -- insert it into the l_name variable.
+     SELECT INTO l_name last_name FROM authors WHERE first_name = f_name;
+       
+       -- Return the first name and last name, separated
+       -- by a space.
+     return f_name || '' '' || l_name;
+  
+  END;
+' LANGUAGE 'plpgsql';</pre></div><p class="calibre9"><a href="x19832.htm#TYPEATTRIBUTERESULTS">Example 11-29</a> shows the results of using the <tt class="REPLACEABLE">get_author()</tt> function.</p><div class="NAVHEADER"><a name="TYPEATTRIBUTERESULTS"></a><p class="calibre9"><b class="calibre10">Example 11-29. Results of the get_author( ) function</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT get_author('Andrew');</b></tt>
+   get_author
+-----------------
+ Andrew Brookins
+(1 row)</pre></div></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN20169" class="calibre8">The %ROWTYPE Attribute</a></h3><p class="calibre9"><tt class="REPLACEABLE">%ROWTYPE</tt> is used to declare a PL/pgSQL record variable with the same structure as
+        the rows in a table you specify.  It is similar to the <tt class="REPLACEABLE">RECORD</tt> data type, but a variable
+        declared with <tt class="REPLACEABLE">%ROWTYPE</tt> will have the exact structure of a table's row, whereas a
+        <tt class="REPLACEABLE">RECORD</tt> variable is not structured and will accept a row from any table.</p><p class="calibre9"><a href="x19832.htm#USINGTHEROWTYPEATTRIBUTE">Example 11-30</a> overloads the <tt class="REPLACEABLE">get_author()</tt> function that
+        was created in <a href="x19832.htm#USINGTYPEATTRIBUTE">Example 11-28</a> to accomplish a similar goal. Notice, though, that this new version of
+        <tt class="REPLACEABLE">get_author()</tt> accepts an argument of type <tt class="REPLACEABLE">integer</tt> rather
+        than <tt class="REPLACEABLE">text</tt>, and checks for the author by comparing their
+        <tt class="REPLACEABLE">id</tt> against the passed integer argument.</p><p class="calibre9">Notice also that this function is implemented using a variable declared with
+        <tt class="REPLACEABLE">%ROWTYPE</tt>.  The use of <tt class="REPLACEABLE">%ROWTYPE</tt> to accomplish a simple
+        task such as this may make it seem overly complicated, but as you learn more about PL/pgSQL, the importance of
+        <tt class="REPLACEABLE">%ROWTYPE</tt> will become more apparent.</p><p class="calibre9">The use of the dot (<tt class="REPLACEABLE">.</tt>) within the <tt class="REPLACEABLE">found_author</tt>
+        variable in <a href="x19832.htm#USINGTHEROWTYPEATTRIBUTE">Example 11-30</a> references a named field value in
+        <tt class="REPLACEABLE">found_author</tt>.</p><div class="NAVHEADER"><a name="USINGTHEROWTYPEATTRIBUTE"></a><p class="calibre9"><b class="calibre10">Example 11-30. Using the %ROWTYPE attribute</b></p><pre class="SCREEN">CREATE FUNCTION get_author (integer) RETURNS text AS '
+  DECLARE
+    
+    -- Declare an alias for the function argument,
+    -- which should be the id of the author.
+    author_id ALIAS FOR $1;
+    
+    -- Declare a variable that uses the structure of
+    -- the authors table.
+    found_author authors%ROWTYPE;
+  
+  BEGIN
+    
+    -- Retrieve a row of author information for
+    -- the author whose id number matches
+    -- the argument received by the function.
+    SELECT INTO found_author * FROM authors WHERE id = author_id;
+    
+    -- Return the first
+    RETURN found_author.first_name || '' '' || found_author.last_name;
+  
+  END;
+' LANGUAGE 'plpgsql';</pre></div><p class="calibre9">Observe the use of the asterisk (<tt class="REPLACEABLE">*</tt>) for the column list in <a href="x19832.htm#USINGTHEROWTYPEATTRIBUTE">Example 11-30</a>. Since <tt class="REPLACEABLE">found_author</tt> is declared with the
+        <tt class="REPLACEABLE">%ROWTYPE</tt> attribute on the <tt class="REPLACEABLE">authors</tt> table, it is created
+        with the same data structure as the <tt class="REPLACEABLE">authors</tt> table. The asterisk can therefore be used to
+        populate the <tt class="REPLACEABLE">found_author</tt> variable with each column value selected from the
+        <tt class="REPLACEABLE">SELECT INTO</tt> statement in <a href="x19832.htm#ROWTYPEATTRIBUTERESULT">Example 11-31</a>.</p><div class="NAVHEADER"><a name="ROWTYPEATTRIBUTERESULT"></a><p class="calibre9"><b class="calibre10">Example 11-31. Results of the new get_author( ) function</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT get_author(1212);</b></tt>
+  get_author
+--------------
+ John Worsley
+(1 row)</pre></div></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN20210" class="calibre8">Concatenation</a></h2><p class="calibre9">Concatenation is the process of combining two (or more) strings together to produce another string. It is a standard
+      operation built into PostgreSQL, and may therefore be used directly on variables within a PL/pgSQL function. When working
+      with several variables containing character data, it is an irreplaceable formatting tool.</p><p class="calibre9">Concatenation can only be used with character strings.  Strings are concatenated by placing the concatenation
+      operator (<tt class="REPLACEABLE">||</tt>) between two or more character strings (string literal or a character string
+      variable) that you wish to be combined.  This can be used to combine two strings together to form a compound word, and to
+      combine multiple strings together to form complex character string combinations.</p><p class="calibre9">Concatenation can only be used in situations where your function requires a string value, such as when a string must
+      be returned (as shown in <a href="x19832.htm#RETURNINGACONCATENATEDSTRING">Example 11-32</a>), or when you are assigning a new value to a string
+      variable (as shown in <a href="x19832.htm#CONCATENATINGTOANEWSTRING">Example 11-33</a>).</p><div class="NAVHEADER"><a name="RETURNINGACONCATENATEDSTRING"></a><p class="calibre9"><b class="calibre10">Example 11-32. Returning a concatenated string</b></p><pre class="SCREEN">CREATE FUNCTION compound_word(text, text) RETURNS text AS '
+  DECLARE
+     
+     -- Define aliases for function arguments.
+    word1 ALIAS FOR $1;
+    word2 ALIAS FOR $2;
+  
+  BEGIN
+     
+     -- Return the resulting joined words.
+    RETURN word1 || word2;
+  
+  END;
+
+' LANGUAGE 'plpgsql';</pre></div><p class="calibre9">When the words <tt class="REPLACEABLE">break</tt> and <tt class="REPLACEABLE">fast</tt> are passed as
+      arguments to the <tt class="REPLACEABLE">compound_word()</tt> function, the function returns
+      <span><i class="EMPHASIS">breakfast</i></span> as the concatenated string:</p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT compound_word('break', 'fast');</b></tt>
+ compound_word
+---------------
+ breakfast
+(1 row)</pre><div class="NAVHEADER"><a name="CONCATENATINGTOANEWSTRING"></a><p class="calibre9"><b class="calibre10">Example 11-33. Assigning a concatenated value to a string</b></p><pre class="SCREEN">CREATE FUNCTION title_and_author (text, text) RETURNS text AS '
+    DECLARE
+        
+        -- Declare aliases for the two function arguments.
+       title ALIAS for $1;
+       author ALIAS for $2;
+        
+        -- Declare a text variable to hold the string result
+        -- of the concatenation.
+       result text;
+    
+    BEGIN
+        
+        -- Combine the title variable and the author
+        -- variable together, placing a comma and the
+        -- word by between them.
+       result := title || '', by '' || author;
+        
+        -- Return the resulting string.
+       return result;
+    
+    END;
+' language 'plpgsql';</pre></div><p class="calibre9">If you pass the strings <span><i class="EMPHASIS">Practical PostgreSQL</i></span> and 
+      <span><i class="EMPHASIS">Command Prompt, Inc.</i></span> to the function created in 
+      <a href="x19832.htm#CONCATENATINGTOANEWSTRING">Example 11-33</a>, the function returns
+      <span><i class="EMPHASIS">Practical PostgreSQL, by Command Prompt, Inc.</i></span>:</p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT title_and_author('Practical PostgreSQL','Command Prompt, Inc.');</b></tt>
+               title_and_author
+-----------------------------------------------
+ Practical PostgreSQL, by Command Prompt, Inc.
+(1 row)</pre></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="x19712.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x20238.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Language Structure</td><td width="34%" valign="top" class="calibre4"><a href="c19610.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Controlling Program Flow</td></tr></table></div></div>
+
+{% endraw %}
+

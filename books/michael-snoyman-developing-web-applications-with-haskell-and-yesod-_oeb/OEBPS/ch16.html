@@ -1,0 +1,92 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch15s06.html
+next: OEBPS/ch16s02.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="calibre8"></div><div class="book" title="Chapter 16. Internationalization"><div class="book"><div class="book"><div class="book"><div class="calibre8"></div><h1 class="title1"><a id="I_chapter5_d1e7879" class="calibre1"></a>Chapter 16. Internationalization</h1></div></div></div><p class="calibre7">Users expect our software to speak their language. Unfortunately for us, there
+            will likely be more than one language involved. While doing simple string replacement
+            isn’t too involved, correctly dealing with all the grammar issues can be tricky. After
+            all, who wants to see “List 1 file(s)” from a program output?</p><p class="calibre7">But a real i18n solution needs to do more than just provide a means of achieving the correct
+    output. It needs to make this process easy for both the programmer and the translator, and be
+    relatively error-proof. Yesod’s answer to the problem gives you:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">Intelligent guessing of the user’s desired language based on request headers, with
+                the ability to override.</p></li><li class="listitem"><p class="calibre7">A simple syntax for giving translations, which requires no Haskell knowledge. (After
+        all, most translators aren’t programmers.)</p></li><li class="listitem"><p class="calibre7">The ability to bring in the full power of Haskell for tricky grammar issues as
+                necessary, along with a default selection of helper functions to cover most
+                needs.</p></li><li class="listitem"><p class="calibre7">Absolutely no issues at all with word order.</p></li></ul></div><div class="book" title="Synopsis"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect15_d1e7905" class="calibre1"></a>Synopsis</h1></div></div></div><p class="calibre7"></p><a id="I_programlisting5_d1e7909" class="firstname"></a><pre class="programlistinghaskell">-- @messages/en.msg
+Hello: Hello
+EnterItemCount: I would like to buy: 
+Purchase: Purchase
+ItemCount count@Int: You have purchased #{showInt count} #{plural count "item" "items"}.
+SwitchLanguage: Switch language to: 
+Switch: Switch</pre><a id="I_programlisting5_d1e7911" class="firstname"></a><pre class="programlistinghaskell">-- @messages/he.msg
+Hello: שלום
+EnterItemCount: אני רוצה לקנות: 
+Purchase: קנה
+ItemCount count: קנית #{showInt count} #{plural count "דבר" "דברים"}.
+SwitchLanguage: החלף שפה ל:
+Switch: החלף</pre><a id="I_programlisting5_d1e7913" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">-- @i18n-synopsis.hs</code>
+<code class="cm">{-# LANGUAGE OverloadedStrings, QuasiQuotes, TemplateHaskell, TypeFamilies,</code>
+<code class="cm">    MultiParamTypeClasses #-}</code>
+<code class="kr">import</code> <code class="nn">Yesod</code>
+
+<code class="kr">data</code> <code class="kt">I18N</code> <code class="ow">=</code> <code class="kt">I18N</code>
+
+<code class="nf">mkMessage</code> <code class="s">"I18N"</code> <code class="s">"messages"</code> <code class="s">"en"</code>
+
+<code class="nf">plural</code> <code class="ow">::</code> <code class="kt">Int</code> <code class="ow">-&gt;</code> <code class="kt">String</code> <code class="ow">-&gt;</code> <code class="kt">String</code> <code class="ow">-&gt;</code> <code class="kt">String</code>
+<code class="nf">plural</code> <code class="mi">1</code> <code class="n">x</code> <code class="kr">_</code> <code class="ow">=</code> <code class="n">x</code>
+<code class="nf">plural</code> <code class="kr">_</code> <code class="kr">_</code> <code class="n">y</code> <code class="ow">=</code> <code class="n">y</code>
+
+<code class="nf">showInt</code> <code class="ow">::</code> <code class="kt">Int</code> <code class="ow">-&gt;</code> <code class="kt">String</code>
+<code class="nf">showInt</code> <code class="ow">=</code> <code class="n">show</code>
+
+<code class="kr">instance</code> <code class="kt">Yesod</code> <code class="kt">I18N</code>
+
+<code class="kr">instance</code> <code class="kt">RenderMessage</code> <code class="kt">I18N</code> <code class="kt">FormMessage</code> <code class="kr">where</code>
+    <code class="n">renderMessage</code> <code class="kr">_</code> <code class="kr">_</code> <code class="ow">=</code> <code class="n">defaultFormMessage</code>
+
+<code class="nf">mkYesod</code> <code class="s">"I18N"</code> <code class="p">[</code><code class="n">parseRoutes</code><code class="o">|</code>
+<code class="o">/</code> <code class="kt">RootR</code> <code class="kt">GET</code>
+<code class="o">/</code><code class="n">buy</code> <code class="kt">BuyR</code> <code class="kt">GET</code>
+<code class="o">/</code><code class="n">lang</code> <code class="kt">LangR</code> <code class="kt">POST</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">getRootR</code> <code class="ow">::</code> <code class="kt">Handler</code> <code class="kt">RepHtml</code>
+<code class="nf">getRootR</code> <code class="ow">=</code> <code class="n">defaultLayout</code> <code class="p">[</code><code class="n">whamlet</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">h1</code><code class="o">&gt;</code><code class="kr">_</code><code class="p">{</code><code class="kt">MsgHello</code><code class="p">}</code>
+<code class="o">&lt;</code><code class="n">form</code> <code class="n">action</code><code class="o">=@</code><code class="p">{</code><code class="kt">BuyR</code><code class="p">}</code><code class="o">&gt;</code>
+    <code class="kr">_</code><code class="p">{</code><code class="kt">MsgEnterItemCount</code><code class="p">}</code>
+    <code class="o">&lt;</code><code class="n">input</code> <code class="kr">type</code><code class="ow">=</code><code class="n">text</code> <code class="n">name</code><code class="ow">=</code><code class="n">count</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">input</code> <code class="kr">type</code><code class="ow">=</code><code class="n">submit</code> <code class="n">value</code><code class="ow">=</code><code class="kr">_</code><code class="p">{</code><code class="kt">MsgPurchase</code><code class="p">}</code><code class="o">&gt;</code>
+<code class="o">&lt;</code><code class="n">form</code> <code class="n">action</code><code class="o">=@</code><code class="p">{</code><code class="kt">LangR</code><code class="p">}</code> <code class="n">method</code><code class="ow">=</code><code class="n">post</code><code class="o">&gt;</code>
+    <code class="kr">_</code><code class="p">{</code><code class="kt">MsgSwitchLanguage</code><code class="p">}</code>
+    <code class="o">&lt;</code><code class="n">select</code> <code class="n">name</code><code class="ow">=</code><code class="n">lang</code><code class="o">&gt;</code>
+        <code class="o">&lt;</code><code class="n">option</code> <code class="n">value</code><code class="ow">=</code><code class="n">en</code><code class="o">&gt;</code><code class="kt">English</code>
+        <code class="o">&lt;</code><code class="n">option</code> <code class="n">value</code><code class="ow">=</code><code class="n">he</code><code class="o">&gt;</code><code class="kt">Hebrew</code>
+    <code class="o">&lt;</code><code class="n">input</code> <code class="kr">type</code><code class="ow">=</code><code class="n">submit</code> <code class="n">value</code><code class="ow">=</code><code class="kr">_</code><code class="p">{</code><code class="kt">MsgSwitch</code><code class="p">}</code><code class="o">&gt;</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">getBuyR</code> <code class="ow">::</code> <code class="kt">Handler</code> <code class="kt">RepHtml</code>
+<code class="nf">getBuyR</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="n">count</code> <code class="ow">&lt;-</code> <code class="n">runInputGet</code> <code class="o">$</code> <code class="n">ireq</code> <code class="n">intField</code> <code class="s">"count"</code>
+    <code class="n">defaultLayout</code> <code class="p">[</code><code class="n">whamlet</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code><code class="kr">_</code><code class="p">{</code><code class="kt">MsgItemCount</code> <code class="n">count</code><code class="p">}</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">postLangR</code> <code class="ow">::</code> <code class="kt">Handler</code> <code class="nb">()</code>
+<code class="nf">postLangR</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="n">lang</code> <code class="ow">&lt;-</code> <code class="n">runInputPost</code> <code class="o">$</code> <code class="n">ireq</code> <code class="n">textField</code> <code class="s">"lang"</code>
+    <code class="n">setLanguage</code> <code class="n">lang</code>
+    <code class="n">redirect</code> <code class="kt">RootR</code>
+
+<code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">warpDebug</code> <code class="mi">3000</code> <code class="kt">I18N</code>
+</pre></div></div></div>
+
+{% endraw %}
+

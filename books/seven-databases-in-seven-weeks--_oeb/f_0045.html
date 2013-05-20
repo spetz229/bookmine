@@ -1,0 +1,119 @@
+---
+layout: page
+title: "Seven Databases in Seven Weeks (for Greg Kennedy)"
+prev: f_0044.html
+next: f_0046.html
+book_path: books/seven-databases-in-seven-weeks--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="N181D0" class="calibre18">6.5 Wrap-Up</h2>
+<p id="N181D4" class="calibre5">
+      Through this chapter we’ve seen how to do a pretty wide range of tasks with CouchDB, from performing basic CRUD operations to building views out of mapreduce functions.  We saw how to watch for changes, and we explored developing nonblocking event-driven client applications. Finally, we learned how to perform ad hoc replication between databases and how to detect and resolve conflicts.  Despite all of this content, there’s still a lot we didn’t cover, but now it’s time to wrap things up before heading off to our next database.
+    </p>
+<h3 class="calibre20">CouchDB’s Strengths</h3>
+<p id="N181DB" class="calibre5">
+        CouchDB is a robust and stable member of the NoSQL community. Built on the philosophy that networks are unreliable and hardware failure is imminent, CouchDB offers a heartily decentralized approach to data storage.  Small enough to live in your smartphone and big enough to support the enterprise, CouchDB affords a variety of deployment situations.
+      </p>
+<p id="N181E8" class="calibre5">
+        CouchDB is as much an API as a database.  In this chapter, we focused on the canonical Apache CouchDB project, but there are an increasing number of alternative implementations and CouchDB service providers built on hybrid back ends.  Because CouchDB is made “of the Web, for the Web,” it’s fairly straightforward to layer in web technologies—such as load balancers and caching layers—and still end up with something that’s true to CouchDB’s APIs.
+      </p>
+<h3 class="calibre20">CouchDB’s Weaknesses</h3>
+<p id="N181EF" class="calibre5">
+        Of course, CouchDB isn’t for everything.  CouchDB’s mapreduce-based views, while novel, can’t perform all the fancy data slicing you’d expect from a relational database.  In fact, you shouldn’t be running ad hoc queries <span class="calibre6">at all</span> in production.  Also, CouchDB’s replication strategy isn’t always the right choice.  CouchDB replication is all or nothing, meaning all replicated servers will have the same contents.  There is no sharding to distribute content around the datacenter.  The principal reason for adding more CouchDB nodes is not to spread the data around so much as to increase throughput for read and write operations.
+      </p>
+<h3 class="calibre20">Parting Thoughts</h3>
+<p id="N181FE" class="calibre5">
+        CouchDB’s attention to robustness in the face of uncertainty makes it a great choice if your system must stand up to the harsh realities of the wild Internet.  By leveraging standard webisms like HTTP/REST and JSON, CouchDB fits in easily wherever web technologies are prevalent, which is increasingly everywhere.  Inside the walled garden of a datacenter, CouchDB can still make sense if you commit to managing conflicts when they arise or if you pursue an alternative implementation like BigCouch, but don’t expect to get sharding right out of the box.
+      </p>
+<p id="N18201" class="calibre5">
+        There are plenty of other features that make CouchDB unique and special that we didn’t have time to cover.  A short list would include ease of backups, binary attachments to documents, and CouchApps—a system for developing and deploying web apps directly through CouchDB with no other middleware.  Having said that, we hope we’ve provided enough of an overview to whet your appetite for more.  Try CouchDB for your next data-driven web app; you won’t be disappointed!
+      </p>
+
+<div class="footnotes">
+<h4 class="calibre21">Footnotes</h4>
+<table cellspacing="3" class="table-of-contents">
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-40" href="f_0043.html#FNPTR-40">[40]</a>
+</td>
+<td class="calibre9">
+<p id="N17134" class="calibre5">
+<a href="http://localhost:5984/_utils/">http://localhost:5984/_utils/</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-41" href="f_0043.html#FNPTR-41">[41]</a>
+</td>
+<td class="calibre9">
+<p id="N174FF" class="calibre5">
+<a href="http://www.jamendo.com/">http://www.jamendo.com/</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-42" href="f_0043.html#FNPTR-42">[42]</a>
+</td>
+<td class="calibre9">
+<p id="N1750E" class="calibre5">
+<a href="http://developer.jamendo.com/en/wiki/NewDatabaseDumps">http://developer.jamendo.com/en/wiki/NewDatabaseDumps</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-43" href="f_0043.html#FNPTR-43">[43]</a>
+</td>
+<td class="calibre9">
+<p id="N1751C" class="calibre5">
+<a href="http://img.jamendo.com/data/dbdump_artistalbumtrack.xml.gz">http://img.jamendo.com/data/dbdump_artistalbumtrack.xml.gz</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-44" href="f_0043.html#FNPTR-44">[44]</a>
+</td>
+<td class="calibre9">
+<p id="N1752B" class="calibre5">
+<a href="http://rdoc.info/github/couchrest/couchrest/master/">http://rdoc.info/github/couchrest/couchrest/master/</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-45" href="f_0044.html#FNPTR-45">[45]</a>
+</td>
+<td class="calibre9">
+<p id="N17B25" class="calibre5">
+<a href="http://nodejs.org/">http://nodejs.org/</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-46" href="f_0044.html#FNPTR-46">[46]</a>
+</td>
+<td class="calibre9">
+<p id="N17FB7" class="calibre5">
+<a href="http://bigcouch.cloudant.com/api">http://bigcouch.cloudant.com/api</a>
+</p>
+</td>
+</tr>
+</table>
+</div>
+<div class="copyright">Copyright © 2012, The Pragmatic Bookshelf.</div>
+
+
+
+
+<script src="scripts/book_local.js" type="text/javascript" class="calibre3"/>
+</div>
+
+{% endraw %}
+

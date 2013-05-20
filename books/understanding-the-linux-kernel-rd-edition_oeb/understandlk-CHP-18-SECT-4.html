@@ -1,0 +1,44 @@
+---
+layout: page
+title: "Understanding the Linux Kernel, 3rd Edition"
+prev: understandlk-CHP-18-SECT-3.html
+next: understandlk-CHP-18-SECT-5.html
+book_path: books/understanding-the-linux-kernel-rd-edition_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a name="understandlk-CHP-18-SECT-4"></a>
+<h3 class="docSection1Title">18.4. Creating the Ext2 Filesystem</h3><a name="IDX-CHP-18-4380"></a>
+<a name="IDX-CHP-18-4381"></a>
+<a name="IDX-CHP-18-4382"></a>
+<a name="IDX-CHP-18-4383"></a>
+<a name="IDX-CHP-18-4384"></a>
+<a name="IDX-CHP-18-4385"></a>
+<a name="IDX-CHP-18-4386"></a>
+<a name="IDX-CHP-18-4387"></a>
+<a name="IDX-CHP-18-4388"></a>
+<p class="docText1">There are generally two stages to creating<a name="IDX-CHP-18-4389"></a> 
+ a filesystem on a disk. The first step is to format it so that the disk driver can read and write blocks on it. Modern hard disks come preformatted from the factory and need not be reformatted; floppy disks<a name="IDX-CHP-18-4390"></a> 
+ may be formatted on Linux using a utility program such as <i class="docEmphasis">superformat</i> or <i class="docEmphasis">fdformat</i>. The second step involves creating a filesystem, which means setting up the structures described in detail earlier in this chapter.</p>
+<p class="docText1">Ext2 filesystems are created by the <i class="docEmphasis">mke2fs</i> utility program; it assumes the following default options, which may be modified by the user with flags on the command line:</p>
+<ul class="calibre11"><li class="calibre12"><p class="docText1">Block size: 1,024 bytes (default value for a small filesystem)</p></li><li class="calibre12"><p class="docText1">Fragment size: block size (block fragmentation is not implemented)</p></li><li class="calibre12"><p class="docText1">Number of allocated inodes: 1 inode for each 8,192 bytes</p></li><li class="calibre12"><p class="docText1">Percentage of reserved blocks: 5 percent</p></li></ul>
+<p class="docText1">The program performs the following actions:</p>
+<div class="calibre44"><ol class="docList1" type="1"><li class="calibre12"><div class="calibre45"><p class="docList">Initializes the superblock and the group descriptors.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Optionally, checks whether the partition contains defective blocks; if so, it creates a list of defective blocks.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">For each block group, reserves all the disk blocks needed to store the superblock, the group descriptors, the inode table, and the two bitmaps.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Initializes the inode bitmap and the data map bitmap of each block group to 0.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Initializes the inode table of each block group.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Creates the <i class="docEmphasis">/root</i> directory.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Creates the <i class="docEmphasis">lost+found</i> directory, which is used by <i class="docEmphasis">e2fsck</i> to link the lost and found defective blocks.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Updates the inode bitmap and the data block bitmap of the block group in which the two previous directories have been created.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Groups the defective blocks (if any) in the <i class="docEmphasis">lost+found</i> directory.</p></div></li></ol></div>
+<p class="docText1">Let's consider how an Ext2 1.44 MB floppy disk is initialized by <i class="docEmphasis">mke2fs</i> with the default options.</p>
+<p class="docText1">Once mounted, it appears to the VFS as a volume consisting of 1,412 blocks; each one is 1,024 bytes in length. To examine the disk's contents, we can execute the Unix command:</p>
+<pre class="calibre27">
+$ dd if=/dev/fd0 bs=1k count=1440 | od -tx1 -Ax &gt; /tmp/dump_hex</pre><br class="calibre7"/>
+<p class="docText1">to get a file containing the hexadecimal dump of the floppy disk contents in the <i class="docEmphasis">/tmp</i> directory.<sup class="docFootnote"><a class="pcalibre5 docLink pcalibre1" href="#understandlk-CHP-18-FN3">[*]</a></sup></p><blockquote class="calibre22"><p class="docFootnote1"><sup class="calibre24"><a name="understandlk-CHP-18-FN3">[*]</a></sup> Most information on an Ext2 filesystem could also be obtained by using the <span class="docEmphasis">dumpe2fs</span> and <i class="docEmphasis">debugfs</i> utility programs.</p></blockquote>
+<p class="docText1">By looking at that file, we can see that, due to the limited capacity of the disk, a single group descriptor is sufficient. We also notice that the number of reserved blocks is set to 72 (5 percent of 1,440) and, according to the default option, the inode table must include 1 inode for each 8,192 bytes  that is, 184 inodes stored in 23 blocks.</p>
+<p class="docText1"><a class="pcalibre5 docLink pcalibre1" href="#understandlk-CHP-18-TABLE-7">Table 18-7</a> summarizes how the Ext2 filesystem is created on a floppy disk when the default options are selected.</p>
+<a name="understandlk-CHP-18-TABLE-7"></a><p class="calibre14"><table cellspacing="0" frame="hsides" rules="all" cellpadding="4" width="100%" class="calibre15"><caption class="calibre33"><h5 class="docFigureTitle">Table 18-7. Ext2 block allocation for a floppy disk</h5></caption><colgroup class="calibre16"><col class="calibre17"/><col class="calibre17"/></colgroup><thead class="calibre18"><tr class="calibre34"><th class="thead" scope="col"><p class="docText1"><span class="calibre5">Block</span></p></th><th class="thead" scope="col"><p class="docText1"><span class="calibre5">Content</span></p></th></tr></thead><tr class="calibre2"><td class="docTableCell"><p class="docText2">0</p></td><td class="docTableCell"><p class="docText2">Boot block</p></td></tr><tr class="calibre2"><td class="docTableCell"><p class="docText2">1</p></td><td class="docTableCell"><p class="docText2">Superblock</p></td></tr><tr class="calibre2"><td class="docTableCell"><p class="docText2">2</p></td><td class="docTableCell"><p class="docText2">Block containing a single block group descriptor</p></td></tr><tr class="calibre2"><td class="docTableCell"><p class="docText2">3</p></td><td class="docTableCell"><p class="docText2">Data block bitmap</p></td></tr><tr class="calibre2"><td class="docTableCell"><p class="docText2">4</p></td><td class="docTableCell"><p class="docText2">inode bitmap</p></td></tr><tr class="calibre2"><td class="docTableCell"><p class="docText2">5-27</p></td><td class="docTableCell"><p class="docText2">inode table: inodes up to 10: reserved (inode 2 is the root); inode 11: <span class="docEmphasis">lost+found</span>; inodes 12-184: free</p></td></tr><tr class="calibre2"><td class="docTableCell"><p class="docText2">28</p></td><td class="docTableCell"><p class="docText2">Root directory (includes <tt class="calibre25">.</tt>, <tt class="calibre25">..</tt>, and <span class="docEmphasis">lost+found</span>)</p></td></tr><tr class="calibre2"><td class="docTableCell"><p class="docText2">29</p></td><td class="docTableCell"><p class="docText2"><span class="docEmphasis">lost+found</span> directory (includes <tt class="calibre25">.</tt> and <tt class="calibre25">..</tt>)</p></td></tr><tr class="calibre2"><td class="docTableCell"><p class="docText2">30-40</p></td><td class="docTableCell"><p class="docText2">Reserved blocks preallocated for <span class="docEmphasis">lost+found</span> directory</p></td></tr><tr class="calibre2"><td class="docTableCell"><p class="docText2">41-1439</p></td><td class="docTableCell"><p class="docText2">Free blocks</p></td></tr></table></p><br class="calibre7"/>
+<a href="31071535.html"><img src="pixel.jpg" alt="" border="0" class="calibre19"/></a>
+<br class="calibre7"/>
+
+</div>
+
+{% endraw %}
+

@@ -1,0 +1,141 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch07s03.html
+next: OEBPS/ch07s05.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Drag and Drop"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect17_d1e6210" class="calibre1"></a>Drag and Drop</h1></div></div></div><p class="calibre3"><a id="index-680S211MO0J" class="calibre1"></a><a id="index-646O604NJ6K" class="calibre1"></a>Drag and drop support was originally “designed” and
+    implemented by Microsoft back in 1999 for Internet Explorer 5.0, and IE
+    has supported it ever since. The HTML5 specification has just documented
+    what was already there, and now Safari, Firefox, and Chrome have added
+    support, emulating Microsoft’s implementation. However, to put it kindly,
+    the specification is rather a <a class="ulink" href="http://www.quirksmode.org/blog/archives/2009/09/the_html5_drag.html">mess</a>,
+    and it requires a fair bit of hoop-jumping to satisfy its often pointless
+    requirements.<a id="I_indexterm7_d1e6228" class="calibre1"></a></p><p class="calibre3">There are no less than seven events <a id="I_indexterm7_d1e6235" class="calibre1"></a>associated with drag and drop:
+    <span class="calibre1"><em class="calibre4">dragstart</em></span>, <span class="calibre1"><em class="calibre4">drag</em></span>,
+    <span class="calibre1"><em class="calibre4">dragover</em></span>, <span class="calibre1"><em class="calibre4">dragenter</em></span>,
+    <span class="calibre1"><em class="calibre4">dragleave</em></span>, <span class="calibre1"><em class="calibre4">drop</em></span>, and
+    <span class="calibre1"><em class="calibre4">dragend</em></span>. I’ll elaborate on each in the sections
+    below.</p><p class="calibre3">Even if your browser doesn’t support the HTML5 file APIs, it’s
+    likely that you can still use the drag and drop APIs. Currently, the
+    browser <a id="I_indexterm7_d1e6265" class="calibre1"></a>requirements are:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre3">Firefox &gt;= 3.5</p></li><li class="listitem"><p class="calibre3">Safari &gt;= 3.2</p></li><li class="listitem"><p class="calibre3">Chrome &gt;= 7.0</p></li><li class="listitem"><p class="calibre3">IE &gt;= 6.0</p></li><li class="listitem"><p class="calibre3">Opera: no support</p></li></ul></div><div class="book" title="Dragging"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2924120" class="calibre12"></a>Dragging</h2></div></div></div><p class="calibre3">Dragging is fairly straightforward. To make an element draggable,
+      set its <code class="literal">draggable</code> attribute to true.</p><pre class="screen">&lt;div id="dragme" draggable="true"&gt;Drag me!&lt;/div&gt;</pre><p class="calibre3">Now we have to associate that draggable element with some data. We
+      can do this by listening to the <span class="calibre1"><em class="calibre4">dragstart</em></span> event
+      <a id="I_indexterm7_d1e6302" class="calibre1"></a><a id="I_indexterm7_d1e6305" class="calibre1"></a>and calling the event’s <code class="literal">setData()</code> function:<a id="I_indexterm7_d1e6314" class="calibre1"></a><a id="I_indexterm7_d1e6319" class="calibre1"></a></p><pre class="screen">var element = $("#dragme");
+
+element.bind("dragstart", function(event){
+  // We don't want to use jQuery's abstraction
+  event = event.originalEvent;
+
+  event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData("text/plain", $(this).text());
+  event.dataTransfer.setData("text/html", $(this).html());
+  event.dataTransfer.setDragImage("/images/drag.png", -10, -10);
+});</pre><p class="calibre3">jQuery provides an abstraction of the event, which doesn’t contain
+      the <code class="literal">dataTransfer</code> object we need.
+      Conveniently, the abstracted event has an <code class="literal">originalEvent</code> attribute,<a id="I_indexterm7_d1e6332" class="calibre1"></a><a id="I_indexterm7_d1e6335" class="calibre1"></a> which we can use to access the drag/drop APIs.</p><p class="calibre3">As demonstrated above, the event has a <code class="literal">dataTransfer</code> object,<a id="I_indexterm7_d1e6346" class="calibre1"></a><a id="I_indexterm7_d1e6349" class="calibre1"></a> which has the various drag and drop functions we need.
+      The <code class="literal">setData()</code> function takes a
+      mimetype and string data. In this case, we’re setting some <code class="literal">text</code> and <code class="literal">text/html</code> data on the
+      <span class="calibre1"><em class="calibre4">drag</em></span> event. When the element is dropped, and a
+      <span class="calibre1"><em class="calibre4">drop</em></span> event is triggered, we can read this data.
+      Likewise, if the element is dragged outside the browser, other
+      applications can handle the dropped data according to which file types
+      they support.</p><p class="calibre3">When dragging text, use the <code class="literal">text/plain</code> type. It’s recommended to always
+      set this as a fallback for applications or drop targets that don’t
+      support any of the other formats. Dragged links should have two formats:
+      <code class="literal">text/plain</code> and <code class="literal">text/uri-list</code>. To drag multiple links, join
+      each link with a new line:</p><pre class="screen">// Dragging links
+event.dataTransfer.setData("text/uri-list", "http://example.com");
+event.dataTransfer.setData("text/plain", "http://example.com");
+
+// Multiple links are separated by a new line
+event.dataTransfer.setData("text/uri-list", "http://example.com\nhttp://google.com");
+event.dataTransfer.setData("text/plain", "http://example.com\nhttp://google.com");</pre><p class="calibre3">The optional <code class="literal">setDragImage()</code>
+      function <a id="I_indexterm7_d1e6389" class="calibre1"></a><a id="I_indexterm7_d1e6392" class="calibre1"></a>controls what is displayed under the cursor <span class="calibre1">during</span> drag operations. It takes an image
+      source and x/y coordinates, the position of the image relative to the
+      cursor. If it’s not supplied, you just get a ghostly clone of the
+      dragged element. An alternative to <code class="literal">setDragImage()</code> is <code class="literal">addElement(element, x, y)</code>, which uses the
+      given element to update the drag feedback. In other words, you can
+      provide a custom element to be displayed during drag operations.</p><p class="calibre3">You can also allow users to drag files out of the browser by
+      setting the <code class="literal">DownloadURL</code>
+      type.<a id="I_indexterm7_d1e6412" class="calibre1"></a> You can specify a URL to the file’s location, which the
+      browser will subsequently download. Gmail uses this to great effect by
+      allowing users to drag and drop email attachments straight out of the
+      browser onto the desktop.</p><p class="calibre3">The bad news is that this is currently only supported by Chrome,
+      and it is rather undocumented. It can’t hurt to use it, though, and
+      hopefully other browsers will add support in the future. The <code class="literal">DownloadURL</code> format’s value is a colon
+      (<code class="literal">:</code>)-separated list of file
+      information: the mime, name, and location.</p><pre class="screen">$("#preview").bind("dragstart", function(e){
+  e.originalEvent.dataTransfer.setData("DownloadURL", [
+    "application/octet-stream",    // MIME type 
+    "File.exe",                    // File name
+    "http://example.com/file.png"  // File location
+  ].join(":"));
+});</pre><p class="calibre3">You can see the full example of HTML5’s drag/drop API in this
+      book’s accompanying assets, in
+      <span class="calibre1"><em class="calibre4">assets/ch07/drag.html.</em></span></p></div><div class="book" title="Dropping"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2924455" class="calibre12"></a>Dropping</h2></div></div></div><p class="calibre3"><a id="I_indexterm7_d1e6435" class="calibre1"></a>The drag/drop API lets you listen to
+      <span class="calibre1"><em class="calibre4">drop</em></span> events, which can respond to dropped files and
+      other elements. This is where we start to see some of the drag/drop API
+      craziness; for the <span class="calibre1"><em class="calibre4">drop</em></span> event to fire at all, you
+      have to cancel<a id="I_indexterm7_d1e6445" class="calibre1"></a> the defaults of both the
+      <span class="calibre1"><em class="calibre4">dragover</em></span><a id="I_indexterm7_d1e6453" class="calibre1"></a><a id="I_indexterm7_d1e6456" class="calibre1"></a> and the <span class="calibre1"><em class="calibre4">dragenter</em></span> events<a id="I_indexterm7_d1e6466" class="calibre1"></a><a id="I_indexterm7_d1e6469" class="calibre1"></a>! For example, here’s how to cancel the two events:</p><pre class="screen">var element = $("#dropzone");
+
+element.bind("dragenter", function(e){
+  // Cancel event
+  e.stopPropagation();
+  e.preventDefault();
+});
+
+element.bind("dragover", function(e){
+  // Set the cursor
+  e.originalEvent.dataTransfer.dropEffect = "copy";
+
+  // Cancel event
+  e.stopPropagation();
+  e.preventDefault();
+});</pre><p class="calibre3">You can also set a <code class="literal">dropEffect</code>—i.e., the cursor appearance—in the
+      <span class="calibre1"><em class="calibre4">dragover</em></span> event, as demonstrated above. By listening
+      to the <span class="calibre1"><em class="calibre4">dragenter</em></span> and <span class="calibre1"><em class="calibre4">dragleave</em></span>
+      events and toggling classes for the targeted element, you can give a
+      visual indication to users that a certain area accepts dropped
+      files.</p><p class="calibre3">Only once we’ve canceled <span class="calibre1"><em class="calibre4">dragenter</em></span> and
+      <span class="calibre1"><em class="calibre4">dragover</em></span>’s events can we start listening to
+      <span class="calibre1"><em class="calibre4">drop</em></span> events. The <span class="calibre1"><em class="calibre4">drop</em></span> event
+      will trigger when a dragged element or file is dropped over the target
+      element. The <span class="calibre1"><em class="calibre4">drop</em></span> event’s <code class="literal">dataTransfer</code> object has a <code class="literal">files</code> attribute, which returns a <code class="literal">FileList</code> of all dropped files:</p><pre class="screen">element.bind("drop", function(event){
+  // Cancel redirection
+  event.stopPropagation();
+  event.preventDefault();
+
+  event = event.originalEvent;
+
+  // Access dragged files
+  var files = event.dataTransfer.files;
+
+  for (var i=0; i &lt; files.length; i++)
+    alert("Dropped " + files[i].name);
+});</pre><p class="calibre3">You can access data other than files using the <code class="literal">dataTransfer.getData()</code> function,<a id="I_indexterm7_d1e6525" class="calibre1"></a><a id="I_indexterm7_d1e6528" class="calibre1"></a> passing the format you support. If that format isn’t
+      available, the function will just return <code class="literal">undefined</code>.</p><pre class="screen">var text = event.dataTransfer.getData("Text");</pre><p class="calibre3">The <code class="literal">dataTransfer</code> object
+      <a id="I_indexterm7_d1e6544" class="calibre1"></a><a id="I_indexterm7_d1e6549" class="calibre1"></a>has a read-only <code class="literal">types</code>
+      attribute, which returns a <code class="literal">DOMStringList</code> (essentially an array) of the
+      mime formats that were set on the <span class="calibre1"><em class="calibre4">dragstart</em></span> event.
+      Additionally, if any files are being dragged, one of the types will be
+      the string <code class="literal">"Files"</code>.</p><pre class="screen">var dt = event.dataTransfer
+for (var i=0; i &lt; dt.types.length; i++)
+  console.log( dt.types[i], dt.getData(dt.types[i]) );</pre><p class="calibre3">See the full drop example in
+      <span class="calibre1"><em class="calibre4">assets/ch07/drop.html</em></span>.</p></div><div class="book" title="Cancel Default Drag/Drop"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2924737" class="calibre12"></a>Cancel Default Drag/Drop</h2></div></div></div><p class="calibre3">By default, dragging a file onto a web page makes the browser
+      navigate to that file. We want to prevent that behavior because we don’t
+      want users navigating away from our web application if they miss the
+      drop area. This is easily accomplished—just cancel the <code class="literal">body</code>’s <span class="calibre1"><em class="calibre4">dragover</em></span>
+      event.<a id="I_indexterm7_d1e6584" class="calibre1"></a><a id="I_indexterm7_d1e6585" class="calibre1"></a></p><pre class="screen">$("body").bind("dragover", function(e){
+  e.stopPropagation();
+  e.preventDefault();
+  return false;
+});</pre></div></div></div>
+
+{% endraw %}
+

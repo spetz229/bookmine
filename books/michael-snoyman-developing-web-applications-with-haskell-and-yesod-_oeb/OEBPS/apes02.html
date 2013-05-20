@@ -1,0 +1,22 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ape.html
+next: OEBPS/apes03.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Concepts"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect1_d1e11023" class="calibre1"></a>Concepts</h1></div></div></div><p class="calibre7"></p><p class="calibre7">The simplest way to make a request in <code class="literal">http-conduit</code> is with the
+    <code class="literal">simpleHttp</code> function. This function takes a <code class="literal">String</code> giving a URL
+   and returns a <code class="literal">ByteString</code> with the contents of that URL. But under the surface,
+   there are a few more steps:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">A new connection <code class="literal">Manager</code> is allocated.</p></li><li class="listitem"><p class="calibre7">The URL is parsed to a <code class="literal">Request</code>. If the URL is invalid, then an exception is
+    thrown.</p></li><li class="listitem"><p class="calibre7">The HTTP request is made, following any redirects from the server.</p></li><li class="listitem"><p class="calibre7">If the response has a status code outside the 200-range, an exception is thrown.</p></li><li class="listitem"><p class="calibre7">The response body is read into memory and returned.</p></li><li class="listitem"><p class="calibre7"><code class="literal">runResourceT</code> is called, which will free up any resources (e.g., the open
+    socket to the server).</p></li></ul></div><p class="calibre7">If you want more control of what’s going on, then you can configure any of the steps above
+   (plus a few more) by explicitly creating a <code class="literal">Request</code> value, allocating your
+    <code class="literal">Manager</code> manually, and using the <code class="literal">http</code> and
+    <code class="literal">httpLbs</code> functions.</p></div></div>
+
+{% endraw %}
+

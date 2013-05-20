@@ -1,0 +1,24 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch11s04.html
+next: OEBPS/ch11s06.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="CGI on Apache"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect111_d1e6175" class="calibre1"></a>CGI on Apache</h1></div></div></div><p class="calibre7">CGI and FastCGI work almost identically on Apache, so it should be fairly straight-forward to port this configuration. You essentially need to accomplish two goals:</p><div class="book"><ol class="orderedlist"><li class="listitem"><p class="calibre7">Get the server to serve your file as (Fast)CGI.</p></li><li class="listitem"><p class="calibre7">Rewrite all requests to your site to go through the (Fast)CGI executable.</p></li></ol></div><p class="calibre7">Here is a configuration file for serving a blog application, with an executable named
+      “bloggy.cgi,” living in a subfolder named “blog” of the document root. This example was taken
+      from an application living in the path <code class="literal">/f5/snoyman/public/blog</code>.</p><a id="I_programlisting11_d1e6192" class="firstname"></a><pre class="programlistinghaskell">Options +ExecCGI
+AddHandler cgi-script .cgi
+Options +FollowSymlinks
+
+RewriteEngine On
+RewriteRule ^/f5/snoyman/public/blog$ /blog/ [R=301,S=1]
+RewriteCond $1 !^bloggy.cgi
+RewriteCond $1 !^static/
+RewriteRule ^(.*) bloggy.cgi/$1 [L]</pre><p class="calibre7">The first RewriteRule is to deal with subfolders. In particular, it redirects a request for <code class="literal">/blog</code> to <code class="literal">/blog/</code>. The first RewriteCond prevents directly requesting the executable, the second allows Apache to serve the static files, and the last line does the actual rewriting.</p></div></div>
+
+{% endraw %}
+

@@ -1,0 +1,67 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch12.html
+next: OEBPS/ch12s03.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Collections"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect112_d1e12022" class="calibre1"></a>Collections</h1></div></div></div><p class="calibre3"><a id="I_indexterm12_d1e12026" class="calibre1"></a><a id="I_indexterm12_d1e12031" class="calibre1"></a>In Backbone, arrays of model instances are stored in
+    collections. It might not be immediately obvious why it’s useful to
+    separate collections from models, but it’s actually quite a common
+    scenario. If you were recreating Twitter, for example, you’d have <span class="calibre1">two collections</span>, <code class="literal">Followers</code> and <code class="literal">Followees</code>,<a id="I_indexterm12_d1e12046" class="calibre1"></a> both populated by <code class="literal">User</code>
+    instances. Although both collections are populated by the same model, each
+    contains an array of different <code class="literal">User</code>
+    instances; as a result, they are separate collections.</p><p class="calibre3">As with models, you can create a collection by extending <code class="literal">Backbone.Collection</code>:</p><pre class="screen">var Users = Backbone.Collection.extend({
+  model: User
+});</pre><p class="calibre3">In the example above, you can see we’re overriding the <code class="literal">model</code> property <a id="I_indexterm12_d1e12069" class="calibre1"></a><a id="I_indexterm12_d1e12072" class="calibre1"></a>to specify which model we want associated with the
+    collection—in this case, the <code class="literal">User</code>
+    model. Although it’s not absolutely required, it’s useful to set this to
+    give the collection a default model to refer to if it’s ever required.
+    Normally, a collection will contain instances of only a single model type,
+    rather than a multitude of different ones.</p><p class="calibre3">When creating a collection, you can optionally pass an initial array
+    of models. Like with Backbone’s models, if you define an <code class="literal">initialize</code> instance function,<a id="I_indexterm12_d1e12086" class="calibre1"></a><a id="I_indexterm12_d1e12089" class="calibre1"></a> it will be invoked on instantiation:</p><pre class="screen">var users = new Users([{name: "Toby Ziegler"}, {name: "Josh Lyman"}]);</pre><p class="calibre3">Alternatively, you can add models to the collection using the
+    <code class="literal">add()</code> function:<a id="I_indexterm12_d1e12102" class="calibre1"></a></p><pre class="screen">var users = new Users;
+
+// Add an individual model
+users.add({name: "Donna Moss"});
+
+// Or add an array of models
+users.add([{name: "Josiah Bartlet"}, {name: "Charlie Young"}]);</pre><p class="calibre3">When you add a model to the collection, the <span class="calibre1"><em class="calibre4">add</em></span>
+    event is fired:</p><pre class="screen">users.bind("add", function(user) {
+  alert("Ahoy " + user.get("name") + "!");
+});</pre><p class="calibre3">Similarly, you can remove a model from the collection using <code class="literal">remove()</code><a id="I_indexterm12_d1e12121" class="calibre1"></a><a id="I_indexterm12_d1e12124" class="calibre1"></a>, which triggers a <span class="calibre1"><em class="calibre4">remove</em></span> event:</p><pre class="screen">users.bind("remove", function(user) {
+  alert("Adios " + user.get("name") + "!");
+});
+
+users.remove( users.models[0] );</pre><p class="calibre3">Fetching a specific model is simple; if the model’s ID is present,
+    you can use the controller’s <code class="literal">get()</code>
+    function:</p><pre class="screen">var user = users.get("some-guid");</pre><p class="calibre3">If you don’t have a model’s ID,<a id="I_indexterm12_d1e12144" class="calibre1"></a> you can fetch a model by <span class="calibre1"><em class="calibre4">cid</em></span>—the
+    client ID created automatically by Backbone whenever a new model is
+    created:</p><pre class="screen">var user = users.getByCid("c-some-cid");</pre><p class="calibre3">In addition to the <em class="calibre4">add</em> and
+    <em class="calibre4">remove</em> events, whenever the model in a collection has
+    been modified, a <span class="calibre1"><em class="calibre4">change</em></span> event will be fired:</p><pre class="screen">var user = new User({name: "Adam Buxton"});
+
+var users = new Backbone.Collection;
+users.bind("change", function(rec){
+  // A record was changed!
+});
+users.add(user);
+
+user.set({name: "Joe Cornish"});</pre><div class="book" title="Controlling a Collection’s Order"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2938864" class="calibre12"></a>Controlling a Collection’s Order</h2></div></div></div><p class="calibre3">You can control a collection’s order by providing a <code class="literal">comparator()</code> function,<a id="I_indexterm12_d1e12174" class="calibre1"></a><a id="I_indexterm12_d1e12177" class="calibre1"></a> returning a value against which you want the collection
+      sorted:</p><pre class="screen">var Users = Backbone.Collection.extend({
+  comparator: function(user){
+    return user.get("name");
+  }
+});</pre><p class="calibre3">You can return either a string or numeric value to sort against
+      (unlike JavaScript’s regular sort). In the example above, we’re making
+      sure the <code class="literal">Users</code> collection is sorted
+      alphabetically by name. Ordering will happen automatically behind the
+      scenes, but if you ever need to force a collection to re-sort itself,
+      you can call the <code class="literal">sort()</code>
+      function.</p></div></div></div>
+
+{% endraw %}
+

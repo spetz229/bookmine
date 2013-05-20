@@ -1,0 +1,215 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0129.html
+next: f_0131.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.substitute.swap">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 95</td>
+<td class="arr-recipe-name">Swap Two or More Words</td>
+</tr>
+</table>
+<p id="N19EA7" class="calibre4">
+<span class="calibre5">
+        We can devise a substitute command that swaps all occurrences of one word with another and vice versa by using the expression register and a Vim script dictionary.
+    </span>
+</p>
+<p id="N19EBF" class="calibre4">
+      Take this excerpt:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/substitution/who-bites.txt">substitution/who-bites.txt</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​The dog bit the man.​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N19ECF" class="calibre4">
+      Suppose that we want to swap the order of the words “dog” and “man.” We could, of course, use a succession of yank and put operations, as demonstrated in <a xmlns:str="http://exslt.org/strings" href="f_0091.html#sec.swap.words">​<em class="calibre5">Swap Two Words</em>​</a>. But let’s consider how we would go about doing this with the substitute command.
+    </p>
+<p id="N19ED6" class="calibre4">
+      Here’s a naïve attempt at a solution:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:%s/dog/man/g</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:%s/man/dog/g</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N19EEE" class="calibre4">
+      The first command replaces the word “dog” with “man,” leaving us with the phrase “the man bit the man.” Then the second command replaces both occurrences of “man” with “dog,” giving us “the dog bit the dog.” Clearly, we have to try harder.
+    </p>
+<p id="N19EF1" class="calibre4">
+      A two-pass solution is no good, so we need a substitute command that works in a single pass. The easy part is writing a pattern that matches both “dog” and “man” (think about it). The tricky part is writing an expression that accepts either of these words and returns the other one. Let’s solve this part of the puzzle first.
+    </p>
+<h3 class="calibre22">Return the Other Word</h3>
+<p id="N19EF8" class="calibre4">
+        We don’t even have to create a function to get the job done. We can do it with a simple dictionary data structure by creating two key-value pairs. In Vim, try typing the following:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:let swapper={"dog":"man","man":"dog"}</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:echo swapper["dog"]</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​man​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:echo swapper["man"]</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​dog​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N19F1A" class="calibre4">
+        When we pass <code class="cf">"dog"</code> as a key to our <code class="cf">swapper</code> dictionary, it returns <code class="cf">"man"</code>, and vice versa.
+      </p>
+<h3 class="calibre22">Match Both Words</h3>
+<p id="N19F2A" class="calibre4">
+        Did you figure out the pattern? Here it is:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">/\v(&lt;man&gt;|&lt;dog&gt;)</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N19F3A" class="calibre4">
+        This pattern simply matches the whole word “man” or the whole word “dog.” The parentheses serve to capture the matched text so that we can reference it in the replacement field.
+      </p>
+<h3 class="calibre22">All Together Now</h3>
+<p id="N19F41" class="calibre4">
+        Let’s put everything together. We’ll start by running the search command. This should cause all occurrences of “dog” and “man” to be highlighted. Then when we run the substitute command, we can leave the search field blank and it will simply reuse the last search pattern (as discussed in <a xmlns:str="http://exslt.org/strings" href="f_0125.html#sec.substitute.lastpat">Tip 90</a>).
+      </p>
+<p id="N19F48" class="calibre4">
+        For the replacement, we’ll have to evaluate a little bit of Vim script. That means using the <code class="cf">\=</code> item in the replacement field. This time, we won’t bother assigning the dictionary to a variable, we’ll just create it inline for a single use.
+      </p>
+<p id="N19F4E" class="calibre4">
+        Normally we could refer to captured text using Vim’s <code class="cf">\1</code>, <code class="cf">\2</code> (and so on) notation. But in Vim script, we have to fetch the captured text by calling the <code class="cf">submatch()</code> function (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">submatch()</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/eval.html#submatch()">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>).
+      </p>
+<p id="N19F5E" class="calibre4">
+        When we put everything together, this is what we get:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">/\v(&lt;man&gt;|&lt;dog&gt;)</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:%s//\={"dog":"man","man":"dog"}[submatch(1)]/g</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<h3 class="calibre22">Discussion</h3>
+<p id="N19F77" class="calibre4">
+        This is a daft example! We have to type out the words “man” and “dog” three times each. Obviously, it would be quicker to change the two words in the document, one time each. But if we were working with a large body of text with multiple occurrences of each word, then this extra effort could quickly pay for itself. Note that this technique could easily be adapted to swap three or more words in a single pass.
+      </p>
+<p id="N19F7A" class="calibre4">
+        There still remains the issue of all that typing. With a little bit more Vim script, we could write a custom command that exposed a more user-friendly interface that would do all of the repetitive work for us under the hood. That’s beyond the scope of this book, but check out <a xmlns:str="http://exslt.org/strings" href="#sidebar.abolish">​<em class="calibre5">Abolish.vim: A Supercharged Substitute Command</em>​</a>, for inspiration.
+      </p>
+<div class="sidebar" id="sidebar.abolish">
+<div class="sidebar-title">Abolish.vim: A Supercharged Substitute Command</div>
+<div class="calibre1">
+<p id="N19F86" class="calibre4">
+        One of my favorite plugins from Tim Pope is called Abolish.<a id="FNPTR-25" href="f_0131.html#FOOTNOTE-25">[25]</a> It adds a custom command called <code class="cf1">:Subvert</code> (or <code class="cf1">:S</code> for short), which acts like a supercharged version of Vim’s <code class="cf1">:substitute</code> command. Using this plugin, we could swap the words “man” and “dog” by issuing the following command:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix4" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline4" valign="top">
+<div class="calibre38">
+​<code class="calibre39">​<strong class="prompt">:%S/{man,dog}/{dog,man}/g</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N19FB0" class="calibre4">
+        Not only is this easier to type, but it’s much more flexible too. As well as replacing “man” with “dog” (and vice versa), it would also replace “MAN” with “DOG” and “Man” with “Dog.” This example merely scratches the surface of this terrific plugin. I encourage you to explore its other capabilities.
+      </p>
+</div>
+</div>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

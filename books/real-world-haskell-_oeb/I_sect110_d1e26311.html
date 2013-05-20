@@ -1,0 +1,169 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect110_d1e26216.html
+next: I_sect110_d1e26414.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect110_d1e26216.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect110_d1e26414.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect110_d1e26311" class="calibre27" id="I_sect110_d1e26311"></a><h3 id="title-IDAREJVC" class="docSection1Title">10.7. Using Functors for Parsing</h3><a name="x_iS" class="calibre27" id="x_iS"></a><p class="docText">All this talk of functors<a name="I_indexterm10_d1e26316" class="calibre27" id="I_indexterm10_d1e26316"></a> has a purpose: they often let us write tidy, expressive
+    code. Recall the <i class="docEmphasis">parseByte</i> function
+    that we introduced earlier. In recasting our PGM parser to use our new
+    parser infrastructure, we'll often want to work with ASCII characters
+    instead of Word8 values.</p><a name="x_jS" class="calibre27" id="x_jS"></a><p class="docText">While we could write a <i class="docEmphasis">parseChar</i> function<a name="I_indexterm10_d1e26333" class="calibre27" id="I_indexterm10_d1e26333"></a> that has a similar structure to <i class="docEmphasis">parseByte</i>, we can now avoid this code
+    duplication by taking advantage of the functor nature of
+    Parse. Our functor takes the result of a parse and applies a
+    function to it, so what we need is a function that turns a
+    Word8 into a Char:</p><pre class="calibre39">-- file: ch10/Parse.hs
+w2c :: Word8 -&gt; Char
+w2c = chr . fromIntegral
+
+-- import Control.Applicative
+parseChar :: Parse Char
+parseChar = w2c &lt;$&gt; parseByte</pre><br class="calibre48"/>
+<a name="x_kS" class="calibre27" id="x_kS"></a><p class="docText">We can also use functors to write a compact
+    "peek" function. This returns <tt class="calibre34">Nothing</tt> if we're
+    at the end of the input string. Otherwise, it returns the next character
+    without consuming it (i.e., it inspects, but doesn't disturb, the current
+    parsing state):</p><pre class="calibre39">-- file: ch10/Parse.hs
+peekByte :: Parse (Maybe Word8)
+peekByte = (fmap fst . L.uncons . string) &lt;$&gt; getState</pre><br class="calibre48"/>
+<a name="x_lS" class="calibre27" id="x_lS"></a><p class="docText">The same lifting trick that let us define <i class="docEmphasis">parseChar</i> lets us write a compact definition
+    for <i class="docEmphasis">peekChar</i>:</p><pre class="calibre39">-- file: ch10/Parse.hs
+peekChar :: Parse (Maybe Char)
+peekChar = fmap w2c &lt;$&gt; peekByte</pre><br class="calibre48"/>
+<a name="x_mS" class="calibre27" id="x_mS"></a><p class="docText">Notice that <i class="docEmphasis">peekByte</i>
+    and <i class="docEmphasis">peekChar</i> each make two calls to
+    <i class="docEmphasis">fmap</i>, one of which is disguised as
+    <i class="docEmphasis">(&lt;$&gt;)</i>. This is necessary
+    because the type Parse (Maybe a) is a functor within a
+    functor. We thus have to lift a function twice to "get it
+    into" the inner functor.</p><a name="x_nS" class="calibre27" id="x_nS"></a><p class="docText">Finally, we'll write another generic combinator, which is
+    the Parse analogue of the familiar <i class="docEmphasis">takeWhile</i>. It consumes its input while its
+    predicate returns <i class="docEmphasis">True</i>:</p><pre class="calibre39">-- file: ch10/Parse.hs
+parseWhile :: (Word8 -&gt; Bool) -&gt; Parse [Word8]
+parseWhile p = (fmap p &lt;$&gt; peekByte) ==&gt; \mp -&gt;
+               if mp == Just True
+               then parseByte ==&gt; \b -&gt;
+                    (b:) &lt;$&gt; parseWhile p
+               else identity []</pre><br class="calibre48"/>
+<a name="x_oS" class="calibre27" id="x_oS"></a><p class="docText">Once again, we're using functors in several places
+    (doubled up, when necessary) to reduce the verbosity of our code. Here's a
+    rewrite of the same function in a more direct style that does not use
+    functors:</p><pre class="calibre39">-- file: ch10/Parse.hs
+parseWhileVerbose p =
+    peekByte ==&gt; \mc -&gt;
+    case mc of
+      Nothing -&gt; identity []
+      Just c | p c -&gt;
+                 parseByte ==&gt; \b -&gt;
+                 parseWhileVerbose p ==&gt; \bs -&gt;
+                 identity (b:bs)
+             | otherwise -&gt;
+                 identity []</pre><br class="calibre48"/>
+<a name="x_pS" class="calibre27" id="x_pS"></a><p class="docText">The more verbose definition is likely easier to read when
+    you are less familiar with functors. However, use of functors is
+    sufficiently common in Haskell code that the more compact representation
+    should become second nature (both to read and to write) fairly
+    quickly.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect110_d1e26216.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect110_d1e26414.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

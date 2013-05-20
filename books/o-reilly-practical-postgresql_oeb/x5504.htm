@@ -1,0 +1,143 @@
+---
+layout: page
+title: "Unknown"
+prev: x5021.htm
+next: x5802.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="x5021.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 4. Using SQL with PostgreSQL</td><td width="10%" valign="bottom" class="calibre5"><a href="x5802.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="ADDINGDATA" class="calibre8">Adding Data with INSERT and COPY</a></h1><p class="calibre9">Once you have created your table with the necessary specifications, the next logical step is to fill the
+    table with data. There are generally three methods in PostgreSQL with which you can fill a table with data:</p><p class="calibre9"> </p><p class="calibre9"></p><ul class="calibre21"><li class="calibre22"><p class="calibre9">Use the <tt class="REPLACEABLE">INSERT INTO</tt> command with a grouped set of data to insert new values.</p></li><li class="calibre22"><p class="calibre9">Use the <tt class="REPLACEABLE">INSERT INTO</tt> command in conjunction with a <tt class="REPLACEABLE">SELECT</tt> statement to insert existing values from another table.</p></li><li class="calibre22"><p class="calibre9">Use the <tt class="REPLACEABLE">COPY</tt> (or <tt class="REPLACEABLE">\copy</tt>) command to insert values from a system file.</p></li></ul>
+<div class="NAVHEADER"><h2 class="SECT"><a name="INSERTINGNEWVALUES" class="calibre8">Inserting New Values</a></h2><p class="calibre9">The following is the syntax of the <tt class="REPLACEABLE">INSERT INTO</tt> command, when used to insert
+      new values, which is subsequently described in detail:</p><pre class="SCREEN">  INSERT INTO <tt class="REPLACEABLE"><i class="EMPHASIS">table_name</i></tt>
+         [ ( <tt class="REPLACEABLE"><i class="EMPHASIS">column_name</i></tt> [, ...] ) ]
+         VALUES ( <tt class="REPLACEABLE"><i class="EMPHASIS">value</i></tt> [, ...] )</pre><p class="calibre9"> </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE"><i class="EMPHASIS">table_name</i></tt></dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE">INSERT</tt> SQL command initiates an insertion of data into the table called
+              <tt class="REPLACEABLE"><i class="EMPHASIS">table_name</i></tt>.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">( </tt><tt class="REPLACEABLE"><i class="EMPHASIS">column_name</i></tt> [, ...] )</dt><dd class="calibre16"><p class="calibre9">An optional grouped expression which describes the targeted columns for the insertion. </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">VALUES</tt></dt><dd class="calibre16"><p class="calibre9">                The SQL clause which instructs PostgreSQL to expect a grouped expression of values to follow.
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">( </tt><tt class="REPLACEABLE"><i class="EMPHASIS">value</i></tt> [, ...] )</dt><dd class="calibre16"><p class="calibre9">The required grouped expression that describes the values to be inserted. There should be one <tt class="REPLACEABLE"><i class="EMPHASIS">value</i></tt>
+              for each specified column, separated by commas. These values may be expressions themselves (e.g., an operation
+              between two values), or constants.</p></dd></dl></div>
+<p class="calibre9">Each <tt class="REPLACEABLE"><i class="EMPHASIS">value</i></tt> following the <tt class="REPLACEABLE">VALUES</tt> clause must be of the same data type as the column
+      it is being inserted into. If the optional column-target expression is omitted, PostgreSQL will expect there to be
+      one value for each column in the literal order of the table's structure. If there are fewer values to be inserted than
+      columns, PostgreSQL will attempt to insert a default value  (or the
+      <tt class="REPLACEABLE">NULL</tt> value, if there is no default) for each omitted value.  </p><p class="calibre9">To demonstrate, <a href="x5504.htm#INSERTINGNEWVALUESINTOTHEBOOKSTABLE">Example 4-16</a> illustrates the insertion of a new book
+      into Book Town's <tt class="REPLACEABLE">books</tt> table.</p><div class="NAVHEADER"><a name="INSERTINGNEWVALUESINTOTHEBOOKSTABLE"></a><p class="calibre9"><b class="calibre10">Example 4-16. Inserting new values into the <tt class="REPLACEABLE">books</tt> table</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">INSERT INTO books (id, title, author_id, subject_id)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       VALUES (41472, 'Practical PostgreSQL', 1212, 4);</b></tt>
+INSERT 3574037 1</pre></div><p class="calibre9">The SQL statement in <a href="x5504.htm#INSERTINGNEWVALUESINTOTHEBOOKSTABLE">Example 4-16</a> inserts a new book with an id of 41472, a
+      title of <span><i class="EMPHASIS">Practical PostgreSQL</i></span>, an author identifier of 1212, and a subject identifier of 4. Note the
+      feedback beginning with <tt class="REPLACEABLE">INSERT</tt>, which indicates that the insertion was successful. The first number
+      following <tt class="REPLACEABLE">INSERT</tt> is the OID (object identifier) of the freshly inserted row. The second number following
+      <tt class="REPLACEABLE">INSERT</tt> represents the number of rows inserted (in this case, 1).</p><p class="calibre9">Notice that the optional column target list is specified identically to the physical structure of the table, from
+      left to right. In this case, omitting the grouped expression would have no effect on the statement since the
+      <tt class="REPLACEABLE">INSERT</tt> statement assumes that you are inserting values in the natural order of the
+      table's columns.  You can re-arrange the names of the columns in the grouped column target list if you wish to specify
+      the values in a different order following the <tt class="REPLACEABLE">VALUES</tt> clause, as demonstrated in <a href="x5504.htm#CHANGINGTHEORDEROFTARGETCOLUMNS">Example 4-17</a>.</p><div class="NAVHEADER"><a name="CHANGINGTHEORDEROFTARGETCOLUMNS"></a><p class="calibre9"><b class="calibre10">Example 4-17. Changing the order of target columns</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">INSERT INTO books (subject_id, author_id, id, title)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       VALUES (4, 7805, 41473, 'Programming Python');</b></tt>
+INSERT 3574041 1</pre></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="INSERTINGVALUESFROMOTHERTABLESWITHSELECT" class="calibre8">Inserting Values from Other Tables with SELECT</a></h2><p class="calibre9">If you already have values within one table (or across several other tables) that you wish to insert into
+      a separate table, this can also be achieved with the <tt class="REPLACEABLE">INSERT INTO</tt> command. The
+      following syntax is used for this technique:</p><pre class="SCREEN">  INSERT INTO <tt class="REPLACEABLE"><i class="EMPHASIS">table_name</i></tt>
+         [ ( <tt class="REPLACEABLE"><i class="EMPHASIS">column_name</i></tt> [, ...] ) ]
+         <tt class="REPLACEABLE"><i class="EMPHASIS">query</i></tt></pre><p class="calibre9">Similar to the syntax of <tt class="REPLACEABLE">INSERT INTO</tt> presented in the previous section,
+      you may optionally specify which columns you wish to insert into, and in what order the <tt class="REPLACEABLE"><i class="EMPHASIS">query</i></tt> returns
+      their values. However, with this form of <tt class="REPLACEABLE">INSERT INTO</tt>, you provide a complete SQL
+      <tt class="REPLACEABLE">SELECT</tt> statement in the place of the <tt class="REPLACEABLE">VALUES</tt> keyword.</p><p class="calibre9">For example, imagine that Book Town keeps a table called <tt class="REPLACEABLE">book_queue</tt>, which holds
+      books waiting to be approved for sale. When approved, those values need to be moved from the queue, into the normal
+      <tt class="REPLACEABLE">books</tt> table. This can be achieved with the syntax demonstrated in
+      <a href="x5504.htm#INSERTINGVALUESFROMANOTHERTABLE">Example 4-18</a>.</p><div class="NAVHEADER"><a name="INSERTINGVALUESFROMANOTHERTABLE"></a><p class="calibre9"><b class="calibre10">Example 4-18. Inserting values from another table</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">INSERT INTO books (id, title, author_id, subject_id)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       SELECT nextval('book_ids'), title, author_id, subject_id</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">              FROM book_queue WHERE approved;</b></tt>
+INSERT 0 2</pre></div><p class="calibre9">The preceding example demonstrates the insertion of two rows from the table
+      <tt class="REPLACEABLE">book_queue</tt> into the <tt class="REPLACEABLE">books</tt> table by way of a
+      <tt class="REPLACEABLE">SELECT</tt> statement that is passed to the <tt class="REPLACEABLE">INSERT INTO</tt> command. Any
+      valid <tt class="REPLACEABLE">SELECT</tt> statement may be used in this context. In this case, the query selects the result of a
+      function called <tt class="REPLACEABLE">nextval()</tt> from a sequence called <tt class="REPLACEABLE">book_ids</tt>, followed
+      by the <tt class="REPLACEABLE">title</tt>, <tt class="REPLACEABLE">author_id</tt> and <tt class="REPLACEABLE">subject_id</tt>
+      columns from the <tt class="REPLACEABLE">book_queue</tt> table.</p><p class="calibre9">Since more than one row is being inserted, the <tt class="REPLACEABLE">INSERT</tt> result indicating success returns
+      0 in place of the OID that would be returned if a single row had been inserted. The second number, as with
+      a normal <tt class="REPLACEABLE">INSERT INTO</tt> command, returns the number of rows inserted (in this case, 2).</p></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN5631" class="calibre8">Copying Values from External Files with COPY</a></h2><p class="calibre9">A useful technique within PostgreSQL is to use the <tt class="REPLACEABLE">COPY</tt> command to insert values
+      directly into tables from external files.  Files used for input by <tt class="REPLACEABLE">COPY</tt> must either be
+      in standard ASCII text format, whose fields are delimited by a uniform symbol, or in PostgreSQL's binary table format.
+      Common delimiters for ASCII files are tabs and commas.  When using an ASCII formatted input file with
+      <tt class="REPLACEABLE">COPY</tt>, each line within the file will be treated as a row of data to be inserted and
+      each delimited field will be treated as a column value. </p><p class="calibre9">The <tt class="REPLACEABLE">COPY FROM</tt> command operates much faster than a normal
+      <tt class="REPLACEABLE">INSERT</tt> command because the data is read as a single transaction directly
+      to the target table. On the other hand, it is a very strict format, and the entire <tt class="REPLACEABLE">COPY</tt>
+      procedure will fail if just one line is malformed.</p><p class="calibre9">The following is the syntax for using the <tt class="REPLACEABLE">COPY FROM</tt> command, where
+      <tt class="REPLACEABLE"><i class="EMPHASIS">table_name</i></tt> is the table that you wish to insert values into and <tt class="REPLACEABLE"><i class="EMPHASIS">filename</i></tt> is
+      the absolute system path to the from which file to be read:</p><pre class="SCREEN">  COPY [ BINARY ] <tt class="REPLACEABLE"><i class="EMPHASIS">table_name</i></tt> [ WITH OIDS ]
+       FROM { '<tt class="REPLACEABLE"><i class="EMPHASIS">filename</i></tt>' | stdin }
+       [ [USING] DELIMITERS '<tt class="REPLACEABLE"><i class="EMPHASIS">delimiter</i></tt>' ]
+       [ WITH NULL AS '<tt class="REPLACEABLE"><i class="EMPHASIS">null_string</i></tt>' ]</pre><p class="calibre9"> </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">BINARY</tt></dt><dd class="calibre16"><p class="calibre9">Indicates that input will come from a binary
+              file previously created by the <tt class="REPLACEABLE">COPY TO</tt> command.
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE"><i class="EMPHASIS">table_name</i></tt></dt><dd class="calibre16"><p class="calibre9">The name of the table you are copying.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">WITH OIDS</tt></dt><dd class="calibre16"><p class="calibre9">Instructs PostgreSQL to retrieve all of the OIDs of the table represented by <tt class="REPLACEABLE"><i class="EMPHASIS">filename</i></tt>
+              from the first line of the file.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">FROM { '</tt><tt class="REPLACEABLE"><i class="EMPHASIS">filename</i></tt>' | stdin }</dt><dd class="calibre16"><p class="calibre9">Indicates that either the file specified with <tt class="REPLACEABLE"><i class="EMPHASIS">filename</i></tt> or standard input (<tt class="REPLACEABLE">stdin</tt>)
+              should be read by PostgreSQL.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">[ USING ] DELIMITERS '</tt><tt class="REPLACEABLE"><i class="EMPHASIS">delimiter</i></tt>'</dt><dd class="calibre16"><p class="calibre9">Indicates the character provided with <tt class="REPLACEABLE"><i class="EMPHASIS">delimiter</i></tt> should be used as a delimiter when parsing input.
+              This clause is not applicable to files that were output in PostgreSQL's binary format.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">WITH NULL AS '</tt><tt class="REPLACEABLE"><i class="EMPHASIS">null_string</i></tt>'</dt><dd class="calibre16"><p class="calibre9">Indicates that the character(s) provided with <tt class="REPLACEABLE"><i class="EMPHASIS">null_string</i></tt> should be interpreted as 
+              <tt class="REPLACEABLE">NULL</tt> values. This clause is not applicable to files that were output in PostgreSQL's binary format.</p></dd></dl></div>
+<p class="calibre9">When preparing to copy a file from the underlying operating system, remember that the file specified must be readable
+      by the <span><i class="EMPHASIS">postmaster</i></span> process (i.e., the user which PostgreSQL is running as), since the
+      backend reads the file directly. Additionally, the filename must be provided with an absolute path; an attempt to use a
+      relative path will result in an error.</p><p class="calibre9">If you are using an ASCII formatted input file, a <tt class="REPLACEABLE"><i class="EMPHASIS">delimiter</i></tt> value may be passed to the
+      <tt class="REPLACEABLE">DELIMITERS</tt> clause, which defines the character which delimits columns on a single line in
+      the filename. If omitted, PostgreSQL will assume that the ASCII file is tab-delimited. The optional
+      <tt class="REPLACEABLE">WITH NULL</tt> clause allows you to specify in what form to expect
+      <tt class="REPLACEABLE">NULL</tt> values. If omitted, PostgreSQL interprets the <tt class="REPLACEABLE">\N</tt>
+      sequence as a <tt class="REPLACEABLE">NULL</tt> value to be inserted (e.g., blank fields in a source file will be
+      treated as blank string constants, rather than <tt class="REPLACEABLE">NULL</tt>, by default).</p><p class="calibre9">The <tt class="REPLACEABLE">stdin</tt> term may be supplied as the source for the <tt class="REPLACEABLE">FROM</tt>
+      clause if you wish to type values in manually or paste from another location directly into a terminal session. If you
+      choose to enter values from stdin, you must terminate the input stream with a <tt class="REPLACEABLE">\.</tt> sequence
+      (backslash-period) followed immediately by a newline.</p><p class="calibre9"><a href="x5504.htm#ANEXAMPLEASCIICOPYFILE">Example 4-19</a> shows the contents of a file that was output in ASCII format by PostgreSQL.
+      The file in <a href="x5504.htm#ANEXAMPLEASCIICOPYFILE">Example 4-19</a> is comma-delimited and uses <tt class="REPLACEABLE">\null</tt> to
+      represent <tt class="REPLACEABLE">NULL</tt> values. It contains row data from the Book Town
+      <tt class="REPLACEABLE">subjects</tt> table.</p><div class="NAVHEADER"><a name="ANEXAMPLEASCIICOPYFILE"></a><p class="calibre9"><b class="calibre10">Example 4-19. An example ASCII copy file</b></p><pre class="SCREEN">1,Business,Productivity Ave
+2,Children's Books,Kids Ct
+3,Classics,Academic Rd
+4,Computers,Productivity Ave
+5,Cooking,Creativity St
+12,Religion,\null
+8,History,Academic Rd
+9,Horror,Black Raven Dr
+10,Mystery,Black Raven Dr
+11,Poetry,Sunset Dr
+13,Romance,Main St
+14,Science,Productivity Ave
+15,Science Fiction,Main St
+0,Arts,Creativity St
+6,Drama,Main St
+7,Entertainment,Main St</pre></div><p class="calibre9">The statement in <a href="x5504.htm#COPYINGANASCIIFILE">Example 4-20</a> copies the file
+      (<span><i class="EMPHASIS">/tmp/subjects.sql</i></span>) into a table within the <tt class="REPLACEABLE">booktown</tt> database's
+      <tt class="REPLACEABLE">subjects</tt> table.</p><div class="NAVHEADER"><a name="COPYINGANASCIIFILE"></a><p class="calibre9"><b class="calibre10">Example 4-20. Copying an ASCII file</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">COPY subjects FROM '/tmp/subjects.sql'</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">              USING DELIMITERS ',' WITH NULL AS '\null';</b></tt>
+COPY</pre></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN5738" class="calibre8">Binary format</a></h3><p class="calibre9">The <tt class="REPLACEABLE">COPY</tt> command can also input and output both binary formatted data.  Specifying
+        to the <tt class="REPLACEABLE">COPY FROM</tt> command the <tt class="REPLACEABLE">BINARY</tt> keyword requires
+        that the input file specified was created with the <tt class="REPLACEABLE">COPY TO</tt> command in PostgreSQL's
+        binary format. Binary files can be read more quickly than ASCII files, but are not readable or modifiable with plain-text
+        editors as ASCII files are.</p><p class="calibre9"><a href="x5504.htm#COPYINGABINARYFILE">Example 4-21</a> uses the <tt class="REPLACEABLE">COPY</tt> command to insert the rows in
+        the binary output file from the <tt class="REPLACEABLE">subjects</tt> table within the
+        <tt class="REPLACEABLE">booktown</tt> database.</p><div class="NAVHEADER"><a name="COPYINGABINARYFILE"></a><p class="calibre9"><b class="calibre10">Example 4-21. Copying a binary file</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">COPY BINARY subjects FROM '/tmp/subjects.sql';</b></tt>
+COPY</pre></div></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN5754" class="calibre8">The difference between COPY and \copy</a></h3><p class="calibre9">The <tt class="REPLACEABLE">COPY</tt> command is <span><i class="EMPHASIS">not</i></span> the same as the
+        <span><i class="EMPHASIS">psql</i></span> <tt class="REPLACEABLE">\copy</tt> command.  The <tt class="REPLACEABLE">\copy</tt> command
+        accepts the same syntax (though without a terminating semicolon), and therefore performs the operation via the
+        <span><i class="EMPHASIS">psql</i></span> client, rather than the <span><i class="EMPHASIS">postmaster</i></span> server. The result is that
+        <tt class="REPLACEABLE">\copy</tt> operates with the permissions of the user running <span><i class="EMPHASIS">psql</i></span> rather
+        than of the user the <span><i class="EMPHASIS">postmaster</i></span> is running as.</p></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN5774" class="calibre8">COPY TO</a></h3><p class="calibre9">The syntax of <tt class="REPLACEABLE">COPY FROM</tt> may be used with nearly identical syntax to send a
+        table's data to a file. You need only replace the <tt class="REPLACEABLE">FROM</tt> keyword with the
+        <tt class="REPLACEABLE">TO</tt> keyword. Additionally, the <tt class="REPLACEABLE">stdin</tt> keyword may be
+        replaced with <tt class="REPLACEABLE">stdout</tt> if you wish to redirect to standard output rather than to a file
+        (e.g., to the screen, in <span><i class="EMPHASIS">psql</i></span> ).  <a href="x5504.htm#COPYINGTHEBOOKSTABLETOASCII">Example 4-22</a> shows how you would
+        copy the <tt class="REPLACEABLE">books</tt> table to an ASCII formatted file.</p><div class="NAVHEADER"><a name="COPYINGTHEBOOKSTABLETOASCII"></a><p class="calibre9"><b class="calibre10">Example 4-22. Copying the books table to an ASCII file</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">COPY books TO 'filename';</b></tt>
+COPY</pre></div></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN5789" class="calibre8">Copying WITH OIDS</a></h3><p class="calibre9">Files containing row data with object identifier values (created with the
+        
+        <tt class="REPLACEABLE">COPY TO</tt> command, involving the <tt class="REPLACEABLE">WITH OIDS</tt> clause) can
+        be read by a <tt class="REPLACEABLE">COPY FROM</tt> command, if the <tt class="REPLACEABLE">WITH OIDS</tt>
+        clause is specified. Attempts to use the <tt class="REPLACEABLE">COPY FROM</tt> command with the
+        <tt class="REPLACEABLE">WITH OIDS</tt> clause on a file that wasn't given OIDs during its creation will
+        fail.</p><p class="calibre9">The ability to copy values into a table with object-identifiers is a special capability reserved for
+        <tt class="REPLACEABLE">COPY</tt>. This value cannot be modified by <tt class="REPLACEABLE">INSERT</tt> or
+        <tt class="REPLACEABLE">UPDATE</tt>, as it is a system value. If you are not careful, you may end up with two rows
+        which have the same OID, which potentially negates their usefulness.</p></div></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="x5021.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x5802.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Using Tables</td><td width="34%" valign="top" class="calibre4"><a href="c4890.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Retrieving Rows with SELECT</td></tr></table></div></div>
+
+{% endraw %}
+

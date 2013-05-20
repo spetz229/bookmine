@@ -1,0 +1,648 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0089.html
+next: f_0091.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.special.registers">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 60</td>
+<td class="arr-recipe-name">Grok Vim’s Registers</td>
+</tr>
+</table>
+<p id="N165C8" class="calibre4">
+<span class="calibre5">
+        Rather than using a single clipboard for all cut, copy, and paste operations, Vim provides multiple registers. When we use the delete, yank, and put commands, we can specify which register we want to interact with.
+    </span>
+</p>
+<h3 class="calibre22">Addressing a Register</h3>
+<p id="N165DA" class="calibre4">
+        The delete, yank, and put commands all interact with one of Vim’s registers. We can specify which register we want to use by prefixing the command with <span class="calibre17">"{register}</span>. If we don’t specify a register, then Vim will use the unnamed register.
+      </p>
+<p id="N165E5" class="calibre4">
+        For example, if we wanted to yank the current word into register <code class="cf">a</code>, we could run <span class="calibre17">"ayiw</span>. Or if we wanted to cut the current line into register <code class="cf">b</code>, we could run <span class="calibre17">"bdd</span>. Then we could paste the word from register <code class="cf">a</code> by typing <span class="calibre17">"ap</span>, or we could paste the line from register <code class="cf">b</code> by typing <span class="calibre17">"bp</span>.
+      </p>
+<p id="N16600" class="calibre4">
+        In addition to the Normal mode commands, Vim also provides Ex commands for delete, yank, and put operations. We could cut the current line into register <code class="cf">c</code> by running <code class="cf">:delete c</code>, and then we could paste it below the current line with the <code class="cf">:put c</code> command. These may seem verbose in comparison with the Normal mode commands, but they’re useful in combination with other Ex commands and in Vim scripts. For example, <a xmlns:str="http://exslt.org/strings" href="f_0135.html#sec.todo.register">Tip 99</a>, shows how <code class="cf">:yank</code> can be used with the <code class="cf">:global</code> command.
+      </p>
+<h3 class="calibre22">The Unnamed Register (<code class="cf2">""</code>)</h3>
+<p id="N16622" class="calibre4">
+        If we don’t specify which register we want to interact with, then Vim will use the unnamed register, which is addressed by the <code class="cf">"</code> symbol (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">quote_quote</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/change.html#quote_quote">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). To address this register explicitly, we have to use two double quote marks: for example, <span class="calibre17">""p</span>, which is effectively equivalent to <span class="calibre17">p</span> by itself.
+      </p>
+<p id="N1663A" class="calibre4">
+        The <span class="calibre17">x</span>, <span class="calibre17">s</span>, <span class="calibre17">d{motion}</span>, <span class="calibre17">c{motion}</span>, and <span class="calibre17">y{motion}</span> commands (and their uppercase equivalents) all set the contents of the unnamed register. In each case, we can prefix <span class="calibre17">"{register}</span> to specify another register, but the unnamed register is the default. The fact that it’s so easy to overwrite the contents of the unnamed register can cause problems if we’re not careful.
+      </p>
+<p id="N16672" class="calibre4">
+        Consider again the example in <a xmlns:str="http://exslt.org/strings" href="f_0089.html#sec.clobber">​<em class="calibre5">Oops! I Clobbered My Yank</em>​</a>. We start off by yanking some text (the word “collection”) with the intention of pasting it elsewhere. Before we can paste it, we have to clear a space by deleting some text that is in our way, which overwrites the contents of the unnamed register. When we use the <span class="calibre17">p</span> command, we get back the text that we just <span class="calibre5">deleted</span>, rather than getting the text that we <span class="calibre5">yanked</span> previously.
+      </p>
+<p id="N16682" class="calibre4">
+        Vim’s choice of terminology is unfortunate. The <span class="calibre17">x</span> and <span class="calibre17">d{motion}</span> commands are usually referred to as “delete” commands. This is a misnomer. It’s better to think of them as “cut” commands. The unnamed register often doesn’t contain the text that I expected to find there, but luckily, the yank register (which we’ll meet next) is more dependable.
+      </p>
+<h3 class="calibre22">The Yank Register (<code class="cf2">"0</code>)</h3>
+<p id="N16692" class="calibre4">
+        When we use the <span class="calibre17">y{motion}</span> command, the specified text is copied not only into the unnamed register but also into the yank register, which is addressed by the <code class="cf">0</code> symbol (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">quote0</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/change.html#quote0">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>).
+      </p>
+<p id="N166AC" class="calibre4">
+        As the name suggests, the yank register is set only when we use the <span class="calibre17">y{motion}</span> command. To put it another way: it’s not set by the <span class="calibre17">x</span>, <span class="calibre17">s</span>, <span class="calibre17">c{motion}</span>, and <span class="calibre17">d{motion}</span> commands. If we yank some text, we can be sure that it will stick around in register <code class="cf">0</code> until we explicitly overwrite it by yanking something else. The yank register is reliable, whereas the unnamed register is volatile.
+      </p>
+<p id="N166C1" class="calibre4">
+        We can use the yank register to solve our problem from <a xmlns:str="http://exslt.org/strings" href="f_0089.html#sec.clobber">​<em class="calibre5">Oops! I Clobbered My Yank</em>​</a>:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">yiw</span>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">c</span>ollection = getCollection();​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​process(somethingInTheWay, target);​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">jww</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​collection = getCollection();​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​process(<span class="shade-fg-white">s</span>omethingInTheWay, target);​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">diw</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​collection = getCollection();​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​process(<span class="shade-fg-white">,</span> target);​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">"0P</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​collection = getCollection();​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​process(collectio<span class="shade-fg-white">n</span>, target);​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N16738" class="calibre4">
+        The <span class="calibre17">diw</span> command still overwrites the unnamed register, but it leaves the yank register untouched. We can safely paste from the yank register by pressing <span class="calibre17">"0P</span>, and Vim gives us the text that we want.
+      </p>
+<p id="N16746" class="calibre4">
+        If we inspect the contents of the unnamed and yank registers, we’ll see that they contain the text that we deleted and yanked, respectively:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:reg "0</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​--- Registers ---​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​""  somethingInTheWay​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​"0  collection​</code>​</div>
+</td>
+</tr>
+</table>
+<h3 class="calibre22">The Named Registers (<code class="cf2">"a</code>--<code class="cf2">"z</code>)</h3>
+<p id="N16770" class="calibre4">
+        Vim has one named register for each letter of the alphabet (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">quote_alpha</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/change.html#quote_alpha">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). That means that we can cut (<span class="calibre17">"ad{motion}</span>), copy (<span class="calibre17">"ay{motion}</span>), or paste (<span class="calibre17">"ap</span>) up to twenty-six pieces of text.
+      </p>
+<p id="N16788" class="calibre4">
+        We could use a named register to solve our problem from <a xmlns:str="http://exslt.org/strings" href="f_0089.html#sec.clobber">​<em class="calibre5">Oops! I Clobbered My Yank</em>​</a>:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">"ayiw</span>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">c</span>ollection = getCollection();​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​process(somethingInTheWay, target);​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">jww</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​collection = getCollection();​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​process(<span class="shade-fg-white">s</span>omethingInTheWay, target);​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">diw</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​collection = getCollection();​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​process(<span class="shade-fg-white">,</span> target);​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">"aP</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​collection = getCollection();​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​process(collectio<span class="shade-fg-white">n</span>, target);​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N167FF" class="calibre4">
+        Using a named register requires extra keystrokes, so for a simple example like this we’re better off using the yank register (<code class="cf">"0</code>). Named registers can become really useful when we’ve got one or more pieces of text that we want to paste in several places.
+      </p>
+<p id="N16805" class="calibre4">
+        When we address a named register with a lowercase letter, it <span class="calibre5">overwrites</span> the specified register, whereas when we use an uppercase letter, it <span class="calibre5">appends to</span> the specified register. Skip ahead to <a xmlns:str="http://exslt.org/strings" href="f_0135.html#sec.todo.register">Tip 99</a>, to see a demonstration of appending to a register.
+      </p>
+<h3 class="calibre22">The Black Hole Register (<code class="cf2">"_</code>)</h3>
+<p id="N1682D" class="calibre4">
+        The black hole register is a place from which nothing returns. It’s addressed by the underscore symbol (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">quote_</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/change.html#quote_">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). If we run the command <span class="calibre17">"_d{motion}</span>, then Vim deletes the specified text without saving a copy of it. This can be useful if we want to delete text without overwriting the contents of the unnamed register.
+      </p>
+<p id="N16844" class="calibre4">
+        We could use the black hole register to solve our problem from <a xmlns:str="http://exslt.org/strings" href="f_0089.html#sec.clobber">​<em class="calibre5">Oops! I Clobbered My Yank</em>​</a>:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">yiw</span>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">c</span>ollection = getCollection();​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​process(somethingInTheWay, target);​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">jww</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​collection = getCollection();​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​process(<span class="shade-fg-white">s</span>omethingInTheWay, target);​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">"_diw</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​collection = getCollection();​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​process(<span class="shade-fg-white">,</span> target);​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">P</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​collection = getCollection();​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​process(collectio<span class="shade-fg-white">n</span>, target);​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sec.clipboard.register" class="calibre22">The System Clipboard (<code class="cf2">"+</code>) and Selection (<code class="cf2">"*</code>) Registers</h3>
+<p id="N168C6" class="calibre4">
+        All of the registers that we’ve discussed so far are internal to Vim. If we want to copy some text from inside of Vim and paste it into an external program (or vice versa), then we have to use one of the system clipboards.
+      </p>
+<p id="N168EA" class="calibre4">
+        Vim’s plus register references the system clipboard and is addressed by the <code class="cf">+</code> symbol (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">quote+</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/gui_x11.html#quote+">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>).
+      </p>
+<p id="N168F4" class="calibre4">
+        If we use the cut or copy command to capture text in an external application, then we can paste it inside Vim using <span class="calibre17">"+p</span> command (or <span class="calibre17">&lt;C-r&gt;+</span> from the Insert mode). Conversely, if we prefix Vim’s yank or delete commands with <span class="calibre17">"+</span>, the specified text will be captured in the system clipboard. That means  we can easily paste it inside other applications.
+      </p>
+<p id="N16900" class="calibre4">
+        The X11 windowing system has a second kind of clipboard called the <span class="calibre5">primary</span>. This represents the most recently selected text, and we can use the middle mouse button (if we have one) to paste from it. Vim’s quotestar register maps to the primary clipboard and is addressed by the <code class="cf">*</code> symbol (<strong xmlns:str="http://exslt.org/strings" class="calibre10">quotestar</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/gui.html#quotestar">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>).
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">"+</code>
+</p>
+</td>
+<td class="calibre24">
+<p class="last-para-in-cell">The X11 clipboard, used with cut, copy, and paste</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">"*</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">The X11 primary, used with middle mouse button</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N16937" class="calibre4">
+        In Windows and Mac OS X, there is no primary clipboard, so we can use the <code class="cf">"+</code> and <code class="cf">"*</code> registers interchangeably: they both represent the system clipboard.
+      </p>
+<p id="N1694A" class="calibre4">
+        Vim can be compiled with or without support for X11 clipboard integration. To find out whether your version of Vim has the feature enabled, run the <code class="cf">:version</code> command and look for <code class="cf">xterm_clipboard</code>. If it’s prefixed with a minus sign, then your version of Vim does not support this feature. A plus sign means that the feature is available.
+      </p>
+<h3 class="calibre22">The Expression Register (<code class="cf2">"=</code>)</h3>
+<p id="N1695A" class="calibre4">
+        Vim’s registers can be thought of simply as containers that hold a block of text. The expression register, referenced by the <code class="cf">=</code> symbol (<strong xmlns:str="http://exslt.org/strings" class="calibre10">quote=</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/change.html#quote=">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>), is an exception. When we fetch the contents of the expression register, Vim drops into Command-Line mode, showing an <code class="cf">=</code> prompt. We can enter a Vim script expression and then press <span class="calibre17">&lt;CR&gt;</span> to execute it. If the expression returns a string (or a value that can be easily coerced into a string), then Vim uses it.
+      </p>
+<p id="N1697D" class="calibre4">
+        For examples of the expression register in action, check out <a xmlns:str="http://exslt.org/strings" href="f_0036.html#sec.insert.expression">Tip 16</a>, <a xmlns:str="http://exslt.org/strings" href="f_0130.html#sec.substitute.swap">Tip 95</a>, <a xmlns:str="http://exslt.org/strings" href="f_0129.html#sec.substitute.arithmetic">Tip 94</a>, and <a xmlns:str="http://exslt.org/strings" href="f_0101.html#sec.macro.increment">Tip 70</a>.
+      </p>
+<h3 class="calibre22">More Registers</h3>
+<p id="N16994" class="calibre4">
+        We can set the contents of the named, unnamed, and yank registers explicitly using the delete and yank commands. In addition, Vim provides a handful of registers whose values are set implicitly. These are known collectively as the read-only registers (<strong xmlns:str="http://exslt.org/strings" class="calibre10">quote.</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/change.html#quote.">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). The following table summarizes them:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Register</th>
+<th class="hlines">Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">"%</code>
+</p>
+</td>
+<td class="calibre24">
+<p class="last-para-in-cell">
+		  Name of the current file</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">"#</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Name of the alternate file</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">".</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+		  Last inserted text</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">":</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+		  Last Ex command</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">"/</code>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+		  Last search pattern</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N169F2" class="calibre4">
+        Technically, the <code class="cf">"/</code> register is not read-only—it can be set explicitly using the <code class="cf">:let</code> command (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">quote/</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/change.html#quote">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>)—but it’s included in this table for convenience.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

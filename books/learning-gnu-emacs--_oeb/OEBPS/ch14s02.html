@@ -1,0 +1,391 @@
+---
+layout: page
+title: "Learning GNU Emacs, 3rd Edition"
+prev: OEBPS/ch14.html
+next: OEBPS/ch14s03.html
+book_path: books/learning-gnu-emacs--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h1 class="title"><a id="gnu3-CHP-14-SECT-2" class="calibre1"></a>Help Commands</h1></div></div></div><p class="copyright">Emacs has many help
+<a id="gnu3-CHP-14-ITERM-2985" class="calibre2"></a>
+            <a id="gnu3-CHP-14-ITERM-2986" class="calibre2"></a>commands,
+which are available as standard Emacs commands or as options to the
+<span><strong class="calibre5">C-h</strong></span> help key. They can be used to
+find information about commands, keystrokes, variables, modes, and
+various things about Emacs in general. The most basic help command is
+<span><strong class="calibre5">C-h C-h</strong></span> (<span><strong class="calibre5">help-for-help</strong></span>). <span><strong class="calibre5">C-h
+?</strong></span> also invokes <span><strong class="calibre5">help-for-help</strong></span>. This command causes Emacs to
+open a <code class="calibre21">*Help*</code> buffer in a window with descriptions
+of all the help commands. You can type any one of these help keys,
+or, if you press <span><strong class="calibre5">Space</strong></span>, the
+<code class="calibre21">*Help*</code> window scrolls down as if you pressed
+<span><strong class="calibre5">C-v</strong></span>. Any other key aborts the whole
+process. If you scroll to the bottom of the help documentation, you
+can type a help key or any other key to abort.</p><p class="copyright">The keys listed in the <code class="calibre21">*Help*</code> are those that, when
+appended to your help key, run Emacs help commands at any time. Help
+commands fall into two general categories: those that provide answers
+to specific questions and those that give general information about
+Emacs.</p><p class="copyright">You will find the help commands in the former category to be
+invaluable after you have become comfortable with Emacs. Because it
+is so large and functionally rich, there will be times when you need
+to look up a detail such as a keystroke or command name or when you
+need to do something with Emacs that you don't know
+exactly how to do. As we've repeated again and again
+throughout this book, Emacs probably does what you want; you just
+need to figure out how. The help commands let you find these things
+out immediately, without leaving Emacs and without being a slave to
+your reference manual (or even this book).</p><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-14-SECT-2.1" class="calibre1"></a>Detail Information</h2></div></div></div><p class="copyright">Let's start with the help commands
+<a id="gnu3-CHP-14-ITERM-2987" class="calibre2"></a>that
+are useful when you need to look up a specific detail.
+You'll probably use the commands listed in <a class="calibre2" href="ch14s02.html#gnu3-CHP-14-TABLE-1" title="Table 14-1. Detail information help commands">Table 14-1</a> most often.</p><div class="book"><a id="gnu3-CHP-14-TABLE-1" class="calibre2"></a><p class="title2"><b class="calibre25">Table 14-1. Detail information help commands</b></p><div class="table-contents"><table summary="Detail information help commands" class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre26">
+                           <p class="copyright">Keystrokes</p>
+                        </th><th class="calibre26">
+                           <p class="copyright">Command name</p>
+                        </th><th class="calibre27">
+                           <p class="copyright">Question answered</p>
+                        </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-h c</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">describe-key-briefly</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">What command does this keystroke sequence run?</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-h k</strong></span> 
+                              <span><em class="calibre7">Help</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Describe</em></span> 
+                              <span>→</span>
+                              <span><em class="calibre7">Describe Key</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">describe-key</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">What command does this keystroke sequence run, and what does it do?</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-h f</strong></span> 
+                              <span><em class="calibre7">Help</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Describe</em></span> 
+                              <span>→</span>
+                              <span><em class="calibre7">Describe Function</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">describe-function</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">What does this function do?</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-h v</strong></span> 
+                              <span><em class="calibre7">Help</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Describe</em></span> 
+                              <span>→</span>
+                              <span><em class="calibre7">Describe Variable</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">describe-variable</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">What does this variable mean, and what is its value?</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-h m</strong></span> 
+                              <span><em class="calibre7">Help</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Describe</em></span> 
+                              <span>→</span>
+                              <span><em class="calibre7">Describe Buffer Modes</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">describe-mode</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Tell me about the modes the current buffer is in.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-h b</strong></span> 
+                              <span><em class="calibre7">Help</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Describe</em></span> 
+                              <span>→</span>
+                              <span><em class="calibre7">List Key Bindings</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">describe-bindings</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">What are all the key bindings for this buffer?</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-h w</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">where-is</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">What is the key binding for this command?</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-h s</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">describe-syntax</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">What is the syntax table for this buffer?</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-h l</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">view-lossage</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">What are the last 100 characters I typed?</p>
+                        </td></tr><tr class="calibre12"><td class="calibre30">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-h e</strong></span>
+                           </p>
+                        </td><td class="calibre30">
+                           <p class="copyright">
+                              <span><strong class="calibre5">view-echo-area-messages</strong></span>
+                           </p>
+                        </td><td class="calibre31">
+                           <p class="copyright">What messages have appeared in the minibuffer during this session?</p>
+                        </td></tr></tbody></table></div></div><br class="book"/><p class="copyright">What if you press the wrong key, and something happens to your
+buffer—but you're not sure what? Usually, the
+safest thing to do is to press <span><strong class="calibre5">C-_</strong></span>
+or <span><strong class="calibre5">C-x u</strong></span> (<span><strong class="calibre5">undo</strong></span>). But sometimes this command
+won't help, for example, a runaway <span><strong class="calibre5">replace-string</strong></span>. If you remember what you
+typed, you can use <span><strong class="calibre5">C-h c</strong></span> (for
+<span><strong class="calibre5">describe-key-briefly</strong></span>) to see what
+command was run; just retype the offending keystroke(s) at the
+prompt, and Emacs responds with the name of the command bound to the
+key(s) in the minibuffer. If the command name alone
+doesn't help, <span><strong class="calibre5">C-h k</strong></span>
+(for <span><strong class="calibre5">describe-key</strong></span>) pops up a
+<code class="calibre21">*Help*</code> window with a description of the command as
+well as its name and key binding. (<span><strong class="calibre5">C-h
+k</strong></span> and <span><strong class="calibre5">C-h c</strong></span> also help you
+find out what command a toolbar icon or menu item runs.)</p><p class="copyright">However, if you don't know what keys you pressed,
+you can type <span><strong class="calibre5">C-h l</strong></span> (for <span><strong class="calibre5">view-lossage</strong></span>). This pops up a
+<code class="calibre21">*Help*</code> window showing the last 100 keystrokes you
+typed; the offending ones are likely near the end, and you can use
+<span><strong class="calibre5">C-h c</strong></span> or <span><strong class="calibre5">C-h
+k</strong></span> with those keystrokes.</p><p class="copyright">Now suppose you want information on a command that
+isn't bound to keystrokes. Type <span><strong class="calibre5">C-h f</strong></span> (for <span><strong class="calibre5">describe-function</strong></span>) and enter the name of the
+command at the prompt; Emacs responds with a
+<code class="calibre21">*Help*</code> window containing the documentation for
+that command. If you remember the name of a command but forget its
+binding, type <span><strong class="calibre5">C-h w</strong></span> (for <span><strong class="calibre5">where-is</strong></span>). This is the
+"opposite" of <span><strong class="calibre5">C-h c</strong></span>; it shows the key binding for a given
+command in the minibuffer, or the message
+<em class="calibre7"><code class="calibre21">command-name</code></em>  
+               <code class="calibre21">is not on any
+keys</code> if the command has no binding.</p><p class="copyright">You may forget a detail that involves the value of a variable. For
+example, will Emacs respect or ignore case during a search (the
+variable <span><strong class="calibre5">case-fold-search</strong></span>)? How
+often are my buffers being auto-saved (the variable <span><strong class="calibre5">auto-save-interval</strong></span>)? If you type <span><strong class="calibre5">C-h v</strong></span> (for <span><strong class="calibre5">describe-variable</strong></span>) followed by the name of the
+variable, Emacs puts its value as well as its documentation in a
+<code class="calibre21">*Help*</code> window. <span><strong class="calibre5">C-h
+f</strong></span>, <span><strong class="calibre5">C-h w</strong></span>, and <span><strong class="calibre5">C-h v</strong></span> all allow you to use completion when
+typing command or variable names. <span><strong class="calibre5">C-h
+f</strong></span> and <span><strong class="calibre5">C-h v</strong></span> are also
+especially useful to Emacs Lisp programmers; note that <span><strong class="calibre5">C-h f</strong></span> gives you information on
+<span><em class="calibre7">all</em></span> functions, not just those bound to
+keystrokes as commands.</p><p class="copyright">Another common help situation arises when you use a special mode,
+such as shell mode or a mode for a programming language or text
+processor, and you forget a command specific to that mode or some
+other characteristic such as indentation conventions. If you type
+<span><strong class="calibre5">C-h m</strong></span> (for <span><strong class="calibre5">describe-mode</strong></span>) in a buffer running the mode,
+Emacs pops up a <code class="calibre21">*Help*</code> window showing the
+mode's documentation. Documentation for a mode
+usually includes all of its local key bindings (for example, all the
+commands special to the mode and their associated keystrokes),
+customization variables, and other interesting characteristics.</p><p class="copyright">What if you want to find out all the keyboard commands available in a
+given mode? <span><strong class="calibre5">C-h b</strong></span> (for <span><strong class="calibre5">describe-bindings</strong></span>) gives you a
+<code class="calibre21">*Help*</code> window showing <span><em class="calibre7">all</em></span> key
+bindings active in the current buffer, including local
+(buffer-specific) as well as global ones. It also lists all bindings
+for mouse actions, menu options, and function keys.</p><p class="copyright">
+               <span><strong class="calibre5">C-h b</strong></span> produces quite a lot of
+output. If you want to limit this output to only those key bindings
+with a particular prefix, type that prefix followed by <span><strong class="calibre5">C-h</strong></span>. For example, typing <span><strong class="calibre5">C-x C-h</strong></span> produces a <code class="calibre21">*Help*</code>
+window listing all key bindings that begin with <span><strong class="calibre5">C-x</strong></span>.</p><p class="copyright">
+               <span><strong class="calibre5">C-h s</strong></span> (for <span><strong class="calibre5">describe-syntax</strong></span>) is a more specialized
+command, designed for Lisp programmers. It produces a
+<code class="calibre21">*Help*</code> window with a description of the
+<span><em class="calibre7">syntax table</em></span> (see <a class="calibre2" href="ch09.html" title="Chapter 9. Computer Language Support">Chapter 9</a>) active in the current buffer.</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-14-SECT-2.2" class="calibre1"></a>Apropos Commands</h2></div></div></div><p class="copyright">Another type of help command applies
+<a id="gnu3-CHP-14-ITERM-2988" class="calibre2"></a>
+               <a id="gnu3-CHP-14-ITERM-2989" class="calibre2"></a>
+               <a id="gnu3-CHP-14-ITERM-2990" class="calibre2"></a>when you want Emacs to do
+something, but you're not sure exactly what command
+to use or what variable to set. These are <span><strong class="calibre5">apropos</strong></span> commands, which resemble a rudimentary
+information retrieval system of the type found at many libraries. The
+<span><strong class="calibre5">apropos</strong></span> command has several forms,
+shown in <a class="calibre2" href="ch14s02.html#gnu3-CHP-14-TABLE-2" title="Table 14-2. Apropos commands">Table 14-2</a>.</p><div class="book"><a id="gnu3-CHP-14-TABLE-2" class="calibre2"></a><p class="title2"><b class="calibre25">Table 14-2. Apropos commands</b></p><div class="table-contents"><table summary="Apropos commands" class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre26">
+                           <p class="copyright">Keystrokes</p>
+                        </th><th class="calibre26">
+                           <p class="copyright">Command name</p>
+                        </th><th class="calibre27">
+                           <p class="copyright">Question answered</p>
+                        </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-h a</strong></span>
+                              <span><em class="calibre7">Help</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Search Documentation</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Find Commands by Name</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">apropos-command</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">What commands include this word?</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">(<span><em class="calibre7">none</em></span>)
+<span><em class="calibre7">Help</em></span> 
+                              <span>→</span> 
+                              <span><em class="calibre7">Search
+Documentation</em></span> 
+                              <span>→</span> 
+                              <span><em class="calibre7">Find Options by
+Name</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">apropos-variable</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">What variables include this regular expression?</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">(<span><em class="calibre7">none</em></span>)
+<span><em class="calibre7">Help</em></span> 
+                              <span>→</span> 
+                              <span><em class="calibre7">Search
+Documentation</em></span> 
+                              <span>→</span> 
+                              <span><em class="calibre7">Find Options by
+Value</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">apropos-value</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">What variables are set to this regular expression?</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">(<span><em class="calibre7">none</em></span>)
+<span><em class="calibre7">Help</em></span> 
+                              <span>→</span> 
+                              <span><em class="calibre7">Search
+Documentation</em></span> 
+                              <span>→</span> 
+                              <span><em class="calibre7">Search Documentation
+Strings</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">apropos-documentation</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Where is this regular expression mentioned in the documentation?</p>
+                        </td></tr><tr class="calibre12"><td class="calibre30">
+                           <p class="copyright">(<span><em class="calibre7">none</em></span>)
+<span><em class="calibre7">Help</em></span> 
+                              <span>→</span> 
+                              <span><em class="calibre7">Search
+Documentation</em></span> 
+                              <span>→</span> 
+                              <span><em class="calibre7">Find Any Object by
+Name</em></span>
+                           </p>
+                        </td><td class="calibre30">
+                           <p class="copyright">
+                              <span><strong class="calibre5">apropos</strong></span>
+                           </p>
+                        </td><td class="calibre31">
+                           <p class="copyright">What functions and variables involve this regular expression?</p>
+                        </td></tr></tbody></table></div></div><br class="book"/><p class="copyright">All <span><strong class="calibre5">apropos</strong></span> commands prompt for
+regular expressions (an ordinary text string will work, but you can
+create more powerful searches using regular expressions; see <a class="calibre2" href="ch11.html" title="Chapter 11. Emacs Lisp Programming">Chapter 11</a> for details). When you type <span><strong class="calibre5">C-h a</strong></span> followed by a regular expression, Emacs
+finds all the commands that match it; it displays their key bindings
+(if any) and the first lines of their documentation in an
+<code class="calibre21">*Apropos*</code> window that is in Apropos mode. This
+mode displays hyperlinked help. If you click on a bolded item using
+your middle mouse button or move the cursor there and press <span><strong class="calibre5">Enter</strong></span>, Emacs displays more information.</p><p class="copyright">As always, if you are leery of using regular expressions, use regular
+search strings as long as you stick to nonspecial characters. For
+example, if you want to know what replace commands Emacs supports,
+press <span><strong class="calibre5">C-h a</strong></span> and then type <span><strong class="calibre5">replace</strong></span>; Emacs displays a list of information
+on the following commands:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">dired-do-query-replace</strong></span>
+                  </p></li><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">ebrowse-tags-query-replace</strong></span>
+                  </p></li><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">ethio-replace-space</strong></span>
+                  </p></li><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">map-query-replace-regexp</strong></span>
+                  </p></li><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">query-replace</strong></span>
+                  </p></li><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">query-replace-regexp</strong></span>
+                  </p></li><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">query-replace-regexp-eval</strong></span>
+                  </p></li><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">replace-buffer-in-windows</strong></span>
+                  </p></li><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">replace-rectangle</strong></span>
+                  </p></li><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">replace-regexp</strong></span>
+                  </p></li><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">replace-string</strong></span>
+                  </p></li><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">tags-query-replace</strong></span>
+                  </p></li></ul></div><p class="copyright">If you have ever used an information retrieval system, you already
+know that some skill is needed to use such a system effectively. You
+need to choose your concepts (search strings) carefully, so that they
+aren't too general (too much output to wade through)
+or too specific (too little output, making it less likely that you
+get the information you want). This problem is compounded when you
+use the <span><strong class="calibre5">apropos</strong></span> command, which is
+the same as <span><strong class="calibre5">apropos-command</strong></span> except
+that it reports on <span><em class="calibre7">all</em></span> functions (including
+internal Emacs functions) and variables as well as commands.</p><p class="copyright">If you type in a search string that is too general, Emacs produces an
+enormous buffer of help information. For example, invoking <span><strong class="calibre5">apropos-command</strong></span> with the argument
+"buffer" results in output listing
+well over two hundred Emacs commands. In general, you may have to
+invoke the <span><strong class="calibre5">apropos</strong></span> commands a few
+times to get the information you want (in terms of size as well as
+relevance).</p><p class="copyright">The <span><strong class="calibre5">apropos</strong></span> command itself is
+usually overkill, unless you are a Lisp programmer who needs
+information on noncommand functions (see <a class="calibre2" href="ch11.html" title="Chapter 11. Emacs Lisp Programming">Chapter 11</a> for details on this use of <span><strong class="calibre5">apropos</strong></span>). Use a more specific command when
+possible. For example, to get information on variables, use <span><strong class="calibre5">apropos-variable</strong></span>. To find out about variables
+related to auto-saving, type <span><strong class="calibre5">M-x
+apropos-variable Enter auto-save Enter</strong></span>. Emacs responds
+with information about the variables <span><strong class="calibre5">auto-save-default</strong></span>, <span><strong class="calibre5">auto-save-file-format</strong></span>, <span><strong class="calibre5">auto-save-file-name-transforms</strong></span>, <span><strong class="calibre5">auto-save-interval</strong></span>, <span><strong class="calibre5">auto-save-list-file-prefix</strong></span>, <span><strong class="calibre5">auto-save-timeout</strong></span>, <span><strong class="calibre5">auto-save-visited-file-name</strong></span>, and <span><strong class="calibre5">delete-auto-save-files</strong></span>. To find the value and
+full description of one of these variables, move to the
+<code class="calibre21">*Apropos*</code> window and either click with the middle
+mouse button or move to the desired variable and press <span><strong class="calibre5">Enter</strong></span>.</p></div></div></div>
+
+{% endraw %}
+

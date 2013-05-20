@@ -1,0 +1,117 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: jsonclass_instances_split_000.html
+next: jsonclass_instances_split_002.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<p class="calibre37"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="sfbody1"><tr class="calibre16"><td class="v3"><h2 class="docSidebarTitle" id="calibre_pb_0">A Slight Deviation from Normal Use</h2><p class="docText">Usually, when we export a <tt class="calibre34">newtype</tt>, we will
+      <span class="docEmphasis">not</span> export its data constructor, in order to keep
+      the details of the type abstract. Instead, we would define a function to
+      apply the constructor for us:</p><pre class="calibre39">-- file: ch06/JSONClass.hs
+jary :: [a] -&gt; JAry a
+jary = JAry</pre><br class="calibre48"/>
+<p class="docText">We would then export the type constructor, the deconstructor
+      function, and our construction function, but not the data
+      constructor:</p><pre class="calibre39">-- file: ch06/JSONClassExport.hs
+module JSONClass
+    (
+      JAry(fromJAry)
+    , jary
+    ) where</pre><br class="calibre48"/>
+<a name="x_s01" class="calibre27" id="x_s01"></a><p class="docText">When we don't export a type's data constructor, clients
+      of our library can only use the functions we provide to construct and
+      deconstruct values of that type. This gives us, the library authors, the
+      liberty to change our internal representation if we need to.</p><a name="x_GE1" class="calibre27" id="x_GE1"></a><p class="docText">If we export the data constructor, clients are likely
+      to start depending on it, for instance by using it in patterns. If we
+      later wish to change the innards of our type, we'll risk breaking any
+      code that uses the constructor.</p><a name="x_t01" class="calibre27" id="x_t01"></a><p class="docText">In our circumstances here, we have nothing to gain by
+      making the array wrapper abstract, so we may as well simply export the
+      entire definition of the type.</p></td></tr></table></p><br class="calibre20"/><a name="x_u01" class="calibre5" id="x_u01"></a><p class="docText">We provide another wrapper type that hides our
+    representation of a JSON object:</p><pre class="calibre35">-- file: ch06/JSONClass.hs
+newtype JObj a = JObj {
+      fromJObj :: [(String, a)]
+    } deriving (Eq, Ord, Show)</pre><br class="calibre20"/>
+<a name="x_v01" class="calibre5" id="x_v01"></a><p class="docText">With these types defined, we make small changes to the
+    definition of our <tt class="calibre34">JValue</tt> type:</p><pre class="calibre35">-- file: ch06/JSONClass.hs
+data JValue = JString String
+            | JNumber Double
+            | JBool Bool
+            | JNull
+            | JObject (JObj JValue)   -- was [(String, JValue)]
+            | JArray (JAry JValue)    -- was [JValue]
+              deriving (Eq, Ord, Show)</pre><br class="calibre20"/>
+<a name="x_w01" class="calibre5" id="x_w01"></a><p class="docText">This change doesn't affect the instances of the
+    JSON typeclass that we've already written, but we will want
+    to write instances for our new JAry and JObj
+    types:</p><pre class="calibre35">-- file: ch06/JSONClass.hs
+jaryFromJValue :: (JSON a) =&gt; JValue -&gt; Either JSONError (JAry a)
+
+jaryToJValue :: (JSON a) =&gt; JAry a -&gt; JValue
+
+instance (JSON a) =&gt; JSON (JAry a) where
+    toJValue = jaryToJValue
+    fromJValue = jaryFromJValue</pre><br class="calibre20"/>
+<a name="x_x01" class="calibre5" id="x_x01"></a><p class="docText">Let's take a slow walk through the individual steps of
+    converting a JAry a to a JValue. Given a list
+    where we know that everything inside is a JSON instance,
+    converting it to a list of JValues is easy:</p><pre class="calibre35">-- file: ch06/JSONClass.hs
+listToJValues :: (JSON a) =&gt; [a] -&gt; [JValue]
+listToJValues = map toJValue</pre><br class="calibre20"/>
+<a name="x_y01" class="calibre5" id="x_y01"></a><p class="docText">Taking this and wrapping it to become a JAry
+    JValue is just a matter of applying the <tt class="calibre34">newtype</tt>'s type
+    constructor:</p><pre class="calibre35">-- file: ch06/JSONClass.hs
+jvaluesToJAry :: [JValue] -&gt; JAry JValue
+jvaluesToJAry = JAry</pre><br class="calibre20"/>
+<a name="x_z01" class="calibre5" id="x_z01"></a><p class="docText">(Remember, this has no performance cost. We're just
+    telling the compiler to hide the fact that we're using a list.) To turn
+    this into a JValue, we apply another type <span class="docEmphasis">constructor</span>:</p><pre class="calibre35">-- file: ch06/JSONClass.hs
+jaryOfJValuesToJValue :: JAry JValue -&gt; JValue
+jaryOfJValuesToJValue = JArray</pre><br class="calibre20"/>
+<a name="x_A11" class="calibre5" id="x_A11"></a><p class="docText">Assemble these pieces using function composition, and we
+    get a concise one-liner for converting to a JValue:</p><pre class="calibre35">-- file: ch06/JSONClass.hs
+jaryToJValue = JArray . JAry . map toJValue . fromJAry</pre><br class="calibre20"/>
+<a name="x_B11" class="calibre5" id="x_B11"></a><p class="docText">We have more work to do to convert
+    <span class="docEmphasis">from</span> a JValue to a JAry a,
+    but we'll break it into reusable parts. The basic function is
+    straightforward:</p><pre class="calibre35">-- file: ch06/JSONClass.hs
+jaryFromJValue (JArray (JAry a)) =
+    whenRight JAry (mapEithers fromJValue a)
+jaryFromJValue _ = Left "not a JSON array"</pre><br class="calibre20"/>
+<a name="x_C11" class="calibre5" id="x_C11"></a><p class="docText">The <i class="docEmphasis">whenRight</i>
+    function inspects its argument. It calls a function on the argument if it
+    was created with the <tt class="calibre34">Right</tt> constructor, and leaves a
+    <tt class="calibre34">Left</tt> value untouched:</p><pre class="calibre35">-- file: ch06/JSONClass.hs
+whenRight :: (b -&gt; c) -&gt; Either a b -&gt; Either a c
+whenRight _ (Left err) = Left err
+whenRight f (Right a) = Right (f a)</pre><br class="calibre20"/>
+<a name="x_D11" class="calibre5" id="x_D11"></a><p class="docText">More complicated is <i class="docEmphasis">mapEithers</i>. It acts like the regular <i class="docEmphasis">map</i> function, but if it ever encounters a
+    <tt class="calibre34">Left</tt> value, it returns that immediately, instead of
+    continuing to accumulate a list of <tt class="calibre34">Right</tt> values:</p><pre class="calibre35">-- file: ch06/JSONClass.hs
+mapEithers :: (a -&gt; Either b c) -&gt; [a] -&gt; Either b [c]
+mapEithers f (x:xs) = case mapEithers f xs of
+                        Left err -&gt; Left err
+                        Right ys -&gt; case f x of
+                                      Left err -&gt; Left err
+                                      Right y -&gt; Right (y:ys)
+mapEithers _ _ = Right []</pre><br class="calibre20"/>
+<a name="x_E11" class="calibre5" id="x_E11"></a><p class="docText">Because the elements of the list hidden in the
+    JObj type have a little more structure, the code to convert
+    to and from a JValue is a bit more complex. Fortunately, we
+    can reuse the functions that we just defined:</p><pre class="calibre35">-- file: ch06/JSONClass.hs
+import Control.Arrow (second)
+
+instance (JSON a) =&gt; JSON (JObj a) where
+    toJValue = JObject . JObj . map (second toJValue) . fromJObj
+
+    fromJValue (JObject (JObj o)) = whenRight JObj (mapEithers unwrap o)
+      where unwrap (k,v) = whenRight ((,) k) (fromJValue v)
+    fromJValue _ = Left "not a JSON object"</pre><br class="calibre20"/>
+<a name="I_sidebar6_d1e18390" class="calibre5" id="I_sidebar6_d1e18390"></a></div>
+
+{% endraw %}
+

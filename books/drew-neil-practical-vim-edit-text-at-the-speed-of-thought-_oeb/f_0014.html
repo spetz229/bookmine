@@ -1,0 +1,87 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0013.html
+next: f_0015.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="N10600" class="calibre19">Use Vim’s Factory Settings</h2>
+<p id="N10606" class="calibre4">
+	  Vim is highly configurable. If you don’t like the defaults, then you can change them. That’s a good thing, but it could cause confusion if you follow the examples in this book using a customized version of Vim. You may find that some things don’t work for you the way that they are described in the text.
+
+      If you suspect that your customizations are causing interference, here’s a quick test. Try quitting Vim and then launching it with these options:
+ 	</p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ vim -u NONE -N</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N10632" class="calibre4">
+      The <code class="cf">-u NONE</code> flag tells Vim not to source your <code class="cf">vimrc</code> on startup. That way, your customizations won’t be applied and plugins will be disabled. When Vim starts up without loading a <code class="cf">vimrc</code> file, it reverts to <code class="cf">vi</code> compatible mode, which causes many useful features to be disabled. The <code class="cf">-N</code> flag prevents this by setting the <code class="cf">‘nocompatible’</code> option.
+    </p>
+<p id="N1064C" class="calibre4">
+      For most examples in <span class="calibre5">Practical Vim</span>, the <code class="cf">vim -u NONE -N</code> trick should guarantee that you get the same experience as described, but there are a couple of exceptions. Some of Vim’s built-in features are implemented with Vim script, which means that they will only work when plugins are enabled. This file contains the absolute minimum configuration that is required to activate Vim’s built-in plugins:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/essential.vim">essential.vim</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">set</strong> nocompatible​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">filetype</strong> plugin <strong class="prompt">on</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N10673" class="calibre4">
+      When launching Vim, you can use this file instead of your <code class="cf">vimrc</code> by running the following:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ vim -u code/essential.vim</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N10686" class="calibre4">
+      You’ll have to adjust the <code class="cf">code/essential.vim</code> path accordingly. With Vim’s built-in plugins enabled, you’ll be able to use features such as <code class="cf">netrw</code> (<a xmlns:str="http://exslt.org/strings" href="f_0068.html#sec.netrw">Tip 43</a>) and omni-completion (<a xmlns:str="http://exslt.org/strings" href="f_0158.html#sec.omni.compl">Tip 117</a>), as well as many others. I consider Vim’s factory settings to mean built-in plugins enabled and <code class="cf">vi</code> compatibility disabled.
+    </p>
+<p id="N1069A" class="calibre4">
+      Look out for subsections titled “Preparation” at the top of a tip. To follow along with the material in these tips, you’ll need to configure Vim accordingly. If you start up with Vim’s factory settings and then apply the customizations on the fly, you should be able to reproduce the steps from these tips without any problems.
+    </p>
+<p id="N1069D" class="calibre4">
+      If you’re still having problems, see <a xmlns:str="http://exslt.org/strings" href="f_0016.html#sec.version">​<em class="calibre5">On Vim Versions</em>​</a>.
+    </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

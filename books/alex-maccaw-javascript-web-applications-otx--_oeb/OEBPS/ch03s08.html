@@ -1,0 +1,77 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch03s07.html
+next: OEBPS/ch03s09.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Adding Local Storage to Our ORM"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect13_d1e3718" class="calibre1"></a>Adding Local Storage to Our ORM</h1></div></div></div><p class="calibre3"><a id="I_indexterm3_d1e3722" class="calibre1"></a><a id="I_indexterm3_d1e3727" class="calibre1"></a><a id="I_indexterm3_d1e3732" class="calibre1"></a><a id="I_indexterm3_d1e3737" class="calibre1"></a>Let’s add local storage support to our ORM so that records
+    can be persisted between page refreshes. To use the <code class="literal">localStorage</code> object, we need to serialize our
+    records into a JSON string. The problem is that, at the moment, serialized
+    objects look like this:</p><pre class="screen">var json = JSON.stringify(Asset.init({name: "foo"}));
+json //=&gt; "{"parent":{"parent":{"prototype":{}},"records":[]},"name":"foo"}"</pre><p class="calibre3">So, we need to override JSON’s serialization of our models. First,
+    we need to determine which properties need to be serialized. Let’s add an
+    <code class="literal">attributes</code> array to the <code class="literal">Model</code> <span class="calibre1">object,
+    which</span> individual models can use to specify their
+    attributes:</p><pre class="screen">Model.extend({
+  created: function(){
+    this.records = {};
+    this.attributes = [];
+  }
+});
+
+Asset.attributes = ["name", "ext"];</pre><p class="calibre3">Because every model has different attributes—and therefore can’t
+    share the same array reference—the <code class="literal">attributes</code> property
+    isn’t set directly on the Model. Instead, we’re creating a new array when
+    a model is first created, similar to what we’re doing with the <code class="literal">records</code> object.</p><p class="calibre3">Now, let’s create an <code class="literal">attributes()</code>
+    function, which will return an object of attributes <a id="I_indexterm3_d1e3774" class="calibre1"></a>to values:</p><pre class="screen">Model.include({
+  attributes: function(){
+    var result = {};
+    for(var i in this.parent.attributes) {
+      var attr = this.parent.attributes[i];
+      result[attr] = this[attr];
+    }
+    result.id = this.id;
+    return result;
+  }
+});</pre><p class="calibre3">Now, we can set an array of attributes for every model:</p><pre class="screen">Asset.attributes = ["name", "ext"];</pre><p class="calibre3">And the <code class="literal">attributes()</code> function
+    will return an object with the correct properties:</p><pre class="screen">var asset = Asset.init({name: "document", ext: ".txt"});
+asset.attributes(); //=&gt; {name: "document", ext: ".txt"};</pre><p class="calibre3">As for the overriding of <code class="literal">JSON.stringify()</code>, all that’s needed is a
+    <code class="literal">toJSON()</code> method on model instances. The
+    JSON library will use that function to find the object to serialize,
+    rather than serializing the <code class="literal">records</code> object
+    as-is:</p><pre class="screen">Model.include({
+  toJSON: function(){
+    return(this.attributes());
+  }
+});</pre><p class="calibre3">Let’s try serializing the records again. This time, the resultant
+    JSON will contain the correct properties:</p><pre class="screen">var json = JSON.stringify(Asset.records);
+json //= "{"7B2A9E8D...":"{"name":"document","ext":".txt","id":"7B2A9E8D..."}"}"</pre><p class="calibre3">Now that we’ve got JSON serializing working smoothly, adding local
+    storage support to our models is trivial. We’ll add two functions onto our
+    <code class="literal">Model</code>: <code class="literal">saveLocal()</code> and <code class="literal">loadLocal()</code>. When saving, we’ll convert the
+    <code class="literal">Model.records</code> object into an array,
+    serialize it, and send it to <code class="literal">localStorage</code>:</p><pre class="screen">var Model.LocalStorage = {
+  saveLocal: function(name){
+    // Turn records into an array
+    var result = [];
+    for (var i in this.records)
+      result.push(this.records[i])
+
+    localStorage[name] = JSON.stringify(result);
+  },
+
+  loadLocal: function(name){
+    var result = JSON.parse(localStorage[name]);
+    this.populate(result);
+  }
+};
+
+Asset.extend(Model.LocalStorage);</pre><p class="calibre3">It’s probably a good idea for the records to be read from the local
+    storage when the page loads and to be saved when the page is closed. That,
+    however, will be left as an exercise for the reader.</p></div></div>
+
+{% endraw %}
+

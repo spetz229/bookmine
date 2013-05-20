@@ -1,0 +1,118 @@
+---
+layout: page
+title: "Developing Backbone.js Applications"
+prev: OEBPS/ch04s11.html
+next: OEBPS/ch04s13.html
+book_path: books/developing-backbone-js-applications-addy-osmani--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Paginator.clientPager"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="paginator.clientpager" class="calibre1"></a>Paginator.clientPager</h1></div></div></div><p class="calibre6">
+      The <code class="literal">clientPager</code> works similar to the
+      <code class="literal">requestPager</code>, except that our configuration
+      values influence the pagination of data already returned at a
+      UI-level. Whilst not shown (yet) there is also a lot more UI logic
+      that ties in with the <code class="literal">clientPager</code>. An example
+      of this can be seen in â€˜views/clientPagination.js.
+    </p><div class="book" title="1. Create a new paginated collection with a model and URL"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="create-a-new-paginated-collection-with-a-model-and-url" class="calibre1"></a>1. Create a new paginated collection with a model and
+      URL</h2></div></div></div><p class="calibre6">
+        As with <code class="literal">requestPager</code>, let’s first create a
+        new Paginated <code class="literal">Backbone.Paginator.clientPager</code>
+        collection, with a model and base URL:
+      </p><pre class="programlistingjavascript"><code class="kd">var</code> <code class="nx">PaginatedCollection</code> <code class="o">=</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">Paginator</code><code class="p">.</code><code class="nx">clientPager</code><code class="p">.</code><code class="nx">extend</code><code class="p">({</code>
+
+        <code class="nx">model</code><code class="o">:</code> <code class="nx">model</code><code class="p">,</code>
+
+        <code class="nx">url</code><code class="o">:</code> <code class="s">'http://odata.netflix.com/v2/Catalog/Titles?&amp;'</code><code class="p">,</code>
+</pre></div><div class="book" title="2. Map the attributes supported by your API (URL)"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="map-the-attributes-supported-by-your-api-url-1" class="calibre1"></a>2. Map the attributes supported by your API (URL)</h2></div></div></div><p class="calibre6">
+        We’re similarly going to map request parameter names for your
+        API to those supported in the paginator:
+      </p><pre class="programlistingjavascript">        <code class="nx">perPageAttribute</code><code class="o">:</code> <code class="s">'$top'</code><code class="p">,</code>
+
+        <code class="nx">skipAttribute</code><code class="o">:</code> <code class="s">'$skip'</code><code class="p">,</code>
+
+        <code class="nx">orderAttribute</code><code class="o">:</code> <code class="s">'$orderBy'</code><code class="p">,</code>
+
+        <code class="nx">customAttribute1</code><code class="o">:</code> <code class="s">'$inlinecount'</code><code class="p">,</code>
+
+        <code class="nx">queryAttribute</code><code class="o">:</code> <code class="s">'$filter'</code><code class="p">,</code>
+
+        <code class="nx">formatAttribute</code><code class="o">:</code> <code class="s">'$format'</code><code class="p">,</code>
+
+        <code class="nx">customAttribute2</code><code class="o">:</code> <code class="s">'$callback'</code><code class="p">,</code>
+</pre></div><div class="book" title="3. Configure how to paginate data at a UI-level"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="configure-how-to-paginate-data-at-a-ui-level" class="calibre1"></a>3. Configure how to paginate data at a UI-level</h2></div></div></div><p class="calibre6">
+        We then get to configuration for the paginated data in the UI.
+        <code class="literal">perPage</code> specifies how many results to return
+        from the server whilst <code class="literal">displayPerPage</code>
+        configures how many of the items in returned results to display
+        per <span class="firstname">“<span class="firstname">page</span>”</span> in the UI. e.g If we request 100 results
+        and only display 20 per page, we have 5 sub-pages of results
+        that can be navigated through in the UI.
+      </p><pre class="programlistingjavascript">        <code class="c">// M: how many results to query from the service</code>
+        <code class="nx">perPage</code><code class="o">:</code> <code class="mi">40</code><code class="p">,</code>
+
+        <code class="c">// N: how many results to display per 'page' within the UI</code>
+        <code class="c">// Effectively M/N = the number of pages the data will be split into.</code>
+        <code class="nx">displayPerPage</code><code class="o">:</code> <code class="mi">20</code><code class="p">,</code>
+</pre></div><div class="book" title="4. Configure the rest of the request parameter default values"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="configure-the-rest-of-the-request-parameter-default-values" class="calibre1"></a>4. Configure the rest of the request parameter default
+      values</h2></div></div></div><p class="calibre6">
+        We can then configure default values for the rest of our request
+        parameters:
+      </p><pre class="programlistingjavascript">        <code class="c">// current page to query from the service</code>
+        <code class="nx">page</code><code class="o">:</code> <code class="mi">1</code><code class="p">,</code>
+
+        <code class="c">// a default. This should be overridden in the collection's parse()</code>
+        <code class="c">// sort direction</code>
+        <code class="nx">sortDirection</code><code class="o">:</code> <code class="s">'asc'</code><code class="p">,</code>
+
+        <code class="c">// sort field</code>
+        <code class="nx">sortField</code><code class="o">:</code> <code class="s">'ReleaseYear'</code><code class="p">,</code>
+        <code class="c">//or year(Instant/AvailableFrom)</code>
+
+        <code class="c">// query</code>
+        <code class="nx">query</code><code class="o">:</code> <code class="s">"substringof('"</code> <code class="o">+</code> <code class="nx">escape</code><code class="p">(</code><code class="s">'the'</code><code class="p">)</code> <code class="o">+</code> <code class="s">"',Name)"</code><code class="p">,</code>
+
+        <code class="c">// request format</code>
+        <code class="nx">format</code><code class="o">:</code> <code class="s">'json'</code><code class="p">,</code>
+
+        <code class="c">// custom parameters for the request that may be specific to your</code>
+        <code class="c">// application</code>
+        <code class="nx">customParam1</code><code class="o">:</code> <code class="s">'allpages'</code><code class="p">,</code>
+
+        <code class="nx">customParam2</code><code class="o">:</code> <code class="s">'callback'</code><code class="p">,</code>
+</pre></div><div class="book" title="5. Finally, configure Collection.parse() and we’re done"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="finally-configure-collection.parse-and-were-done-1" class="calibre1"></a>5. Finally, configure Collection.parse() and we’re
+      done</h2></div></div></div><p class="calibre6">
+        And finally we have our <code class="literal">parse()</code> method, which
+        in this case isn’t concerned with the total number of result
+        pages available on the server as we have our own total count of
+        pages for the paginated data in the UI.
+      </p><pre class="programlistingjavascript"><code class="nx">parse</code><code class="o">:</code> <code class="kd">function</code> <code class="p">(</code><code class="nx">response</code><code class="p">)</code> <code class="p">{</code>
+            <code class="kd">var</code> <code class="nx">tags</code> <code class="o">=</code> <code class="nx">response</code><code class="p">.</code><code class="nx">d</code><code class="p">.</code><code class="nx">results</code><code class="p">;</code>
+            <code class="kd">return</code> <code class="nx">tags</code><code class="p">;</code>
+        <code class="p">}</code>
+
+<code class="p">});</code>
+</pre></div><div class="book" title="Convenience methods:"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="convenience-methods-1" class="calibre1"></a>Convenience methods:</h2></div></div></div><p class="calibre6">
+        As mentioned, your views can hook into a number of convenience
+        methods to navigate around UI-paginated data. For
+        <code class="literal">clientPager</code> these include:
+      </p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre6">
+            <span class="firstname"><strong class="calibre8">Collection.goTo(n)</strong></span> - go
+            to a specific page
+          </p></li><li class="listitem"><p class="calibre6">
+            <span class="firstname"><strong class="calibre8">Collection.previousPage()</strong></span>
+            - go to the previous page
+          </p></li><li class="listitem"><p class="calibre6">
+            <span class="firstname"><strong class="calibre8">Collection.nextPage()</strong></span> -
+            go to the next page
+          </p></li><li class="listitem"><p class="calibre6">
+            <span class="firstname"><strong class="calibre8">Collection.howManyPer(n)</strong></span>
+            - set how many items to display per page
+          </p></li><li class="listitem"><p class="calibre6">
+            <span class="firstname"><strong class="calibre8">Collection.pager(sortBy,
+            sortDirection)</strong></span> - update sort on the current view
+          </p></li></ul></div></div></div></div>
+
+{% endraw %}
+

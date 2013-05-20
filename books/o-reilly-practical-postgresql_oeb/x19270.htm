@@ -1,0 +1,164 @@
+---
+layout: page
+title: "Unknown"
+prev: x19123.htm
+next: p19608.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="x19123.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 10. User and Group Management</td><td width="10%" valign="bottom" class="calibre5"><a href="p19608.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="PRIVILEGES" class="calibre8">Granting Privileges</a></h1><p class="calibre9">PostgreSQL maintains a tightly controlled set of access control lists or <span><i class="EMPHASIS">ACL</i></span>s.
+    
+    This information describes which users are allowed to select from, update, and otherwise modify objects within a database.  A
+    set of access privileges and restrictions exist for each applicable database object in PostgreSQL (e.g., tables, views, and
+    sequences). Superusers and owners of database objects maintain these ACLs through a pair of SQL commands:
+    <tt class="REPLACEABLE">GRANT</tt> and <tt class="REPLACEABLE">REVOKE</tt>.</p><p class="calibre9">As stated in <a href="c16573.htm">Chapter 9</a>, when a user first creates a database, they are implicitly the owner
+    of that database. Similarly, whenever someone creates that database object, it is owned by that individual who issued the related
+    <tt class="REPLACEABLE">CREATE</tt> SQL command.</p><p class="calibre9">Aside from PostgreSQL superusers (who may manipulate any database object in any way), only the owners of database
+    objects are allowed to grant and revoke privileges on the objects which they own. Though any user may connect to a database, if
+    they wish access to objects within that database they must have those privileges explicitly granted to them.</p><div class="NAVHEADER"><h2 class="SECT"><a name="AEN19290" class="calibre8">Understanding Access Control</a></h2><p class="calibre9">As mentioned earlier in this section, access control lists apply to three types of database objects: tables, lists, and sequences.
+      For these objects, there are four general privileges which may be granted to, or revoked from, a user or
+      group. The ability to revoke rights exists only to undo the function of having granted them. Users and groups have no rights to begin with.</p><p class="calibre9">From the <span><i class="EMPHASIS">psql</i></span> client, you can view ACL permission summaries by using the <tt class="REPLACEABLE">\z</tt>
+      slash command. This command displays all access permissions in the currently connected database. To see permissions on a specific
+      object, specify that object's name as a parameter to the <tt class="REPLACEABLE">\z</tt> command. You can use a regular
+      expression in place of a name to see privileges on a group of objects.</p><p class="calibre9"><a href="x19270.htm#ACLPRIVILEGES">Table 10-2</a> lists each of the Access Control privileges available within PostgreSQL. Each
+      privilege also has an associated symbol, which appears as a single alphabetical character. These symbols are shorthand for the
+      described privilege, and are used by the <span><i class="EMPHASIS">psql</i></span> <tt class="REPLACEABLE">\z</tt> slash command when
+      displaying summaries of access permissions.</p><div class="NAVHEADER"><a name="ACLPRIVILEGES"></a><p class="calibre9"><b class="calibre10">Table 10-2. PostgreSQL ACL privileges</b></p><table border="1" width="100%" class="calibre"><thead class="calibre11"><tr class="calibre12"><th width="2" valign="TOP" class="calibre13">Keyword</th><th width="1" valign="TOP" class="calibre13">Symbol</th><th width="24" valign="TOP" class="calibre13">Description</th></tr></thead><tbody class="calibre14"><tr class="calibre12"><td width="2" valign="TOP" class="calibre23"><p class="calibre9"><tt class="REPLACEABLE">SELECT</tt></p></td><td width="1" valign="TOP" class="calibre23"><p class="calibre9"><span><i class="EMPHASIS">r</i></span></p></td><td width="24" valign="TOP" class="calibre15"><p class="calibre9">Allows a user to retrieve data from a table, view or sequence (though the
+              <tt class="REPLACEABLE">nextval()</tt> function may not be called with only
+              <tt class="REPLACEABLE">SELECT</tt> rights). Also known as "read" rights.</p></td></tr><tr class="calibre12"><td width="2" valign="TOP" class="calibre23"><p class="calibre9"><tt class="REPLACEABLE">INSERT</tt></p></td><td width="1" valign="TOP" class="calibre23"><p class="calibre9"><span><i class="EMPHASIS">a</i></span></p></td><td width="24" valign="TOP" class="calibre15"><p class="calibre9">Allows a user to insert new rows into a table. Also known as "append" rights.</p></td></tr><tr class="calibre12"><td width="2" valign="TOP" class="calibre23"><p class="calibre9"><tt class="REPLACEABLE">UPDATE, DELETE</tt></p></td><td width="1" valign="TOP" class="calibre23"><p class="calibre9"><span><i class="EMPHASIS">w</i></span></p></td><td width="24" valign="TOP" class="calibre15"><p class="calibre9">Allows a user to modify or remove rows of data from a table. If either the
+              <tt class="REPLACEABLE">UPDATE</tt> or <tt class="REPLACEABLE">DELETE</tt> right is granted, the other is
+              implicitly granted as well. Also known as "write" rights.</p></td></tr><tr class="calibre12"><td width="2" valign="TOP" class="calibre23"><p class="calibre9"><tt class="REPLACEABLE">RULE</tt></p></td><td width="1" valign="TOP" class="calibre23"><p class="calibre9"><span><i class="EMPHASIS">R</i></span></p></td><td width="24" valign="TOP" class="calibre15"><p class="calibre9">Allows a user to create a rewrite rule on a table or view.</p></td></tr><tr class="calibre12"><td width="2" valign="TOP" class="calibre23"><p class="calibre9"><tt class="REPLACEABLE">ALL</tt></p></td><td width="1" valign="TOP" class="calibre23"><p class="calibre9"><span><i class="EMPHASIS">arwR</i></span></p></td><td width="24" valign="TOP" class="calibre15"><p class="calibre9">Represents a shorthand way to grant or revoke all rights at once. <tt class="REPLACEABLE">ALL</tt> is not a right in and of itself.
+              Granting <tt class="REPLACEABLE">ALL</tt> results in the granting of <tt class="REPLACEABLE">SELECT</tt>, <tt class="REPLACEABLE">INSERT</tt>, <tt class="REPLACEABLE">UPDATE</tt>, <tt class="REPLACEABLE">DELETE</tt>, and <tt class="REPLACEABLE">RULE</tt>.</p></td></tr></tbody></table></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN19369" class="calibre8">Granting privileges with GRANT</a></h2><p class="calibre9">To assign a privilege to a user or group, use SQL's <tt class="REPLACEABLE">GRANT</tt> command. Here is the
+      syntax for <tt class="REPLACEABLE">GRANT</tt>:</p><pre class="SCREEN">  GRANT <tt class="REPLACEABLE"><i class="EMPHASIS">privilege</i></tt> [, ...] ON <tt class="REPLACEABLE"><i class="EMPHASIS">object</i></tt> [, ...]
+        TO { PUBLIC | <tt class="REPLACEABLE"><i class="EMPHASIS">username</i></tt> | GROUP <tt class="REPLACEABLE"><i class="EMPHASIS">groupname</i></tt> }</pre><p class="calibre9">In this syntax, <tt class="REPLACEABLE"><i class="EMPHASIS">privilege</i></tt> is any of the privileges listed in <a href="x19270.htm#ACLPRIVILEGES">Table 10-2</a>,
+      <tt class="REPLACEABLE"><i class="EMPHASIS">object</i></tt> is the name of the database object (table, view or sequence) that a privilege is being granted
+      on, and the token following the <tt class="REPLACEABLE">TO</tt> keyword describes who the privilege is being granted
+      to. Multiple privileges and objects may be listed, separated from one another by commas.</p><p class="calibre9">Only one of the terms following <tt class="REPLACEABLE">TO</tt> may be used in a single
+      <tt class="REPLACEABLE">GRANT</tt> statement. Granting rights with the <tt class="REPLACEABLE">PUBLIC</tt> keyword
+      indiscriminately grants the intended privilege to the special "public" target. <tt class="REPLACEABLE">PUBLIC</tt>
+      privileges are shared by all users. Specifying a <tt class="REPLACEABLE"><i class="EMPHASIS">username</i></tt> grants the privilege to specific user. Likewise,
+      specifying a <tt class="REPLACEABLE"><i class="EMPHASIS">groupname</i></tt> grants the privilege to a specific group.</p><p class="calibre9">Suppose, for example, that the <tt class="REPLACEABLE">manager</tt> user needs all rights to the
+      <tt class="REPLACEABLE">customers</tt>, <tt class="REPLACEABLE">books</tt>, <tt class="REPLACEABLE">editions</tt>
+      and <tt class="REPLACEABLE">publishers</tt> tables. <a href="x19270.htm#GRANTINGUSERPRIVILEGES">Example 10-17</a> gives the manager user those rights,
+      a single <tt class="REPLACEABLE">GRANT</tt> statement.</p><div class="NAVHEADER"><a name="GRANTINGUSERPRIVILEGES"></a><p class="calibre9"><b class="calibre10">Example 10-17. Granting user privileges</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">GRANT ALL ON customers, books, editions, publishers</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">          TO manager;</b></tt>
+CHANGE</pre></div><p class="calibre9">The use of the <tt class="REPLACEABLE">ALL</tt> keyword in <a href="x19270.htm#GRANTINGUSERPRIVILEGES">Example 10-17</a> grants all possible
+      ACL rights (<tt class="REPLACEABLE">SELECT</tt>, <tt class="REPLACEABLE">UPDATE</tt>, etc.) for the specified objects to the user
+      <tt class="REPLACEABLE">manager</tt>. The <tt class="REPLACEABLE">CHANGE</tt> message from the server indicates that the privileges were
+      correctly modified. Remember that you can use the <tt class="REPLACEABLE">\z</tt> command in <span><i class="EMPHASIS">psql</i></span>
+      in order to verify permissions on a database object.</p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">\z publishers</b></tt>
+Access permissions for database "booktown"
+  Relation  |  Access permissions
+------------+----------------------
+ publishers | {"=","manager=arwR"}
+(1 row)</pre><p class="calibre9">As another example, let's look at the use of the <tt class="REPLACEABLE">GROUP</tt> keyword  to grant  privileges to
+      members of a group <tt class="REPLACEABLE"><i class="EMPHASIS">groupname</i></tt>. For instance, the entire sales department at the Book Town should be
+      given permission to view the <tt class="REPLACEABLE">customers</tt> table, but not to modify it. <a href="x19270.htm#GRANTINGGROUPPRIVILEGES">Example 10-18</a> grants SELECT access on the <tt class="REPLACEABLE">customers</tt> table to any
+      member of the <tt class="REPLACEABLE">sales</tt> group.</p><div class="NAVHEADER"><a name="GRANTINGGROUPPRIVILEGES"></a><p class="calibre9"><b class="calibre10">Example 10-18. Granting group privileges</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">GRANT SELECT ON customers TO GROUP sales;</b></tt>
+CHANGE
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">\z customers</b></tt>
+ Access permissions for database "booktown"
+ Relation  |       Access permissions
+-----------+---------------------------------
+ customers | {"=","manager=arwR","group sales=r"}
+(1 row)</pre></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN19441" class="calibre8">Restricting Rights with REVOKE</a></h2><p class="calibre9">By default, a normal user has no all privileges on any database object that they do not own.  To explicitly revoke
+      a right after it has been granted, the object's owner (or a superuser) can issue the <tt class="REPLACEABLE">REVOKE</tt> command.
+     This command is very similar in form to the <tt class="REPLACEABLE">GRANT</tt> command.</p><p class="calibre9">Here is the syntax for <tt class="REPLACEABLE">REVOKE</tt>:</p><pre class="SCREEN">  REVOKE <tt class="REPLACEABLE"><i class="EMPHASIS">privilege</i></tt> [, ...] ON <tt class="REPLACEABLE"><i class="EMPHASIS">object</i></tt> [, ...]
+         FROM { PUBLIC | <tt class="REPLACEABLE"><i class="EMPHASIS">username</i></tt> | GROUP <tt class="REPLACEABLE"><i class="EMPHASIS">groupname</i></tt> }</pre><p class="calibre9">The structure of the <tt class="REPLACEABLE">REVOKE</tt> command syntax is identical to that of the
+      <tt class="REPLACEABLE">GRANT</tt> command, with the exception that the SQL command itself
+      is <tt class="REPLACEABLE">REVOKE</tt> rather than <tt class="REPLACEABLE">GRANT</tt>, and the
+      keyword <tt class="REPLACEABLE">FROM</tt> is used, rather than the <tt class="REPLACEABLE">TO</tt>
+      keyword.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>Revoking privileges from <tt class="REPLACEABLE">PUBLIC</tt> only affects the special
+        "public" group, which includes all users. Revoking rights from <tt class="REPLACEABLE">PUBLIC</tt> will not affect
+        any users who have been explicitly granted those privileges.</p></blockquote></div><p class="calibre9">Suppose the <tt class="REPLACEABLE">UPDATE</tt> rights on the <tt class="REPLACEABLE">books</tt> table
+      have been granted to the user <tt class="REPLACEABLE">david</tt>. When David is transferred
+      to another department, and no longer needs the ability to modify book information, you should revoke David's UPDATE privilege
+      on the <tt class="REPLACEABLE">books</tt> table.
+      </p><p class="calibre9"><a href="x19270.htm#REVOKINGRIGHTS">Example 10-19</a> uses the <tt class="REPLACEABLE">\z</tt> slash command in
+      <span><i class="EMPHASIS">psql</i></span> to check the permissions on the <tt class="REPLACEABLE">books</tt> table, revealing
+      that <tt class="REPLACEABLE">david</tt> has write-access privileges to that table. A
+      <tt class="REPLACEABLE">REVOKE</tt> statement then explicitly revokes the <tt class="REPLACEABLE">UPDATE</tt> and
+      <tt class="REPLACEABLE">DELETE</tt> privileges on the <tt class="REPLACEABLE">books</tt> table from the user
+      <tt class="REPLACEABLE">david</tt>. Finally, another <tt class="REPLACEABLE">\z</tt> slash command is executed
+      to verify the removal of the privilege.</p><div class="NAVHEADER"><a name="REVOKINGRIGHTS"></a><p class="calibre9"><b class="calibre10">Example 10-19. Revoking rights</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">\z books</b></tt>
+Access permissions for database "booktown"
+ Relation |       Access permissions
+----------+--------------------------------
+ books    | {"=","manager=arwR","david=w"}
+(1 row)
+
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">REVOKE UPDATE, DELETE ON books</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM david;</b></tt>
+CHANGE
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">\z books</b></tt>
+Access permissions for database "booktown"
+ Relation |  Access permissions
+----------+----------------------
+ books    | {"=","manager=arwR"}
+(1 row)</pre></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN19494" class="calibre8">Using Views for Access Control</a></h2><p class="calibre9">While you cannot control read-access to specified columns or rows of a table, you can achieve this indirectly through
+      the careful use of views. By creating a view on a table, and forcing users to access the table through that view, you can
+      allow only desired columns or rows to be selected.</p><p class="calibre9">You limit columns by specifying a column list in the view's <tt class="REPLACEABLE">SELECT</tt> statement when
+      you create the view. The view will then return only the columns you specify. You limit rows by writing a
+      <tt class="REPLACEABLE">WHERE</tt> clause in the view's <tt class="REPLACEABLE">SELECT</tt> statement. The view
+      will then return only those rows that match the WHERE clause (see <a href="c4890.htm">Chapter 4</a>, for more about creating
+      views).</p><p class="calibre9">As ACL privileges may be applied to views as well as tables, you may then grant
+      <tt class="REPLACEABLE">SELECT</tt> rights to the limited view, but not the table itself.  Users will then be able to
+      select from the view even though they don't have access to the underlying table.</p><p class="calibre9">For instance, the Book Town store has a <tt class="REPLACEABLE">stock</tt> table correlating a book's
+      ISBN number to its purchase cost, retail price, and the current available stock. The table structure is shown in
+      <a href="x19270.htm#THESTOCKTABLE">Table 10-3</a>.</p><div class="NAVHEADER"><a name="THESTOCKTABLE"></a><p class="calibre9"><b class="calibre10">Table 10-3. The stock table</b></p><table border="1" class="calibre"><thead class="calibre11"><tr class="calibre12"><th width="6" valign="TOP" class="calibre13"><p class="calibre9">Column</p></th><th width="6" valign="TOP" class="calibre13"><p class="calibre9">Type</p></th><th width="7" valign="TOP" class="calibre13"><p class="calibre9">Modifier</p></th></tr></thead><tbody class="calibre14"><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">isbn</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">text</tt></p></td><td width="7" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">NOT NULL</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">cost</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">numeric(5,2)</tt></p></td><td width="7" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE"/></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">retail</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">numeric(5,2)</tt></p></td><td width="7" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE"/></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">stock</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">integer</tt></p></td><td width="7" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE"/></p></td></tr></tbody></table></div><p class="calibre9">Suppose that the manager of Book Town doesn't want the salespeople to have access to the purchase cost of each book.
+      This information can be restricted by generating a view which retrieves data from only the
+      <tt class="REPLACEABLE">isbn</tt>, <tt class="REPLACEABLE">retail</tt> and <tt class="REPLACEABLE">stock</tt>
+      columns. <a href="x19270.htm#CONTROLLINGSELECTPRIVILEGESWITHAVIEW">Example 10-20</a> creates such a view, grants rights to the
+      <tt class="REPLACEABLE">sales</tt> group, and verifies the rights with the <tt class="REPLACEABLE">\z</tt>
+<span><i class="EMPHASIS">psql</i></span> slash command.</p><div class="NAVHEADER"><a name="CONTROLLINGSELECTPRIVILEGESWITHAVIEW"></a><p class="calibre9"><b class="calibre10">Example 10-20. Controlling SELECT privileges with a view</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">CREATE VIEW stock_view</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">            AS SELECT isbn, retail, stock</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">               FROM stock;</b></tt>
+CREATE
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">GRANT SELECT ON stock_view TO GROUP sales;</b></tt>
+CHANGE
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">\z stock</b></tt>
+      Access permissions for database "booktown"
+   Relation   |          Access permissions
+--------------+---------------------------------------
+ stock        |
+ stock_backup |
+ stock_view   | {"=","manager=arwR","group sales=r"}
+(3 rows)</pre></div><p class="calibre9"><a href="x19270.htm#ADDITIONALCONTROLLINGSELECT">Example 10-21</a> demonstrates the addition of a new user,
+      <tt class="REPLACEABLE">barbara</tt>. It grants <tt class="REPLACEABLE">SELECT</tt> rights on the
+      <tt class="REPLACEABLE">stock_view</tt>. Since the <tt class="REPLACEABLE">barbara</tt> user does not have any
+      implicit rights on the <tt class="REPLACEABLE">stock</tt> table, it is inaccessible; this is the case, even though the
+      view on that table <span><i class="EMPHASIS">is</i></span> accessible as a result of the <tt class="REPLACEABLE">GRANT</tt>
+      statement.</p><div class="NAVHEADER"><a name="ADDITIONALCONTROLLINGSELECT"></a><p class="calibre9"><b class="calibre10">Example 10-21. Controlling SELECT</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">CREATE USER barbara;</b></tt>
+CREATE USER
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">GRANT USER barbara SELECT ON stock_view;</b></tt>
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">\c - barbara</b></tt>
+You are now connected as new user barbara.
+booktown=&gt; <tt class="REPLACEABLE"><b class="calibre10">SELECT * FROM stock;</b></tt>
+ERROR:  stock: Permission denied.
+booktown=&gt; <tt class="REPLACEABLE"><b class="calibre10">SELECT * FROM stock_view;</b></tt>
+    isbn    | retail | stock
+------------+--------+-------
+ 0385121679 |  36.95 |    65
+ 039480001X |  32.95 |    31
+ 0394900014 |  23.95 |     0
+ 044100590X |  45.95 |    89
+ 0441172717 |  21.95 |    77
+ 0451160916 |  28.95 |    22
+ 0451198492 |  46.95 |     0
+ 0451457994 |  22.95 |     0
+ 0590445065 |  23.95 |    10
+ 0679803335 |  24.95 |    18
+ 0694003611 |  28.95 |    50
+ 0760720002 |  23.95 |    28
+ 0823015505 |  28.95 |    16
+ 0929605942 |  21.95 |    25
+ 1885418035 |  24.95 |    77
+ 0394800753 |  16.95 |     4
+(16 rows)</pre></div><p class="calibre9">Notice that when connected as the <tt class="REPLACEABLE">barbara</tt> user, the
+      <tt class="REPLACEABLE">SELECT</tt> statement from the <tt class="REPLACEABLE">stock_view</tt> is successful, while
+      the <tt class="REPLACEABLE">stock</tt> table presents a <tt class="REPLACEABLE">Permission denied</tt> error.</p></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="x19123.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="p19608.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Managing Groups</td><td width="34%" valign="top" class="calibre4"><a href="c18591.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Programming with PostgreSQL</td></tr></table></div></div>
+
+{% endraw %}
+

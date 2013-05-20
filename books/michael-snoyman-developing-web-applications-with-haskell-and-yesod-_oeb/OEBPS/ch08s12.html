@@ -1,0 +1,59 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch08s11.html
+next: OEBPS/ch08s13.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Custom Fields"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect18_d1e4484" class="calibre1"></a>Custom Fields</h1></div></div></div><p class="calibre7">The fields that come built-in with Yesod will likely cover the vast majority of your form
+      needs. But occasionally, you’ll need something more specialized. Fortunately, you can create
+      new forms in Yesod yourself. The <code class="literal">Field</code> data type has two
+      records: <code class="literal">fieldParse</code> takes a list of values submitted by the
+      user and returns one of three results:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">An error message saying validation failed</p></li><li class="listitem"><p class="calibre7">The parsed value</p></li><li class="listitem"><p class="calibre7">Nothing, indicating that no data was supplied</p></li></ul></div><p class="calibre7">That last case might sound surprising: shouldn’t Yesod automatically know that no
+      information is supplied when the input list is empty? Well, no, actually. Checkboxes, for
+      instance, indicate an unchecked state by sending in an empty list.</p><p class="calibre7">Also, what’s up with the list? Shouldn’t it be a <code class="literal">Maybe</code>?
+      Well, that’s also not the case. With grouped checkboxes and multi-select lists, you’ll have
+      multiple widgets with the same name. We also use this trick in our example below.</p><p class="calibre7">The second record is <code class="literal">fieldView</code>, and it renders a widget
+      to display to the user. This function has four arguments: the <code class="literal">id</code> attribute, the <code class="literal">name</code> attribute, the result,
+      and a <code class="literal">Bool</code> indicating whether the field is required.</p><p class="calibre7">What did I mean by result? It’s actually an <code class="literal">Either</code>,
+      giving either the unparsed input (when parsing failed) or the successfully parsed value.
+        <code class="literal">intField</code> is a great example of how this works. If you
+      type in <strong class="userinput"><code class="userinput">42</code></strong>, the value of result will be <code class="literal">Right 42</code>. But if you type in <strong class="userinput"><code class="userinput">turtle</code></strong>, the result will be <code class="literal">Left "turtle"</code>.
+      This lets you put in a value attribute on your input tag that will give the user a consistent
+      experience.</p><p class="calibre7">As a small example, we’ll create a new field type that is a password confirm field. This
+      field has two text inputs—both with the same name attribute—and returns an error
+      message if the values don’t match. Note that, unlike most fields, it does
+        <span class="firstname"><em class="calibre4">not</em></span> provide a value attribute on the input tags, as you don’t want to
+      send back a user-entered password in your HTML <span class="bold"><strong class="bold">ever</strong></span>.</p><a id="I_programlisting8_d1e4555" class="firstname"></a><pre class="programlistinghaskell"><code class="nf">passwordConfirmField</code> <code class="ow">::</code> <code class="kt">Field</code> <code class="n">sub</code> <code class="n">master</code> <code class="kt">Text</code>
+<code class="nf">passwordConfirmField</code> <code class="ow">=</code> <code class="kt">Field</code>
+    <code class="p">{</code> <code class="n">fieldParse</code> <code class="ow">=</code> <code class="nf">\</code><code class="n">rawVals</code> <code class="ow">-&gt;</code>
+        <code class="kr">case</code> <code class="n">rawVals</code> <code class="kr">of</code>
+            <code class="p">[</code><code class="n">a</code><code class="p">,</code> <code class="n">b</code><code class="p">]</code>
+                <code class="o">|</code> <code class="n">a</code> <code class="o">==</code> <code class="n">b</code> <code class="ow">-&gt;</code> <code class="n">return</code> <code class="o">$</code> <code class="kt">Right</code> <code class="o">$</code> <code class="kt">Just</code> <code class="n">a</code>
+                <code class="o">|</code> <code class="n">otherwise</code> <code class="ow">-&gt;</code> <code class="n">return</code> <code class="o">$</code> <code class="kt">Left</code> <code class="s">"Passwords don't match"</code>
+            <code class="kt">[]</code> <code class="ow">-&gt;</code> <code class="n">return</code> <code class="o">$</code> <code class="kt">Right</code> <code class="kt">Nothing</code>
+            <code class="kr">_</code> <code class="ow">-&gt;</code> <code class="n">return</code> <code class="o">$</code> <code class="kt">Left</code> <code class="s">"You must enter two values"</code>
+    <code class="p">,</code> <code class="n">fieldView</code> <code class="ow">=</code> <code class="nf">\</code><code class="n">idAttr</code> <code class="n">nameAttr</code> <code class="kr">_</code> <code class="n">eResult</code> <code class="n">isReq</code> <code class="ow">-&gt;</code> <code class="p">[</code><code class="n">whamlet</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">input</code> <code class="n">id</code><code class="o">=#</code><code class="p">{</code><code class="n">idAttr</code><code class="p">}</code> <code class="n">name</code><code class="o">=#</code><code class="p">{</code><code class="n">nameAttr</code><code class="p">}</code> <code class="kr">type</code><code class="ow">=</code><code class="n">password</code><code class="o">&gt;</code>
+<code class="o">&lt;</code><code class="n">div</code><code class="o">&gt;</code><code class="kt">Confirm:</code>
+<code class="o">&lt;</code><code class="n">input</code> <code class="n">id</code><code class="o">=#</code><code class="p">{</code><code class="n">idAttr</code><code class="p">}</code><code class="o">-</code><code class="n">confirm</code> <code class="n">name</code><code class="o">=#</code><code class="p">{</code><code class="n">nameAttr</code><code class="p">}</code> <code class="kr">type</code><code class="ow">=</code><code class="n">password</code><code class="o">&gt;</code>
+<code class="o">|</code><code class="p">]</code>
+    <code class="p">}</code>
+
+<code class="nf">getRootR</code> <code class="ow">::</code> <code class="kt">Handler</code> <code class="kt">RepHtml</code>
+<code class="nf">getRootR</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="p">((</code><code class="n">res</code><code class="p">,</code> <code class="n">widget</code><code class="p">),</code> <code class="n">enctype</code><code class="p">)</code> <code class="ow">&lt;-</code> <code class="n">runFormGet</code> <code class="o">$</code> <code class="n">renderDivs</code>
+        <code class="o">$</code> <code class="n">areq</code> <code class="n">passwordConfirmField</code> <code class="s">"Password"</code> <code class="kt">Nothing</code>
+    <code class="n">defaultLayout</code> <code class="p">[</code><code class="n">whamlet</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code><code class="kt">Result:</code> <code class="o">#</code><code class="p">{</code><code class="n">show</code> <code class="n">res</code><code class="p">}</code>
+<code class="o">&lt;</code><code class="n">form</code> <code class="n">enctype</code><code class="o">=#</code><code class="p">{</code><code class="n">enctype</code><code class="p">}</code><code class="o">&gt;</code>
+    <code class="o">^</code><code class="p">{</code><code class="n">widget</code><code class="p">}</code>
+    <code class="o">&lt;</code><code class="n">input</code> <code class="kr">type</code><code class="ow">=</code><code class="n">submit</code> <code class="n">value</code><code class="ow">=</code><code class="s">"Change password"</code><code class="o">&gt;</code>
+<code class="o">|</code><code class="p">]</code>
+</pre></div></div>
+
+{% endraw %}
+

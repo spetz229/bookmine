@@ -1,0 +1,83 @@
+---
+layout: page
+title: "Understanding the Linux Kernel, 3rd Edition"
+prev: understandlk-CHP-9-SECT-5.html
+next: understandlk-CHP-10.html
+book_path: books/understanding-the-linux-kernel-rd-edition_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a name="understandlk-CHP-9-SECT-6"></a>
+<h3 class="docSection1Title">9.6. Managing the Heap</h3><a name="IDX-CHP-9-2482"></a>
+<a name="IDX-CHP-9-2483"></a>
+<a name="IDX-CHP-9-2484"></a>
+<a name="IDX-CHP-9-2485"></a>
+<a name="IDX-CHP-9-2486"></a>
+<a name="IDX-CHP-9-2487"></a>
+<p class="docText1">Each Unix process owns a specific memory region called the <span class="docEmphasis">heap</span>, which is used to satisfy the process's dynamic memory requests. The <tt class="calibre25">start_brk</tt> and <tt class="calibre25">brk</tt> fields of the memory descriptor delimit the starting and ending addresses, respectively, of that region.</p>
+<p class="docText1">The following APIs can be used by the process to request and release dynamic memory:</p>
+<a name="IDX-CHP-9-2488"></a><a name="IDX-CHP-9-2489"></a><a name="IDX-CHP-9-2490"></a><dl class="docText1"><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">malloc(size)</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">Requests <tt class="calibre25">size</tt> bytes of dynamic memory; if the allocation succeeds, it returns the linear address of the first memory location.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">calloc(n,size)</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">Requests an array consisting of <tt class="calibre25">n</tt> elements of size <tt class="calibre25">size</tt>; if the allocation succeeds, it initializes the array components to 0 and returns the linear address of the first element.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">realloc(ptr,size)</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">Changes the size of a memory area previously allocated by <tt class="calibre25">malloc( )</tt><a name="IDX-CHP-9-2488"></a> 
+ or <tt class="calibre25">calloc( )</tt><a name="IDX-CHP-9-2489"></a> 
+.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">free(addr)</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">Releases the memory region allocated by <tt class="calibre25">malloc( )</tt> or <tt class="calibre25">calloc( )</tt> that has an initial address of <tt class="calibre25">addr</tt>.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">brk(addr)</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">Modifies the size of the heap directly; the <tt class="calibre25">addr</tt> parameter specifies the new value of <tt class="calibre25">current-&gt;mm-&gt;brk</tt>, and the return value is the new ending address of the memory region (the process must check whether it coincides with the requested <tt class="calibre25">addr</tt> value).</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">sbrk(incr)</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">Is similar to <tt class="calibre25">brk( )</tt><a name="IDX-CHP-9-2490"></a> 
+, except that the <tt class="calibre25">incr</tt> parameter specifies the increment or decrement of the heap size in bytes.</p></dd></dl>
+<p class="docText1">The <tt class="calibre25">brk( )</tt> function differs from the other functions listed because it is the only one implemented as a system call. All the other functions are implemented in the C library by using <tt class="calibre25">brk( )</tt> and <tt class="calibre25">mmap( )</tt>.<sup class="docFootnote"><a class="pcalibre5 docLink pcalibre1" href="#understandlk-CHP-9-FN14">[*]</a></sup></p><blockquote class="calibre22"><p class="docFootnote1"><sup class="calibre24"><a name="understandlk-CHP-9-FN14">[*]</a></sup> The <tt class="calibre42">realloc( )</tt><a name="IDX-CHP-9-2491"></a> 
+ library function can also make use of the <tt class="calibre42">mremap( )</tt> system call.</p></blockquote>
+<p class="docText1">When a process in User Mode invokes the <tt class="calibre25">brk( )</tt> system call, the kernel executes the <tt class="calibre25">sys_brk(addr)</tt> function. This function first verifies whether the <tt class="calibre25">addr</tt> parameter falls inside the memory region that contains the process code; if so, it returns immediately because the heap cannot overlap with memory region containing the process's code:</p>
+<pre class="calibre27">
+    mm = current-&gt;mm;
+    down_write(&amp;mm-&gt;mmap_sem);
+    if (addr &lt; mm-&gt;end_code) {
+    out:
+        up_write(&amp;mm-&gt;mmap_sem);
+        return mm-&gt;brk;
+    }</pre><br class="calibre7"/>
+<p class="docText1">Because the <tt class="calibre25">brk( )</tt> system call acts on a memory region, it allocates and deallocates whole pages. Therefore, the function aligns the value of <tt class="calibre25">addr</tt> to a multiple of <tt class="calibre25">PAGE_SIZE</tt> and compares the result with the value of the <tt class="calibre25">brk</tt> field of the memory descriptor:</p>
+<pre class="calibre27">
+    newbrk = (addr + 0xfff) &amp; 0xfffff000;
+    oldbrk = (mm-&gt;brk + 0xfff) &amp; 0xfffff000;
+    if (oldbrk == newbrk) {
+        mm-&gt;brk = addr;
+        goto out;
+    }</pre><br class="calibre7"/>
+<p class="docText1">If the process asked to shrink the heap, <tt class="calibre25">sys_brk( )</tt> invokes the <tt class="calibre25">do_munmap( )</tt> function to do the job and then returns:</p>
+<pre class="calibre27">
+    if (addr &lt;= mm-&gt;brk) {
+        if (!do_munmap(mm, newbrk, oldbrk-newbrk))
+            mm-&gt;brk = addr;
+        goto out;
+    }</pre><br class="calibre7"/>
+<p class="docText1">If the process asked to enlarge the heap, <tt class="calibre25">sys_brk( )</tt> first checks whether the process is allowed to do so. If the process is trying to allocate memory outside its limit, the function simply returns the original value of <tt class="calibre25">mm-&gt;brk</tt> without allocating more memory:</p>
+<pre class="calibre27">
+    rlim = current-&gt;signal-&gt;rlim[RLIMIT_DATA].rlim_cur;
+    if (rlim &lt; RLIM_INFINITY &amp;&amp; addr - mm-&gt;start_data &gt; rlim)
+        goto out;</pre><br class="calibre7"/>
+<p class="docText1">The function then checks whether the enlarged heap would overlap some other memory region belonging to the process and, if so, returns without doing anything:</p>
+<pre class="calibre27">
+    if (find_vma_intersection(mm, oldbrk, newbrk+PAGE_SIZE))
+        goto out;</pre><br class="calibre7"/>
+<p class="docText1">If everything is OK, the <tt class="calibre25">do_brk( )</tt> function is invoked. If it returns the <tt class="calibre25">oldbrk</tt> value, the allocation was successful and <tt class="calibre25">sys_brk( )</tt> returns the value <tt class="calibre25">addr</tt>; otherwise, it returns the old <tt class="calibre25">mm-&gt;brk</tt> value:</p>
+<pre class="calibre27">
+    if (do_brk(oldbrk, newbrk-oldbrk) == oldbrk)
+        mm-&gt;brk = addr;
+    goto out;</pre><br class="calibre7"/>
+<p class="docText1">The <tt class="calibre25">do_brk( )</tt> function is actually a simplified version of <tt class="calibre25">do_mmap( )</tt> that handles only anonymous memory regions. Its invocation might be considered equivalent to:</p>
+<pre class="calibre27">
+    do_mmap(NULL, oldbrk, newbrk-oldbrk, PROT_READ|PROT_WRITE|PROT_EXEC,
+            MAP_FIXED|MAP_PRIVATE, 0)</pre><br class="calibre7"/>
+<p class="docText1"><tt class="calibre25">do_brk( )</tt> is slightly faster than <tt class="calibre25">do_mmap( )</tt>, because it avoids several checks on the memory region object fields by assuming that the memory region doesn't map a file on disk.</p>
+<a href="31071535.html"><img src="pixel.jpg" alt="" border="0" class="calibre19"/></a>
+<br class="calibre7"/>
+
+</div>
+
+{% endraw %}
+

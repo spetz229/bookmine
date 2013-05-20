@@ -1,0 +1,55 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/apfs05.html
+next: OEBPS/author_bios.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="xml2html"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect1_d1e11905" class="calibre1"></a>xml2html</h1></div></div></div><p class="calibre7"></p><p class="calibre7">So far in this chapter, our examples have revolved around XHTML. I’ve done that so far
+   simply because it is likely to be the most familiar form of XML for most of our readers. But
+   there’s an ugly side to all this that we must acknowledge: not all XHTML will be correct HTML.
+   The following discrepancies exist:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">There are some void tags (e.g., <code class="literal">img</code>, <code class="literal">br</code>) in HTML
+    which do not need to have close tags, and in fact are not allowed to.</p></li><li class="listitem"><p class="calibre7">HTML does not understand self-closing tags, so <code class="literal">&lt;script&gt;&lt;/script&gt;</code> and
+     <code class="literal">&lt;script/&gt;</code> mean very different things.</p></li><li class="listitem"><p class="calibre7">Combining the previous two points: you are free to self-close void tags, though to a browser
+    it won’t mean anything.</p></li><li class="listitem"><p class="calibre7">In order to avoid quirks mode, you should start your HTML documents with a
+     <code class="literal">DOCTYPE</code> statement.</p></li><li class="listitem"><p class="calibre7">We do not want the XML declaration <code class="literal">&lt;?xml
+                        ...?&gt;</code> at the top of an HTML page.</p></li><li class="listitem"><p class="calibre7">We do not want any namespaces used in HTML, while XHTML is fully namespaced.</p></li><li class="listitem"><p class="calibre7">The contents of <code class="literal">&lt;style&gt;</code> and <code class="literal">&lt;script&gt;</code>
+    tags should not be escaped.</p></li></ul></div><p class="calibre7">That’s where the <code class="function">xml2html</code> package comes into play. It
+            provides a <code class="function">ToHtml</code> instance for <code class="literal">Node</code>s, <code class="literal">Document</code>s, and
+                <code class="literal">Element</code>s. In order to use it, just import the
+                <code class="function">Text.XML.Xml2Html</code> module.</p><a id="I_programlisting_d1e11978" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE OverloadedStrings, QuasiQuotes #-}</code>
+<code class="kr">import</code> <code class="nn">Text.Blaze</code> <code class="p">(</code><code class="nf">toHtml</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Text.Blaze.Renderer.String</code> <code class="p">(</code><code class="nf">renderHtml</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Text.XML</code>
+<code class="kr">import</code> <code class="nn">Text.Hamlet.XML</code>
+<code class="kr">import</code> <code class="nn">Text.XML.Xml2Html</code> <code class="p">()</code>
+
+<code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">putStr</code> <code class="o">$</code> <code class="n">renderHtml</code> <code class="o">$</code> <code class="n">toHtml</code> <code class="o">$</code> <code class="kt">Document</code> <code class="p">(</code><code class="kt">Prologue</code> <code class="kt">[]</code> <code class="kt">Nothing</code> <code class="kt">[]</code><code class="p">)</code> <code class="n">root</code> <code class="kt">[]</code>
+
+<code class="nf">root</code> <code class="ow">::</code> <code class="kt">Element</code>
+<code class="nf">root</code> <code class="ow">=</code> <code class="kt">Element</code> <code class="s">"html"</code> <code class="kt">[]</code> <code class="p">[</code><code class="n">xml</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">head</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">title</code><code class="o">&gt;</code><code class="kt">Test</code>
+    <code class="o">&lt;</code><code class="n">script</code><code class="o">&gt;</code><code class="kr">if</code> <code class="p">(</code><code class="mi">5</code> <code class="o">&lt;</code> <code class="mi">6</code> <code class="o">||</code> <code class="mi">8</code> <code class="o">&gt;</code> <code class="mi">9</code><code class="p">)</code> <code class="n">alert</code><code class="p">(</code><code class="s">"Hello World!"</code><code class="p">);</code>
+    <code class="o">&lt;</code><code class="n">style</code><code class="o">&gt;</code><code class="n">body</code> <code class="o">&gt;</code> <code class="n">h1</code> <code class="p">{</code> <code class="n">color</code><code class="kt">:</code> <code class="n">red</code> <code class="p">}</code>
+<code class="o">&lt;</code><code class="n">body</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">h1</code><code class="o">&gt;</code><code class="kt">Hello</code> <code class="kt">World</code><code class="o">!</code>
+<code class="o">|</code><code class="p">]</code>
+</pre><p class="calibre7">Outputs (whitespace added):</p><a id="I_programlisting_d1e11982" class="firstname"></a><pre class="programlistinghaskell">&lt;!DOCTYPE HTML&gt;
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;title&gt;Test&lt;/title&gt;
+        &lt;script&gt;if (5 &lt; 6 || 8 &gt; 9) alert("Hello World!");&lt;/script&gt;
+        &lt;style&gt;body &gt; h1 { color: red }&lt;/style&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;h1&gt;Hello World!&lt;/h1&gt;
+    &lt;/body&gt;
+&lt;/html&gt;</pre></div></div>
+
+{% endraw %}
+

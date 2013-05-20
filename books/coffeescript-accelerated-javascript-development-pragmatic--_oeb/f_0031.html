@@ -1,0 +1,114 @@
+---
+layout: page
+title: "CoffeeScript (for jay muratore)"
+prev: f_0030.html
+next: f_0032.html
+book_path: books/coffeescript-accelerated-javascript-development-pragmatic--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="sec.conditionalIteration" class="calibre13">3.4 Conditional Iteration</h2>
+<p id="N11F9D" class="calibre5">
+      If you’re finding <code class="cf">for...of</code> and <code class="cf">for...in</code> a little perplexing, don’t worry—there are simpler loops to be had. In fact, these loops are downright self-explanatory:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">makeHay() <strong class="prompt">while</strong> sunShines()</code>
+</td>
+</tr>
+</table>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">makeHay() <strong class="prompt">until</strong> sunSets()</code>
+</td>
+</tr>
+</table>
+<p id="N11FC2" class="calibre5">
+      As you’ve probably guessed, <code class="cf">until</code> is simply shorthand for <code class="cf">while not</code>, just as <code class="cf">unless</code> is shorthand for <code class="cf">if not</code>.
+    </p>
+<p id="N11FD5" class="calibre5">
+      Note that in both these syntaxes, <code class="cf">makeHay()</code> isn’t run at all if the condition isn’t initially met. There’s no equivalent of JavaScript’s <code class="cf">do...while</code> syntax, which runs the loop body at least once. We’ll define a utility function for this in the exercises for this chapter.
+      </p>
+<p id="N11FE4" class="calibre5">
+      In many languages, you’ll see <code class="cf">while true</code> loops, indicating that the block is to be repeated until it forces a <code class="cf">break</code> or <code class="cf">return</code>. CoffeeScript provides a shorthand for this, the simply-named <code class="cf">loop</code>:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">loop</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  console.log <em class="string">'Home'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">break</strong> <strong class="prompt">if</strong> @flag is <strong class="prompt">true</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  console.log <em class="string">'Sweet'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  @flag = <strong class="prompt">true</strong>
+</code>
+</td>
+</tr>
+</table>
+<p id="N1201A" class="calibre5">
+      Note that all loop syntaxes except <code class="cf">loop</code> allow both postfix and indented forms, just as <code class="cf">if</code>/<code class="cf">unless</code> does. <code class="cf">loop</code> is unique in that it’s prefixed rather than postfixed, like so:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">a = 0</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">loop</strong> <strong class="prompt">break</strong> <strong class="prompt">if</strong> ++a &gt; 999</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console.log a<em class="comment">  # 1000</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N12044" class="calibre5">
+      Though <code class="cf">while</code>, <code class="cf">until</code> and <code class="cf">loop</code> aren’t as common as <code class="cf">for</code> syntax, their versatility should make them an invaluable addition to your repertoire.
+    </p>
+<p id="N12053" class="calibre5">
+      Next up, we’ll answer an ancient Zen koan: What is the value of a list?
+    </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

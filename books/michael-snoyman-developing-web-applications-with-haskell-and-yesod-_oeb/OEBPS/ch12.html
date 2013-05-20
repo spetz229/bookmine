@@ -1,0 +1,38 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/pt02.html
+next: OEBPS/ch12s02.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="calibre8"></div><div class="book" title="Chapter 12. RESTful Content"><div class="book"><div class="book"><div class="book"><div class="calibre8"></div><h1 class="title1"><a id="I_chapter1_d1e6221" class="calibre1"></a>Chapter 12. RESTful Content</h1></div></div></div><p class="calibre7">One of the stories from the early days of the Web is how search engines wiped out entire
+        websites. When dynamic web sites were still a new concept, developers didn’t appreciate the
+        difference between a <code class="literal">GET</code> and <code class="literal">POST</code> request. As a result, they created pages—accessed with the
+            <code class="literal">GET</code> method—that would delete pages. When search
+        engines started crawling these sites, they could wipe out all the content.</p><p class="calibre7">If these web developers had followed the HTTP spec properly, this would not have
+            happened. A <code class="literal">GET</code> request is supposed to cause no side effects
+            (you know, like wiping out a site). Recently, there has been a move in web development
+            to properly embrace Representational State Transfer, also known as REST. This chapter
+            describes the RESTful features in Yesod and how you can use them to create more robust
+            web applications.</p><div class="book" title="Request Methods"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect11_d1e6240" class="calibre1"></a>Request Methods</h1></div></div></div><p class="calibre7">In many web frameworks, you write one handler function per resource. In Yesod, the default
+            is to have a separate handler function for each <em class="calibre4">request method</em>.
+            The two most common request methods you will deal with in creating websites are GET and
+            POST. These are the most well-supported methods in HTML, since they are the only ones
+            supported by web forms. However, when creating RESTful APIs, the other methods are very
+            useful.</p><p class="calibre7">Technically speaking, you can create whichever request methods you like, but it is strongly recommended to stick to the ones spelled out in the HTTP spec. The most common of these are:</p><div class="book"><dl class="book"><dt class="calibre9"><span class="firstname">GET</span></dt><dd class="calibre10"><p class="calibre7">Read-only requests. Assuming no other changes occur on the server, calling a
+                        <code class="literal">GET</code> request multiple times should result in the same
+                    response, barring such things as “current time” or randomly assigned
+                    results.</p></dd><dt class="calibre9"><span class="firstname">POST</span></dt><dd class="calibre10"><p class="calibre7">A general mutating request. A <code class="literal">POST</code> request should never be submitted
+                    twice by the user. A common example of this would be to transfer funds from one
+                    bank account to another.</p></dd><dt class="calibre9"><span class="firstname">PUT</span></dt><dd class="calibre10"><p class="calibre7">Create a new resource on the server, or replace an existing one. This method <span class="firstname"><em class="calibre4">is</em></span> safe to be called multiple times.</p></dd><dt class="calibre9"><span class="firstname">DELETE</span></dt><dd class="calibre10"><p class="calibre7">Just like it sounds: wipe out a resource on the server. Calling multiple times should be OK.</p></dd></dl></div><p class="calibre7">To a certain extent, this fits in very well with Haskell philosophy: a
+                <code class="literal">GET</code> request is similar to a pure function, which cannot have side
+            effects. In practice, your <code class="literal">GET</code> functions will probably perform
+                <code class="literal">IO</code>, such as reading information from a database, logging user
+            actions, and so on.</p><p class="calibre7">See the routing and handlers chapter for more information on the syntax of defining
+            handler functions for each request method.</p></div></div></div>
+
+{% endraw %}
+

@@ -1,0 +1,55 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch19.html
+next: OEBPS/ch20s02.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="calibre8"></div><div class="book" title="Chapter 20. JSON Web Service"><div class="book"><div class="book"><div class="book"><div class="calibre8"></div><h1 class="title1"><a id="I_chapter3_d1e8260" class="calibre1"></a>Chapter 20. JSON Web Service</h1></div></div></div><p class="calibre7">Let’s create a very simple web service: it takes a JSON request and returns a JSON
+            response. We’re going to write the server in WAI/Warp, and the client in <code class="function">http-conduit</code>. We’ll be using <code class="function">aeson</code> for
+            JSON parsing and rendering. We could also write the server in Yesod itself, but for such
+            a simple example, the extra features of Yesod don’t add much.</p><div class="book" title="Server"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect13_d1e8271" class="calibre1"></a>Server</h1></div></div></div><p class="calibre7"></p><p class="calibre7">WAI uses the <code class="function">conduit</code> package to handle streaming request
+            bodies, and efficiently generates responses using <code class="function">blaze-builder</code>. <code class="function">aeson</code> uses <code class="function">attoparsec</code> for parsing; by using <code class="function">attoparsec-conduit</code> we get easy interoperability with WAI. This plays out
+            as:</p><a id="I_programlisting3_d1e8296" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE OverloadedStrings #-}</code>
+<code class="kr">import</code> <code class="nn">Network.Wai</code> <code class="p">(</code><code class="kt">Response</code><code class="p">,</code> <code class="nf">responseLBS</code><code class="p">,</code> <code class="kt">Application</code><code class="p">,</code> <code class="nf">requestBody</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Network.HTTP.Types</code> <code class="p">(</code><code class="nf">status200</code><code class="p">,</code> <code class="nf">status400</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Network.Wai.Handler.Warp</code> <code class="p">(</code><code class="nf">run</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Data.Aeson.Parser</code> <code class="p">(</code><code class="nf">json</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Data.Conduit.Attoparsec</code> <code class="p">(</code><code class="nf">sinkParser</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Control.Monad.IO.Class</code> <code class="p">(</code><code class="nf">liftIO</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Data.Aeson</code> <code class="p">(</code><code class="kt">Value</code><code class="p">,</code> <code class="nf">encode</code><code class="p">,</code> <code class="nf">object</code><code class="p">,</code> <code class="p">(</code><code class="o">.=</code><code class="p">))</code>
+<code class="kr">import</code> <code class="nn">Control.Exception</code> <code class="p">(</code><code class="kt">SomeException</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Data.ByteString</code> <code class="p">(</code><code class="kt">ByteString</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Data.Conduit</code> <code class="p">(</code><code class="kt">ResourceT</code><code class="p">,</code> <code class="p">(</code><code class="o">$$</code><code class="p">))</code>
+<code class="kr">import</code> <code class="nn">Control.Exception.Lifted</code> <code class="p">(</code><code class="nf">handle</code><code class="p">)</code>
+
+<code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">run</code> <code class="mi">3000</code> <code class="n">app</code>
+
+<code class="nf">app</code> <code class="ow">::</code> <code class="kt">Application</code>
+<code class="nf">app</code> <code class="n">req</code> <code class="ow">=</code> <code class="n">handle</code> <code class="n">invalidJson</code> <code class="o">$</code> <code class="kr">do</code>
+    <code class="n">value</code> <code class="ow">&lt;-</code> <code class="n">requestBody</code> <code class="n">req</code> <code class="o">$$</code> <code class="n">sinkParser</code> <code class="n">json</code>
+    <code class="n">newValue</code> <code class="ow">&lt;-</code> <code class="n">liftIO</code> <code class="o">$</code> <code class="n">modValue</code> <code class="n">value</code>
+    <code class="n">return</code> <code class="o">$</code> <code class="n">responseLBS</code>
+        <code class="n">status200</code>
+        <code class="p">[(</code><code class="s">"Content-Type"</code><code class="p">,</code> <code class="s">"application/json"</code><code class="p">)]</code>
+        <code class="o">$</code> <code class="n">encode</code> <code class="n">newValue</code>
+
+<code class="nf">invalidJson</code> <code class="ow">::</code> <code class="kt">SomeException</code> <code class="ow">-&gt;</code> <code class="kt">ResourceT</code> <code class="kt">IO</code> <code class="kt">Response</code>
+<code class="nf">invalidJson</code> <code class="n">ex</code> <code class="ow">=</code> <code class="n">return</code> <code class="o">$</code> <code class="n">responseLBS</code>
+    <code class="n">status400</code>
+    <code class="p">[(</code><code class="s">"Content-Type"</code><code class="p">,</code> <code class="s">"application/json"</code><code class="p">)]</code>
+    <code class="o">$</code> <code class="n">encode</code> <code class="o">$</code> <code class="n">object</code>
+        <code class="p">[</code> <code class="p">(</code><code class="s">"message"</code> <code class="o">.=</code> <code class="n">show</code> <code class="n">ex</code><code class="p">)</code>
+        <code class="p">]</code>
+
+<code class="cm">-- Application-specific logic would go here.</code>
+<code class="nf">modValue</code> <code class="ow">::</code> <code class="kt">Value</code> <code class="ow">-&gt;</code> <code class="kt">IO</code> <code class="kt">Value</code>
+<code class="nf">modValue</code> <code class="ow">=</code> <code class="n">return</code>
+</pre></div></div></div>
+
+{% endraw %}
+

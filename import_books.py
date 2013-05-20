@@ -214,7 +214,6 @@ cat_count = [
 	'OCaml',
 	'Clojure',
 	'Racket',
-	'Rust',
 	'Java ']
 
 def check_cat(full_name):

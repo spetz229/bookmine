@@ -1,0 +1,497 @@
+---
+layout: page
+title: "Эффективное использование C++. 55 верных способов улучшить структуру и код ваших программ"
+prev: OEBPS/section53.xhtml
+next: OEBPS/section55.xhtml
+book_path: books/effektivnoe-ispoljzovanie-c--vernih-sposobov-uluchshitj-strukturu-i-kod-vashih-programm_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <div class="calibre">
+      <div class="title1">
+        <h2 class="calibre3">Правило 31: Уменьшайте зависимости файлов при компиляции</h2>
+      </div>
+      <p class="calibre2">Рассмотрим самую обыкновенную ситуацию. Вы открываете свою программу на C++ и вносите незначительные изменения в реализацию класса. Заметьте, не в интерфейс класса, а просто в реализацию – только в закрытые члены. После этого вы начинаете заново собирать программу, рассчитывая, что это займет лишь несколько секунд. В конце концов, ведь вы модифицировали всего один класс. Вы щелкаете по кнопке Build или набираете make (либо какой-то эквивалент), и… удивлены, а затем – подавлены, когда обнаруживаете, что перекомпилируется и заново компонуется весь <em class="calibre5">мир!</em> Не правда ли, вам это скоро надоест?</p>
+      <p class="calibre2">Проблема связана с тем, что C++ не проводит сколько-нибудь значительного различия между интерфейсом и реализацией. В частности, определения классов включают в себя не только спецификацию интерфейса, но также и целый ряд деталей реализации. Например:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Person {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Person(const std::string&amp; name, const Date&amp; birthday,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Address&amp; addr);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::string name() const;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::string birthDate() const;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::string address() const;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">private:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::string theName; // деталь реализации</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Date theBirthDate; // деталь реализации</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Address theAddress; // деталь реализации</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Класс Person нельзя скомпилировать, не имея доступа к определению классов, с помощью которых он реализуется, а именно string, Date и Address. Такие определения обычно предоставляются посредством директивы #include, поэтому весьма вероятно, что в начале файла, определяющего класс Person, вы найдете нечто вроде:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">#include &lt;string&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">#include “date.h”</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">#include “address.h”</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">К сожалению, это устанавливает зависимости времени компиляции между файлом определения Person и включаемыми файлами. Если изменится любой из этих файлов либо любой из файлов, от которых <em class="calibre5">они</em> зависят, то должен быть перекомпилирован файл, содержащий определение Person, а равно и все файлы, которые класс Person используют. Такие каскадные зависимости могут быть весьма обременительны для пользователей.</p>
+      <p class="calibre2">Можно задаться вопросом, почему C++ настаивает на размещении деталей реализации класса в определении класса. Например, почему нельзя определить Person следующим образом:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">namespace std {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class string; // опережающее объявление</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">} // (некорректно – см. далее)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class Date; // опережающее объявление</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class Address; // опережающее объявление</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class Person {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Person(const std::string&amp; name, const Date&amp; birthday,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Address&amp; addr);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::string name() const;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::string birthDate() const;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::string address() const;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Если бы такое было возможно, то пользователи класса Person должны были перекомпилировать свои программы только при изменении его интерфейса.</p>
+      <p class="calibre2">Увы, при реализации этой идеи мы наталкиваемся на две проблемы. Первая: string – это не класс, а typedef (синоним шаблона basic_string&lt;char&gt;). Поэтому опережающее объявление string некорректно. Правильное объявление гораздо сложнее, так как в нем участвуют дополнительные шаблоны. Впрочем, это не важно, потому что вы в любом случае не должны вручную объявлять какие-либо части стандартной библиотеки. Вместо этого просто включите с помощью #include правильные заголовки и успокойтесь. Стандартные заголовки вряд ли станут узким местом при компиляции, особенно если ваша среда разработки поддерживает предкомпилированные заголовочные файлы. Если на компиляцию стандартных заголовков все же уходит много времени, то может понадобиться изменить дизайн и избежать использования тех частей стандартной библиотеки, которые включать нежелательно.</p>
+      <p class="calibre2">Вторая (и более существенная) неприятность, связанная с опережающим объявлением, состоит в том, что компилятору необходимо знать размер объектов во время компиляции. Рассмотрим пример:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">int main()</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">int x; // определяем int</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Person p(<em class="calibre5">params</em>); // определяем Person</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Когда компилятор видит определение x, он понимает, что должен выделить достаточно места (обычно в стеке) для размещения int. Нет проблем: каждый компилятор знает, какова длина int. Встречая определение p, компилятор учитывает, что нужно выделить место для Person, но откуда ему знать, сколько именно места потребуется? Единственный способ получить эту информацию – справиться в определении класса, но если бы в определениях классов можно было опускать детали реализации, как компилятор выяснил бы, сколько памяти необходимо выделить?</p>
+      <p class="calibre2">Такой вопрос не возникает в языках типа SmallTalk или Java, потому что при определении объекта компиляторы выделяют только память, достаточную для хранения <em class="calibre5">указателя</em> на этот объект. Иначе говоря, эти языки интерпретируют вышеприведенный код, как если бы он был написан следующим образом:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">int main()</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">int x; // определяем int</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Person *p; // определяем указатель на Person</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Это вполне законная конструкция на C++, поэтому вы и сами сможете имитировать «сокрытие реализации объекта за указателем». В случае класса Person это можно сделать, например, разделив его на два класса: один – для представления интерфейса, а другой – для его реализации. Если класс, содержащий реализацию, назвать Personlmpl, то Person должен быть написан следующим образом:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">#include &lt;string&gt; // компоненты стандартной библиотеки</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// не могут быть объявлены предварительно</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">#include &lt;memory&gt; // для tr1::shared_ptr; см. далее</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class PersonImpl; // опережающее объявление PersonImpl</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class Date; // опережающее объявление классов,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class Address; // используемых в интерфейсе Person</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class Person {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Person(const std::string&amp; name, const Date&amp; birthday,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Address&amp; addr);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::string name() const;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::string birthDate() const;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::string address() const;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">private: // указатель на реализацию:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::tr1::shared_ptr&lt;PersonImpl&gt; pImpl; // см. в правиле 13 информацию</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}; // о std::tr1::shared_ptr</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Здесь главный класс (Person) не содержит никаких данных-членов, кроме указателя (в данном случае tr1::shared_ptr – см. правило 13) на свой класс реализации (Personlmpl). Такой дизайн часто называют «идиомой pimpl» («pointer to implementation» – указатель на реализацию). В подобных классах указатели часто называют pImpl, как в приведенном примере.</p>
+      <p class="calibre2">При таком дизайне пользователи класса Person не видят никаких деталей – дат, адресов и имен. Реализация может быть модифицирована как угодно, при этом перекомпилировать программы, в которых используется Person, не придется. Кроме того, поскольку пользователи не знают деталей реализации Person, они вряд ли напишут код, который каким-то образом будет зависеть от этих деталей. Вот это я и называю отделением интерфейса от реализации.</p>
+      <p class="calibre2">Ключом к этому разделению служит замена зависимости от <em class="calibre5">определения</em> (definition) на зависимость от <em class="calibre5">объявления</em> (declaration). Это и есть сущность минимизации зависимостей на этапе компиляции: когда это целесообразно, делайте заголовочные файлы самодостаточными; в противном случае используйте зависимость от объявлений, а не от определений. Все остальное вытекает из только что изложенной стратегии проектирования. Сформулируем три практических следствия:</p>
+      <p class="calibre2">• <strong class="calibre4">Избегайте использования объектов, если есть шанс обойтись ссылками или указателями.</strong> Вы можете определить ссылки и указатели, имея только <em class="calibre5">объявление</em> типа. Определение <em class="calibre5">объектов</em> требует наличия <em class="calibre5">определения</em> типа.</p>
+      <p class="calibre2">• <strong class="calibre4">По возможности используйте зависимость от объявления, а не от определения класса.</strong> Отметим, что для объявления функции, использующей некоторый класс, <em class="calibre5">никогда</em> не требуется определение этого класса, даже если функция принимает или возвращает объект класса по значению:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Date; // объявление класса</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Date today(); // правильно, необходимость</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void clearAppointments(Date d); // в определении Date отсутствует</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Конечно, передача по значению – не очень хорошая идея (см. правило 20), но если по той или иной причине вы будете вынуждены ею воспользоваться, это никак не оправдает введения ненужных зависимостей. Не исключено, что возможность объявить функции today и clearAppoinments без определения Date повергла вас в удивление, но на самом деле это не так уж странно. Определение Date должно быть доступно в момент вызова этих функций. Да, я знаю, о чем вы думаете: зачем объявлять функции, которых никто не вызывает? Ответ прост. Дело не в том, что <em class="calibre5">никто</em> не вызывает их, а в том, что их вызывают <em class="calibre5">не все.</em> Например, если имеется библиотека, содержащая десятки объявлений функций, то маловероятно, что каждый пользователь вызывает каждую функцию. Перенося бремя ответственности за предоставление определений класса с ваших заголовочных файлов, содержащих <em class="calibre5">объявления</em> функций, на пользовательские файлы, содержащие их вызовы, вы исключаете искусственную зависимость пользователя от определений типов, которые им в действительности не нужны.</p>
+      <p class="calibre2">• <strong class="calibre4">Размещайте объявления и определения в разных заголовочных файлах. </strong>Чтобы было проще придерживаться описанных выше принципов, файлы заголовков должны поставляться парами: один – для объявлений, второй – для определений. Конечно, нужно, чтобы эти файлы были согласованы. Если объявление изменяется в одном месте, то нужно изменить его и во втором. В результате пользователи библиотеки всегда должны включать файл объявлений, а не писать самостоятельно опережающие объявления, тогда как авторы библиотек должны поставлять оба заголовочных файла.</p>
+      <p class="calibre2">Например, если пользователь класса Date захочет объявить функции today и clearAppointments, ему не следует вручную включать опережающее объявление класса Date, как было показано выше. Вместо этого он должен включить директивой #include соответствующий файл с объявлениями:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">#include “datefwd.h” // заголочный файл, в котором объявлен</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// (но не определен) класс Date</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Date today(); // как раньше</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void clearAppointments(Date d);</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Файл с объявлениями назван «datefwd.h» по аналогии с заголовочным файлом &lt;iosfwd&gt; из стандартной библиотеки C++ (см. правило 54). &lt;iosfwd&gt; содержит объявления компонентов iostream, определения которых находятся в нескольких разных заголовках, включая &lt;sstream&gt;, &lt;streambuf&gt;, &lt;fstream&gt; и &lt;iostream&gt;.</p>
+      <p class="calibre2">Пример &lt;iosfwd&gt; поучителен еще и по другой причине. Из него следует, что совет этого правила относится в равной мере к шаблонным и обычным классам. Хотя в правиле 30 объяснено, что во многих средах разработки программ определения шаблонов обычно находятся в заголовочных файлах, но в некоторых продуктах допускается размещение определений шаблонов и в других местах, поэтому все же имеет смысл предоставить заголовочные файлы, содержащие только объявления, и для шаблонов. &lt;iosfwd&gt; – как раз пример такого файла.</p>
+      <p class="calibre2">В C++ есть также ключевое слово export, позволяющее отделить объявления шаблонов от их определений. К сожалению, поддержка компиляторами этой возможности ограничена, а практический опыт его применения совсем невелик. Сейчас еще слишком рано говорить, какую роль будет играть слово export в эффективном программировании на C++. Классы, подобные Person, в которых используется идиома pimpl, часто называют <em class="calibre5">классами-дескрипторами</em> (handle classes). Ответ на вопрос, каким образом работают такие классы, прост: они переадресовывают все вызовы функций соответствующим классам реализаций, которые и выполняют всю реальную работу. Например, вот как могут быть реализованы две функции-члена Person:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">#include “Person.h” // поскольку мы реализуем класс Person,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// то должны включить его определение</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">#include “PersonImpl.h” // мы должны также включить определение класса</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// PersonImpl, иначе не сможем вызывать его</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// функции-члены; отметим, что PersonImpl имеет</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// в точности те же функции-члены, что и</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// Person: их интерфейсы идентичны</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Person::Person(const std::string&amp; name, const Date&amp; birthday,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Address&amp; addr)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">: pImpl(new Person(name, birthday, addr))</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::string Person::name() const</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">return pImpl-&gt;name();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Обратите внимание на то, как конструктор Person вызывает конструктор Personlmpl (используя new – см. правило 16), и как Person::name вызывает PersonImpl::name. Это важный момент. Превращение Person в класс-дескриптор не меняет его поведения – изменяется только место, в котором это поведение реализовано.</p>
+      <p class="calibre2">Альтернативой подходу с использованием класса-дескриптора – сделать Person абстрактным базовым классом специального вида, называемым <em class="calibre5">интерфейсным классом.</em> Его назначение – специфицировать интерфейс для производных классов (см. правило 34). В результате он обычно не содержит ни данных-членов, ни конструкторов, но имеет виртуальный деструктор (см. правило 7) и набор чисто виртуальных функций, определяющих интерфейс.</p>
+      <p class="calibre2">Интерфейсные классы сродни интерфейсам Java и. NET, но C++ не накладывают на интерфейсные классы тех ограничений, которые присущи этим языкам. Например, ни Java, ни. NET не допускают в интерфейсах наличия членов-данных и реализаций функций-членов. C++ этого не запрещает. Большая гибкость C++ в этом отношении может оказаться кстати. Как объясняется в правиле 36, реализация невиртуальных функций должна быть одинаковой для всех классов в иерархии, поэтому имеет смысл реализовать такие функции, как часть интерфейсного класса, в котором они объявлены.</p>
+      <p class="calibre2">Интерфейсный класс Person может выглядеть примерно так:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Person {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual ~Person();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual std::string name() const = 0;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual std::string birthDate() const = 0;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual std::string address() const = 0;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Пользователи этого класса должны программировать в терминах указателей и ссылок на Person, потому что невозможно создать экземпляр класса, содержащего чисто виртуальные функции (однако можно создавать экземпляры классов, производных от Person – см. далее). Пользователям интерфейсных классов, как и пользователям классов-дескрипторов, нет нужды проводить перекомпиляцию до тех пор, пока не изменяется интерфейс.</p>
+      <p class="calibre2">Конечно, пользователи интерфейсных классов должны иметь способ создавать новые объекты. Обычно они делают это, вызывая функцию, играющую роль конструктора для производных классов, экземпляры которых необходимо создать. Такие функции часто называют функциями-фабриками (см. правило 13), или <em class="calibre5">виртуальными конструкторами.</em> Они возвращают указатели (и лучше бы интеллектуальные, см. правило 18) на динамически распределенные объекты, которые поддерживают интерфейс интерфейсного класса. Нередко подобные функции объявляют как статические внутри интерфейсного класса:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Person {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">static std::tr1::shared_ptr&lt;Person&gt; // возвращает tr1::shared_ptr</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">create(const std::string&amp; name, // на новый экземпляр Person,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Date&amp; birthday, // инициализированный заданными</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Address&amp; addr); // параметрами: см. в правиле 18,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">... // почему возвращается</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}; // tr1::shared_ptr</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">а используют так:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">std::string name;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Date datefBirth;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Address address;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// создать объект, поддерживающий интерфейс Person</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::tr1::shared_ptr&lt;Person&gt; pp(Person::create(name, dateOfBrth, address));</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::cout &lt;&lt; pp-&gt;name() // использовать объект через</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">&lt;&lt; “ родился ” // интерфейс Person</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">&lt;&lt; pp-&gt;birthDate()</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">&lt;&lt; “ и теперь живет по адресу ”</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">&lt;&lt; pp-&gt;address();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">... // объект автоматически</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// удаляется, когда pp выходит</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// из контекста – см. правило 13</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Разумеется, где-то должны быть определены конкретные классы, поддерживающие интерфейс такого интерфейсного класса, и вызваны реальные конструкторы. Все это происходит «за кулисами», внутри файлов, содержащих реализацию виртуальных конструкторов. Например, интерфейсный класс Person может иметь конкретный производный класс RealPerson, предоставляющий реализацию унаследованных виртуальных функций:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class RealPerson public Person {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">RealPerson(const std::string&amp; name, const Date&amp; birthday,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Address&amp; addr)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">: theName(name), theBirthDate(birthday), theAddress(addr)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual ~RealPerson() {}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::string name() const; // реализация этих функций</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::string birthDate() const; // не показана, но ее</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::string address() const; // легко представить</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">private:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::string theName;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Date theBirthDaye;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Address theAddress;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Имея класс RealPerson, очень легко написать Person::create:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">std::tr1::shared_ptr&lt;Person&gt; create( const std::string&amp; name,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Date&amp; birthday,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Address&amp; addr)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">return std::tr1::shared_ptr&lt;Person&gt;(new RealPerson(name, birthday, addr));</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Более реалистическая реализация Person::create должна создавать разные типы объектов классов-наследников, в зависимости, например, от дополнительных параметров функции, данных, прочитанных из файла или базы данных, переменных окружения и т. п.</p>
+      <p class="calibre2">RealPerson демонстрирует один из двух наиболее распространенных механизмов реализации интерфейсных классов: он наследует спецификации своего интерфейса от интерфейсного класса Person, а затем реализует функции этого интерфейса. Второй способ реализации интерфейсного класса предполагает использование множественного наследования (см. правило 40).</p>
+      <p class="calibre2">Итак, классы-дескрипторы и интерфейсные классы отделяют интерфейс от реализации, уменьшая тем самым зависимости между файлами на этапе компиляции. Теперь, я уверен, вы ждете примечания мелким шрифтом: «Во сколько обойдется этот хитрый фокус?» Цена вполне обычная в мире программирования: некоторое уменьшение скорости выполнения программы плюс дополнительный расход памяти на каждый объект.</p>
+      <p class="calibre2">Применительно к классам-дескрипторам функции-члены должны использовать указатель на реализацию (pImpl), чтобы добраться до данных самого объекта. Для каждого обращения это добавляет один уровень косвенной адресации. Кроме того, к объему памяти, необходимому для хранения каждого объекта, нужно добавить размер указателя. И наконец, указатель на реализацию должен быть инициализирован (в конструкторе класса-дескриптора), чтобы он указывал на динамически распределенный объект реализации; следовательно, вы навлекаете на себя еще и накладные расходы, сопровождающие динамическое выделение памяти и последующее ее освобождение, а также возможность возникновения исключений bad_alloc (из-за недостатка памяти).</p>
+      <p class="calibre2">Для интерфейсных классов каждый вызов функции будет виртуальным, поэтому всякий раз вы платите за косвенный переход (см. правило 7). Кроме того, классы, производные от интерфейсного класса, должны содержать указатель на таблицу виртуальных функций (и снова см. правило 7). Этот указатель может увеличить объем памяти, необходимый для хранения объекта, в зависимости от того, является ли интерфейсный класс единственным источником виртуальных функций для объекта.</p>
+      <p class="calibre2">И наконец, ни классы-дескрипторы, ни интерфейсные классы не могут извлечь выгоду из использования встроенных функций. В правиле 30 объяснено, почему тела потенциально встраиваемых функций должны быть в заголовочных файлах, но классы-дескрипторы и интерфейсные классы специально предназначены для того, чтобы скрыть такие детали реализации, как тело функций.</p>
+      <p class="calibre2">Однако было бы серьезной ошибкой отказываться от классов-дескрипторов и интерфейсных классов только потому, что их использование связано с дополнительными расходами. То же самое можно сказать и о виртуальных функциях, но вы ведь не отказываетесь от их применения. (В противном случае вы читаете не ту книгу.) Рассмотрите возможность использования предлагаемых приемов по мере эволюции ваших программ. Применяйте классы-дескрипторы и интерфейсные классы в процессе разработки, чтобы уменьшить влияние изменений в реализации на пользователей. Если вы можете показать, что различие в скорости и/или размере программы настолько существенно, что во имя повышения эффективности оно оправдывает увеличение зависимости между классами, то на конечной стадии реализации заменяйте их конкретными классами.</p>
+      <div class="subtitle">
+        <p class="subtitle1">
+          <strong class="calibre4">
+            <em class="calibre5">Что следует помнить</em>
+          </strong>
+        </p>
+      </div>
+      <p class="calibre2">• Основная идея уменьшения зависимостей на этапе компиляции состоит в том, чтобы заменить зависимость от определения зависимостью от объявления. Эта идея лежит в основе двух подходов: классов-дескрипторов и интерфейсных классов.</p>
+      <p class="calibre2">• Заголовочные файлы библиотек должны существовать в обеих формах: полной и содержащей только объявления. Это справедливо независимо от того, включают они шаблоны или нет.</p>
+    </div>
+  </div>
+
+{% endraw %}
+

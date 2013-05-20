@@ -1,0 +1,247 @@
+---
+layout: page
+title: "CoffeeScript (for jay muratore)"
+prev: f_0060.html
+next: f_0062.html
+book_path: books/trevor-burnham-coffeescript-accelerated-javascript-development-pragmatic--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 class="calibre13">A1.1 Functions, Scope, and Context</h2>
+<p id="N142ED" class="calibre5">Answers to Section 2.9, <a href="f_0026.html#sec.functionsExercises">​<em class="emph">Exercises</em>​</a>:</p>
+<ol class="calibre24">
+<li class="calibre3">
+<p id="N142F6" class="calibre5">
+          Functions in CoffeeScript return the value of their last expression—in this case, the return value of the <code class="cf">splice</code> method. To change the return value, just add a new line, like so:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">clearArray = (arr) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  arr.splice 0, arr.length</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  arr</code>
+</td>
+</tr>
+</table>
+<p id="N1430F" class="calibre5">
+         This returns the now-empty <code class="cf">arr</code>. To have the function return nothing, use this: 
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">clearArray = (arr) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  arr.splice 0, arr.length</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">return</strong>
+</code>
+</td>
+</tr>
+</table>
+</li>
+<li class="calibre3">
+<p id="N1432B" class="calibre5">
+          You can write this one of two ways, either of which will do just fine. Here’s the first:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">run = (func, args...) <strong class="prompt">-&gt;</strong> func.apply <strong class="prompt">this</strong>, args</code>
+</td>
+</tr>
+</table>
+<p id="N1433F" class="calibre5">
+         Here’s the second:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">run = (func, args...) <strong class="prompt">-&gt;</strong> func.call <strong class="prompt">this</strong>, args...</code>
+</td>
+</tr>
+</table>
+<p id="N14353" class="calibre5">
+        Note that the use of <code class="cf">this</code> allows a context to be passed in by calling <code class="cf">run</code> in the desired context.
+        </p>
+</li>
+<li class="calibre3">
+<p id="N1435D" class="calibre5">
+          The postfix operators (<code class="cf">if</code>/<code class="cf">unless</code> and <code class="cf">for</code>/<code class="cf">while</code>/<code class="cf">until</code>) are the only major exceptions to the rule that implicit parentheses go to the end of the line. For example, all of the following lines are equivalent:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">return</strong> abortMission warning <strong class="prompt">if</strong> warning?</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">return</strong> abortMission(warning) <strong class="prompt">if</strong> warning?</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">if</strong> warning? <strong class="prompt">then</strong> <strong class="prompt">return</strong> abortMission warning</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">if</strong> warning? <strong class="prompt">then</strong> <strong class="prompt">return</strong> abortMission(warning)</code>
+</td>
+</tr>
+</table>
+<p id="N143A1" class="calibre5">
+          Adding explicit parentheses that go to the end of the line would change the meaning considerably:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">return</strong> abortMission(warning <strong class="prompt">if</strong> warning?)</code>
+</td>
+</tr>
+</table>
+<p id="N143B4" class="calibre5">
+          Now we <code class="cf">return</code> and call <code class="cf">abortMission</code> no matter what! The expression <code class="cf">warning if warning?</code> is evaluated, but to little effect (it converts <code class="cf">null</code> to <code class="cf">undefined</code> but leaves all other values of <code class="cf">warning</code> untouched).
+        </p>
+</li>
+<li class="calibre3">
+<p id="N143CA" class="calibre5">
+          CoffeeScript doesn’t allow space between a function and its explicit parentheses because this would allow parentheses around an expression to radically change its meaning. Here are some examples:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">f g h</code>
+</td>
+</tr>
+</table>
+<p id="N143D8" class="calibre5">
+         This expression really means the following:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">f(g(h))</code>
+</td>
+</tr>
+</table>
+<p id="N143E6" class="calibre5">
+         Compare that meaning with this expression:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">f (g) h</code>
+</td>
+</tr>
+</table>
+<p id="N143F4" class="calibre5">
+        Here the parentheses really mean this:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">f(g)(h)</code>
+</td>
+</tr>
+</table>
+<p id="N14402" class="calibre5">
+          CoffeeScript’s rule is that if there’s whitespace after any identifier (and something other than a postfix operator after the whitespace), then that identifier is a function with implicit parentheses.
+        </p>
+</li>
+<li class="calibre3">
+<p id="N14406" class="calibre5">
+<code class="cf">foo.bar.baz()</code> runs in the <code class="cf">foo.bar</code> context. <code class="cf">@hoo</code> runs in <code class="cf">this</code> (also known as <code class="cf">@</code>). <code class="cf">@hoo.rah()</code> runs in <code class="cf">@hoo</code>.
+        </p>
+</li>
+<li class="calibre3">
+<p id="N1441E" class="calibre5">
+<code class="cf">what.x</code> and <code class="cf">@x</code> are, of course, equivalent if and only if <code class="cf">what</code> is <code class="cf">this</code>. Again, it’s perfectly possible for <code class="cf">what.x</code> and <code class="cf">@x</code> to refer to the same object, but <code class="cf">what.x = y</code> will not overwrite <code class="cf">@x</code> unless <code class="cf">what</code> is <code class="cf">this</code>.
+        </p>
+<p id="N1443E" class="calibre5">
+          The code example can be solved by writing <code class="cf">xInContext.call what</code>.
+        </p>
+</li>
+<li class="calibre3">
+<p id="N14445" class="calibre5">
+          The code fails because of the <code class="cf">x = x</code>, which is a no-op. Here’s the problem part again:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">x = <strong class="prompt">true</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">showAnswer = (x = x) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  console.log <strong class="prompt">if</strong> x <strong class="prompt">then</strong> <em class="string">'It works!'</em> <strong class="prompt">else</strong> <em class="string">'Nope.'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">showAnswer()</code>
+</td>
+</tr>
+</table>
+<p id="N14471" class="calibre5">
+           Recall that the default argument syntax <code class="cf">a = b</code> is equivalent to placing <code class="cf">a ?= b</code> at the top of the function body; there’s no way to bring the <code class="cf">x</code> from the outer scope into the function. The solution is to either use <code class="cf">showAnswer x</code> or to ditch the shadowing.
+        </p>
+</li>
+</ol>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

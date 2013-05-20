@@ -1,0 +1,104 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0085.html
+next: f_0087.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.global.marks">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 58</td>
+<td class="arr-recipe-name">Snap Between Files Using Global Marks</td>
+</tr>
+</table>
+<p id="N161BA" class="calibre4">
+<span class="calibre5">
+        A global mark is a kind of bookmark that allows us to jump between files. Marks can be especially useful for snapping back to a file after exploring a codebase.
+    </span>
+</p>
+<p id="N161DB" class="calibre4">
+      The <span class="calibre17">m{letter}</span> command allows us create a mark at the current cursor position (<strong xmlns:str="http://exslt.org/strings" class="calibre10">m</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/motion.html#m">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). Lowercase letters create marks that are local to a buffer, whereas uppercase letters create global marks. Having set a mark, we can snap our cursor back to it with the <span class="calibre17">✎{letter}</span> command (<strong xmlns:str="http://exslt.org/strings" class="calibre10">`</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/motion.html#%60">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>).
+    </p>
+<p id="N161F1" class="calibre4">
+      Try this: open up your <code class="cf">vimrc</code> file and press <span class="calibre17">mV</span> to set a global mark (mnemonic: <span class="calibre5">V</span> for <code class="cf">vimrc</code>). Switch to another file and then press <span class="calibre17">✎V</span>, and you should snap back to the global mark you set in the <code class="cf">vimrc</code> file. By default, global marks are persisted between editing sessions (although this behavior can be configured; see <strong xmlns:str="http://exslt.org/strings" class="calibre10">'viminfo'</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/options.html#'viminfo'">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). Now you can always open up your <code class="cf">vimrc</code> file with two keystrokes—that is, unless you set the global <span class="calibre5">V</span> mark to another location.
+    </p>
+<h3 class="calibre22">Set a Global Mark Before Going Code Diving</h3>
+<p id="N16219" class="calibre4">
+        Global marks can be especially useful when we need to browse through a set of files and then quickly snap back to where we started. Suppose that we’re working on some code, and we want to find all occurrences of a method called <code class="cf">fooBar</code> in our codebase. We could use the <code class="cf">:vimgrep</code> command (covered in <a xmlns:str="http://exslt.org/strings" href="f_0150.html#sec.vimgrep">Tip 110</a>):
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:vimgrep /fooBar/ **</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N16238" class="calibre4">
+        By default, <code class="cf">:vimgrep</code> jumps directly to the first match that it finds, which could mean switching to another file. At this point, we can use the <span class="calibre17">&lt;C-o&gt;</span> command to get back to where we were prior to running <code class="cf">:vimgrep</code>.
+      </p>
+<p id="N16244" class="calibre4">
+        Let’s say that our codebase contains dozens of matches for the pattern <code class="cf">fooBar</code>. For each match <code class="cf">:vimgrep</code> finds, it creates a record in the quickfix list. Now suppose that we spend a minute or two traversing that list until eventually we find what we are looking for. Now we want to get back to where we were before we ran the <code class="cf">:vimgrep</code> command. How do we do it?
+      </p>
+<p id="N16250" class="calibre4">
+        We could get there using the <span class="calibre17">&lt;C-o&gt;</span> command to reverse through the jump list, but it might take a while. This is a scenario where a global mark would come in handy. If we had run the <span class="calibre17">mM</span> command before invoking <code class="cf">:vimgrep</code>, then we could snap back in one move with the <span class="calibre17">✎M</span> command.
+      </p>
+<p id="N1625F" class="calibre4">
+        Advice is rarely welcome when it goes “You should have started by doing <span class="calibre5">X</span>.” Global marks are only useful if we have the forethought to set them up correctly in advance. With practice, you’ll learn to recognize the scenarios where it would be useful to set a global mark.
+      </p>
+<p id="N16265" class="calibre4">
+        Try to get into a habit of setting a global mark before using any commands that interact with the quickfix list, such as <code class="cf">:grep</code>, <code class="cf">:vimgrep</code>, and <code class="cf">:make</code>. The same goes for the commands that interact with the buffer and argument lists, such as <code class="cf">:args {arglist}</code> and <code class="cf">:argdo</code> (see <a xmlns:str="http://exslt.org/strings" href="f_0061.html#sec.args">Tip 37</a>).
+      </p>
+<p id="N1627B" class="calibre4">
+        Remember, you can set up to twenty-six global marks, which is more than you’ll ever need. Use them liberally; set a global mark any time you see something that you might want to snap back to later.
+      </p>
+
+<div class="footnotes">
+<h4 class="calibre20">Footnotes</h4>
+<table cellspacing="3" class="table-of-contents">
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-17" href="f_0085.html#FNPTR-17">[17]</a>
+</td>
+<td class="calibre8">
+<p id="N16150" class="calibre4">
+<a href="https://github.com/tpope/vim-bundler">https://github.com/tpope/vim-bundler</a>
+</p>
+</td>
+</tr>
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-18" href="f_0085.html#FNPTR-18">[18]</a>
+</td>
+<td class="calibre8">
+<p id="N16172" class="calibre4">
+<a href="https://github.com/vim-ruby/vim-ruby">https://github.com/vim-ruby/vim-ruby</a>
+</p>
+</td>
+</tr>
+</table>
+</div>
+<div class="copyright">Copyright © 2012, The Pragmatic Bookshelf.</div>
+
+
+
+
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

@@ -1,0 +1,94 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch01s09.html
+next: OEBPS/ch01s11.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Controlling Scope in Our Class Library"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect11_d1e1318" class="calibre1"></a>Controlling Scope in Our Class Library</h1></div></div></div><p class="calibre3"><a id="I_indexterm1_d1e1322" class="calibre1"></a><a id="I_indexterm1_d1e1327" class="calibre1"></a><a id="I_indexterm1_d1e1332" class="calibre1"></a><a id="I_indexterm1_d1e1337" class="calibre1"></a>The proxy function<a id="I_indexterm1_d1e1343" class="calibre1"></a><a id="I_indexterm1_d1e1346" class="calibre1"></a> described in the previous section is such a useful pattern
+    that we should add it to our class library. We’ll add a proxy function on
+    both classes and instances, allowing us to keep the class’ scope when
+    handing functions off to event handlers and the like:</p><pre class="screen">var Class = function(parent){  
+  var klass = function(){
+    this.init.apply(this, arguments);
+  };
+  klass.prototype.init = function(){};
+  klass.fn = klass.prototype;
+
+  // Adding a proxy function
+  klass.proxy = function(func){
+    var self = this;
+    return(function(){ 
+      return func.apply(self, arguments); 
+    });
+  }
+
+  // Add the function on instances too
+  klass.fn.proxy = klass.proxy;
+
+  return klass;
+};</pre><p class="calibre3">We can now use the <code class="literal">proxy()</code>
+    function to wrap up functions, making sure they’re invoked in the right
+    scope:</p><pre class="screen">var Button = new Class;
+
+Button.include({
+  init: function(element){
+    this.element = jQuery(element);
+
+    // Proxy the click function
+    this.element.click(this.proxy(this.click));
+  },
+
+  click: function(){ /* ... */ }
+});</pre><p class="calibre3">If we didn’t wrap the <code class="literal">click()</code> callback <a id="I_indexterm1_d1e1367" class="calibre1"></a><a id="I_indexterm1_d1e1370" class="calibre1"></a>with a proxy, it would be called within the context of
+    <code class="literal">this.element</code>, rather than <code class="literal">Button</code>, causing all sorts of problems. A new
+    specification of JavaScript—<a class="ulink" href="http://en.wikipedia.org/wiki/ECMAScript#ECMAScript.2C_5th_Edition">ECMAScript,
+    5th Edition</a> (ES5)—has also added support for controlling
+    invocation scope with the <code class="literal">bind()</code>
+    function.<a id="I_indexterm1_d1e1389" class="calibre1"></a><a id="I_indexterm1_d1e1392" class="calibre1"></a> <code class="literal">bind()</code> is called on a
+    function, making sure the function is called in the context of the
+    specified <code class="literal">this</code> value. For
+    example:</p><pre class="screen">Button.include({
+  init: function(element){
+    this.element = jQuery(element);
+
+    // Bind the click function
+    this.element.click(this.click.bind(this));
+  },
+
+  click: function(){ /* ... */ }
+});</pre><p class="calibre3">This example is equivalent to our <code class="literal">proxy()</code> function, and it makes sure the <code class="literal">click()</code> function is called with the correct
+    context. Older browsers don’t support <code class="literal">bind()</code> but, luckily, support can be shimmed
+    easily and implemented manually if needed. A shim basically implements a
+    compatibility layer on legacy browsers, directly extending the relevant
+    object’s prototypes, allowing you to use features of ES5 today without
+    worrying about older browsers. For example, a shim that would support
+    <code class="literal">bind()</code> would look like this:</p><pre class="screen">if ( !Function.prototype.bind ) {
+  Function.prototype.bind = function( obj ) {
+    var slice = [].slice,
+        args = slice.call(arguments, 1), 
+        self = this, 
+        nop = function () {}, 
+        bound = function () {
+          return self.apply( this instanceof nop ? this : ( obj || {} ), 
+                              args.concat( slice.call(arguments) ) );    
+        };
+
+    nop.prototype = self.prototype;
+
+    bound.prototype = new nop();
+
+    return bound;
+  };
+}</pre><p class="calibre3"><code class="literal">Function</code>’s prototype is only
+    overwritten if the feature doesn’t already exist: newer browsers will
+    continue to use their native implementations. Shimming is especially
+    useful for arrays, which have had a bunch of new features added in recent
+    JavaScript versions. I personally use the <a class="ulink" href="https://github.com/kriskowal/es5-shim">es5-shim</a> project
+    because it covers as many of the new features in ES5 as possible.</p></div></div>
+
+{% endraw %}
+

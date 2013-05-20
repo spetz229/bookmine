@@ -1,0 +1,140 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: funcstypes_basic.html
+next: funcstypes_composite_split_000.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="funcstypes_basic.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="funcstypes_composite_split_000.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="funcstypes_calling" class="calibre27" id="funcstypes_calling"></a><h3 id="643999-893" class="docSection1Title">2.5. Function Application</h3><a name="x_Gm" class="calibre27" id="x_Gm"></a><p class="docText">Now that we've had our fill of data types for a while,
+    let's turn our attention to working with some of the types we've seen,
+    using functions.</p><a name="x_R3" class="calibre27" id="x_R3"></a><p class="docText">To apply a function in Haskell, we write the name of the
+    function followed by its arguments:</p><pre class="calibre39">ghci&gt; <b class="calibre40">odd 3</b>
+True
+ghci&gt; <b class="calibre40">odd 6</b>
+False</pre><a name="x_kd" class="calibre27" id="x_kd"></a><p class="docText">We don't use parentheses or commas to group or separate
+    the arguments to a function; merely writing the name of the function,
+    followed by each argument in turn, is enough. As an example, let's apply
+    the <i class="docEmphasis">compare</i> function, which takes two
+    arguments:</p><pre class="calibre39">ghci&gt; <b class="calibre40">compare 2 3</b>
+LT
+ghci&gt; <b class="calibre40">compare 3 3</b>
+EQ
+ghci&gt; <b class="calibre40">compare 3 2</b>
+GT</pre><a name="x_U3" class="calibre27" id="x_U3"></a><p class="docText">If you're used to function call syntax in other languages,
+    this notation can take a little getting used to, but it's simple and
+    uniform.</p><a name="x_Hm" class="calibre27" id="x_Hm"></a><p class="docText">Function application has higher precedence than using
+    operators, so the following two expressions have the same meaning:</p><pre class="calibre39">ghci&gt; <b class="calibre40">(compare 2 3) == LT</b>
+True
+ghci&gt; <b class="calibre40">compare 2 3 == LT</b>
+True</pre><a name="x_Im" class="calibre27" id="x_Im"></a><p class="docText">The parentheses in the preceding code don't do any harm,
+    but they add some visual noise. Sometimes, however, we
+    <span class="docEmphasis">must</span> use parentheses to indicate how we want a
+    complicated expression to be parsed:</p><pre class="calibre39">ghci&gt; <b class="calibre40">compare (sqrt 3) (sqrt 6)</b>
+LT
+</pre><a name="x_Jm" class="calibre27" id="x_Jm"></a><p class="docText">This applies <i class="docEmphasis">compare</i>
+    to the results of applying <tt class="calibre34">sqrt 3</tt> and <tt class="calibre34">sqrt 6</tt>,
+    respectively. If we omit the parentheses, it looks like we are trying to
+    pass four arguments to <i class="docEmphasis">compare</i>,
+    instead of the two it accepts.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"><a href="21061538.html" class="calibre2"><img src="btn_next_.gif" alt="Next" border="0" class="calibre31"/></a> 
+           
+          <span class="calibre33"><a target="_self" href="funcstypes_basic.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="funcstypes_composite_split_000.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

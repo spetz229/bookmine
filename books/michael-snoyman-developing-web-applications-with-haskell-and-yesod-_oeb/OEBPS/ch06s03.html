@@ -1,0 +1,28 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch06s02.html
+next: OEBPS/ch06s04.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Custom Error Pages"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect16_d1e2721" class="calibre1"></a>Custom Error Pages</h1></div></div></div><p class="calibre7">One of the marks of a professional website is a properly designed error page. Yesod gets
+      you a long way there by automatically using your <code class="literal">defaultLayout</code> for displaying error pages. But sometimes, you’ll want to go even
+      further. For this, you’ll want to override the <code class="literal">errorHandler</code>
+      method:</p><a id="I_programlisting6_d1e2732" class="firstname"></a><pre class="programlistinghaskell">    <code class="n">errorHandler</code> <code class="kt">NotFound</code> <code class="ow">=</code> <code class="n">fmap</code> <code class="n">chooseRep</code> <code class="o">$</code> <code class="n">defaultLayout</code> <code class="o">$</code> <code class="kr">do</code>
+        <code class="n">setTitle</code> <code class="s">"Request page not located"</code>
+        <code class="n">toWidget</code> <code class="p">[</code><code class="n">hamlet</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">h1</code><code class="o">&gt;</code><code class="kt">Not</code> <code class="kt">Found</code>
+<code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code><code class="kt">We</code> <code class="n">apologize</code> <code class="n">for</code> <code class="n">the</code> <code class="n">inconvenience</code><code class="p">,</code> <code class="n">but</code> <code class="n">the</code> <code class="n">requested</code> <code class="n">page</code> <code class="n">could</code> <code class="n">not</code> <code class="n">be</code> <code class="n">located</code><code class="o">.</code>
+<code class="o">|</code><code class="p">]</code>
+    <code class="n">errorHandler</code> <code class="n">other</code> <code class="ow">=</code> <code class="n">defaultErrorHandler</code> <code class="n">other</code>
+</pre><p class="calibre7">Here we specify a custom 404 error page. We can also use the <code class="literal">defaultErrorHandler</code> when we don’t want to write a custom handler for each error
+      type. Due to type constraints, we need to start off our methods with <code class="literal">fmap chooseRep</code>, but otherwise you can write a typical handler function.</p><p class="calibre7">In fact, you could even use special responses like redirects:</p><a id="I_programlisting6_d1e2747" class="firstname"></a><pre class="programlistinghaskell">    <code class="n">errorHandler</code> <code class="kt">NotFound</code> <code class="ow">=</code> <code class="n">redirect</code> <code class="kt">RootR</code>
+    <code class="n">errorHandler</code> <code class="n">other</code> <code class="ow">=</code> <code class="n">defaultErrorHandler</code> <code class="n">other</code>
+</pre><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">Even though you <span class="firstname"><em class="calibre4">can</em></span> do this, I don’t actually recommend such
+        practices. A 404 should be a 404.</p></div></div></div>
+
+{% endraw %}
+

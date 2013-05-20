@@ -1,0 +1,1155 @@
+---
+layout: page
+title: "Developing Backbone.js Applications"
+prev: OEBPS/ch04s14.html
+next: OEBPS/ch05s02.html
+book_path: books/developing-backbone-js-applications-addy-osmani--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="calibre7"></div><div class="book" title="Chapter 5. Unit Testing"><div class="book"><div class="book"><div class="book"><div class="calibre7"></div><h1 class="title1"><a id="unit-testing" class="calibre1"></a>Chapter 5. Unit Testing</h1></div></div></div><div class="book" title="Unit Testing Backbone Applications With Jasmine"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="unit-testing-backbone-applications-with-jasmine" class="calibre1"></a>Unit Testing Backbone Applications
+  With Jasmine</h1></div></div></div><div class="book" title="Introduction"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="introduction-2" class="calibre1"></a>Introduction</h2></div></div></div><p class="calibre6">
+      One definition of unit testing is the process of taking the
+      smallest piece of testable code in an application, isolating it
+      from the remainder of your codebase and determining if it behaves
+      exactly as expected. In this section, we’ll be taking a look at
+      how to unit test Backbone applications using a popular JavaScript
+      testing framework called
+      <a class="ulink" href="http://pivotal.github.com/jasmine/">Jasmine</a>
+      from Pivotal Labs.
+    </p><p class="calibre6">
+      For an application to be considered <span class="firstname">“<span class="firstname">well</span>”</span>-tested,
+      distinct functionality should ideally have its own separate unit
+      tests where it’s tested against the different conditions you
+      expect it to work under. All tests must pass before functionality
+      is considered <span class="firstname">“<span class="firstname">complete</span>”</span>. This allows developers to
+      both modify a unit of code and it’s dependencies with a level of
+      confidence about whether these changes have caused any breakage.
+    </p><p class="calibre6">
+      As a basic example of unit testing is where a developer may wish
+      to assert whether passing specific values through to a sum
+      function results in the correct output being returned. For an
+      example more relevant to this book, we may wish to assert whether
+      a user adding a new Todo item to a list correctly adds a Model of
+      a specific type to a Todos Collection.
+    </p><p class="calibre6">
+      When building modern web-applications, it’s typically considered
+      best-practice to include automated unit testing as a part of your
+      development process. Whilst we’ll be focusing on Jasmine as a
+      solution for this, there are a number of other alternatives worth
+      considering, including QUnit.
+    </p></div><div class="book" title="Jasmine"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="jasmine" class="calibre1"></a>Jasmine</h2></div></div></div><p class="calibre6">
+      Jasmine describes itself as a behavior-driven development (BDD)
+      framework for testing JavaScript code. Before we jump into how the
+      framework works, it’s useful to understand exactly what
+      <a class="ulink" href="http://en.wikipedia.org/wiki/Behavior_Driven_Development">BDD</a>
+      is.
+    </p><p class="calibre6">
+      BDD is a second-generation testing approach first described by
+      <a class="ulink" href="http://dannorth.net/introducing-bdd/">Dan
+      North</a> (the authority on BDD) which attempts to test the
+      behavior of software. It’s considered second-generation as it came
+      out of merging ideas from Domain driven design (DDD) and lean
+      software development, helping teams to deliver high quality
+      software by answering many of the more confusing questions early
+      on in the agile process. Such questions commonly include those
+      concerning documentation and testing.
+    </p><p class="calibre6">
+      If you were to read a book on BDD, it’s likely to also be
+      described as being <span class="firstname">“<span class="firstname">outside-in and pull-based</span>”</span>. The
+      reason for this is that it borrows the idea of of pulling features
+      from Lean manufacturing which effectively ensures that the right
+      software solutions are being written by a) focusing on expected
+      outputs of the system and b) ensuring these outputs are achieved.
+    </p><p class="calibre6">
+      BDD recognizes that there are usually multiple stakeholders in a
+      project and not a single amorphous user of the system. These
+      different groups will be affected by the software being written in
+      differing ways and will have a varying opinion of what quality in
+      the system means to them. It’s for this reason that it’s important
+      to understand who the software will be bringing value you and
+      exactly what in it will be valuable to them.
+    </p><p class="calibre6">
+      Finally, BDD relies on automation. Once you’ve defined the quality
+      expected, your team will likely want to check on the functionality
+      of the solution being built regularly and compare it to the
+      results they expect. In order to facilitate this efficiently, the
+      process has to be automated. BDD relies heavily on the automation
+      of specification-testing and Jasmine is a tool which can assist
+      with this.
+    </p><p class="calibre6">
+      BDD helps both developers and non-technical stakeholders:
+    </p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre6">
+          Better understand and represent the models of the problems
+          being solved
+        </p></li><li class="listitem"><p class="calibre6">
+          Explain supported tests cases in a language that
+          non-developers can read
+        </p></li><li class="listitem"><p class="calibre6">
+          Focus on minimizing translation of the technical code being
+          written and the domain language spoken by the business
+        </p></li></ul></div><p class="calibre6">
+      What this means is that developers should be able to show Jasmine
+      unit tests to a project stakeholder and (at a high level, thanks
+      to a common vocabulary being used) they’ll ideally be able to
+      understand what the code supports.
+    </p><p class="calibre6">
+      Developers often implement BDD in unison with another testing
+      paradigm known as
+      <a class="ulink" href="http://en.wikipedia.org/wiki/Test-driven_development">TDD</a>
+      (test-driven development). The main idea behind TDD is:
+    </p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre6">
+          Write unit tests which describe the functionality you would
+          like your code to support
+        </p></li><li class="listitem"><p class="calibre6">
+          Watch these tests fail (as the code to support them hasn’t yet
+          been written)
+        </p></li><li class="listitem"><p class="calibre6">
+          Write code to make the tests pass
+        </p></li><li class="listitem"><p class="calibre6">
+          Rinse, repeat and refactor
+        </p></li></ul></div><p class="calibre6">
+      In this chapter we’re going to use both BDD (with TDD) to write
+      unit tests for a Backbone application.
+    </p><p class="calibre6">
+      <span class="firstname"><strong class="calibre8"><span class="firstname"><em class="calibre9">Note:</em></span></strong></span> I’ve
+      seen a lot of developers also opt for writing tests to validate
+      behavior of their code after having written it. While this is
+      fine, note that it can come with pitfalls such as only testing for
+      behavior your code currently supports, rather than behavior the
+      problem needs to be supported.
+    </p></div><div class="book" title="Suites, Specs &amp; Spies"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="suites-specs-spies" class="calibre1"></a>Suites, Specs &amp; Spies</h2></div></div></div><p class="calibre6">
+      When using Jasmine, you’ll be writing suites and specifications
+      (specs). Suites basically describe scenarios whilst specs describe
+      what can be done in these scenarios.
+    </p><p class="calibre6">
+      Each spec is a JavaScript function, described with a call to
+      `<code class="literal">it()</code> using a description string and a
+      function. The description should describe the behaviour the
+      particular unit of code should exhibit and keeping in mind BDD, it
+      should ideally be meaningful. Here’s an example of a basic spec:
+    </p><pre class="programlistingjavascript"><code class="nx">it</code><code class="p">(</code><code class="s">'should be incrementing in value'</code><code class="p">,</code> <code class="kd">function</code><code class="p">(){</code>
+    <code class="kd">var</code> <code class="nx">counter</code> <code class="o">=</code> <code class="mi">0</code><code class="p">;</code>
+    <code class="nx">counter</code><code class="o">++</code><code class="p">;</code>  
+<code class="p">});</code>
+</pre><p class="calibre6">
+      On it’s own, a spec isn’t particularly useful until expectations
+      are set about the behavior of the code. Expectations in specs are
+      defined using the <code class="literal">expect()</code> function and an
+      <a class="ulink" href="https://github.com/pivotal/jasmine/wiki/Matchers">expectation
+      matcher</a> (e.g toEqual(), toBeTruthy(), toContain()). A
+      revised example using an expectation matcher would look like:
+    </p><pre class="programlistingjavascript"><code class="nx">it</code><code class="p">(</code><code class="s">'should be incrementing in value'</code><code class="p">,</code> <code class="kd">function</code><code class="p">(){</code>
+    <code class="kd">var</code> <code class="nx">counter</code> <code class="o">=</code> <code class="mi">0</code><code class="p">;</code>
+    <code class="nx">counter</code><code class="o">++</code><code class="p">;</code>  
+    <code class="nx">expect</code><code class="p">(</code><code class="nx">counter</code><code class="p">).</code><code class="nx">toEqual</code><code class="p">(</code><code class="mi">1</code><code class="p">);</code>
+<code class="p">});</code>
+</pre><p class="calibre6">
+      The above code passes our behavioral expectation as
+      `<code class="literal">counter</code> equals 1. Notice how easy this was to
+      read the expectation on the last line (you probably grokked it
+      without any explanation).
+    </p><p class="calibre6">
+      Specs are grouped into suites which we describe using Jasmine’s
+      <code class="literal">describe()</code> function, again passing a string as
+      a description and a function. The name/description for your suite
+      is typically that of the component or module you’re testing.
+    </p><p class="calibre6">
+      Jasmine will use it as the group name when it reports the results
+      of the specs you’ve asked it to run. A simple suite containing our
+      sample spec could look like:
+    </p><pre class="programlistingjavascript"><code class="nx">describe</code><code class="p">(</code><code class="s">'Stats'</code><code class="p">,</code> <code class="kd">function</code><code class="p">(){</code>
+    <code class="nx">it</code><code class="p">(</code><code class="s">'can increment a number'</code><code class="p">,</code> <code class="kd">function</code><code class="p">(){</code>
+        <code class="p">...</code>
+    <code class="p">});</code>
+
+    <code class="nx">it</code><code class="p">(</code><code class="s">'can subtract a number'</code><code class="p">,</code> <code class="kd">function</code><code class="p">(){</code>
+        <code class="p">...</code>
+    <code class="p">});</code>
+<code class="p">});</code>
+</pre><p class="calibre6">
+      Suites also share a functional scope and so it’s possible to
+      declare variables and functions inside a describe block which are
+      accessible within specs:
+    </p><pre class="programlistingjavascript"><code class="nx">describe</code><code class="p">(</code><code class="s">'Stats'</code><code class="p">,</code> <code class="kd">function</code><code class="p">(){</code>
+    <code class="kd">var</code> <code class="nx">counter</code> <code class="o">=</code> <code class="mi">1</code><code class="p">;</code>
+
+    <code class="nx">it</code><code class="p">(</code><code class="s">'can increment a number'</code><code class="p">,</code> <code class="kd">function</code><code class="p">(){</code>
+        <code class="c">// the counter was = 1</code>
+        <code class="nx">counter</code> <code class="o">=</code> <code class="nx">counter</code> <code class="o">+</code> <code class="mi">1</code><code class="p">;</code>
+        <code class="nx">expect</code><code class="p">(</code><code class="nx">counter</code><code class="p">).</code><code class="nx">toEqual</code><code class="p">(</code><code class="mi">2</code><code class="p">);</code>
+    <code class="p">});</code>
+
+    <code class="nx">it</code><code class="p">(</code><code class="s">'can subtract a number'</code><code class="p">,</code> <code class="kd">function</code><code class="p">(){</code>
+        <code class="c">// the counter was = 2</code>
+        <code class="nx">counter</code> <code class="o">=</code> <code class="nx">counter</code> <code class="o">-</code> <code class="mi">1</code><code class="p">;</code>
+        <code class="nx">expect</code><code class="p">(</code><code class="nx">counter</code><code class="p">).</code><code class="nx">toEqual</code><code class="p">(</code><code class="mi">1</code><code class="p">);</code>
+    <code class="p">});</code>
+<code class="p">});</code>
+</pre><p class="calibre6">
+      <span class="firstname"><strong class="calibre8"><span class="firstname"><em class="calibre9">Note:</em></span></strong></span>
+      Suites are executed in the order in which they are described,
+      which can be useful to know if you would prefer to see test
+      results for specific parts of your application reported first.
+    </p><p class="calibre6">
+      Jasmine also supports <span class="firstname"><strong class="calibre8">spies</strong></span> - a
+      way to mock, spy and fake behavior in our unit tests. Spies
+      replace the function they’re spying on, allowing us to simulate
+      behavior we would like to mock (i.e test free of the actual
+      implementation).
+    </p><p class="calibre6">
+      In the below example, we’re spying on the
+      <code class="literal">setComplete</code> method of a dummy Todo function to
+      test that arguments can be passed to it as expected.
+    </p><pre class="programlistingjavascript"><code class="kd">var</code> <code class="nx">Todo</code> <code class="o">=</code> <code class="kd">function</code><code class="p">(){</code>
+<code class="p">};</code>
+
+<code class="nx">Todo</code><code class="p">.</code><code class="nx">prototype</code><code class="p">.</code><code class="nx">setComplete</code> <code class="o">=</code> <code class="kd">function</code> <code class="p">(</code><code class="nx">arg</code><code class="p">){</code>
+    <code class="kd">return</code> <code class="nx">arg</code><code class="p">;</code>
+<code class="p">}</code>
+
+<code class="nx">describe</code><code class="p">(</code><code class="s">'a simple spy'</code><code class="p">,</code> <code class="kd">function</code><code class="p">(){</code>
+    <code class="nx">it</code><code class="p">(</code><code class="s">'should spy on an instance method of a Todo'</code><code class="p">,</code> <code class="kd">function</code><code class="p">(){</code>
+        <code class="kd">var</code> <code class="nx">myTodo</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">Todo</code><code class="p">();</code>
+        <code class="nx">spyOn</code><code class="p">(</code><code class="nx">myTodo</code><code class="p">,</code> <code class="s">'setComplete'</code><code class="p">);</code>
+        <code class="nx">myTodo</code><code class="p">.</code><code class="nx">setComplete</code><code class="p">(</code><code class="s">'foo bar'</code><code class="p">);</code>
+
+        <code class="nx">expect</code><code class="p">(</code><code class="nx">myTodo</code><code class="p">.</code><code class="nx">setComplete</code><code class="p">).</code><code class="nx">toHaveBeenCalledWith</code><code class="p">(</code><code class="s">'foo bar'</code><code class="p">);</code>
+
+        <code class="kd">var</code> <code class="nx">myTodo2</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">Todo</code><code class="p">();</code>
+        <code class="nx">spyOn</code><code class="p">(</code><code class="nx">myTodo2</code><code class="p">,</code> <code class="s">'setComplete'</code><code class="p">);</code>
+
+        <code class="nx">expect</code><code class="p">(</code><code class="nx">myTodo2</code><code class="p">.</code><code class="nx">setComplete</code><code class="p">).</code><code class="nx">not</code><code class="p">.</code><code class="nx">toHaveBeenCalled</code><code class="p">();</code>
+
+    <code class="p">});</code>
+<code class="p">});</code>
+</pre><p class="calibre6">
+      What you’re more likely to use spies for is testing
+      <a class="ulink" href="http://en.wikipedia.org/wiki/Asynchronous_communication">asynchronous</a>
+      behavior in your application such as AJAX requests. Jasmine
+      supports:
+    </p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre6">
+          Writing tests which can mock AJAX requests using spies. This
+          allows us to test code which runs before an AJAX request and
+          right after. It’s also possible to mock/fake responses the
+          server can return and the benefit of this type of testing is
+          that it’s faster as no real calls are being made to a server
+        </p></li><li class="listitem"><p class="calibre6">
+          Asynchronous tests which don’t rely on spies
+        </p></li></ul></div><p class="calibre6">
+      For the first kind of test, it’s possible to both fake an AJAX
+      request and verify that the request was both calling the correct
+      URL and executed a callback where one was provided.
+    </p><pre class="programlistingjavascript"><code class="nx">it</code><code class="p">(</code><code class="s">"the callback should be executed on success"</code><code class="p">,</code> <code class="kd">function</code> <code class="p">()</code> <code class="p">{</code>
+    <code class="nx">spyOn</code><code class="p">(</code><code class="nx">$</code><code class="p">,</code> <code class="s">"ajax"</code><code class="p">).</code><code class="nx">andCallFake</code><code class="p">(</code><code class="kd">function</code><code class="p">(</code><code class="nx">options</code><code class="p">)</code> <code class="p">{</code>
+        <code class="nx">options</code><code class="p">.</code><code class="nx">success</code><code class="p">();</code>
+    <code class="p">});</code>
+
+    <code class="kd">var</code> <code class="nx">callback</code> <code class="o">=</code> <code class="nx">jasmine</code><code class="p">.</code><code class="nx">createSpy</code><code class="p">();</code>
+    <code class="nx">getTodo</code><code class="p">(</code><code class="mi">15</code><code class="p">,</code> <code class="nx">callback</code><code class="p">);</code>
+
+    <code class="nx">expect</code><code class="p">(</code><code class="nx">$</code><code class="p">.</code><code class="nx">ajax</code><code class="p">.</code><code class="nx">mostRecentCall</code><code class="p">.</code><code class="nx">args</code><code class="p">[</code><code class="mi">0</code><code class="p">][</code><code class="s">"url"</code><code class="p">]).</code><code class="nx">toEqual</code><code class="p">(</code><code class="s">"/todos/15"</code><code class="p">);</code>
+    <code class="nx">expect</code><code class="p">(</code><code class="nx">callback</code><code class="p">).</code><code class="nx">toHaveBeenCalled</code><code class="p">();</code>
+<code class="p">});</code>
+
+<code class="kd">function</code> <code class="nx">getTodo</code><code class="p">(</code><code class="nx">id</code><code class="p">,</code> <code class="nx">callback</code><code class="p">)</code> <code class="p">{</code>
+    <code class="nx">$</code><code class="p">.</code><code class="nx">ajax</code><code class="p">({</code>
+        <code class="nx">type</code><code class="o">:</code> <code class="s">"GET"</code><code class="p">,</code>
+        <code class="nx">url</code><code class="o">:</code> <code class="s">"/todos/"</code> <code class="o">+</code> <code class="nx">id</code><code class="p">,</code>
+        <code class="nx">dataType</code><code class="o">:</code> <code class="s">"json"</code><code class="p">,</code>
+        <code class="nx">success</code><code class="o">:</code> <code class="nx">callback</code>
+    <code class="p">});</code>
+<code class="p">}</code>
+</pre><p class="calibre6">
+      If you feel lost having seen matchers like
+      <code class="literal">andCallFake()</code> and
+      <code class="literal">toHaveBeenCalled()</code>, don’t worry. All of these
+      are Spy-specific matchers and are documented on the Jasmine
+      <a class="ulink" href="https://github.com/pivotal/jasmine/wiki/Spies">wiki</a>.
+    </p><p class="calibre6">
+      For the second type of test (asynchronous tests), we can take the
+      above further by taking advantage of three other methods Jasmine
+      supports:
+    </p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre6">
+          runs(function) - a block which runs as if it was directly
+          called
+        </p></li><li class="listitem"><p class="calibre6">
+          waits(timeout) - a native timeout before the next block is run
+        </p></li><li class="listitem"><p class="calibre6">
+          waitsFor(function, optional message, optional timeout) - a way
+          to pause specs until some other work has completed. Jasmine
+          waits until the supplied function returns true here before it
+          moves on to the next block.
+        </p></li></ul></div><pre class="programlistingjavascript"><code class="nx">it</code><code class="p">(</code><code class="s">"should make an actual AJAX request to a server"</code><code class="p">,</code> <code class="kd">function</code> <code class="p">()</code> <code class="p">{</code>
+
+    <code class="kd">var</code> <code class="nx">callback</code> <code class="o">=</code> <code class="nx">jasmine</code><code class="p">.</code><code class="nx">createSpy</code><code class="p">();</code>
+    <code class="nx">getTodo</code><code class="p">(</code><code class="mi">16</code><code class="p">,</code> <code class="nx">callback</code><code class="p">);</code>
+
+    <code class="nx">waitsFor</code><code class="p">(</code><code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+        <code class="kd">return</code> <code class="nx">callback</code><code class="p">.</code><code class="nx">callCount</code> <code class="o">&gt;</code> <code class="mi">0</code><code class="p">;</code>
+    <code class="p">});</code>
+
+    <code class="nx">runs</code><code class="p">(</code><code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+        <code class="nx">expect</code><code class="p">(</code><code class="nx">callback</code><code class="p">).</code><code class="nx">toHaveBeenCalled</code><code class="p">();</code>
+    <code class="p">});</code>
+<code class="p">});</code>
+
+<code class="kd">function</code> <code class="nx">getTodo</code><code class="p">(</code><code class="nx">id</code><code class="p">,</code> <code class="nx">callback</code><code class="p">)</code> <code class="p">{</code>
+    <code class="nx">$</code><code class="p">.</code><code class="nx">ajax</code><code class="p">({</code>
+        <code class="nx">type</code><code class="o">:</code> <code class="s">"GET"</code><code class="p">,</code>
+        <code class="nx">url</code><code class="o">:</code> <code class="s">"todos.json"</code><code class="p">,</code>
+        <code class="nx">dataType</code><code class="o">:</code> <code class="s">"json"</code><code class="p">,</code>
+        <code class="nx">success</code><code class="o">:</code> <code class="nx">callback</code>
+    <code class="p">});</code>
+<code class="p">}</code>
+</pre><p class="calibre6">
+      <span class="firstname"><strong class="calibre8"><span class="firstname"><em class="calibre9">Note:</em></span></strong></span> It’s
+      useful to remember that when making real requests to a web server
+      in your unit tests, this has the potential to massively slow down
+      the speed at which tests run (due to many factors including server
+      latency). As this also introduces an external dependency that can
+      (and should) be minimized in your unit testing, it is strongly
+      recommended that you opt for spies to remove the need for a web
+      server to be used here.
+    </p></div><div class="book" title="beforeEach and afterEach()"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="beforeeach-and-aftereach" class="calibre1"></a>beforeEach and afterEach()</h2></div></div></div><p class="calibre6">
+      Jasmine also supports specifying code that can be run before each
+      (<code class="literal">beforeEach()</code>) and after each
+      (<code class="literal">afterEach</code>) test. This is useful for enforcing
+      consistent conditions (such as resetting variables that may be
+      required by specs). In the following example,
+      <code class="literal">beforeEach()</code> is used to create a new sample
+      Todo model specs can use for testing attributes.
+    </p><pre class="programlistingjavascript"><code class="nx">beforeEach</code><code class="p">(</code><code class="kd">function</code><code class="p">(){</code>
+   <code class="kd">this</code><code class="p">.</code><code class="nx">todo</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">Model</code><code class="p">({</code>
+      <code class="nx">text</code><code class="o">:</code> <code class="s">"Buy some more groceries"</code><code class="p">,</code>
+      <code class="nx">done</code><code class="o">:</code> <code class="kd">false</code> 
+   <code class="p">});</code>
+<code class="p">});</code>
+
+<code class="nx">it</code><code class="p">(</code><code class="s">"should contain a text value if not the default value"</code><code class="p">,</code> <code class="kd">function</code><code class="p">(){</code>
+   <code class="nx">expect</code><code class="p">(</code><code class="kd">this</code><code class="p">.</code><code class="nx">todo</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">'text'</code><code class="p">)).</code><code class="nx">toEqual</code><code class="p">(</code><code class="s">"Buy some more groceries"</code><code class="p">);</code> 
+<code class="p">});</code>
+</pre><p class="calibre6">
+      Each nested <code class="literal">describe()</code> in your tests can have
+      their own <code class="literal">beforeEach()</code> and
+      <code class="literal">afterEach()</code> methods which support including
+      setup and teardown methods relevant to a particular suite. We’ll
+      be using <code class="literal">beforeEach()</code> in practice a little
+      later.
+    </p></div><div class="book" title="Shared scope"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="shared-scope" class="calibre1"></a>Shared scope</h2></div></div></div><p class="calibre6">
+      In the previous section you may have noticed that we initially
+      declared a variable <code class="literal">this.todo</code> in our
+      <code class="literal">beforeEach()</code> call and were then able to
+      continue using this in <code class="literal">afterEach()</code>. This is
+      thanks to a powerful feature of Jasmine known as shared functional
+      scope. Shared scope allows <code class="literal">this</code> properties to
+      be common to all blocks (including <code class="literal">runs()</code>), but
+      not declared variables (i.e <code class="literal">var</code>s).
+    </p></div><div class="book" title="Getting setup"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="getting-setup" class="calibre1"></a>Getting setup</h2></div></div></div><p class="calibre6">
+      Now that we’ve reviewed some fundamentals, let’s go through
+      downloading Jasmine and getting everything setup to write tests.
+    </p><p class="calibre6">
+      A standalone release of Jasmine can be
+      <a class="ulink" href="http://pivotal.github.com/jasmine/download.html">downloaded</a>
+      from the official release page.
+    </p><p class="calibre6">
+      You’ll need a file called SpecRunner.html in addition to the
+      release. It can be downloaded from
+      https://github.com/pivotal/jasmine/tree/master/lib/jasmine-core/example
+      or as part of a download of the complete Jasmine
+      <a class="ulink" href="https://github.com/pivotal/jasmine/zipball/master">repo</a>.Alternatively,
+      you can <code class="literal">git clone</code> the main Jasmine repository
+      from https://github.com/pivotal/jasmine.git.
+    </p><p class="calibre6">
+      Let’s review
+      <a class="ulink" href="https://github.com/pivotal/jasmine/blob/master/lib/jasmine-core/example/SpecRunner.html">SpecRunner.html</a>:
+    </p><p class="calibre6">
+      It first includes both Jasmine and the necessary CSS required for
+      reporting:
+    </p><pre class="programlistingjavascript">
+&lt;link rel="stylesheet" type="text/css" href="lib/jasmine-1.1.0.rc1/jasmine.css"/&gt;
+&lt;script type="text/javascript" src="lib/jasmine-1.1.0.rc1/jasmine.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="lib/jasmine-1.1.0.rc1/jasmine-html.js"&gt;&lt;/script&gt;
+</pre><p class="calibre6">
+      Next, some sample tests are included:
+    </p><pre class="programlistingjavascript">
+&lt;script type="text/javascript" src="spec/SpecHelper.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="spec/PlayerSpec.js"&gt;&lt;/script&gt;
+</pre><p class="calibre6">
+      And finally the sources being tested:
+    </p><pre class="programlistingjavascript">
+&lt;script type="text/javascript" src="src/Player.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="src/Song.js"&gt;&lt;/script&gt;
+</pre><p class="calibre6">
+      <span class="firstname"><strong class="calibre8"><span class="firstname"><em class="calibre9">Note:</em></span></strong></span>
+      Below this section of SpecRunner is code responsible for running
+      the actual tests. Given that we won’t be covering modifying this
+      code, I’m going to skip reviewing it. I do however encourage you
+      to take a look through
+      <a class="ulink" href="https://github.com/pivotal/jasmine/blob/master/lib/jasmine-core/example/spec/PlayerSpec.js">PlayerSpec.js</a>
+      and
+      <a class="ulink" href="https://github.com/pivotal/jasmine/blob/master/lib/jasmine-core/example/spec/SpecHelper.js">SpecHelper.js</a>.
+      They’re a useful basic example to go through how a minimal set of
+      tests might work.
+    </p></div><div class="book" title="TDD With Backbone"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="tdd-with-backbone" class="calibre1"></a>TDD With Backbone</h2></div></div></div><p class="calibre6">
+      When developing applications with Backbone, it can be necessary to
+      test both individual modules of code as well as modules, views,
+      collections and routers. Taking a TDD approach to testing, let’s
+      review some specs for testing these Backbone components using the
+      popular Backbone
+      <a class="ulink" href="https://github.com/addyosmani/todomvc/tree/master/todo-example/backbone">Todo</a>
+      application. For this section we will be using a modified version
+      of Larry Myers Backbone Koans project, which can be found in the
+      <code class="literal">practicals\jasmine-koans</code> folder.
+    </p></div><div class="book" title="Models"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="models-2" class="calibre1"></a>Models</h2></div></div></div><p class="calibre6">
+      The complexity of Backbone models can vary greatly depending on
+      what your application is trying to achieve. In the following
+      example, we’re going to test default values, attributes, state
+      changes and validation rules.
+    </p><p class="calibre6">
+      First, we begin our suite for model testing using
+      <code class="literal">describe()</code>:
+    </p><pre class="programlistingjavascript"><code class="nx">describe</code><code class="p">(</code><code class="s">'Tests for Todo'</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+</pre><p class="calibre6">
+      Models should ideally have default values for attributes. This
+      helps ensure that when creating instances without a value set for
+      any specific attribute, a default one (e.g <span class="firstname">“<span class="firstname"></span>”</span>) is
+      used instead. The idea here is to allow your application to
+      interact with models without any unexpected behavior.
+    </p><p class="calibre6">
+      In the following spec, we create a new Todo without any attributes
+      passed then check to find out what the value of the
+      <code class="literal">text</code> attribute is. As no value has been set, we
+      expect a default value of `<code class="literal">""</code> to be
+      returned.
+    </p><pre class="programlistingjavascript"><code class="nx">it</code><code class="p">(</code><code class="s">'Can be created with default values for its attributes.'</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+    <code class="kd">var</code> <code class="nx">todo</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">Todo</code><code class="p">();</code>
+    <code class="nx">expect</code><code class="p">(</code><code class="nx">todo</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">'text'</code><code class="p">)).</code><code class="nx">toBe</code><code class="p">(</code><code class="s">""</code><code class="p">);</code>
+<code class="p">});</code>
+</pre><p class="calibre6">
+      If testing this spec before your models have been written, you’ll
+      incur a failing test, as expected. What’s required for the spec to
+      pass is a default value for the attribute <code class="literal">text</code>.
+      We can implement this default value with some other useful
+      defaults (which we’ll be using shortly) in our Todo model as
+      follows:
+    </p><pre class="programlistingjavascript"><code class="nb">window</code><code class="p">.</code><code class="nx">Todo</code> <code class="o">=</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">Model</code><code class="p">.</code><code class="nx">extend</code><code class="p">({</code>
+
+    <code class="nx">defaults</code><code class="o">:</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+        <code class="kd">return</code> <code class="p">{</code>
+            <code class="nx">text</code><code class="o">:</code> <code class="s">""</code><code class="p">,</code>
+            <code class="nx">done</code><code class="o">:</code>  <code class="kd">false</code><code class="p">,</code>
+            <code class="nx">order</code><code class="o">:</code> <code class="mi">0</code>
+        <code class="p">};</code>
+    <code class="p">}</code>
+</pre><p class="calibre6">
+      Next, we want to test that our model will pass attributes that are
+      set such that retrieving the value of these attributes after
+      initialization will be what we expect. Notice that here, in
+      addition to testing for an expected value for
+      <code class="literal">text</code>, we’re also testing the other default
+      values are what we expect them to be.
+    </p><pre class="programlistingjavascript"><code class="nx">it</code><code class="p">(</code><code class="s">'Will set passed attributes on the model instance when created.'</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+    <code class="kd">var</code> <code class="nx">todo</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">Todo</code><code class="p">({</code> <code class="nx">text</code><code class="o">:</code> <code class="s">'Get oil change for car.'</code> <code class="p">});</code>
+
+    <code class="c">// what are the values expected here for each of the</code>
+    <code class="c">// attributes in our Todo?</code>
+
+    <code class="nx">expect</code><code class="p">(</code><code class="nx">todo</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">'text'</code><code class="p">)).</code><code class="nx">toBe</code><code class="p">(</code><code class="s">"Get oil change for car."</code><code class="p">);</code>
+    <code class="nx">expect</code><code class="p">(</code><code class="nx">todo</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">'done'</code><code class="p">)).</code><code class="nx">toBe</code><code class="p">(</code><code class="kd">false</code><code class="p">);</code>
+    <code class="nx">expect</code><code class="p">(</code><code class="nx">todo</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">'order'</code><code class="p">)).</code><code class="nx">toBe</code><code class="p">(</code><code class="mi">0</code><code class="p">);</code>
+<code class="p">});</code>
+</pre><p class="calibre6">
+      Backbone models support a model.change() event which is triggered
+      when the state of a model changes. In the following example, by
+      <span class="firstname">“<span class="firstname">state</span>”</span> I’m referring to the value of a Todo model’s
+      attributes. The reason changes of state are important to test are
+      that there may be state-dependent events in your application e.g
+      you may wish to display a confirmation view once a Todo model has
+      been updated.
+    </p><pre class="programlistingjavascript"><code class="nx">it</code><code class="p">(</code><code class="s">'Fires a custom event when the state changes.'</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+
+    <code class="kd">var</code> <code class="nx">spy</code> <code class="o">=</code> <code class="nx">jasmine</code><code class="p">.</code><code class="nx">createSpy</code><code class="p">(</code><code class="s">'-change event callback-'</code><code class="p">);</code>
+
+    <code class="kd">var</code> <code class="nx">todo</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">Todo</code><code class="p">();</code>
+
+    <code class="c">// how do we monitor changes of state?</code>
+    <code class="nx">todo</code><code class="p">.</code><code class="nx">on</code><code class="p">(</code><code class="s">'change'</code><code class="p">,</code> <code class="nx">spy</code><code class="p">);</code>
+
+    <code class="c">// what would you need to do to force a change of state?</code>
+    <code class="nx">todo</code><code class="p">.</code><code class="nx">set</code><code class="p">({</code> <code class="nx">text</code><code class="o">:</code> <code class="s">'Get oil change for car.'</code> <code class="p">});</code>
+
+    <code class="nx">expect</code><code class="p">(</code><code class="nx">spy</code><code class="p">).</code><code class="nx">toHaveBeenCalled</code><code class="p">();</code>
+<code class="p">});</code>
+</pre><p class="calibre6">
+      It’s common to include validation logic in your models to ensure
+      both the input passed from users (and other modules) in the
+      application are <span class="firstname">“<span class="firstname">valid</span>”</span>. A Todo app may wish to
+      validate the text input supplied in case it contains rude words.
+      Similarly if we’re storing the <code class="literal">done</code> state of a
+      Todo item using booleans, we need to validate that truthy/falsy
+      values are passed and not just any arbitrary string.
+    </p><p class="calibre6">
+      In the following spec, we take advantage of the fact that
+      validations which fail model.validate() trigger an
+      <span class="firstname">“<span class="firstname">error</span>”</span> event. This allows us to test if validations
+      are correctly failing when invalid input is supplied.
+    </p><p class="calibre6">
+      We create an errorCallback spy using Jasmine’s built in
+      <code class="literal">createSpy()</code> method which allows us to spy on
+      the error event as follows:
+    </p><pre class="programlistingjavascript"><code class="nx">it</code><code class="p">(</code><code class="s">'Can contain custom validation rules, and will trigger an error event on failed validation.'</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+
+    <code class="kd">var</code> <code class="nx">errorCallback</code> <code class="o">=</code> <code class="nx">jasmine</code><code class="p">.</code><code class="nx">createSpy</code><code class="p">(</code><code class="s">'-error event callback-'</code><code class="p">);</code>
+
+    <code class="kd">var</code> <code class="nx">todo</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">Todo</code><code class="p">();</code>
+
+    <code class="nx">todo</code><code class="p">.</code><code class="nx">on</code><code class="p">(</code><code class="s">'error'</code><code class="p">,</code> <code class="nx">errorCallback</code><code class="p">);</code>
+
+    <code class="c">// What would you need to set on the todo properties to </code>
+    <code class="c">// cause validation to fail?</code>
+
+    <code class="nx">todo</code><code class="p">.</code><code class="nx">set</code><code class="p">({</code><code class="nx">done</code><code class="o">:</code><code class="s">'a non-integer value'</code><code class="p">});</code>
+
+    <code class="kd">var</code> <code class="nx">errorArgs</code> <code class="o">=</code> <code class="nx">errorCallback</code><code class="p">.</code><code class="nx">mostRecentCall</code><code class="p">.</code><code class="nx">args</code><code class="p">;</code>
+
+    <code class="nx">expect</code><code class="p">(</code><code class="nx">errorArgs</code><code class="p">).</code><code class="nx">toBeDefined</code><code class="p">();</code>
+    <code class="nx">expect</code><code class="p">(</code><code class="nx">errorArgs</code><code class="p">[</code><code class="mi">0</code><code class="p">]).</code><code class="nx">toBe</code><code class="p">(</code><code class="nx">todo</code><code class="p">);</code>
+    <code class="nx">expect</code><code class="p">(</code><code class="nx">errorArgs</code><code class="p">[</code><code class="mi">1</code><code class="p">]).</code><code class="nx">toBe</code><code class="p">(</code><code class="s">'Todo.done must be a boolean value.'</code><code class="p">);</code>
+<code class="p">});</code>
+</pre><p class="calibre6">
+      The code to make the above failing test support validation is
+      relatively simple. In our model, we override the validate() method
+      (as recommended in the Backbone docs), checking to make sure a
+      model both has a <span class="firstname">“<span class="firstname">done</span>”</span> property and is a valid
+      boolean before allowing it to pass.
+    </p><pre class="programlistingjavascript"><code class="nx">validate</code><code class="o">:</code> <code class="kd">function</code><code class="p">(</code><code class="nx">attrs</code><code class="p">)</code> <code class="p">{</code>
+    <code class="kd">if</code> <code class="p">(</code><code class="nx">attrs</code><code class="p">.</code><code class="nx">hasOwnProperty</code><code class="p">(</code><code class="s">'done'</code><code class="p">)</code> <code class="o">&amp;&amp;</code> <code class="o">!</code><code class="nx">_</code><code class="p">.</code><code class="nx">isBoolean</code><code class="p">(</code><code class="nx">attrs</code><code class="p">.</code><code class="nx">done</code><code class="p">))</code> <code class="p">{</code>
+        <code class="kd">return</code> <code class="s">'Todo.done must be a boolean value.'</code><code class="p">;</code>
+    <code class="p">}</code>
+<code class="p">}</code>
+</pre><p class="calibre6">
+      If you would like to review the final code for our Todo model, you
+      can find it below:
+    </p><pre class="programlistingjavascript"><code class="kd">var</code> <code class="nx">NAUGHTY_WORDS</code> <code class="o">=</code> <code class="sr">/crap|poop|hell|frogs/gi</code><code class="p">;</code>
+
+<code class="kd">function</code> <code class="nx">sanitize</code><code class="p">(</code><code class="nx">str</code><code class="p">)</code> <code class="p">{</code>
+    <code class="kd">return</code> <code class="nx">str</code><code class="p">.</code><code class="nx">replace</code><code class="p">(</code><code class="nx">NAUGHTY_WORDS</code><code class="p">,</code> <code class="s">'rainbows'</code><code class="p">);</code>
+<code class="p">}</code>
+
+<code class="nb">window</code><code class="p">.</code><code class="nx">Todo</code> <code class="o">=</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">Model</code><code class="p">.</code><code class="nx">extend</code><code class="p">({</code>
+
+    <code class="nx">defaults</code><code class="o">:</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+        <code class="kd">return</code> <code class="p">{</code>
+            <code class="nx">text</code><code class="o">:</code> <code class="s">''</code><code class="p">,</code>
+            <code class="nx">done</code><code class="o">:</code>  <code class="kd">false</code><code class="p">,</code>
+            <code class="nx">order</code><code class="o">:</code> <code class="mi">0</code>
+        <code class="p">};</code>
+    <code class="p">},</code>
+
+    <code class="nx">initialize</code><code class="o">:</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+        <code class="kd">this</code><code class="p">.</code><code class="nx">set</code><code class="p">({</code><code class="nx">text</code><code class="o">:</code> <code class="nx">sanitize</code><code class="p">(</code><code class="kd">this</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">'text'</code><code class="p">))},</code> <code class="p">{</code><code class="nx">silent</code><code class="o">:</code> <code class="kd">true</code><code class="p">});</code>
+    <code class="p">},</code>
+
+    <code class="nx">validate</code><code class="o">:</code> <code class="kd">function</code><code class="p">(</code><code class="nx">attrs</code><code class="p">)</code> <code class="p">{</code>
+        <code class="kd">if</code> <code class="p">(</code><code class="nx">attrs</code><code class="p">.</code><code class="nx">hasOwnProperty</code><code class="p">(</code><code class="s">'done'</code><code class="p">)</code> <code class="o">&amp;&amp;</code> <code class="o">!</code><code class="nx">_</code><code class="p">.</code><code class="nx">isBoolean</code><code class="p">(</code><code class="nx">attrs</code><code class="p">.</code><code class="nx">done</code><code class="p">))</code> <code class="p">{</code>
+            <code class="kd">return</code> <code class="s">'Todo.done must be a boolean value.'</code><code class="p">;</code>
+        <code class="p">}</code>
+    <code class="p">},</code>
+
+    <code class="nx">toggle</code><code class="o">:</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+        <code class="kd">this</code><code class="p">.</code><code class="nx">save</code><code class="p">({</code><code class="nx">done</code><code class="o">:</code> <code class="o">!</code><code class="kd">this</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">"done"</code><code class="p">)});</code>
+    <code class="p">}</code>
+
+<code class="p">});</code>
+</pre></div><div class="book" title="Collections"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="collections-2" class="calibre1"></a>Collections</h2></div></div></div><p class="calibre6">
+      We now need to define specs to tests a Backbone collection of Todo
+      models (a TodoList). Collections are responsible for a number of
+      list tasks including managing order and filtering.
+    </p><p class="calibre6">
+      A few specific specs that come to mind when working with
+      collections are:
+    </p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre6">
+          Making sure we can add new Todo models as both objects and
+          arrays
+        </p></li><li class="listitem"><p class="calibre6">
+          Attribute testing to make sure attributes such as the base URL
+          of the collection are values we expect
+        </p></li><li class="listitem"><p class="calibre6">
+          Purposefully adding items with a status of
+          <code class="literal">done:true</code> and checking against how many
+          items the collection thinks have been completed vs. those that
+          are remaining
+        </p></li></ul></div><p class="calibre6">
+      In this section we’re going to cover the first two of these with
+      the third left as an extended exercise I recommend trying out.
+    </p><p class="calibre6">
+      Testing Todo models can be added to a collection as objects or
+      arrays is relatively trivial. First, we initialize a new TodoList
+      collection and check to make sure it’s length (i.e the number of
+      Todo models it contains) is 0. Next, we add new Todos, both as
+      objects and arrays, checking the length property of the collection
+      at each stage to ensure the overall count is what we expect:
+    </p><pre class="programlistingjavascript"><code class="nx">describe</code><code class="p">(</code><code class="s">'Tests for TodoList'</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+
+    <code class="nx">it</code><code class="p">(</code><code class="s">'Can add Model instances as objects and arrays.'</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+        <code class="kd">var</code> <code class="nx">todos</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">TodoList</code><code class="p">();</code>
+
+        <code class="nx">expect</code><code class="p">(</code><code class="nx">todos</code><code class="p">.</code><code class="nx">length</code><code class="p">).</code><code class="nx">toBe</code><code class="p">(</code><code class="mi">0</code><code class="p">);</code>
+
+        <code class="nx">todos</code><code class="p">.</code><code class="nx">add</code><code class="p">({</code> <code class="nx">text</code><code class="o">:</code> <code class="s">'Clean the kitchen'</code> <code class="p">});</code>
+
+        <code class="c">// how many todos have been added so far?</code>
+        <code class="nx">expect</code><code class="p">(</code><code class="nx">todos</code><code class="p">.</code><code class="nx">length</code><code class="p">).</code><code class="nx">toBe</code><code class="p">(</code><code class="mi">1</code><code class="p">);</code>
+
+        <code class="nx">todos</code><code class="p">.</code><code class="nx">add</code><code class="p">([</code>
+            <code class="p">{</code> <code class="nx">text</code><code class="o">:</code> <code class="s">'Do the laundry'</code><code class="p">,</code> <code class="nx">done</code><code class="o">:</code> <code class="kd">true</code> <code class="p">},</code> 
+            <code class="p">{</code> <code class="nx">text</code><code class="o">:</code> <code class="s">'Go to the gym'</code><code class="p">}</code>
+        <code class="p">]);</code>
+
+        <code class="c">// how many are there in total now?</code>
+        <code class="nx">expect</code><code class="p">(</code><code class="nx">todos</code><code class="p">.</code><code class="nx">length</code><code class="p">).</code><code class="nx">toBe</code><code class="p">(</code><code class="mi">3</code><code class="p">);</code>
+    <code class="p">});</code>
+<code class="p">...</code>
+</pre><p class="calibre6">
+      Similar to model attributes, it’s also quite straight-forward to
+      test attributes in collections. Here we have a spec that ensures
+      the collection.url (i.e the url reference to the collection’s
+      location on the server) is what we expect it to be:
+    </p><pre class="programlistingjavascript"><code class="nx">it</code><code class="p">(</code><code class="s">'Can have a url property to define the basic url structure for all contained models.'</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+        <code class="kd">var</code> <code class="nx">todos</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">TodoList</code><code class="p">();</code>
+
+        <code class="c">// what has been specified as the url base in our model?</code>
+        <code class="nx">expect</code><code class="p">(</code><code class="nx">todos</code><code class="p">.</code><code class="nx">url</code><code class="p">).</code><code class="nx">toBe</code><code class="p">(</code><code class="s">'/todos/'</code><code class="p">);</code>
+<code class="p">});</code>
+</pre><p class="calibre6">
+      For the third spec, it’s useful to remember that the
+      implementation for our collection will have methods for filtering
+      how many Todo items are done and how many are remaining - we can
+      call these <code class="literal">done()</code> and
+      <code class="literal">remaining()</code>. Consider writing a spec which
+      creates a new collection and adds one new model that has a preset
+      <code class="literal">done</code> state of <code class="literal">true</code> and two
+      others that have the default <code class="literal">done</code> state of
+      <code class="literal">false</code>. Testing the length of what’s returned
+      using <code class="literal">done()</code> and <code class="literal">remaining()</code>
+      should allow us to know whether the state management in our
+      application is working or needs a little tweaking.
+    </p><p class="calibre6">
+      The final implementation for our TodoList collection can be found
+      below:
+    </p><pre class="programlistingjavascript"> <code class="nb">window</code><code class="p">.</code><code class="nx">TodoList</code> <code class="o">=</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">Collection</code><code class="p">.</code><code class="nx">extend</code><code class="p">({</code>
+
+        <code class="nx">model</code><code class="o">:</code> <code class="nx">Todo</code><code class="p">,</code>
+
+        <code class="nx">url</code><code class="o">:</code> <code class="s">'/todos/'</code><code class="p">,</code>
+
+        <code class="nx">done</code><code class="o">:</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+            <code class="kd">return</code> <code class="kd">this</code><code class="p">.</code><code class="nx">filter</code><code class="p">(</code><code class="kd">function</code><code class="p">(</code><code class="nx">todo</code><code class="p">)</code> <code class="p">{</code> <code class="kd">return</code> <code class="nx">todo</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">'done'</code><code class="p">);</code> <code class="p">});</code>
+        <code class="p">},</code>
+
+        <code class="nx">remaining</code><code class="o">:</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+            <code class="kd">return</code> <code class="kd">this</code><code class="p">.</code><code class="nx">without</code><code class="p">.</code><code class="nx">apply</code><code class="p">(</code><code class="kd">this</code><code class="p">,</code> <code class="kd">this</code><code class="p">.</code><code class="nx">done</code><code class="p">());</code>
+        <code class="p">},</code>
+
+        <code class="nx">nextOrder</code><code class="o">:</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+            <code class="kd">if</code> <code class="p">(</code><code class="o">!</code><code class="kd">this</code><code class="p">.</code><code class="nx">length</code><code class="p">)</code> <code class="p">{</code> 
+                <code class="kd">return</code> <code class="mi">1</code><code class="p">;</code> 
+            <code class="p">}</code>
+
+            <code class="kd">return</code> <code class="kd">this</code><code class="p">.</code><code class="nx">last</code><code class="p">().</code><code class="nx">get</code><code class="p">(</code><code class="s">'order'</code><code class="p">)</code> <code class="o">+</code> <code class="mi">1</code><code class="p">;</code>
+        <code class="p">},</code>
+
+        <code class="nx">comparator</code><code class="o">:</code> <code class="kd">function</code><code class="p">(</code><code class="nx">todo</code><code class="p">)</code> <code class="p">{</code>
+            <code class="kd">return</code> <code class="nx">todo</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">'order'</code><code class="p">);</code>
+        <code class="p">}</code>
+
+    <code class="p">});</code>
+</pre></div><div class="book" title="Views"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="views-3" class="calibre1"></a>Views</h2></div></div></div><p class="calibre6">
+      Before we take a look at testing Backbone views, let’s briefly
+      review a jQuery plugin that can assist with writing Jasmine specs
+      for them.
+    </p><p class="calibre6">
+      <span class="firstname"><strong class="calibre8">The Jasmine jQuery Plugin</strong></span>
+    </p><p class="calibre6">
+      As we know our Todo application will be using jQuery for DOM
+      manipulation, there’s a useful jQuery plugin called
+      <a class="ulink" href="https://github.com/velesin/jasmine-jquery">jasmine-jquery</a>
+      we can use to help simplify BDD testing rendered elements that our
+      views may produce.
+    </p><p class="calibre6">
+      The plugin provides a number of additional Jasmine
+      <a class="ulink" href="https://github.com/pivotal/jasmine/wiki/Matchers">matchers</a>
+      to help test jQuery wrapped sets such as:
+    </p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre6">
+          <code class="literal">toBe(jQuerySelector)</code> e.g
+          <code class="literal">expect($('&lt;div id="some-id"&gt;&lt;/div&gt;')).toBe('div#some-id')</code>
+        </p></li><li class="listitem"><p class="calibre6">
+          <code class="literal">toBeChecked()</code> e.g
+          <code class="literal">expect($('&lt;input type="checkbox" checked="checked"/&gt;')).toBeChecked()</code>
+        </p></li><li class="listitem"><p class="calibre6">
+          <code class="literal">toBeSelected()</code> e.g
+          <code class="literal">expect($('&lt;option selected="selected"&gt;&lt;/option&gt;')).toBeSelected()</code>
+        </p></li></ul></div><p class="calibre6">
+      and <a class="ulink" href="https://github.com/velesin/jasmine-jquery">many
+      others</a>. The complete list of matchers supported can be
+      found on the project homepage. It’s useful to know that similar to
+      the standard Jasmine matchers, the custom matchers above can be
+      inverted using the .not prefix (i.e
+      <code class="literal">expect(x).not.toBe(y)</code>):
+    </p><pre class="programlistingjavascript"><code class="nx">expect</code><code class="p">(</code><code class="nx">$</code><code class="p">(</code><code class="s">'&lt;div&gt;I am an example&lt;/div&gt;'</code><code class="p">)).</code><code class="nx">not</code><code class="p">.</code><code class="nx">toHaveText</code><code class="p">(</code><code class="sr">/other/</code><code class="p">)</code>
+</pre><p class="calibre6">
+      jasmine-jquery also includes a fixtures model, allowing us to load
+      in arbitrary HTML content we may wish to use in our tests.
+      Fixtures can be used as follows:
+    </p><p class="calibre6">
+      Include some HTML in an external fixtures file:
+    </p><p class="calibre6">
+      some.fixture.html:
+      <code class="literal">&lt;div id="sample-fixture"&gt;some HTML content&lt;/div&gt;</code>
+    </p><p class="calibre6">
+      Next, inside our actual test we would load it as follows:
+    </p><pre class="programlistingjavascript"><code class="nx">loadFixtures</code><code class="p">(</code><code class="s">'some.fixture.html'</code><code class="p">)</code>
+<code class="nx">$</code><code class="p">(</code><code class="s">'some-fixture'</code><code class="p">).</code><code class="nx">myTestedPlugin</code><code class="p">();</code>
+<code class="nx">expect</code><code class="p">(</code><code class="nx">$</code><code class="p">(</code><code class="s">'#some-fixture'</code><code class="p">)).</code><code class="nx">to</code><code class="o">&lt;</code><code class="nx">the</code> <code class="nx">rest</code> <code class="nx">of</code> <code class="nx">your</code> <code class="nx">matcher</code> <code class="nx">would</code> <code class="nx">go</code> <code class="nx">here</code><code class="o">&gt;</code>
+</pre><p class="calibre6">
+      The jasmine-jquery plugin is by default setup to load fixtures
+      from a specific directory: spec/javascripts/fixtures. If you wish
+      to configure this path you can do so by initially setting
+      <code class="literal">jasmine.getFixtures().fixturesPath = 'your custom path'</code>.
+    </p><p class="calibre6">
+      Finally, jasmine-jquery includes support for spying on jQuery
+      events without the need for any extra plumbing work. This can be
+      done using the <code class="literal">spyOnEvent()</code> and
+      <code class="literal">assert(eventName).toHaveBeenTriggered(selector)</code>
+      functions. An example of usage may look as follows:
+    </p><pre class="programlistingjavascript"><code class="nx">spyOnEvent</code><code class="p">(</code><code class="nx">$</code><code class="p">(</code><code class="s">'#el'</code><code class="p">),</code> <code class="s">'click'</code><code class="p">);</code>
+<code class="nx">$</code><code class="p">(</code><code class="s">'#el'</code><code class="p">).</code><code class="nx">click</code><code class="p">();</code>
+<code class="nx">expect</code><code class="p">(</code><code class="s">'click'</code><code class="p">).</code><code class="nx">toHaveBeenTriggeredOn</code><code class="p">(</code><code class="nx">$</code><code class="p">(</code><code class="s">'#el'</code><code class="p">));</code>
+</pre><p class="calibre6">
+      <span class="firstname"><strong class="calibre8">View testing</strong></span>
+    </p><p class="calibre6">
+      In this section we will review three dimensions to writing specs
+      for Backbone Views: initial setup, view rendering and finally
+      templating. The latter two of these are the most commonly tested,
+      however we’ll review shortly why writing specs for the
+      initialization of your views can also be of benefit.
+    </p></div><div class="book" title="Initial setup"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="initial-setup" class="calibre1"></a>Initial setup</h2></div></div></div><p class="calibre6">
+      At their most basic, specs for Backbone views should validate that
+      they are being correctly tied to specific DOM elements and are
+      backed by valid data models. The reason to consider doing this is
+      that failures to such specs can trip up more complex tests later
+      on and they’re fairly simple to write, given the overall value
+      offered.
+    </p><p class="calibre6">
+      To help ensure a consistent testing setup for our specs, we use
+      <code class="literal">beforeEach()</code> to append both an empty
+      <code class="literal">UL</code> (#todoList) to the DOM and initialize a new
+      instance of a TodoView using an empty Todo model.
+      <code class="literal">afterEach()</code> is used to remove the previous
+      #todoList <code class="literal">UL</code> as well as the previous instance
+      of the view.
+    </p><pre class="programlistingjavascript"><code class="nx">describe</code><code class="p">(</code><code class="s">'Tests for TodoView'</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+
+    <code class="nx">beforeEach</code><code class="p">(</code><code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+        <code class="nx">$</code><code class="p">(</code><code class="s">'body'</code><code class="p">).</code><code class="nx">append</code><code class="p">(</code><code class="s">'&lt;ul id="todoList"&gt;&lt;/ul&gt;'</code><code class="p">);</code>
+        <code class="kd">this</code><code class="p">.</code><code class="nx">todoView</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">TodoView</code><code class="p">({</code> <code class="nx">model</code><code class="o">:</code> <code class="kd">new</code> <code class="nx">Todo</code><code class="p">()</code> <code class="p">});</code>
+    <code class="p">});</code>
+
+
+    <code class="nx">afterEach</code><code class="p">(</code><code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+        <code class="kd">this</code><code class="p">.</code><code class="nx">todoView</code><code class="p">.</code><code class="nx">remove</code><code class="p">();</code>
+        <code class="nx">$</code><code class="p">(</code><code class="s">'#todoList'</code><code class="p">).</code><code class="nx">remove</code><code class="p">();</code>
+    <code class="p">});</code>
+
+<code class="p">...</code>
+</pre><p class="calibre6">
+      The first spec useful to write is a check that the TodoView we’ve
+      created is using the correct <code class="literal">tagName</code> (element
+      or className). The purpose of this test is to make sure it’s been
+      correctly tied to a DOM element when it was created.
+    </p><p class="calibre6">
+      Backbone views typically create empty DOM elements once
+      initialized, however these elements are not attached to the
+      visible DOM in order to allow them to be constructed without an
+      impact on the performance of rendering.
+    </p><pre class="programlistingjavascript"><code class="nx">it</code><code class="p">(</code><code class="s">'Should be tied to a DOM element when created, based off the property provided.'</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+    <code class="c">//what html element tag name represents this view?</code>
+    <code class="nx">expect</code><code class="p">(</code><code class="nx">todoView</code><code class="p">.</code><code class="nx">el</code><code class="p">.</code><code class="nx">tagName</code><code class="p">.</code><code class="nx">toLowerCase</code><code class="p">()).</code><code class="nx">toBe</code><code class="p">(</code><code class="s">'li'</code><code class="p">);</code>
+<code class="p">});</code>
+</pre><p class="calibre6">
+      Once again, if the TodoView has not already been written, we will
+      experience failing specs. Thankfully, solving this is as simple as
+      creating a new Backbone.View with a specific
+      <code class="literal">tagName</code>.
+    </p><pre class="programlistingjavascript"><code class="kd">var</code> <code class="nx">todoView</code> <code class="o">=</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">View</code><code class="p">.</code><code class="nx">extend</code><code class="p">({</code>
+    <code class="nx">tagName</code><code class="o">:</code>  <code class="s">"li"</code>
+<code class="p">});</code>
+</pre><p class="calibre6">
+      If instead of testing against the <code class="literal">tagName</code> you
+      would prefer to use a className instead, we can take advantage of
+      jasmine-jquery’s <code class="literal">toHaveClass()</code> matcher to cater
+      for this.
+    </p><pre class="programlistingjavascript">
+it('Should have a class of "todos"'), function(){
+   expect(this.view.$el).toHaveClass('todos');
+});
+</pre><p class="calibre6">
+      The <code class="literal">toHaveClass()</code> matcher operates on jQuery
+      objects and if the plugin hadn’t been used, an exception would
+      have been incurred (it is of course also possible to test for the
+      className by accessing el.className if not opting to use
+      jasmine-jquery).
+    </p><p class="calibre6">
+      You may have noticed that in <code class="literal">beforeEach()</code>, we
+      passed our view an initial (albeit unfilled) Todo model. Views
+      should be backed by a model instance which provides data. As this
+      is quite important to our view’s ability to function, we can write
+      a spec to ensure a model is both defined (using the
+      <code class="literal">toBeDefined()</code> matcher) and then test attributes
+      of the model to ensure defaults both exist and are the value we
+      expect them to be.
+    </p><pre class="programlistingjavascript"><code class="nx">it</code><code class="p">(</code><code class="s">'Is backed by a model instance, which provides the data.'</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+
+    <code class="nx">expect</code><code class="p">(</code><code class="nx">todoView</code><code class="p">.</code><code class="nx">model</code><code class="p">).</code><code class="nx">toBeDefined</code><code class="p">();</code>
+
+    <code class="c">// what's the value for Todo.get('done') here?</code>
+    <code class="nx">expect</code><code class="p">(</code><code class="nx">todoView</code><code class="p">.</code><code class="nx">model</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">'done'</code><code class="p">)).</code><code class="nx">toBe</code><code class="p">(</code><code class="kd">false</code><code class="p">);</code> <code class="c">//or toBeFalsy()</code>
+<code class="p">});</code>
+</pre></div><div class="book" title="View rendering"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="view-rendering" class="calibre1"></a>View rendering</h2></div></div></div><p class="calibre6">
+      Next we’re going to take a look at writing specs for view
+      rendering. Specifically, we want to test that our TodoView
+      elements are actually rendering as expected.
+    </p><p class="calibre6">
+      In smaller applications, those new to BDD might argue that visual
+      confirmation of view rendering could replace unit testing of
+      views. The reality is that when dealing with applications that
+      might grow to multiple-views, it often makes sense to automate
+      this process as much as possible from the get-go. There are also
+      aspects of rendering that require verification beyond what is
+      visually presented on-screen (which we’ll see very shortly).
+    </p><p class="calibre6">
+      We’re going to begin testing views by writing two specs. The first
+      spec will check that the view’s <code class="literal">render()</code> method
+      is correctly returning the view instance, which is necessary for
+      chaining. Our second spec will check that the HTML produced is
+      exactly what we expect based on the properties of the model
+      instance that’s been associated with our TodoView.
+    </p><p class="calibre6">
+      Unlike some of the previous specs we’ve covered, this section will
+      make greater use of <code class="literal">beforeEach()</code> to both
+      demonstrate how to use nested suites and also ensure a consistent
+      set of conditions for our specs. In our first view spec for
+      TodoView, we’re simply going to create a sample model (based on
+      Todo) and instantiate a TodoView which associates it with the
+      model.
+    </p><pre class="programlistingjavascript"><code class="nx">describe</code><code class="p">(</code><code class="s">"TodoView"</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+
+  <code class="nx">beforeEach</code><code class="p">(</code><code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+    <code class="kd">this</code><code class="p">.</code><code class="nx">model</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">Model</code><code class="p">({</code>
+      <code class="nx">text</code><code class="o">:</code> <code class="s">"My Todo"</code><code class="p">,</code>
+      <code class="nx">order</code><code class="o">:</code> <code class="mi">1</code><code class="p">,</code>
+      <code class="nx">done</code><code class="o">:</code> <code class="kd">false</code>
+    <code class="p">});</code>
+    <code class="kd">this</code><code class="p">.</code><code class="nx">view</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">TodoView</code><code class="p">({</code><code class="nx">model</code><code class="o">:</code><code class="kd">this</code><code class="p">.</code><code class="nx">model</code><code class="p">});</code>
+  <code class="p">});</code>
+
+  <code class="nx">describe</code><code class="p">(</code><code class="s">"Rendering"</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+
+    <code class="nx">it</code><code class="p">(</code><code class="s">"returns the view object"</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+      <code class="nx">expect</code><code class="p">(</code><code class="kd">this</code><code class="p">.</code><code class="nx">view</code><code class="p">.</code><code class="nx">render</code><code class="p">()).</code><code class="nx">toEqual</code><code class="p">(</code><code class="kd">this</code><code class="p">.</code><code class="nx">view</code><code class="p">);</code>
+    <code class="p">});</code>
+
+    <code class="nx">it</code><code class="p">(</code><code class="s">"produces the correct HTML"</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+      <code class="kd">this</code><code class="p">.</code><code class="nx">view</code><code class="p">.</code><code class="nx">render</code><code class="p">();</code>
+
+      <code class="c">//let's use jasmine-jquery's toContain() to avoid</code>
+      <code class="c">//testing for the complete content of a todo's markup</code>
+      <code class="nx">expect</code><code class="p">(</code><code class="kd">this</code><code class="p">.</code><code class="nx">view</code><code class="p">.</code><code class="nx">el</code><code class="p">.</code><code class="nx">innerHTML</code><code class="p">)</code>
+        <code class="p">.</code><code class="nx">toContain</code><code class="p">(</code><code class="s">'&lt;label class="todo-content"&gt;My Todo&lt;/label&gt;'</code><code class="p">);</code>
+    <code class="p">});</code>
+
+  <code class="p">});</code>
+
+<code class="p">});</code>
+</pre><p class="calibre6">
+      Once these specs are run, only the second one (<span class="firstname">“<span class="firstname">produces the
+      correct HTML</span>”</span>) fails. Our first spec (<span class="firstname">“<span class="firstname">returns the
+      view object</span>”</span>), which is testing that the TodoView instance
+      is returned from <code class="literal">render()</code>, only passed as this
+      is Backbone’s default behavior. We haven’t yet overwritten the
+      <code class="literal">render()</code> method with our own version.
+    </p><p class="calibre6">
+      <span class="firstname"><strong class="calibre8">Note:</strong></span> For the purposes of
+      maintaining readability, all template examples in this section
+      will use a minimal version of the following Todo view template. As
+      it’s relatively trivial to expand this, please feel free to refer
+      to this sample if needed:
+    </p><pre class="programlistingjavascript">
+&lt;div class="todo &lt;%= done ? 'done' : '' %&gt;"&gt;
+        &lt;div class="display"&gt;
+          &lt;input class="check" type="checkbox" &lt;%= done ? 'checked="checked"' : '' %&gt; /&gt;
+          &lt;label class="todo-content"&gt;&lt;%= text %&gt;&lt;/label&gt;
+          &lt;span class="todo-destroy"&gt;&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;div class="edit"&gt;
+          &lt;input class="todo-input" type="text" value="&lt;%= content %&gt;" /&gt;
+        &lt;/div&gt;
+&lt;/div&gt;
+</pre><p class="calibre6">
+      The second spec fails with the following message:
+    </p><p class="calibre6">
+      Expected ’’ to contain
+      <code class="literal">'&lt;label class="todo-content"&gt;My Todo&lt;/label&gt;'</code>.
+    </p><p class="calibre6">
+      The reason for this is the default behavior for render() doesn’t
+      create any markup. Let’s write a replacement for render() which
+      fixes this:
+    </p><pre class="programlistingjavascript"><code class="nx">render</code><code class="o">:</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+  <code class="kd">var</code> <code class="nx">template</code> <code class="o">=</code> <code class="s">'&lt;label class="todo-content"&gt;&lt;%= text %&gt;&lt;/label&gt;'</code><code class="p">;</code>
+  <code class="kd">var</code> <code class="nx">output</code> <code class="o">=</code> <code class="nx">template</code>
+    <code class="p">.</code><code class="nx">replace</code><code class="p">(</code><code class="s">"&lt;%= text %&gt;"</code><code class="p">,</code> <code class="kd">this</code><code class="p">.</code><code class="nx">model</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">'text'</code><code class="p">));</code>
+  <code class="kd">this</code><code class="p">.</code><code class="nx">$el</code><code class="p">.</code><code class="nx">html</code><code class="p">(</code><code class="nx">output</code><code class="p">);</code>
+  <code class="kd">return</code> <code class="kd">this</code><code class="p">;</code>
+<code class="p">}</code>
+</pre><p class="calibre6">
+      The above specifies an inline string template and replaces fields
+      found in the template within the <span class="firstname">“<span class="firstname">&lt;% %&gt;</span>”</span> blocks
+      with their corresponding values from the associated model. As
+      we’re now also returning the TodoView instance from the method,
+      the first spec will also pass. It’s worth noting that there are
+      serious drawbacks to using HTML strings in your specs to test
+      against like this. Even minor changes to your template (a simple
+      tab or whitespace) would cause your spec to fail, despite the
+      rendered output being the same. It’s also more time consuming to
+      maintain as most templates in real-world applications are
+      significantly more complex. A better option for testing rendered
+      output is using jQuery to both select and inspect values.
+    </p><p class="calibre6">
+      With this in mind, let’s re-write the specs, this time using some
+      of the custom matchers offered by jasmine-jquery:
+    </p><pre class="programlistingjavascript"><code class="nx">describe</code><code class="p">(</code><code class="s">"Template"</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+
+  <code class="nx">beforeEach</code><code class="p">(</code><code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+    <code class="kd">this</code><code class="p">.</code><code class="nx">view</code><code class="p">.</code><code class="nx">render</code><code class="p">();</code>
+  <code class="p">});</code>
+
+  <code class="nx">it</code><code class="p">(</code><code class="s">"has the correct text content"</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+    <code class="nx">expect</code><code class="p">(</code><code class="kd">this</code><code class="p">.</code><code class="nx">view</code><code class="p">.</code><code class="nx">$</code><code class="p">(</code><code class="s">'.todo-content'</code><code class="p">))</code>
+      <code class="p">.</code><code class="nx">toHaveText</code><code class="p">(</code><code class="s">'My Todo'</code><code class="p">);</code>
+  <code class="p">});</code>
+
+<code class="p">});</code>
+</pre><p class="calibre6">
+      It would be impossible to discuss unit testing without mentioning
+      fixtures. Fixtures typically contain test data (e.g HTML) that is
+      loaded in when needed (either locally or from an external file)
+      for unit testing. So far we’ve been establishing jQuery
+      expectations based on the view’s el property. This works for a
+      number of cases, however, there are instances where it may be
+      necessary to render markup into the document. The most optimal way
+      to handle this within specs is through using fixtures (another
+      feature brought to us by the jasmine-jquery plugin).
+    </p><p class="calibre6">
+      Re-writing the last spec to use fixtures would look as follows:
+    </p><pre class="programlistingjavascript"><code class="nx">describe</code><code class="p">(</code><code class="s">"TodoView"</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+
+  <code class="nx">beforeEach</code><code class="p">(</code><code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+    <code class="p">...</code>
+    <code class="nx">setFixtures</code><code class="p">(</code><code class="s">'&lt;ul class="todos"&gt;&lt;/ul&gt;'</code><code class="p">);</code>
+  <code class="p">});</code>
+
+  <code class="p">...</code>
+
+  <code class="nx">describe</code><code class="p">(</code><code class="s">"Template"</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+
+    <code class="nx">beforeEach</code><code class="p">(</code><code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+      <code class="nx">$</code><code class="p">(</code><code class="s">'.todos'</code><code class="p">).</code><code class="nx">append</code><code class="p">(</code><code class="kd">this</code><code class="p">.</code><code class="nx">view</code><code class="p">.</code><code class="nx">render</code><code class="p">().</code><code class="nx">el</code><code class="p">);</code>
+    <code class="p">});</code>
+
+    <code class="nx">it</code><code class="p">(</code><code class="s">"has the correct text content"</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+      <code class="nx">expect</code><code class="p">(</code><code class="nx">$</code><code class="p">(</code><code class="s">'.todos'</code><code class="p">).</code><code class="nx">find</code><code class="p">(</code><code class="s">'.todo-content'</code><code class="p">))</code>
+        <code class="p">.</code><code class="nx">toHaveText</code><code class="p">(</code><code class="s">'My Todo'</code><code class="p">);</code>
+    <code class="p">});</code>
+
+  <code class="p">});</code>
+
+<code class="p">});</code>
+</pre><p class="calibre6">
+      What we’re now doing in the above spec is appending the rendered
+      todo item into the fixture. We then set expectations against the
+      fixture, which may be something desirable when a view is setup
+      against an element which already exists in the DOM. It would be
+      necessary to provide both the fixture and test the
+      <code class="literal">el</code> property correctly picking up the element
+      expected when the view is instantiated.
+    </p></div><div class="book" title="Rendering with a templating system"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="rendering-with-a-templating-system" class="calibre1"></a>Rendering with a templating system</h2></div></div></div><p class="calibre6">
+      JavaScript templating systems (such as Handlebars, Mustache and
+      even Underscore’s own Micro-templating) support conditional logic
+      in template strings. What this effectively means is that we can
+      add if/else/ternery expressions inline which can then be evaluated
+      as needed, allowing us to build even more powerful templates.
+    </p><p class="calibre6">
+      In our case, when a user sets a Todo item to be complete (done),
+      we may wish to provide them with visual feedback (such as a
+      striked line through the text) to differentiate the item from
+      those that are remaining. This can be done by attaching a new
+      class to the item. Let’s begin by writing a test we would ideally
+      like to work:
+    </p><pre class="programlistingjavascript"><code class="nx">describe</code><code class="p">(</code><code class="s">"When a todo is done"</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+
+  <code class="nx">beforeEach</code><code class="p">(</code><code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+    <code class="kd">this</code><code class="p">.</code><code class="nx">model</code><code class="p">.</code><code class="nx">set</code><code class="p">({</code><code class="nx">done</code><code class="o">:</code> <code class="kd">true</code><code class="p">},</code> <code class="p">{</code><code class="nx">silent</code><code class="o">:</code> <code class="kd">true</code><code class="p">});</code>
+    <code class="nx">$</code><code class="p">(</code><code class="s">'.todos'</code><code class="p">).</code><code class="nx">append</code><code class="p">(</code><code class="kd">this</code><code class="p">.</code><code class="nx">view</code><code class="p">.</code><code class="nx">render</code><code class="p">().</code><code class="nx">el</code><code class="p">);</code>
+  <code class="p">});</code>
+
+  <code class="nx">it</code><code class="p">(</code><code class="s">"has a done class"</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+    <code class="nx">expect</code><code class="p">(</code><code class="nx">$</code><code class="p">(</code><code class="s">'.todos .todo-content:first-child'</code><code class="p">))</code>
+      <code class="p">.</code><code class="nx">toHaveClass</code><code class="p">(</code><code class="s">"done"</code><code class="p">);</code>
+  <code class="p">});</code>
+
+<code class="p">});</code>
+</pre><p class="calibre6">
+      This will fail with the following message:
+    </p><p class="calibre6">
+      Expected <span class="firstname">“<span class="firstname">Expected '&lt;label class="todo-content"&gt;My Todo&lt;/label&gt;' 
+        to have class 'done'.</span>”</span>.
+    </p><p class="calibre6">
+      which can be fixed in the existing render() method as follows:
+    </p><pre class="programlistingjavascript"><code class="nx">render</code><code class="o">:</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+  <code class="kd">var</code> <code class="nx">template</code> <code class="o">=</code> <code class="s">'&lt;label class="todo-content"&gt;'</code> <code class="o">+</code>
+    <code class="s">'&lt;%= text %&gt;&lt;/label&gt;'</code><code class="p">;</code>
+  <code class="kd">var</code> <code class="nx">output</code> <code class="o">=</code> <code class="nx">template</code>
+    <code class="p">.</code><code class="nx">replace</code><code class="p">(</code><code class="s">"&lt;%= text %&gt;"</code><code class="p">,</code> <code class="kd">this</code><code class="p">.</code><code class="nx">model</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">'text'</code><code class="p">));</code>
+  <code class="kd">this</code><code class="p">.</code><code class="nx">$el</code><code class="p">.</code><code class="nx">html</code><code class="p">(</code><code class="nx">output</code><code class="p">);</code>
+  <code class="kd">if</code> <code class="p">(</code><code class="kd">this</code><code class="p">.</code><code class="nx">model</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">'done'</code><code class="p">))</code> <code class="p">{</code>
+    <code class="kd">this</code><code class="p">.</code><code class="nx">$</code><code class="p">(</code><code class="s">".todo-content"</code><code class="p">).</code><code class="nx">addClass</code><code class="p">(</code><code class="s">"done"</code><code class="p">);</code>
+  <code class="p">}</code>
+  <code class="kd">return</code> <code class="kd">this</code><code class="p">;</code>
+<code class="p">}</code>
+</pre><p class="calibre6">
+      This can however get unwieldily fairly quickly. As the logic in
+      our templates increases, so does the complexity involved. This is
+      where templates libraries can help. As mentioned earlier, there
+      are a number of popular options available, but for the purposes of
+      this chapter we’re going to stick to using Underscore’s built-in
+      Microtemplating. Whilst there are more advanced options you’re
+      free to explore, the benefit of this is that no additional files
+      are required and we can easily change the existing Jasmine specs
+      without too much adjustment.
+    </p><p class="calibre6">
+      The TodoView object modified to use Underscore templating would
+      look as follows:
+    </p><pre class="programlistingjavascript"><code class="kd">var</code> <code class="nx">TodoView</code> <code class="o">=</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">View</code><code class="p">.</code><code class="nx">extend</code><code class="p">({</code>
+
+  <code class="nx">tagName</code><code class="o">:</code> <code class="s">"li"</code><code class="p">,</code>
+
+  <code class="nx">initialize</code><code class="o">:</code> <code class="kd">function</code><code class="p">(</code><code class="nx">options</code><code class="p">)</code> <code class="p">{</code>
+    <code class="kd">this</code><code class="p">.</code><code class="nx">template</code> <code class="o">=</code> <code class="nx">_</code><code class="p">.</code><code class="nx">template</code><code class="p">(</code><code class="nx">options</code><code class="p">.</code><code class="nx">template</code> <code class="o">||</code> <code class="s">""</code><code class="p">);</code>
+  <code class="p">},</code>
+
+  <code class="nx">render</code><code class="o">:</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+    <code class="kd">this</code><code class="p">.</code><code class="nx">$el</code><code class="p">.</code><code class="nx">html</code><code class="p">(</code><code class="kd">this</code><code class="p">.</code><code class="nx">template</code><code class="p">(</code><code class="kd">this</code><code class="p">.</code><code class="nx">model</code><code class="p">.</code><code class="nx">toJSON</code><code class="p">()));</code>
+    <code class="kd">return</code> <code class="kd">this</code><code class="p">;</code>
+  <code class="p">},</code>
+
+  <code class="p">...</code>
+
+<code class="p">});</code>
+</pre><p class="calibre6">
+      Above, the initialize() method compiles a supplied Underscore
+      template (using the _.template() function) in the instantiation. A
+      more common way of referencing templates is placing them in a
+      script tag using a custom script type (e.g
+      type=<span class="firstname">“<span class="firstname">text/template</span>”</span>). As this isn’t a script type
+      any browser understands, it’s simply ignored, however referencing
+      the script by an id attribute allows the template to be kept
+      separate to other parts of the page which wish to use it. In real
+      world applications, it’s preferable to either do this or load in
+      templates stored in external files for testing.
+    </p><p class="calibre6">
+      For testing purposes, we’re going to continue using the string
+      injection approach to keep things simple. There is however a
+      useful trick that can be applied to automatically create or extend
+      templates in the Jasmine scope for each test. By creating a new
+      directory (say, <span class="firstname">“<span class="firstname">templates</span>”</span>) in the
+      <span class="firstname">“<span class="firstname">spec</span>”</span> folder and adding a new script file with the
+      following contents, to jasmine.yml or SpecRunner.html, we can add
+      a todo property which contains the Underscore template we wish to
+      use:
+    </p><pre class="programlistingjavascript"><code class="nx">beforeEach</code><code class="p">(</code><code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+  <code class="kd">this</code><code class="p">.</code><code class="nx">templates</code> <code class="o">=</code> <code class="nx">_</code><code class="p">.</code><code class="nx">extend</code><code class="p">(</code><code class="kd">this</code><code class="p">.</code><code class="nx">templates</code> <code class="o">||</code> <code class="p">{},</code> <code class="p">{</code>
+    <code class="nx">todo</code><code class="o">:</code> <code class="s">'&lt;label class="todo-content"&gt;'</code> <code class="o">+</code>
+            <code class="s">'&lt;%= text %&gt;'</code> <code class="o">+</code>
+          <code class="s">'&lt;/label&gt;'</code>
+  <code class="p">});</code>
+<code class="p">});</code>
+</pre><p class="calibre6">
+      To finish this off, we simply update our existing spec to
+      reference the template when instantiating the TodoView object:
+    </p><pre class="programlistingjavascript"><code class="nx">describe</code><code class="p">(</code><code class="s">"TodoView"</code><code class="p">,</code> <code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+
+  <code class="nx">beforeEach</code><code class="p">(</code><code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+    <code class="p">...</code>
+    <code class="kd">this</code><code class="p">.</code><code class="nx">view</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">TodoView</code><code class="p">({</code>
+      <code class="nx">model</code><code class="o">:</code> <code class="kd">this</code><code class="p">.</code><code class="nx">model</code><code class="p">,</code>
+      <code class="nx">template</code><code class="o">:</code> <code class="kd">this</code><code class="p">.</code><code class="nx">templates</code><code class="p">.</code><code class="nx">todo</code>
+    <code class="p">});</code>
+  <code class="p">});</code>
+
+  <code class="p">...</code>
+
+<code class="p">});</code>
+</pre><p class="calibre6">
+      The existing specs we’ve looked at would continue to pass using
+      this approach, leaving us free to adjust the template with some
+      additional conditional logic for Todos with a status of
+      <span class="firstname">“<span class="firstname">done</span>”</span>:
+    </p><pre class="programlistingjavascript"><code class="nx">beforeEach</code><code class="p">(</code><code class="kd">function</code><code class="p">()</code> <code class="p">{</code>
+  <code class="kd">this</code><code class="p">.</code><code class="nx">templates</code> <code class="o">=</code> <code class="nx">_</code><code class="p">.</code><code class="nx">extend</code><code class="p">(</code><code class="kd">this</code><code class="p">.</code><code class="nx">templates</code> <code class="o">||</code> <code class="p">{},</code> <code class="p">{</code>
+    <code class="nx">todo</code><code class="o">:</code> <code class="s">'&lt;label class="todo-content &lt;%= done ? '</code><code class="nx">done</code><code class="s">' : '' %&gt;"'</code> <code class="o">+</code>
+            <code class="s">'&lt;%= text %&gt;'</code> <code class="o">+</code>
+          <code class="s">'&lt;/label&gt;'</code>
+  <code class="p">});</code>
+<code class="p">});</code>
+</pre><p class="calibre6">
+      This will now also pass without any issues. Remember that
+      jasmine-jquery also supports loading external fixtures into your
+      specs easily using it’s build in <code class="literal">loadFixtures()</code>
+      and <code class="literal">readFixtures()</code> methods. For more
+      information, consider reading the official jasmine-jquery
+      <a class="ulink" href="https://github.com/velesin/jasmine-jquery">docs</a>.
+    </p></div><div class="book" title="Conclusions"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="conclusions-1" class="calibre1"></a>Conclusions</h2></div></div></div><p class="calibre6">
+      We have now covered how to write Jasmine tests for models, views
+      and collections with Backbone.js. Whilst testing routing can at
+      times be desirable, some developers feel it can be more optimal to
+      leave this to third-party tools such as Selenium, so do keep this
+      in mind.
+    </p><p class="calibre6">
+      James Newbery was kind enough to help me with writing the Views
+      section above and his articles on
+      <a class="ulink" href="http://tinnedfruit.com/2011/04/26/testing-backbone-apps-with-jasmine-sinon-3.html">Testing
+      Backbone Apps With SinonJS</a> were of great inspiration
+      (you’ll actually find some Handlebars examples of the view specs
+      in part 3 of his article). If you would like to learn more about
+      writing spies and mocks for Backbone using
+      <a class="ulink" href="http://sinonjs.org">SinonJS</a> as well as how to
+      test Backbone routers, do consider reading his series.
+    </p></div><div class="book" title="Exercise"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="exercise" class="calibre1"></a>Exercise</h2></div></div></div><p class="calibre6">
+      As an exercise, I recommend now trying the Jasmine Koans in
+      <code class="literal">practicals\jasmine-joans</code> and trying to fix some
+      of the purposefully failing tests it has to offer. This is an
+      excellent way of not just learning how Jasmine specs and suites
+      work, but working through the examples (without peaking back) will
+      also put your Backbone skills to test too.
+    </p></div><div class="book" title="Further reading"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="further-reading" class="calibre1"></a>Further reading</h2></div></div></div><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre6">
+          <a class="ulink" href="http://japhr.blogspot.com/2011/11/jasmine-backbonejs-revisited.html">Jasmine
+          + Backbone Revisited</a>
+        </p></li><li class="listitem"><p class="calibre6">
+          <a class="ulink" href="http://japhr.blogspot.com/2011/12/phantomjs-and-backbonejs-and-requirejs.html">Backbone,
+          PhantomJS and Jasmine</a>
+        </p></li></ul></div></div></div></div></div>
+
+{% endraw %}
+

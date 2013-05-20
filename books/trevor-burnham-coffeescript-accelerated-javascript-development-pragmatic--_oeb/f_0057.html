@@ -1,0 +1,1160 @@
+---
+layout: page
+title: "CoffeeScript (for jay muratore)"
+prev: f_0056.html
+next: f_0058.html
+book_path: books/trevor-burnham-coffeescript-accelerated-javascript-development-pragmatic--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="sec.nodeProject" class="calibre13">6.4 Project: Multiplayer 5x5</h2>
+<p id="N13DD7" class="calibre5">
+      We’re going to build a web server that can let folks take each other on at 5x5. On the client side, we’ll be using essentially the same HTML and CSS as in the last chapter; our server will serve all of those static files (and some CoffeeScript, of course) and handle the game state.
+    </p>
+<p id="N13DE1" class="calibre5">
+      There are a number of ways that we could handle the problem of coordinating the clients with the server. How much logic do we want to put in the client and how much on the server? Many frameworks, such as Backbone.js, exist to make this problem conceptually simpler.<a id="FNPTR-47" href="f_0059.html#FOOTNOTE-47">[47]</a> Often it’s desirable to have some logic on the client side (for performance) and some logic on the server side (for security), and the two may overlap. But for our purposes, we’re going to lean toward a “dumb client” approach, putting all of the logic on the server side. That means that when player A makes a move, the following happens:
+    </p>
+<ol class="calibre24">
+<li class="calibre3">
+<p id="N13DF4" class="calibre5">
+        Player A’s client sends the move (that is, the coordinates of the swapped tiles) to the server.
+      </p>
+</li>
+<li class="calibre3">
+<p id="N13DF8" class="calibre5">
+        If the move is valid, the server sends both clients the results of the move.
+      </p>
+</li>
+<li class="calibre3">
+<p id="N13DFC" class="calibre5">
+        The two clients display the results.
+      </p>
+</li>
+</ol>
+<p id="N13DFF" class="calibre5">
+      Simple, right? This approach makes the client library very light, since the <code class="cf">Dictionary</code>, <code class="cf">Grid</code>, and <code class="cf">Player</code> classes only need to exist on the server side (not to mention the 2.1 MB list of valid words!). The downside is that there’s going to be a bit of lag before players see the results of their actions. In a real application, we’d want to put more thought into optimizing responsiveness. (For instance, Google Docs syncs every word you type to the server, but imagine how frustrating it would be to not see those letters on your screen until the server acknowledged them!)
+    </p>
+<p id="N13E0E" class="calibre5">
+      There are two files we’ll be working with: <code class="cf">5x5client.coffee</code> and <code class="cf">5x5server.coffee</code>. Let’s start with the server.
+    </p>
+<h3 id="sec.nodeGameServer" class="calibre14">5x5server.coffee</h3>
+<p id="N13E1C" class="calibre5">
+        We’re going to build our server on the popular Connect framework.<a id="FNPTR-48" href="f_0059.html#FOOTNOTE-48">[48]</a> Connect extends Node’s own <code class="cf">net</code> module and is in turn extended by more robust frameworks such as Express and Zappa. For more sophisticated apps, you should definitely take a look at those other frameworks, which add niceties such as DSLs for defining URL routes. However, for our single-page app, Connect will do just fine. Let’s install it:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$ <strong class="prompt">npm install connect</strong>
+</code>
+</td>
+</tr>
+</table>
+<p id="N13E40" class="calibre5">
+        (Be sure to either run that command from the project directory or do a global install by adding the <code class="cf">-g</code> flag.)
+      </p>
+<p id="N13E46" class="calibre5">
+        Now let’s start our server code by creating a Connect server instance:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/Nodejs/5x5/5x5server.coffee" class="calibre23">Nodejs/5x5/5x5server.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">connect = require <em class="string">'connect'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">app = connect.createServer(</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  connect.compiler(src: __dirname + <em class="string">'/client'</em>, enable: [<em class="string">'coffeescript'</em>]),</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  connect.static(__dirname + <em class="string">'/client'</em>),</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  connect.errorHandler dumpExceptions: <strong class="prompt">true</strong>, showStack: <strong class="prompt">true</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">)</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">port = 3000</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">app.listen port</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console.log <em class="string">"Browse to http://localhost:</em>#{port}<em class="string"> to play"</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">io = require <em class="string">'socket.io'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">socket = io.listen app</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">socket.on <em class="string">'connection'</em>, (client) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">if</strong> assignToGame client</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    client.on <em class="string">'message'</em>, (message) <strong class="prompt">-&gt;</strong> handleMessage client, message</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    client.on <em class="string">'disconnect'</em>, <strong class="prompt">-&gt;</strong> removeFromGame client</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">else</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    client.send <em class="string">'full'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">assignToGame = (client) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  idClientMap[client.sessionId] = client</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">return</strong> <strong class="prompt">false</strong> <strong class="prompt">if</strong> game.isFull()</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  game.addPlayer client.sessionId</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">if</strong> game.isFull() <strong class="prompt">then</strong> welcomePlayers()</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">true</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">removeFromGame = (client) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">delete</strong> idClientMap[client.sessionId]</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  game.removePlayer client.sessionId</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">welcomePlayers = <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  players = [game.player1, game.player2]</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  info = {players, tiles: game.grid.tiles, currPlayerNum: game.currPlayer.num}</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">for</strong> player <strong class="prompt">in</strong> players</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    playerInfo = extend {}, info, {yourNum: player.num}</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    idClientMap[player.id].send <em class="string">"welcome:</em>#{JSON.stringify playerInfo}<em class="string">"</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">handleMessage = (client, message) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  {type, content} = typeAndContent message</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">if</strong> type is <em class="string">'move'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    <strong class="prompt">return</strong> <strong class="prompt">unless</strong> client.sessionId is game.currPlayer.id<em class="comment"> # no cheating!</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    swapCoordinates = JSON.parse content</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    {moveScore, newWords} = game.currPlayer.makeMove swapCoordinates</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    result = {swapCoordinates, moveScore, newWords, player: game.currPlayer}</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    socket.broadcast <em class="string">"moveResult:</em>#{JSON.stringify result}<em class="string">"</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    game.endTurn()</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">typeAndContent = (message) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  [ignore, type, content] = message.match /(.*?):(.*)/</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  {type, content}</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">extend = (a, others...) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">for</strong> o <strong class="prompt">in</strong> others</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    a[key] = val <strong class="prompt">for</strong> key, val <strong class="prompt">of</strong> o</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  a</code>
+</td>
+</tr>
+</table>
+<p id="N13F6C" class="calibre5">
+        While we could use Connect in conjunction with Apache or nginx, it’s perfectly capable of serving our static files (in the <code class="cf">client</code> subdirectory) on its own. We just have to ask it to do so in its <code class="cf">configure</code> block. We’ll also throw in an error handler while we’re at it; otherwise, exceptions would just be silently swallowed:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/Nodejs/5x5/5x5server.coffee" class="calibre23">Nodejs/5x5/5x5server.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">app = connect.createServer(</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  connect.compiler(src: __dirname + <em class="string">'/client'</em>, enable: [<em class="string">'coffeescript'</em>]),</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  connect.static(__dirname + <em class="string">'/client'</em>),</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  connect.errorHandler dumpExceptions: <strong class="prompt">true</strong>, showStack: <strong class="prompt">true</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">)</code>
+</td>
+</tr>
+</table>
+<p id="N13F9B" class="calibre5">
+        We only need to do one more thing in order to start our server: tell it which port to run on, via the <code class="cf">listen</code> function. The choice of port is largely arbitrary; in production, we’d most likely want to use port 80 (the standard for HTTP), but to avoid potential conflicts, let’s use 3000:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/Nodejs/5x5/5x5server.coffee" class="calibre23">Nodejs/5x5/5x5server.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">port = 3000</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">app.listen port</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console.log <em class="string">"Browse to http://localhost:</em>#{port}<em class="string"> to play"</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N13FB8" class="calibre5">
+        If we just run what we’ve got and head to <code class="cf">http://localhost:3000/</code> in our browser, we’ll be automatically served <code class="cf">index.html</code>. Now we just need to add the means to talk to our client code. But how? When one player performs an action, both players need to be informed of the results. Ajax is ill-suited to that sort of thing; what we need is a way to broadcast data from the server to several clients at once, at any time.
+      </p>
+<p id="N13FC1" class="calibre5">
+        Fortunately, a new technology called WebSocket provides exactly that. A Node library called Socket.IO makes this a breeze; plus, it automatically falls back on other protocols in browsers that don’t yet have WebSocket support.
+      </p>
+<p id="N13FC7" class="calibre5">
+        We’ll install Socket.io in trusty npm fashion:
+        
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$ <strong class="prompt">npm install socket.io</strong>
+</code>
+</td>
+</tr>
+</table>
+<p id="N13FD8" class="calibre5">
+        And now we’ll use it on the server:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/Nodejs/5x5/5x5server.coffee" class="calibre23">Nodejs/5x5/5x5server.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">io = require <em class="string">'socket.io'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">socket = io.listen app</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">socket.on <em class="string">'connection'</em>, (client) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">if</strong> assignToGame client</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    client.on <em class="string">'message'</em>, (message) <strong class="prompt">-&gt;</strong> handleMessage client, message</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    client.on <em class="string">'disconnect'</em>, <strong class="prompt">-&gt;</strong> removeFromGame client</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">else</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    client.send <em class="string">'full'</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N14016" class="calibre5">
+        Now each time a browser connects to the server, we get a new Socket.io <code class="cf">client</code> instance. We implement two callbacks: one for when the client sends a message (that is, a move) and another for when they disconnect. We also assign the client to a game immediately.
+        </p>
+<p id="N14025" class="calibre5">
+        For simplicity, this server implementation only hosts one game at a time, but the game state has been encapsulated by a <code class="cf">Game</code> class, so it should be simple to extend the project to a multigame server. That gives us just two variables with module scope (other than the functions, of course): the game itself and a map from IDs to clients.
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/Nodejs/5x5/5x5server.coffee" class="calibre23">Nodejs/5x5/5x5server.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">game = <strong class="prompt">new</strong> Game</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">idClientMap = {}</code>
+</td>
+</tr>
+</table>
+<p id="N1403D" class="calibre5">
+        Each <code class="cf">Player</code> instance now has an <code class="cf">id</code> attribute, so when we need to send a message to a particular player, we use <code class="cf">idClientMap</code> to get their <code class="cf">client</code> object. Here’s how we add a new client to the game:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/Nodejs/5x5/5x5server.coffee" class="calibre23">Nodejs/5x5/5x5server.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">assignToGame = (client) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  idClientMap[client.sessionId] = client</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">return</strong> <strong class="prompt">false</strong> <strong class="prompt">if</strong> game.isFull()</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  game.addPlayer client.sessionId</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">if</strong> game.isFull() <strong class="prompt">then</strong> welcomePlayers()</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">true</strong>
+</code>
+</td>
+</tr>
+</table>
+<p id="N1407A" class="calibre5">
+        Once the game has two players, we send each of them a welcome message with the list of tiles and, in case someone arrives midgame, the scores:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/Nodejs/5x5/5x5server.coffee" class="calibre23">Nodejs/5x5/5x5server.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">welcomePlayers = <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  players = [game.player1, game.player2]</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  info = {players, tiles: game.grid.tiles, currPlayerNum: game.currPlayer.num}</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">for</strong> player <strong class="prompt">in</strong> players</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    playerInfo = extend {}, info, {yourNum: player.num}</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    idClientMap[player.id].send <em class="string">"welcome:</em>#{JSON.stringify playerInfo}<em class="string">"</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N140A5" class="calibre5">
+        Notice that <code class="cf">extend</code> in there? That’s a small utility for adding the properties of one object to another. It’s equivalent to  <code class="cf">_.extend</code> from Underscore.js:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/Nodejs/5x5/5x5server.coffee" class="calibre23">Nodejs/5x5/5x5server.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">extend = (a, others...) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">for</strong> o <strong class="prompt">in</strong> others</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    a[key] = val <strong class="prompt">for</strong> key, val <strong class="prompt">of</strong> o</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  a</code>
+</td>
+</tr>
+</table>
+<p id="N140D1" class="calibre5">
+        The only thing that’s left is to handle player moves:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/Nodejs/5x5/5x5server.coffee" class="calibre23">Nodejs/5x5/5x5server.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">handleMessage = (client, message) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  {type, content} = typeAndContent message</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">if</strong> type is <em class="string">'move'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    <strong class="prompt">return</strong> <strong class="prompt">unless</strong> client.sessionId is game.currPlayer.id<em class="comment"> # no cheating!</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    swapCoordinates = JSON.parse content</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    {moveScore, newWords} = game.currPlayer.makeMove swapCoordinates</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    result = {swapCoordinates, moveScore, newWords, player: game.currPlayer}</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    socket.broadcast <em class="string">"moveResult:</em>#{JSON.stringify result}<em class="string">"</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    game.endTurn()</code>
+</td>
+</tr>
+</table>
+<p id="N1410C" class="calibre5">
+        Notice that we use the client’s unique session ID (provided by Socket.io) as a simple security check to prevent one player from making the other player’s move. After we’ve calculated the results of the move, we use <code class="cf">socket.broadcast</code>, a handy shorthand when we want to send the same message to every connected client.
+      </p>
+<h3 id="sec.nodeGameClient" class="calibre14">5x5client.coffee</h3>
+<p id="N14117" class="calibre5">
+        So how do we interact with Socket.io from the client? Well, handily, Socket.io provides us with a client library. We just have to include it:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/Nodejs/5x5/client/index.html" class="calibre23">Nodejs/5x5/client/index.html</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">&lt;script</strong> type=<em class="string">"text/javascript"</em> src=<em class="string">"/socket.io/socket.io.js"</em>
+<strong class="prompt">&gt;</strong>
+<strong class="prompt">&lt;/script&gt;</strong>
+</code>
+</td>
+</tr>
+</table>
+<p id="N14134" class="calibre5">
+        If you’re exceptionally nosy, you might have noticed that there is no file called <code class="cf">socket.io.js</code> in our static directory. And yet, if you request it from the server, it’s there!
+      </p>
+<p id="N1413A" class="calibre5">
+        It turns out that the server-side Socket.io library <span class="emph">automagically</span> serves its own client library. Of course, in production you’d want to minify and concatenate that script along with all your other scripts, but for development, the feature is very handy. If you update to a new version of Socket.io on the server side, then you won’t have to worry about serving the new client library—it’s taken care of for you.
+      </p>
+<p id="N14143" class="calibre5">
+        So, how do we actually use it? Well, it’s actually quite similar to what we wrote for the server:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/Nodejs/5x5/client/5x5client.coffee" class="calibre23">Nodejs/5x5/client/5x5client.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$(document).ready <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  $(<em class="string">'#grid li'</em>).live <em class="string">'click'</em>, tileClick</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  socket = <strong class="prompt">new</strong> io.Socket()</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  socket.connect()</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  socket.on <em class="string">'connect'</em>, <strong class="prompt">-&gt;</strong> showMessage <em class="string">'waitForConnection'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  socket.on <em class="string">'message'</em>, handleMessage</code>
+</td>
+</tr>
+</table>
+<p id="N14177" class="calibre5">
+        We need to handle two types of messages: the initial welcome and the result of a move:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/Nodejs/5x5/client/5x5client.coffee" class="calibre23">Nodejs/5x5/client/5x5client.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">handleMessage = (message) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  {type, content} = typeAndContent message</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">switch</strong> type</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    <strong class="prompt">when</strong> <em class="string">'welcome'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">      {players, currPlayerNum, tiles, yourNum: myNum} = JSON.parse content</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">      startGame players, currPlayerNum</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    <strong class="prompt">when</strong> <em class="string">'moveResult'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">      {player, swapCoordinates, moveScore, newWords} = JSON.parse content</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">      showMoveResult player, swapCoordinates, moveScore, newWords</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">startGame = (players, currPlayerNum) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">for</strong> player <strong class="prompt">in</strong> players</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    $(<em class="string">"#p</em>#{player.num}<em class="string">name"</em>).html player.name</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    $(<em class="string">"#p</em>#{player.num}<em class="string">score"</em>).html player.score</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  drawTiles()</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">if</strong> myNum is currPlayerNum</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    startTurn()</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">else</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    endTurn()</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">showMoveResult = (player, swapCoordinates, moveScore, newWords) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  $(<em class="string">"#p</em>#{player.num}<em class="string">score"</em>).html player.score</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  $notice = $(<em class="string">'&lt;p class="notice"&gt;&lt;/p&gt;'</em>)</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">if</strong> moveScore is 0</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    $notice.html <em class="string">"</em>#{player.name}<em class="string"> formed no words this turn."</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">else</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    $notice.html <em class="string">"""</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<em class="string"></em>#{player.name}<em class="string"> formed the following </em>#{newWords.length}<em class="string"> word(s):&lt;br /&gt;</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<em class="string">      &lt;b&gt;</em>#{newWords.join(<em class="string">', '</em>)}<em class="string">&lt;/b&gt;&lt;br /&gt;</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<em class="string">      earning &lt;b&gt;</em>#{moveScore / newWords.length}<em class="string">x</em>#{newWords.length}</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<em class="string">      = </em>#{moveScore}<em class="string">&lt;/b&gt; points!</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<em class="string">    """</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  showThenFade $notice</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  swapTiles swapCoordinates</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">if</strong> player.num isnt myNum <strong class="prompt">then</strong> startTurn()</code>
+</td>
+</tr>
+</table>
+<p id="N14246" class="calibre5">
+        And that’s it! The rest of the code is pretty similar to the version from the last chapter—simpler, in fact, since the game logic is all on the server.
+        </p>
+<table class="figure" id="fig.node5x5">
+<tr class="calibre8">
+<td class="calibre10">
+<img xmlns:str="http://exslt.org/strings" src="images/node5x5.png" alt="images/node5x5.png" class="calibre18"/>
+</td>
+</tr>
+<tr class="calibre8">
+<td class="calibre19">
+<hr class="calibre20"/>
+<b class="calibre21">Figure 6. Playing multiplayer 5x5</b>
+</td>
+</tr>
+</table>
+<p id="N1425C" class="calibre5">
+        Running <code class="cf">coffee 5x5server.coffee</code> gives you this invitation:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">Browse to http://localhost:3000 to play</code>
+</td>
+</tr>
+</table>
+<p id="N1426D" class="calibre5">
+        Open up two browsers, point them both to that address, and you’ll get something like Figure 6, <a href="#fig.node5x5">​<em class="emph">Playing multiplayer 5x5</em>​</a>.
+      </p>
+<h3 class="calibre14">Is That All?</h3>
+<p id="N14277" class="calibre5">
+        Gee whiz—you’ve built a fully buzzword-compliant multiplayer gaming app with Node.js and WebSocket! It may not be the next viral sensation on YouFace, but it demonstrates that using cutting-edge web technologies can actually be pretty easy.
+      </p>
+<p id="N1427A" class="calibre5">
+        Of course, for larger-scale apps, you’d want to use a more robust web framework (like brunch or the aforementioned Zappa);<a id="FNPTR-49" href="f_0059.html#FOOTNOTE-49">[49]</a> hook in a database (Node.js already has first-rate bindings for MySQL, MongoDB, and Redis); and add in logging, tracking, and performance-monitoring (perhaps with the sleek, Node-powered Hummingbird).<a id="FNPTR-50" href="f_0059.html#FOOTNOTE-50">[50]</a>  It’s just amazing how vibrant the Node ecosystem is—and it hasn’t even hit 1.0 yet.
+        </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

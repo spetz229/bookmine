@@ -1,0 +1,92 @@
+---
+layout: page
+title: "Unknown"
+prev: x22143.htm
+next: p22757.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="x22143.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 13. LXP</td><td width="10%" valign="bottom" class="calibre5"><a href="p22757.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="XTAGS" class="calibre8">Displaying Foreign Tags with &lt;xtag&gt;</a></h1><p class="calibre9">There may be times when you wish to use an LXP variable value within the contents of an HTML tag. For example, you may
+    have a graphic with a dynamically assigned width. Since LXP only performs variable value substitution within LXP tags, you
+    cannot substitute an LXP variable within an HTML tag as you would with an LXP tag.  In other words, the
+    <tt class="REPLACEABLE">$width</tt> variable reference in the following example will not work:</p><pre class="SCREEN">&lt;lxp&gt;
+  &lt;!-- WRONG: LXP variable will not be substituted in non-LXP tag --&gt;
+  &lt;img src="/images/spacer.gif" width="$width" /&gt;
+&lt;/lxp&gt;</pre><p class="calibre9">You might think an obvious solution would be to place the LXP <tt class="REPLACEABLE">&lt;putvar&gt;</tt> tag
+    inside of the HTML tag.  There is a problem with this approach, however. Specifically, such syntax breaks the integrity of
+    the mark-up of the document. For a mark-up language to be <span><i class="EMPHASIS">well formed</i></span>, tags must not be nested within
+    the actual contents of another tag as shown in this example:</p><pre class="SCREEN">&lt;lxp&gt;
+  &lt;!-- Not recommended: Tags should not be nested in one another --&gt;
+  &lt;img src="/images/spacer.gif" width="&lt;putvar name="width" /&gt;"&gt;
+&lt;/lxp&gt;</pre><p class="calibre9">Note that nesting LXP tags within non-LXP tags can work in some circumstances, though it is not recommended. The LXP
+   well-formedness requirements will probably grow more stringent in the future, and this kind of nesting is an easy way to
+   make your LXP mark-up both lose its readability, as well as its mark-up integrity.</p><p class="calibre9">The LXP solution to this problem is the <tt class="REPLACEABLE">&lt;xtag&gt;</tt> element. The
+   <tt class="REPLACEABLE">&lt;xtag&gt;</tt> is used as a wrapper to display any foreign (non-LXP) tag. It has one required
+   attribute, which is <tt class="REPLACEABLE">xname</tt>. This attribute determines what tag will be output in place of
+   <tt class="REPLACEABLE">&lt;xtag&gt;</tt> when the <tt class="REPLACEABLE">&lt;xtag&gt;</tt> is processed by LXP. For
+   example, <tt class="REPLACEABLE">&lt;xtag xname="a"&gt;</tt> will be displayed as
+   <tt class="REPLACEABLE">&lt;a&gt;</tt>.</p><p class="calibre9">Optionally, the <tt class="REPLACEABLE">xappend</tt> attribute may be used to append an arbitrary character string
+    to the end of the generated tag. For example, using <tt class="REPLACEABLE">xappend=" checked"</tt> for an HTML checkbox
+    input tag will create an <tt class="REPLACEABLE">&lt;input type="checkbox" checked&gt;</tt> tag.</p><p class="calibre9">Any other attributes will be passed through to the wrapped tag, directly. This is the key to the usefulness of the
+    <tt class="REPLACEABLE">&lt;xtag&gt;</tt>, because variable values may be substituted within an
+    <tt class="REPLACEABLE">&lt;xtag&gt;</tt>, and are then directly embedded within the resulting foreign tag. As an
+    example, the correct way to wrap an HTML <tt class="REPLACEABLE">&lt;img&gt;</tt> tag in LXP is shown in <a href="x22669.htm#USINGXTAG">Example 13-31</a>.</p><div class="NAVHEADER"><a name="USINGXTAG"></a><p class="calibre9"><b class="calibre10">Example 13-31. Using &lt;xtag&gt; for empty elements</b></p><pre class="SCREEN">&lt;lxp&gt;
+  &lt;xtag xname="img" src="images/spacer.gif" width="$width" /&gt;
+&lt;/lxp&gt;</pre></div><p class="calibre9">Here is the displayed output from this document, once processed by LXP, assuming that the <tt class="REPLACEABLE">width</tt> variable has a value of 10:</p><pre class="SCREEN">  
+  &lt;img src="images/spacer/gif" width="10" /&gt;
+</pre><p class="calibre9">Notice the trailing slash used in the <tt class="REPLACEABLE">&lt;xtag&gt;</tt> element within <a href="x22669.htm#USINGXTAG">Example 13-31</a>. An <tt class="REPLACEABLE">&lt;xtag&gt;</tt> may be an opening, closing, or empty-element tag,
+    depending on what tag you ultimately wish to display. A vital nuance to the nature of
+    <tt class="REPLACEABLE">&lt;xtag&gt;</tt> is that LXP <span><i class="EMPHASIS">keeps track</i></span> of what opening
+    <tt class="REPLACEABLE">&lt;xtag&gt;</tt> elements have been left open, and chooses the appropriate tag name to use when
+    it reaches a closing <tt class="REPLACEABLE">&lt;/xtag&gt;</tt>.</p><p class="calibre9">If you are wrapping a foreign tag that does not close (e.g., the HTML <tt class="REPLACEABLE">&lt;img&gt;</tt>
+    tag), you <span><i class="EMPHASIS">must</i></span> adhere to document strictness and make that <tt class="REPLACEABLE">&lt;xtag&gt;</tt>
+    an empty-element tag with a trailing slash. If you do not, LXP will name the next
+    closing <tt class="REPLACEABLE">&lt;/xtag&gt;</tt> with the <tt class="REPLACEABLE">xname</tt> assigned to the last
+    opening <tt class="REPLACEABLE">&lt;xtag&gt;</tt> (e.g., <tt class="REPLACEABLE">img</tt>), which in this case will
+    result in mismatched tag output.</p><p class="calibre9">Consider the following piece of mark-up:</p><pre class="SCREEN">&lt;lxp&gt;
+  &lt;xtag xname="table" width="$table_width"&gt;
+    &lt;tr&gt;
+      &lt;-- WRONG: The following Empty-element requires trailing slash --&gt;
+      &lt;td&gt;&lt;xtag xname="img" src="images/spacer.gif" width="$width"&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/xtag&gt;
+&lt;/lxp&gt;</pre><p class="calibre9">This code uses three <tt class="REPLACEABLE">&lt;xtag&gt;</tt> elements; one opening and one closing (corresponding
+    to a wrapped <tt class="REPLACEABLE">&lt;table&gt;</tt> element), and one opening
+    <tt class="REPLACEABLE">&lt;xtag&gt;</tt> used to wrap an <tt class="REPLACEABLE">&lt;img&gt;</tt> tag. Since the
+    <tt class="REPLACEABLE">&lt;img&gt;</tt> tag does not have a closing tag in HTML, this
+    <tt class="REPLACEABLE">&lt;xtag&gt;</tt> should instead be an empty-element tag, but it will not be read that way by LXP
+    (notice the lack of a trailing slash). The problem with this mark-up is that since LXP keeps track of open
+    <tt class="REPLACEABLE">&lt;xtag&gt;</tt> elements, when it reaches the first
+    closing<tt class="REPLACEABLE">&lt;/xtag&gt;</tt>, it expects to close not the
+    intended<tt class="REPLACEABLE">&lt;table&gt;</tt> tag, but the <tt class="REPLACEABLE">&lt;img&gt;</tt> tag.</p><p class="calibre9">Assuming the <tt class="REPLACEABLE">table_width</tt> variable has a value of 100,
+    and the <tt class="REPLACEABLE">width</tt> variable has a value of 10, the incorrect
+    output looks like this:</p><pre class="SCREEN">  
+  &lt;table width="100"&gt;
+    &lt;tr&gt;
+      &lt;-- WRONG: Empty-element requires trailing slash --&gt;
+      &lt;td&gt;&lt;img src="images/spacer.gif" width="10"&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/img&gt;
+</pre><p class="calibre9"><a href="x22669.htm#USINGNESTEDXTAGELEMENTS">Example 13-32</a> shows the correct way to mix opening, empty-element, and closing
+    <tt class="REPLACEABLE">&lt;xtag&gt;</tt> elements.</p><div class="NAVHEADER"><a name="USINGNESTEDXTAGELEMENTS"></a><p class="calibre9"><b class="calibre10">Example 13-32. Using nested &lt;xtag&gt; elements</b></p><pre class="SCREEN">&lt;lxp&gt;
+  &lt;xtag xname="table" width="$table_width"&gt;
+    &lt;tr&gt;
+      &lt;-- RIGHT: Empty-element has required trailing slash --&gt;
+      &lt;td&gt;&lt;xtag xname="img" src="images/spacer.gif" width="$width" /&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/xtag&gt;
+&lt;/lxp&gt;</pre></div><p class="calibre9">Since the second <tt class="REPLACEABLE">&lt;xtag&gt;</tt> element in <a href="x22669.htm#USINGNESTEDXTAGELEMENTS">Example 13-32</a> uses
+    a trailing slash, as is required when you wrap a tag that does not explicitly close, LXP does not anticipate a closing tag
+    for the <tt class="REPLACEABLE">&lt;img&gt;</tt> tag, and the output looks (correctly) like this:</p><pre class="SCREEN">  
+  &lt;table width="100"&gt;
+    &lt;tr&gt;
+      &lt;-- RIGHT: Empty-element has required trailing slash --&gt;
+      &lt;td&gt;&lt;img src="images/spacer.gif" width="10" /&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/table&gt;
+</pre></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="x22143.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="p22757.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Content Inclusion</td><td width="34%" valign="top" class="calibre4"><a href="lxp.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">PostgreSQL Command Reference</td></tr></table></div></div>
+
+{% endraw %}
+

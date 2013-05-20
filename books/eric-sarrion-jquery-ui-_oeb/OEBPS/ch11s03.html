@@ -1,0 +1,85 @@
+---
+layout: page
+title: "jQuery UI"
+prev: OEBPS/ch11s02.html
+next: OEBPS/ch11s04.html
+book_path: books/eric-sarrion-jquery-ui-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="The selectable () Method"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="the_selectable_open_parenthesis_close_pa" class="calibre1"></a>The selectable () Method</h1></div></div></div><p class="calibre7">The <code class="literal">selectable ()</code> method can be
+    used in two forms:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7"><code class="literal">$(selector, context).selectable
+        (options)</code></p></li><li class="listitem"><p class="calibre7"><code class="literal">$(selector, context).selectable
+        ("action", params)</code></p></li></ul></div><div class="book" title="The selectable (options) Method"><div class="book"><div class="book"><div class="book"><h2 class="title5"><a id="the_selectable_open_parenthesis_options" class="calibre1"></a>The selectable (options) Method</h2></div></div></div><p class="calibre7">The <code class="literal">selectable (options)</code> method
+      declares that an HTML element contains selectable items. The <code class="literal">options</code> parameter specifies behavior when
+      selecting.</p><div class="book" title="Managing selected items"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="managing_selected_items" class="calibre1"></a>Managing selected items</h3></div></div></div><p class="calibre7">All items that are in the descendants of the elements on which
+        the <code class="literal">selectable (options)</code> method
+        applies are selectable and inherit the <code class="literal">ui-selectee</code> CSS class (whether selected or
+        not). The options listed in <a class="ulink" href="ch11s03.html#options_for_specifying_the_selectable_el" title="Table 11-1. Options for specifying the selectable elements">Table 11-1</a> allow you to
+        filter the elements of the descendants to indicate those that will
+        actually be selectable.</p><div class="table"><a id="options_for_specifying_the_selectable_el" class="firstname"></a><p class="title7">Table 11-1. Options for specifying the selectable elements</p><div class="book"><table summary="Options for specifying the selectable elements" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.disabled</code></p></td><td valign="top" class="calibre21"><p class="calibre7">When set to <code class="literal">true</code>, disables the selection
+                mechanism. Users cannot select the elements until the
+                mechanism is restored using the <code class="literal">selectable ("enable")</code>
+                instruction.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.filter</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Selector indicating
+                which elements can be part of the selection. These will
+                inherit the <code class="literal">ui-selectee</code>
+                class and will be selectable. By default, the selector is
+                <code class="literal">"*"</code> (all the elements of
+                the descendants can be selected).</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.cancel</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Selector indicating the
+                elements on which it is forbidden to start the selection (but
+                may be part of the selection).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.distance</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Distance (in pixels)
+                the mouse must move to consider the selection in progress.
+                This is useful, for example, to prevent simple clicks from
+                being interpreted as a group selection.</p> <p class="calibre7">The
+                default value is 0, thus allowing a simple click on an item to
+                select or deselect it.</p></td></tr></tbody></table></div></div></div><div class="book" title="Managing events on selected items"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="managing_events_on_selected_items" class="calibre1"></a>Managing events on selected items</h3></div></div></div><p class="calibre7">The options listed in <a class="ulink" href="ch11s03.html#options_for_managing_events_on_selected" title="Table 11-2. Options for managing events on selected items">Table 11-2</a> let you manage
+        events that occur on selected items, such as the selection or
+        deselection of an item. The first usage example below shows the order
+        in which these events appear on the page.</p><div class="table"><a id="options_for_managing_events_on_selected" class="firstname"></a><p class="title7">Table 11-2. Options for managing events on selected items</p><div class="book"><table summary="Options for managing events on selected items" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.start</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">start (event)</code> method is called
+                whenever the mouse is clicked in the element that uses the
+                <code class="literal">selectable (options)</code>
+                method. It then starts a selection sequence (for which
+                selected or deselected items are added to the previous
+                selection).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.stop</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">stop (event)</code> method is called when
+                the mouse has been released. The selection sequence is
+                complete.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.selecting</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">selecting (event, ui)</code> method is
+                called when a new item has been selected and the mouse has not
+                yet been released (the <code class="literal">stop
+                ()</code> method has not yet been called for this selection
+                sequence). The DOM element being selected is recorded in
+                <code class="literal">ui.selecting</code>.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><span class="firstname"><code class="literal">options.unselecting</code></span></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">unselecting (event, ui)</code> method is
+                called when a new item has been deselected and the mouse has
+                not yet been released (the <code class="literal">stop
+                ()</code> method has not yet been called for this selection
+                sequence). The DOM element being deselected is recorded in
+                <code class="literal">ui.unselecting</code>.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.selected</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">selected (event, ui)</code> method is
+                called for each of the items selected in the selection
+                sequence when the mouse is released. Any previously selected
+                items do not cause the call to this method (although they
+                remain selected). The selected DOM element is in <code class="literal">ui.selected</code>.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.unselected</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">unselected (event)</code> method is called
+                for each element deselected in this selection sequence when
+                the mouse is released. Any previously deselected items do not
+                cause the call to this method (although they remain
+                deselected). The deselected DOM element is recorded in
+                <code class="literal">ui.unselected</code>.</p></td></tr></tbody></table></div></div><p class="calibre7">We define the term <span class="firstname"><em class="calibre4">selection sequence</em></span> as
+        all the methods called from <code class="literal">options.start</code> to <code class="literal">options.stop</code> included. In each method, the
+        <code class="literal">this</code> value refers to the element
+        item that calls the <code class="literal">selectable
+        (options)</code> method (that is to say, the one with the <code class="literal">ui-selectable</code> CSS class).</p></div></div><div class="book" title="The selectable (“action”, params) Method"><div class="book"><div class="book"><div class="book"><h2 class="title5"><a id="the_selectable_open_parenthesis_quotatio" class="calibre1"></a>The selectable (“action”, params) Method</h2></div></div></div><p class="calibre7">The <code class="literal">selectable ("action",
+      params)</code> method can perform an action on selectable items, such
+      as authorizing the selection. The action is specified as a string in the
+      first argument (e.g., <code class="literal">"disable"</code> to
+      inhibit the operation). These actions are listed in <a class="ulink" href="ch11s03.html#the_selectable_open_parenthesis_lactionr" title="Table 11-3. The selectable (“action”, params) method actions">Table 11-3</a>).</p><div class="table"><a id="the_selectable_open_parenthesis_lactionr" class="firstname"></a><p class="title7">Table 11-3. The selectable (“action”, params) method actions</p><div class="book"><table summary="The selectable (“action”, params) method actions" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Action</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">selectable ("disable")</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Deactivate the selection
+              operation.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">selectable ("enable")</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Reactivate the selection
+              operation.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">selectable ("option",
+              param)</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Retrieve the value of the
+              <code class="literal">param</code> option. This option
+              corresponds to one of those used with <code class="literal">selectable (options)</code>.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><span class="firstname"><code class="literal">selectable ("option",
+              param, value)</code></span></p></td><td valign="top" class="calibre21"><p class="calibre7">Change the value of the
+              <code class="literal">param</code> option. This option
+              corresponds to one of those used with <code class="literal">selectable (options)</code>.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">electable ("destroy")</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Remove the management of
+              the selection.</p></td></tr></tbody></table></div></div></div></div></div>
+
+{% endraw %}
+

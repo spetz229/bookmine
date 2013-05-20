@@ -1,0 +1,202 @@
+---
+layout: page
+title: "Understanding the Linux Kernel, 3rd Edition"
+prev: understandlk-CHP-10-SECT-3.html
+next: understandlk-CHP-10-SECT-5.html
+book_path: books/understanding-the-linux-kernel-rd-edition_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a name="understandlk-CHP-10-SECT-4"></a>
+<h3 class="docSection1Title" id="534869-912">10.4. Parameter Passing</h3><a name="IDX-CHP-10-2536"></a>
+<a name="IDX-CHP-10-2537"></a>
+<p class="docText1">Like ordinary functions, system calls often require some input/output parameters, which may consist of actual values (i.e., numbers), addresses of variables in the address space of the User Mode process, or even addresses of data structures including pointers to User Mode functions (see the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-11-SECT-4.html#understandlk-CHP-11-SECT-4">System Calls Related to Signal Handling</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-11.html#understandlk-CHP-11">Chapter 11</a>).</p>
+<p class="docText1">Because the <tt class="calibre25">system_call( )</tt> and the <tt class="calibre25">sysenter_entry( )</tt> functions are the common entry points for all system calls in Linux, each of them has at least one parameter: the system call number passed in the <tt class="calibre25">eax</tt> register. For instance, if an application program invokes the <tt class="calibre25">fork( )</tt><a name="IDX-CHP-10-2538"></a> 
+ wrapper routine, the <tt class="calibre25">eax</tt> register is set to 2 (i.e., <tt class="calibre25">_ _NR_fork</tt>) before executing the <tt class="calibre25">int<a name="IDX-CHP-10-2539"></a> 
+ $0x80</tt> or <tt class="calibre25">sysenter</tt> assembly language instruction. Because the register is set by the wrapper routines included in the <span class="docEmphasis">libc</span> library, programmers do not usually care about the system call number.</p>
+<p class="docText1">The <tt class="calibre25">fork( )</tt> system call does not require other parameters. However, many system calls do require additional parameters, which must be explicitly passed by the application program. For instance, the <tt class="calibre25">mmap( )</tt><a name="IDX-CHP-10-2540"></a> 
+ system call may require up to six additional parameters (besides the system call number).</p>
+<p class="docText1">The parameters of ordinary C functions are usually passed by writing their values in the active program stack (either the User Mode stack or the Kernel Mode stack). Because system calls are a special kind of function that cross over from user to kernel land, neither the User Mode or the Kernel Mode stacks can be used. Rather, system call parameters are written in the CPU registers before issuing the system call. The kernel then copies the parameters stored in the CPU registers onto the Kernel Mode stack before invoking the system call service routine, because the latter is an ordinary C function.</p>
+<p class="docText1">Why doesn't the kernel copy parameters directly from the User Mode stack to the Kernel Mode stack? First of all, working with two stacks at the same time is complex; second, the use of registers makes the structure of the system call handler similar to that of other exception handlers.</p>
+<p class="docText1">However, to pass parameters in registers, two conditions must be satisfied:</p>
+<ul class="calibre11"><li class="calibre12"><p class="docText1">The length of each parameter cannot exceed the length of a register (32 bits).<sup class="docFootnote"><a class="pcalibre5 docLink pcalibre1" href="#understandlk-CHP-10-FN4">[*]</a></sup></p><blockquote class="calibre22"><p class="docFootnote1"><sup class="calibre24"><a name="understandlk-CHP-10-FN4">[*]</a></sup> We refer, as usual, to the 32-bit architecture of the 80 x 86 processors. The discussion in this section does not apply to 64-bit architectures.</p></blockquote></li><li class="calibre12"><p class="docText1">The number of parameters must not exceed six, besides the system call number passed in <tt class="calibre25">eax</tt>, because 80 x 86 processors have a very limited number of registers.</p></li></ul>
+<p class="docText1">The first condition is always true because, according to the POSIX standard, large parameters that cannot be stored in a 32-bit register must be passed by reference. A typical example is the <tt class="calibre25">settimeofday( )</tt> system call, which must read a 64-bit structure.</p>
+<p class="docText1">However, system calls that require more than six parameters exist. In such cases, a single register is used to point to a memory area in the process address space that contains the parameter values. Of course, programmers do not have to care about this workaround. As with every C function call, parameters are automatically saved on the stack when the wrapper routine is invoked. This routine will find the appropriate way to pass the parameters to the kernel.</p>
+<p class="docText1">The registers used to store the system call number and its parameters are, in increasing order, <tt class="calibre25">eax</tt> (for the system call number), <tt class="calibre25">ebx</tt>, <tt class="calibre25">ecx</tt>, <tt class="calibre25">edx</tt>, <tt class="calibre25">esi</tt>, <tt class="calibre25">edi</tt>, and <tt class="calibre25">ebp</tt>. As seen before, <tt class="calibre25">system_call( )</tt> and <tt class="calibre25">sysenter_entry( )</tt> save the values of these registers on the Kernel Mode stack by using the <tt class="calibre25">SAVE_ALL</tt> macro. Therefore, when the system call service routine goes to the stack, it finds the return address to <tt class="calibre25">system_call( )</tt> or to <tt class="calibre25">sysenter_entry( )</tt>, followed by the parameter stored in <tt class="calibre25">ebx</tt> (the first parameter of the system call), the parameter stored in <tt class="calibre25">ecx</tt>, and so on (see the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-4-SECT-6.html#understandlk-CHP-4-SECT-6.1.5">Saving the registers for the interrupt handler</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-4.html#understandlk-CHP-4">Chapter 4</a>). This stack configuration is exactly the same as in an ordinary function call, and therefore the service routine can easily refer to its parameters by using the usual C-language constructs.</p>
+<p class="docText1">Let's look at an example. The <tt class="calibre25">sys_write( )</tt> service routine, which handles the <tt class="calibre25">write( )</tt> system call, is declared as:</p>
+<pre class="calibre27">
+    int sys_write (unsigned int fd, const char * buf, unsigned int count)</pre><br class="calibre7"/>
+<p class="docText1">The C compiler produces an assembly language function that expects to find the <tt class="calibre25">fd</tt>, <tt class="calibre25">buf</tt>, and <tt class="calibre25">count</tt> parameters on top of the stack, right below the return address, in the locations used to save the contents of the <tt class="calibre25">ebx</tt>, <tt class="calibre25">ecx</tt>, and <tt class="calibre25">edx</tt> registers, respectively.</p>
+<p class="docText1">In a few cases, even if the system call doesn't use any parameters, the corresponding service routine needs to know the contents of the CPU registers right before the system call was issued. For example, the <tt class="calibre25">do_fork( )</tt> function that implements <tt class="calibre25">fork( )</tt> needs to know the value of the registers in order to duplicate them in the child process <tt class="calibre25">thread</tt> field (see the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-3-SECT-3.html#understandlk-CHP-3-SECT-3.2.1">The thread field</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-3.html#understandlk-CHP-3">Chapter 3</a>). In these cases, a single parameter of type <tt class="calibre25">pt_regs</tt> allows the service routine to access the values saved in the Kernel Mode stack by the <tt class="calibre25">SAVE_ALL</tt> macro (see the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-4-SECT-6.html#understandlk-CHP-4-SECT-6.1.6">The do_IRQ( ) function</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-4.html#understandlk-CHP-4">Chapter 4</a>):</p>
+<pre class="calibre27">
+    int sys_fork (struct pt_regs regs)</pre><br class="calibre7"/>
+<p class="docText1">The return value of a service routine must be written into the <tt class="calibre25">eax</tt> register. This is automatically done by the C compiler when a <tt class="calibre25">return</tt> <tt class="calibre25"><i class="docEmphasis">n</i></tt><tt class="calibre25">;</tt> instruction is executed.</p>
+<a name="understandlk-CHP-10-SECT-4.1"></a>
+<h4 class="docSection2Title">10.4.1. Verifying the Parameters</h4><a name="IDX-CHP-10-2541"></a>
+<a name="IDX-CHP-10-2542"></a>
+<p class="docText1">All system call parameters must be carefully checked before the kernel attempts to satisfy a user request. The type of check depends both on the system call and on the specific parameter. Let's go back to the <tt class="calibre25">write( )</tt><a name="IDX-CHP-10-2543"></a> 
+ system call introduced before: the <tt class="calibre25">fd</tt> parameter should be a file descriptor that identifies a specific file, so <tt class="calibre25">sys_write( )</tt> must check whether <tt class="calibre25">fd</tt> really is a file descriptor of a file previously opened and whether the process is allowed to write into it (see the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-1-SECT-5.html#understandlk-CHP-1-SECT-5.6">File-Handling System Calls</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-1.html#understandlk-CHP-1">Chapter 1</a>). If any of these conditions are not true, the handler must return a negative valuein this case, the error code <tt class="calibre25">-EBADF</tt>.</p>
+<p class="docText1">One type of checking, however, is common to all system calls. Whenever a parameter specifies an address, the kernel must check whether it is inside the process address space. There are two possible ways to perform this check:</p>
+<ul class="calibre11"><li class="calibre12"><p class="docText1">Verify that the linear address belongs to the process address space and, if so, that the memory region including it has the proper access rights.</p></li><li class="calibre12"><p class="docText1">Verify just that the linear address is lower than <tt class="calibre25">PAGE_OFFSET</tt> (i.e., that it doesn't fall within the range of interval addresses reserved to the kernel).</p></li></ul>
+<p class="docText1">Early Linux kernels performed the first type of checking. But it is quite time consuming because it must be executed for each address parameter included in a system call; furthermore, it is usually pointless because faulty programs are not very common.</p>
+<p class="docText1">Therefore, starting with Version 2.2, Linux employs the second type of checking. This is much more efficient because it does not require any scan of the process memory region descriptors. Obviously, this is a very coarse check: verifying that the linear address is smaller than <tt class="calibre25">PAGE_OFFSET</tt> is a necessary but not sufficient condition for its validity. But there's no risk in confining the kernel to this limited kind of check because other errors will be caught later.</p>
+<p class="docText1">The approach followed is thus to defer the real checking until the last possible momentthat is, until the Paging Unit translates the linear address into a physical one. We will discuss in the section "<a class="pcalibre5 docLink pcalibre1" href="#understandlk-CHP-10-SECT-4.3">Dynamic Address Checking: The Fix-up Code</a>," later in this chapter, how the Page Fault exception handler<a name="IDX-CHP-10-2544"></a> 
+ succeeds in detecting those bad addresses issued in Kernel Mode that were passed as parameters by User Mode processes.</p>
+<p class="docText1">One might wonder at this point why the coarse check is performed at all. This type of checking is actually crucial to preserve both process address spaces and the kernel address space from illegal accesses. We saw in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-2.html#understandlk-CHP-2">Chapter 2</a> that the RAM is mapped starting from <tt class="calibre25">PAGE_OFFSET</tt>. This means that kernel routines are able to address all pages present in memory. Thus, if the coarse check were not performed, a User Mode process might pass an address belonging to the kernel address space as a parameter and then be able to read or write every page present in memory without causing a Page Fault<a name="IDX-CHP-10-2545"></a> 
+ exception.</p>
+<p class="docText1">The check on addresses passed to system calls is performed by the <tt class="calibre25">access_ok( )</tt> macro, which acts on two parameters: <tt class="calibre25">addr</tt> and <tt class="calibre25">size</tt>. The macro checks the address interval delimited by <tt class="calibre25">addr</tt> and <tt class="calibre25">addr + size - 1</tt>. It is essentially equivalent to the following C function:</p>
+<pre class="calibre27">
+    int access_ok(const void * addr, unsigned long size)
+    {
+        unsigned long a = (unsigned long) addr;
+        if (a + size &lt; a ||
+            a + size &gt; current_thread_info( )-&gt;addr_limit.seg)
+            return 0;
+        return 1;
+    }</pre><br class="calibre7"/>
+<p class="docText1">The function first verifies whether <tt class="calibre25">addr + size</tt>, the highest address to be checked, is larger than 2<sup class="calibre37">32</sup>-1; because unsigned long integers and pointers are represented by the GNU C compiler (<tt class="calibre25">gcc</tt>) as 32-bit numbers, this is equivalent to checking for an overflow condition. The function also checks whether <tt class="calibre25">addr + size</tt> exceeds the value stored in the <tt class="calibre25">addr_limit.seg</tt> field of the <tt class="calibre25">thread_info</tt> structure of <tt class="calibre25">current</tt>. This field usually has the value <tt class="calibre25">PAGE_OFFSET</tt> for normal processes and the value <tt class="calibre25">0xffffffff</tt> for kernel threads<a name="IDX-CHP-10-2546"></a> 
+. The value of the <tt class="calibre25">addr_limit.seg</tt> field can be dynamically changed by the <tt class="calibre25">get_fs</tt> and <tt class="calibre25">set_fs</tt> macros; this allows the kernel to bypass the security checks made by <tt class="calibre25">access_ok( )</tt>, so that it can invoke system call service routines, directly passing to them addresses in the kernel data segment.</p>
+<p class="docText1">The <tt class="calibre25">verify_area( )</tt> function performs the same check as the <tt class="calibre25">access_ok( )</tt> macro; although this function is considered obsolete, it is still widely used in the source code.</p>
+<a name="understandlk-CHP-10-SECT-4.2"></a>
+<h4 class="docSection2Title">10.4.2. Accessing the Process Address Space</h4><a name="IDX-CHP-10-2547"></a>
+<a name="IDX-CHP-10-2548"></a>
+<a name="IDX-CHP-10-2549"></a>
+<a name="IDX-CHP-10-2550"></a>
+<a name="IDX-CHP-10-2551"></a>
+<a name="IDX-CHP-10-2552"></a>
+<a name="IDX-CHP-10-2553"></a>
+<a name="IDX-CHP-10-2554"></a>
+<a name="IDX-CHP-10-2555"></a>
+<a name="IDX-CHP-10-2556"></a>
+<a name="IDX-CHP-10-2557"></a>
+<p class="docText1">System call service routines often need to read or write data contained in the process's address space. Linux includes a set of macros that make this access easier. We'll describe two of them, called <tt class="calibre25">get_user( )</tt> and <tt class="calibre25">put_user( )</tt>. The first can be used to read 1, 2, or 4 consecutive bytes from an address, while the second can be used to write data of those sizes into an address.</p>
+<p class="docText1">Each function accepts two arguments, a value <tt class="calibre25">x</tt> to transfer and a variable <tt class="calibre25">ptr</tt>. The second variable also determines how many bytes to transfer. Thus, in <tt class="calibre25">get_user(x,ptr)</tt>, the size of the variable pointed to by <tt class="calibre25">ptr</tt> causes the function to expand into a <tt class="calibre25">_ _get_user_1( )</tt>, <tt class="calibre25">_ _get_user_2( )</tt>, or <tt class="calibre25">_ _get_user_4( )</tt> assembly language function. Let's consider one of them, <tt class="calibre25">_ _get_user_2( )</tt>:</p>
+<pre class="calibre27">
+     _ _get_user_2:
+        addl $1, %eax
+        jc bad_get_user
+        movl $0xffffe000, %edx /* or 0xfffff000 for 4-KB stacks */
+        andl %esp, %edx
+        cmpl 24(%edx), %eax
+        jae bad_get_user
+    2:  movzwl<a name="IDX-CHP-10-2558"></a> 
+ -1(%eax), %edx
+        xorl %eax, %eax
+        ret
+    bad_get_user:
+        xorl %edx, %edx
+        movl $-EFAULT, %eax
+        ret</pre><br class="calibre7"/>
+<p class="docText1">The <tt class="calibre25">eax</tt> register contains the address <tt class="calibre25">ptr</tt> of the first byte to be read. The first six instructions essentially perform the same checks as the <tt class="calibre25">access_ok( )</tt> macro: they ensure that the 2 bytes to be read have addresses less than 4 GB as well as less than the <tt class="calibre25">addr_limit.seg</tt> field of the <tt class="calibre25">current</tt> process. (This field is stored at offset 24 in the <tt class="calibre25">thread_info</tt> structure of <tt class="calibre25">current</tt>, which appears in the first operand of the <tt class="calibre25">cmpl</tt> instruction.)</p>
+<p class="docText1">If the addresses are valid, the function executes the <tt class="calibre25">movzwl</tt> instruction to store the data to be read in the two least significant bytes of <tt class="calibre25">edx</tt> register while setting the high-order bytes of <tt class="calibre25">edx</tt> to 0; then it sets a 0 return code in <tt class="calibre25">eax</tt> and terminates. If the addresses are not valid, the function clears <tt class="calibre25">edx</tt>, sets the <tt class="calibre25">-EFAULT</tt> value into <tt class="calibre25">eax</tt>, and terminates.</p>
+<p class="docText1">The <tt class="calibre25">put_user(x,ptr)</tt> macro is similar to the one discussed before, except it writes the value <tt class="calibre25">x</tt> into the process address space starting from address <tt class="calibre25">ptr</tt>. Depending on the size of <tt class="calibre25">x</tt>, it invokes either the <tt class="calibre25">_ _put_user_asm( )</tt> macro (size of 1, 2, or 4 bytes) or the <tt class="calibre25">_ _put_user_u64( )</tt> macro (size of 8 bytes). Both macros return the value 0 in the <tt class="calibre25">eax</tt> register if they succeed in writing the value, and <tt class="calibre25">-EFAULT</tt> otherwise.</p>
+<p class="docText1">Several other functions and macros are available to access the process address space in Kernel Mode; they are listed in <a class="pcalibre5 docLink pcalibre1" href="#understandlk-CHP-10-TABLE-1">Table 10-1</a>. Notice that many of them also have a variant prefixed by two underscores (_ _). The ones without initial underscores take extra time to check the validity of the linear address interval requested, while the ones with the underscores bypass that check. Whenever the kernel must repeatedly access the same memory area in the process address space, it is more efficient to check the address once at the start and then access the process area without making any further checks.</p>
+<a name="understandlk-CHP-10-TABLE-1"></a><p class="calibre14"><table cellspacing="0" frame="hsides" rules="all" cellpadding="4" width="100%" class="calibre15"><caption class="calibre33"><h5 class="docFigureTitle">Table 10-1. Functions and macros that access the process address space</h5></caption><colgroup class="calibre16"><col class="calibre17"/><col class="calibre17"/></colgroup><thead class="calibre18"><tr class="calibre34"><th class="thead" scope="col"><p class="docText1"><span class="calibre5">Function</span></p></th><th class="thead" scope="col"><p class="docText1"><span class="calibre5">Action</span></p></th></tr></thead><tr class="calibre2"><td class="docTableCell"><p class="docText2"><tt class="calibre25">get_user _ _get_user</tt></p></td><td class="docTableCell"><p class="docText2">Reads an integer value from user space (1, 2, or 4 bytes)</p></td></tr><tr class="calibre2"><td class="docTableCell"><p class="docText2"><tt class="calibre25">put_user _ _put_user</tt></p></td><td class="docTableCell"><p class="docText2">Writes an integer value to user space (1, 2, or 4 bytes)</p></td></tr><tr class="calibre2"><td class="docTableCell"><p class="docText2"><tt class="calibre25">copy_from_user _ _copy_from_user</tt></p></td><td class="docTableCell"><p class="docText2">Copies a block of arbitrary size from user space</p></td></tr><tr class="calibre2"><td class="docTableCell"><p class="docText2"><tt class="calibre25">copy_to_user _ _copy_to_user</tt></p></td><td class="docTableCell"><p class="docText2">Copies a block of arbitrary size to user space</p></td></tr><tr class="calibre2"><td class="docTableCell"><p class="docText2"><tt class="calibre25">strncpy_from_user _ _strncpy_from_user</tt></p></td><td class="docTableCell"><p class="docText2">Copies a null-terminated string from user space</p></td></tr><tr class="calibre2"><td class="docTableCell"><p class="docText2"><tt class="calibre25">strlen_user strnlen_user</tt></p></td><td class="docTableCell"><p class="docText2">Returns the length of a null-terminated string in user space</p></td></tr><tr class="calibre2"><td class="docTableCell"><p class="docText2"><tt class="calibre25">clear_user _ _clear_user</tt></p></td><td class="docTableCell"><p class="docText2">Fills a memory area in user space with zeros</p></td></tr></table></p><br class="calibre7"/>
+<a name="understandlk-CHP-10-SECT-4.3"></a>
+<h4 class="docSection2Title">10.4.3. Dynamic Address Checking: The Fix-up Code</h4><a name="IDX-CHP-10-2559"></a>
+<a name="IDX-CHP-10-2560"></a>
+<a name="IDX-CHP-10-2561"></a>
+<a name="IDX-CHP-10-2562"></a>
+<a name="IDX-CHP-10-2563"></a>
+<a name="IDX-CHP-10-2564"></a>
+<a name="IDX-CHP-10-2565"></a>
+<a name="IDX-CHP-10-2566"></a>
+<a name="IDX-CHP-10-2567"></a>
+<a name="IDX-CHP-10-2568"></a>
+<a name="IDX-CHP-10-2569"></a>
+<a name="IDX-CHP-10-2570"></a>
+<a name="IDX-CHP-10-2571"></a>
+<a name="IDX-CHP-10-2572"></a>
+<p class="docText1">As seen previously, <tt class="calibre25">access_ok( )</tt> makes a coarse check on the validity of linear addresses passed as parameters of a system call. This check only ensures that the User Mode process is not attempting to fiddle with the kernel address space; however, the linear addresses passed as parameters still might not belong to the process address space. In this case, a Page Fault<a name="IDX-CHP-10-2573"></a> 
+ exception will occur when the kernel tries to use any of such bad addresses.</p>
+<p class="docText1">Before describing how the kernel detects this type of error, let's specify the three cases in which Page Fault exceptions may occur in Kernel Mode. These cases must be distinguished by the Page Fault handler, because the actions to be taken are quite different.</p>
+<div class="calibre44"><ol class="docList1" type="1"><li class="calibre12"><div class="calibre45"><p class="docList">The kernel attempts to address a page belonging to the process address space, but either the corresponding page frame does not exist or the kernel tries to write a read-only page. In these cases, the handler must allocate and initialize a new page frame (see the sections "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-9-SECT-4.html#understandlk-CHP-9-SECT-4.3">Demand Paging</a>" and "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-9-SECT-4.html#understandlk-CHP-9-SECT-4.4">Copy On Write</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-9.html#understandlk-CHP-9">Chapter 9</a>).</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">The kernel addresses a page belonging to its address space, but the corresponding Page Table entry has not yet been initialized (see the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-9-SECT-4.html#understandlk-CHP-9-SECT-4.5">Handling Noncontiguous Memory Area Accesses</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-9.html#understandlk-CHP-9">Chapter 9</a>). In this case, the kernel must properly set up some entries in the Page Tables of the current process.</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">Some kernel functions include a programming bug that causes the exception to be raised when that program is executed; alternatively, the exception might be caused by a transient hardware error. When this occurs, the handler must perform a kernel oops (see the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-9-SECT-4.html#understandlk-CHP-9-SECT-4.2">Handling a Faulty Address Inside the Address Space</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-9.html#understandlk-CHP-9">Chapter 9</a>).</p></div></li><li class="calibre12"><div class="calibre45"><p class="docList">The case introduced in this chapter: a system call service routine attempts to read or write into a memory area whose address has been passed as a system call parameter, but that address does not belong to the process address space.</p></div></li></ol></div>
+<p class="docText1">The Page Fault handler can easily recognize the first case by determining whether the faulty linear address is included in one of the memory regions<a name="IDX-CHP-10-2574"></a> 
+ owned by the process. It is also able to detect the second case by checking whether the corresponding master kernel Page Table entry includes a proper non-null entry that maps the address. Let's now explain how the handler distinguishes the remaining two cases.</p>
+<a name="understandlk-CHP-10-SECT-4.4"></a>
+<h4 class="docSection2Title">10.4.4. The Exception Tables</h4><a name="IDX-CHP-10-2575"></a>
+<p class="docText1">The key to determining the source of a Page Fault lies in the narrow range of calls that the kernel uses to access the process address space. Only the small group of functions and macros described in the previous section are used to access this address space; thus, if the exception is caused by an invalid parameter, the instruction that caused it <span class="docEmphasis">must</span> be included in one of the functions or else be generated by expanding one of the macros. The number of the instructions that address user space is fairly small.</p>
+<p class="docText1">Therefore, it does not take much effort to put the address of each kernel instruction that accesses the process address space into a structure called the <span class="docEmphasis">exception table</span>. If we succeed in doing this, the rest is easy. When a Page Fault exception occurs in Kernel Mode, the <tt class="calibre25">do_ page_fault( )</tt> handler examines the exception table: if it includes the address of the instruction that triggered the exception, the error is caused by a bad system call parameter; otherwise, it is caused by a more serious bug.</p>
+<p class="docText1">Linux defines several exception tables<a name="IDX-CHP-10-2576"></a> 
+. The main exception table is automatically generated by the C compiler when building the kernel program image. It is stored in the <tt class="calibre25">_ _ex_table</tt> section of the kernel code segment, and its starting and ending addresses are identified by two symbols produced by the C compiler: <tt class="calibre25">_ _start_ _ _ex_table</tt> and <tt class="calibre25">_ _stop_ _ _ex_table</tt>.</p>
+<p class="docText1">Moreover, each dynamically loaded module of the kernel (see <a class="pcalibre5 docLink pcalibre1" href="understandlk-APP-B.html#understandlk-APP-B">Appendix B</a>) includes its own local exception table. This table is automatically generated by the C compiler when building the module image, and it is loaded into memory when the module is inserted in the running kernel.</p>
+<p class="docText1">Each entry of an exception table is an <tt class="calibre25">exception_table_entry</tt> structure that has two fields:</p>
+<dl class="docText1"><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">insn</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">The linear address of an instruction that accesses the process address space</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">fixup</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">The address of the assembly language code to be invoked when a Page Fault exception triggered by the instruction located at <tt class="calibre25">insn</tt> occurs</p></dd></dl>
+<p class="docText1">The fixup code consists of a few assembly language instructions that solve the problem triggered by the exception. As we will see later in this section, the fix usually consists of inserting a sequence of instructions that forces the service routine to return an error code to the User Mode process. These instructions, which are usually defined in the same macro or function that accesses the process address space, are placed by the C compiler into a separate section of the kernel code segment called <tt class="calibre25">.fixup</tt>.</p>
+<p class="docText1">The <tt class="calibre25">search_exception_tables( )</tt> function is used to search for a specified address in all exception tables: if the address is included in a table, the function returns a pointer to the corresponding <tt class="calibre25">exception_table_entry</tt> structure; otherwise, it returns <tt class="calibre25">NULL</tt>. Thus the Page Fault handler <tt class="calibre25">do_page_fault( )</tt> executes the following statements:</p>
+<pre class="calibre27">
+    if ((fixup = search_exception_tables(regs-&gt;eip))) {
+        regs-&gt;eip = fixup-&gt;fixup;
+        return 1;
+    }</pre><br class="calibre7"/>
+<p class="docText1">The <tt class="calibre25">regs-&gt;eip</tt> field contains the value of the <tt class="calibre25">eip</tt> register saved on the Kernel Mode stack when the exception occurred. If the value in the register (the instruction pointer) is in an exception table, <tt class="calibre25">do_page_fault( )</tt> replaces the saved value with the address found in the entry returned by <tt class="calibre25">search_exception_tables( )</tt>. Then the Page Fault handler terminates and the interrupted program resumes with execution of the fixup code<a name="IDX-CHP-10-2577"></a> 
+.</p>
+<a name="understandlk-CHP-10-SECT-4.5"></a>
+<h4 class="docSection2Title">10.4.5. Generating the Exception Tables and the Fixup Code</h4><a name="IDX-CHP-10-2578"></a>
+<a name="IDX-CHP-10-2579"></a>
+<a name="IDX-CHP-10-2580"></a>
+<a name="IDX-CHP-10-2581"></a>
+<p class="docText1">The GNU Assembler <tt class="calibre25">.section</tt> directive allows programmers to specify which section of the executable file contains the code that follows. As we will see in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-20.html#understandlk-CHP-20">Chapter 20</a>, an executable file includes a code segment, which in turn may be subdivided into sections. Thus, the following assembly language instructions add an entry into an exception table; the <tt class="calibre25">"a"</tt> attribute specifies that the section must be loaded into memory together with the rest of the kernel image:</p>
+<pre class="calibre27">
+    .section _ _ex_table, "a"
+        .long <tt class="calibre25"><i class="docEmphasis">faulty_instruction_address</i></tt>, <tt class="calibre25"><i class="docEmphasis">fixup_code_address</i></tt>
+    .previous</pre><br class="calibre7"/>
+<p class="docText1">The <tt class="calibre25">.previous</tt> directive forces the assembler to insert the code that follows into the section that was active when the last <tt class="calibre25">.section</tt> directive was encountered.</p>
+<p class="docText1">Let's consider again the <tt class="calibre25">_ _get_user_1( )</tt>, <tt class="calibre25">_ _get_user_2( )</tt>, and <tt class="calibre25">_ _get_user_4( )</tt> functions mentioned before. The instructions that access the process address space are those labeled as <tt class="calibre25">1</tt>, <tt class="calibre25">2</tt>, and <tt class="calibre25">3</tt>:</p>
+<pre class="calibre27">
+    _ _get_user_1:
+        [...]
+    1:  movzbl (%eax), %edx
+        [...]
+    _ _get_user_2:
+        [...]
+    2:  movzwl -1(%eax), %edx
+        [...]
+    _ _get_user_4:
+        [...]
+    3:  movl -3(%eax), %edx
+        [...]
+    bad_get_user:
+        xorl %edx, %edx
+        movl $-EFAULT, %eax
+        ret
+    .section _ _ex_table,"a"
+        .long 1b, bad_get_user
+        .long 2b, bad_get_user
+        .long 3b, bad_get_user
+    .previous</pre><br class="calibre7"/>
+<p class="docText1">Each exception table entry consists of two labels. The first one is a numeric label with a <tt class="calibre25">b</tt> suffix to indicate that the label is "backward;" in other words, it appears in a previous line of the program. The fixup code is common to the three functions and is labeled as <tt class="calibre25">bad_get_user</tt>. If a Page Fault<a name="IDX-CHP-10-2582"></a> 
+ exception is generated by the instructions at label <tt class="calibre25">1</tt>, <tt class="calibre25">2</tt>, or <tt class="calibre25">3</tt>, the fixup code is executed. It simply returns an <tt class="calibre25">-EFAULT</tt> error code to the process that issued the system call.</p>
+<p class="docText1">Other kernel functions that act in the User Mode address space use the fixup code technique. Consider, for instance, the <tt class="calibre25">strlen_user(string)</tt> macro. This macro returns either the length of a null-terminated string passed as a parameter in a system call or the value 0 on error. The macro essentially yields the following assembly language instructions:</p>
+<pre class="calibre27">
+        movl $0, %eax
+        movl $0x7fffffff, %ecx
+        movl %ecx, %ebx
+        movl string, %edi
+    0:  repne; scasb<a name="IDX-CHP-10-2583"></a> 
+
+        subl %ecx, %ebx
+        movl %ebx, %eax
+    1:
+    .section .fixup,"ax"
+    2:  xorl %eax, %eax
+        jmp 1b
+    .previous
+    .section _ _ex_table,"a"
+        .long 0b, 2b
+    .previous</pre><br class="calibre7"/>
+<p class="docText1">The <tt class="calibre25">ecx</tt> and <tt class="calibre25">ebx</tt> registers are initialized with the <tt class="calibre25">0x7fffffff</tt> value, which represents the maximum allowed length for the string in the User Mode address space. The <tt class="calibre25">repne;scasb</tt> assembly language instructions iteratively scan the string pointed to by the <tt class="calibre25">edi</tt> register, looking for the value 0 (the end of string <tt class="calibre25">\0</tt> character) in <tt class="calibre25">eax</tt>. Because <tt class="calibre25">scasb</tt> decreases the <tt class="calibre25">ecx</tt> register at each iteration, the <tt class="calibre25">eax</tt> register ultimately stores the total number of bytes scanned in the string (that is, the length of the string).</p>
+<p class="docText1">The fixup code of the macro is inserted into the <tt class="calibre25">.fixup</tt> section. The <tt class="calibre25">"ax"</tt> attributes specify that the section must be loaded into memory and that it contains executable code. If a Page Fault exception is generated by the instructions at label <tt class="calibre25">0</tt>, the fixup code is executed; it simply loads the value 0 in <tt class="calibre25">eax</tt>thus forcing the macro to return a 0 error code instead of the string lengthand then jumps to the <tt class="calibre25">1</tt> label, which corresponds to the instruction following the macro.</p>
+<p class="docText1">The second <tt class="calibre25">.section</tt> directive adds an entry containing the address of the <tt class="calibre25">repne; scasb</tt> instruction and the address of the corresponding fixup code in the <tt class="calibre25">_ _ex_table</tt> section.</p>
+
+<br class="calibre7"/>
+
+</div>
+
+{% endraw %}
+

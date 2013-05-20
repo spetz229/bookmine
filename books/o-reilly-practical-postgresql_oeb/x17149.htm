@@ -1,0 +1,206 @@
+---
+layout: page
+title: "Unknown"
+prev: x17006.htm
+next: x17549.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="x17006.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 9. Database Management</td><td width="10%" valign="bottom" class="calibre5"><a href="x17549.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="CREATINGANDREMOVINGADATABASE" class="calibre8">Creating and Removing a Database</a></h1><p class="calibre9">PostgreSQL installs two default <span><i class="EMPHASIS">template</i></span> databases. Upon creation, a new database is
+    <span><i class="EMPHASIS">cloned</i></span> from one of these templates. They are <tt class="REPLACEABLE">template0</tt>, and
+    <tt class="REPLACEABLE">template1</tt>. Of these, you may only connect to <tt class="REPLACEABLE">template1</tt>.
+    This is because the <tt class="REPLACEABLE">template0</tt> database exists as an empty template, while
+    <tt class="REPLACEABLE">template1</tt> may be modified to include commonly used languages, functions, and
+    even database objects, such as tables, views, or sequences. Neither of the template databases may be removed from the
+    system.</p><p class="calibre9">The following sections cover creating and removing databases from PostgreSQL.</p><div class="NAVHEADER"><h2 class="SECT"><a name="CREATINGADATABASE" class="calibre8">Creating a Database</a></h2><p class="calibre9">PostgreSQL provides two methods for creating a new database: the <tt class="REPLACEABLE">CREATE DATABASE</tt>
+      SQL command, and the <span><i class="EMPHASIS">createdb</i></span> command-line executable. To use either of these methods requires that you have
+      the necessary rights. You do not have to be a PostgreSQL superuser to create a database, but you must have the
+      <tt class="REPLACEABLE">usecreatedb</tt> right set in the <tt class="REPLACEABLE">pg_shadow</tt> table.</p><p class="calibre9">If you are unsure of whether or not this right has been granted to your user, check through a query to the
+      <tt class="REPLACEABLE">pg_user</tt> view (which in turn queries the <tt class="REPLACEABLE">pg_shadow</tt> table;
+      only superusers may query the <tt class="REPLACEABLE">pg_shadow</tt> directly). The
+      <tt class="REPLACEABLE">usecreatedb</tt> column in the <span><i class="EMPHASIS">pg_shadow</i></span> table contains a boolean value, which reflects if this right has
+      been granted.  <a href="x17149.htm#CHECKINGUSECREATEDBRIGHTS">Example 9-9</a> illustrates an example query to the
+      <tt class="REPLACEABLE">pg_user</tt> view to check for <tt class="REPLACEABLE">usecreatedb</tt> rights for the
+      <tt class="REPLACEABLE">guest</tt> user.</p><div class="NAVHEADER"><a name="CHECKINGUSECREATEDBRIGHTS"></a><p class="calibre9"><b class="calibre10">Example 9-9. Checking usecreatedb rights</b></p><pre class="SCREEN">template1=&gt; <tt class="REPLACEABLE"><b class="calibre10">SELECT usecreatedb FROM pg_user WHERE usename='guest';</b></tt>
+ usecreatedb
+-------------
+ f
+(1 row)</pre></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="USINGCREATEDATABASE" class="calibre8">Using CREATE DATABASE</a></h3><p class="calibre9">The syntax for the <tt class="REPLACEABLE">CREATE DATABASE</tt> SQL command is as follows:</p><pre class="SCREEN">  CREATE DATABASE <tt class="REPLACEABLE"><i class="EMPHASIS">dbname</i></tt>
+         [ WITH [ LOCATION = '<tt class="REPLACEABLE"><i class="EMPHASIS">dbpath</i></tt>' ]
+                [ TEMPLATE = <tt class="REPLACEABLE"><i class="EMPHASIS">template</i></tt> ]
+                [ ENCODING = <tt class="REPLACEABLE"><i class="EMPHASIS">encoding</i></tt> ] ]</pre><p class="calibre9">In this syntax, <tt class="REPLACEABLE"><i class="EMPHASIS">dbname</i></tt> is the name of the new database to be created. All database names must
+        begin with an alphabetical character, and are limited to 31 characters in length. PostgreSQL allows any number of databases
+        to be created in a given data directory (assuming there is available disk space).</p><p class="calibre9">By appending the optional <tt class="REPLACEABLE">WITH</tt> keyword, up to three more optional
+        attributes may be specified:
+        
+        </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">LOCATION = '</tt><tt class="REPLACEABLE"><i class="EMPHASIS">dbpath</i></tt>'</dt><dd class="calibre16"><p class="calibre9">              
+              The <tt class="REPLACEABLE"><i class="EMPHASIS">dbpath</i></tt> value describes an <span><i class="EMPHASIS">environment variable</i></span>, initialized in the
+              shell environment of the user which runs the PostgreSQL backend. For example, you might put the following line in
+              <span><i class="EMPHASIS">/home/postgres/.bash_profile</i></span> :</p><pre class="SCREEN">export PGDATA2="/usr/local/pgsql/data2"</pre><p class="calibre9">Thus, enabling the use of <tt class="REPLACEABLE">PGDATA2</tt> as a variable (once PostgreSQL has been
+              restarted with the environment variable set in memory), and a valid value for <tt class="REPLACEABLE"><i class="EMPHASIS">dbpath</i></tt>. This is
+              a general security precaution to prevent users from writing to an inappropriate location in the filesystem.
+              
+            </p><p class="calibre9">              
+              If the <tt class="REPLACEABLE">LOCATION</tt> keyword is omitted, PostgreSQL will
+              create the database in the default data directory (e.g., <span><i class="EMPHASIS">/usr/local/pgsql/data</i></span>).
+              
+            </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">TEMPLATE = </tt><tt class="REPLACEABLE"><i class="EMPHASIS">template</i></tt></dt><dd class="calibre16"><p class="calibre9">              
+              
+              
+              The <tt class="REPLACEABLE"><i class="EMPHASIS">template</i></tt> identifier refers to a database to "clone" in creating the new database. Any
+              database objects within that database will be duplicated in the creation of the database <tt class="REPLACEABLE"><i class="EMPHASIS">dbname</i></tt>.
+            
+            </p><p class="calibre9">              
+              If unspecified, PostgreSQL will implicitly choose <tt class="REPLACEABLE">template1</tt> as the database to
+              duplicate objects from. If you wish for a completely fresh database to be created, you may specify
+              <tt class="REPLACEABLE">template0</tt> to avoid copying the objects with which you may have populated
+              <tt class="REPLACEABLE">template1</tt>.
+            
+            </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">ENCODING = </tt><tt class="REPLACEABLE"><i class="EMPHASIS">encoding</i></tt></dt><dd class="calibre16"><p class="calibre9">              
+              The <tt class="REPLACEABLE"><i class="EMPHASIS">encoding</i></tt> value can be either a string constant describing the encoding type (e.g.,
+              <span><i class="EMPHASIS">SQL_ASCII</i></span>, <span><i class="EMPHASIS">LATIN1</i></span>, etc), or its equivalent PostgreSQL numeric constant.
+              The available PostgreSQL multibyte encoding formats, and their numeric constant values, are listed in <a href="a29140.htm">Appendix A</a>.
+              
+            </p><p class="calibre9">              
+              If the <tt class="REPLACEABLE">ENCODING</tt> keyword is unspecified, PostgreSQL will create a database using its
+              default encoding.  This is usually <span><i class="EMPHASIS">SQL_ASCII</i></span>, though it may have been set to a different default
+              during the initial configuration of PostgreSQL (see <a href="c360.htm">Chapter 2</a> for more on default encoding).
+            
+            </p></dd></dl></div>
+<div class="NAVHEADER"><p class="calibre9"></p><table class="calibre" border="1" width="100%"><tr class="calibre1"><td class="calibre23"><b class="calibre10">Warning</b></td></tr><tr class="calibre1"><td class="calibre15"><p class="calibre9">The value of <tt class="REPLACEABLE"><i class="EMPHASIS">dbpath</i></tt> passed to the <tt class="REPLACEABLE">LOCATION</tt> keyword must be
+          set to the name of an environment variable. This variable may not literally describe a system path (e.g.,
+          <span><i class="EMPHASIS">/usr/local/pgsql/data2</i></span>) unless the <span><i class="EMPHASIS">CPPFLAGS=-DALLOW_ABSOLUTE_DBPATHS</i></span> argument 
+          was passed to the <span><i class="EMPHASIS">gmake</i></span> command when PostgreSQL was originally compiled and installed.</p></td></tr></table></div><p class="calibre9">You must connect to a database prior to issuing the <tt class="REPLACEABLE">CREATE DATABASE</tt> command.
+        If you have not yet created a database, you may "bootstrap" your way into creating one through the use of the default
+        <tt class="REPLACEABLE">template1</tt> database. By connecting to this database, you may create new databases which can then be
+        connected to directly.</p><p class="calibre9">Once a database is created, the creator automatically becomes it's owner, or <span><i class="EMPHASIS">DBA</i></span>
+        (database administrator). This user will <span><i class="EMPHASIS">own</i></span> each object within the database, and therefore
+        be able to grant rights on those objects to other users. Be sure to create your databases with the user that you'll use to
+        actively maintain the database with.</p><p class="calibre9"><a href="x17149.htm#CREATINGADATABASEEXAMPLE">Example 9-10</a> demonstrates connecting to the <tt class="REPLACEABLE">template1</tt>
+        database as the Book Town managerial user named <tt class="REPLACEABLE">manager</tt>, and creating Book Town's example
+        database, <tt class="REPLACEABLE">booktown</tt>. This example uses <span><i class="EMPHASIS">psql</i></span>, but
+        the same SQL syntax will work with any valid PostgreSQL client. </p><div class="NAVHEADER"><a name="CREATINGADATABASEEXAMPLE"></a><p class="calibre9"><b class="calibre10">Example 9-10. Creating a database</b></p><pre class="SCREEN">[jworsley@booktown ~]$ <tt class="REPLACEABLE"><b class="calibre10">psql -U manager template1</b></tt>
+Welcome to psql, the PostgreSQL interactive terminal.
+
+Type:  \copyright for distribution terms
+       \h for help with SQL commands
+       \? for help on internal slash commands
+       \g or terminate with semicolon to execute query
+       \q to quit
+
+template1=# <tt class="REPLACEABLE"><b class="calibre10">CREATE DATABASE booktown;</b></tt>
+CREATE DATABASE</pre></div><p class="calibre9">The returned message <tt class="REPLACEABLE">CREATE DATABASE</tt> indicates that the database was
+        created successfully. Other server messages returned may include the following:
+          
+          </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">ERROR:  CREATE DATABASE: permission denied</tt></dt><dd class="calibre16"><p class="calibre9">                This message indicates that the user attempting to create the database does not have the rights
+                to create a database. This right (or lack thereof ) is indicated by the <tt class="REPLACEABLE">usecreatedb</tt> column in
+                the <tt class="REPLACEABLE">pg_shadow</tt> table, described earlier in this chapter. See
+                <a href="c18591.htm">Chapter 10</a> for more information on enabling this right.
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">ERROR:  CREATE DATABASE: database "booktown" already exists</tt></dt><dd class="calibre16"><p class="calibre9">                This message indicates that a database with the specified <tt class="REPLACEABLE"><i class="EMPHASIS">dbname</i></tt> (in this example,
+                <tt class="REPLACEABLE">booktown</tt>) already exists.  You may not have two databases with the same name (even in different
+                physical locations on the filesystem).
+              </p></dd></dl></div>
+<div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>If another user is accessing a database that you wish to use as a template, you must wait until the user
+          is no longer accessing it in order to do so.</p></blockquote></div></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="USINGCREATEDB" class="calibre8">Using createdb</a></h3><p class="calibre9">PostgreSQL also provides a command-line wrapper to the <tt class="REPLACEABLE">CREATE DATABASE</tt> command, in
+        an application called <span><i class="EMPHASIS">createdb</i></span>. The only alternate functionality to <span><i class="EMPHASIS">createdb</i></span> over
+        its SQL counterpart is that it may be run directly from the command line, and it allows a comment to be added into the
+        database, all in one command. In SQL, this would require at least two statements: the
+        <tt class="REPLACEABLE">CREATE DATABASE</tt> statement, and a <tt class="REPLACEABLE">COMMENT</tt> statement.</p><p class="calibre9">The syntax for the <span><i class="EMPHASIS">createdb</i></span> application is as follows:</p><pre class="SCREEN">  createdb [ <tt class="REPLACEABLE"><i class="EMPHASIS">options</i></tt> ] <tt class="REPLACEABLE"><i class="EMPHASIS">dbname</i></tt> [ <tt class="REPLACEABLE"><i class="EMPHASIS">description</i></tt> ]</pre><p class="calibre9">In this syntax, <tt class="REPLACEABLE"><i class="EMPHASIS">dbname</i></tt> is the name of the database to be created, <tt class="REPLACEABLE"><i class="EMPHASIS">options</i></tt>
+        consists of any of the listed optional flags, and <tt class="REPLACEABLE"><i class="EMPHASIS">description</i></tt> is the comment to be added with an
+        implicit <tt class="REPLACEABLE">COMMENT</tt> command (see <a href="x17549.htm#DOCUMENTINGADATABASE">the Section called <i class="EMPHASIS">Documenting a Database</i></a>" for more on database
+        comments).</p><p class="calibre9">The <tt class="REPLACEABLE"><i class="EMPHASIS">options</i></tt> arguments may be provided either as single-dashed flags, each followed by a space
+        and an argument (e.g., <span><i class="EMPHASIS">-D PATH</i></span>), or the GNU-style, double-dashed counterpart, each followed by an
+        equals sign (<tt class="REPLACEABLE">=</tt>) and an argument, if necessary (e.g.,
+        <span><i class="EMPHASIS">- -location=PATH</i></span>). Single-dashed flags will always consist of a single letter, while double-dashed
+        flags will be more verbose, consisting of an entire word.</p><p class="calibre9">The following are the options available to <span><i class="EMPHASIS">createdb</i></span>:
+          
+          </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER">-D <tt class="REPLACEABLE"><i class="EMPHASIS">PATH</i></tt> , - -location=<tt class="REPLACEABLE"><i class="EMPHASIS">PATH</i></tt></dt><dd class="calibre16"><p class="calibre9">                Equivalent to the <tt class="REPLACEABLE">LOCATION</tt> keyword used with the
+                <tt class="REPLACEABLE">CREATE DATABASE</tt> command. <tt class="REPLACEABLE"><i class="EMPHASIS">PATH</i></tt> should be the environment
+                variable (set for the user running the PostgreSQL backend) which is set to the system path where the new database
+                files were created.
+              </p></dd><dt class="NAVHEADER">-T <tt class="REPLACEABLE"><i class="EMPHASIS">TEMPLATE</i></tt> , - -template=<tt class="REPLACEABLE"><i class="EMPHASIS">TEMPLATE</i></tt></dt><dd class="calibre16"><p class="calibre9">                Equivalent to the <tt class="REPLACEABLE">TEMPLATE</tt> keyword used with the
+                <tt class="REPLACEABLE">CREATE DATABASE</tt> command. <tt class="REPLACEABLE"><i class="EMPHASIS">TEMPLATE</i></tt> should be
+                the identifier describing the database (e.g., <tt class="REPLACEABLE">template0</tt> ) to use as the basis
+                from which to create the new database, duplicating all objects.
+              </p></dd><dt class="NAVHEADER">-E <tt class="REPLACEABLE"><i class="EMPHASIS">ENCODING</i></tt> , - -encoding=<tt class="REPLACEABLE"><i class="EMPHASIS">ENCODING</i></tt></dt><dd class="calibre16"><p class="calibre9">                Equivalent to the <tt class="REPLACEABLE">ENCODING</tt> keyword used with the
+                <tt class="REPLACEABLE">CREATE DATABASE</tt> command. <tt class="REPLACEABLE"><i class="EMPHASIS">ENCODING</i></tt> describes a valid
+                encoding string constant, as explained in <a href="a29140.htm">Appendix A</a>. A numeric constant
+                cannot be passed through <span><i class="EMPHASIS">createdb</i></span>, even though one can be passed through
+                <tt class="REPLACEABLE">CREATE DATABASE</tt>.
+                This is because <tt class="REPLACEABLE"><i class="EMPHASIS">ENCODING</i></tt> is always passed to <span><i class="EMPHASIS">createdb</i></span> as a string constant.
+              </p></dd><dt class="NAVHEADER">-h <tt class="REPLACEABLE"><i class="EMPHASIS">HOSTNAME</i></tt> , - -host=<tt class="REPLACEABLE"><i class="EMPHASIS">HOSTNAME</i></tt></dt><dd class="calibre16"><p class="calibre9">                The <tt class="REPLACEABLE"><i class="EMPHASIS">HOSTNAME</i></tt> that will be connected to, to create the database. Defaults to
+                <span><i class="EMPHASIS">localhost</i></span>, or the host defined by the <tt class="REPLACEABLE">PGHOST</tt> environment variable.
+              </p></dd><dt class="NAVHEADER">-p <tt class="REPLACEABLE"><i class="EMPHASIS">PORT</i></tt> , - -port=<tt class="REPLACEABLE"><i class="EMPHASIS">PORT</i></tt></dt><dd class="calibre16"><p class="calibre9">                Specifies that the database connection is made on port <tt class="REPLACEABLE"><i class="EMPHASIS">PORT</i></tt>, rather than the
+                default port (usually 5432, though it may have been configured differently when PostgreSQL was
+                compiled, by the <span><i class="EMPHASIS">- -with-pgport</i></span> flag).
+              </p></dd><dt class="NAVHEADER">-U <tt class="REPLACEABLE"><i class="EMPHASIS">USERNAME</i></tt> , - -username=<tt class="REPLACEABLE"><i class="EMPHASIS">USERNAME</i></tt></dt><dd class="calibre16"><p class="calibre9">                Specifies that the username <tt class="REPLACEABLE"><i class="EMPHASIS">USERNAME</i></tt> is the user who connects to PostgreSQL
+                (rather than the name of the system user executing <span><i class="EMPHASIS">createdb</i></span>) to create the database.
+              </p></dd><dt class="NAVHEADER">-W, - -password</dt><dd class="calibre16"><p class="calibre9">                Accepts no parameters, and causes a password prompt, which happens automatically if the
+                <span><i class="EMPHASIS">pg_hba.conf</i></span> file is configured not to <span><i class="EMPHASIS">trust</i></span> the requesting host.
+              </p></dd><dt class="NAVHEADER">-e, - -echo</dt><dd class="calibre16"><p class="calibre9">                Accepts no parameters, and causes the <tt class="REPLACEABLE">CREATE DATABASE</tt> statement
+                sent to PostgreSQL to be displayed to the screen as it is executed by <span><i class="EMPHASIS">createdb</i></span>.
+              </p></dd><dt class="NAVHEADER">-q, - -quiet</dt><dd class="calibre16"><p class="calibre9">                Accepts no parameters, and causes no output to be sent to <span><i class="EMPHASIS">stdout</i></span> (though errors will
+                still be sent to <span><i class="EMPHASIS">stderr</i></span>).
+              </p></dd></dl></div>
+<p class="calibre9">The success and failure messages for <span><i class="EMPHASIS">createdb</i></span> are identical to those created by
+        <tt class="REPLACEABLE">CREATE DATABASE</tt>, though you may also receive connection errors similar to those received
+        from <span><i class="EMPHASIS">psql</i></span> if invalid host or user information is provided. See <a href="x17149.htm#USINGCREATEDATABASE">the Section called <i class="EMPHASIS">Using CREATE DATABASE</i></a>"
+        earlier in this chapter for more information on these messages.</p><p class="calibre9"><a href="x17149.htm#USINGTHECREATEDBAPPLICATION">Example 9-11</a> shows the use of the <span><i class="EMPHASIS">createdb</i></span> application,
+        creating the new database <span><i class="EMPHASIS">example</i></span> as the <tt class="REPLACEABLE">manager</tt> user, in the directory
+        described by the <tt class="REPLACEABLE">PGDATA2</tt> variable. Notice that both forms of options may be
+        simultaneously supplied (single-dashed, and GNU-style).</p><div class="NAVHEADER"><a name="USINGTHECREATEDBAPPLICATION"></a><p class="calibre9"><b class="calibre10">Example 9-11. Using the createdb application</b></p><pre class="SCREEN">[jworsley@booktown ~]$ <tt class="REPLACEABLE"><b class="calibre10">createdb - -location=PGDATA2 -U manager example</b></tt>
+CREATE DATABASE</pre></div></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN17414" class="calibre8">Removing a Database</a></h2><p class="calibre9">Similar to its approach in creating databases, PostgreSQL offers two methods to remove a database permanently from your
+      system: the <tt class="REPLACEABLE">DROP DATABASE</tt> SQL command, and the <span><i class="EMPHASIS">dropdb</i></span>
+      command-line executable. The use of these methods requires the <tt class="REPLACEABLE">usecreatedb</tt>
+      right to be set in the <tt class="REPLACEABLE">pg_shadow</tt> table for the user initiating the command.</p><div class="NAVHEADER"><p class="calibre9"></p><table class="calibre" border="1" width="100%"><tr class="calibre1"><td class="calibre23"><b class="calibre10">Warning</b></td></tr><tr class="calibre1"><td class="calibre15"><p class="calibre9">Upon dropping a database, all tables, data, and other objects in that database are destroyed. The system files
+        associated with the database <span><i class="EMPHASIS">are also physically removed</i></span>. PostgreSQL will not prompt you to verify the
+        <span><i class="EMPHASIS">permanent</i></span> deletion of the database. This action cannot be undone, nor can it be executed within a
+        transaction block.</p></td></tr></table></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN17428" class="calibre8">Using DROP DATABASE</a></h3><p class="calibre9">The syntax for the <tt class="REPLACEABLE">DROP DATABASE</tt> SQL command is as follows:</p><pre class="SCREEN">  DROP DATABASE <tt class="REPLACEABLE"><i class="EMPHASIS">dbname</i></tt></pre><p class="calibre9">In this syntax, <tt class="REPLACEABLE"><i class="EMPHASIS">dbname</i></tt> represents the name of the database to be removed from the system. Note
+        that no user may be connected to the database that you are trying to remove, or the command will fail. <a href="x17149.htm#USINGDESTROYDATABASEEXAMPLE">Example 9-12</a> demonstrates dropping a database called <tt class="REPLACEABLE">example</tt>.</p><div class="NAVHEADER"><a name="USINGDESTROYDATABASEEXAMPLE"></a><p class="calibre9"><b class="calibre10">Example 9-12. Using DROP DATABASE</b></p><pre class="SCREEN">template1=# <tt class="REPLACEABLE"><b class="calibre10">DROP DATABASE example;</b></tt>
+DROP DATABASE</pre></div><p class="calibre9">The <tt class="REPLACEABLE">DROP DATABASE</tt> server message indicates that the database was successfully
+        removed, and its associated system files deleted. Other messages you may receive from the command follow:
+          
+          </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">ERROR:  DROP DATABASE: cannot be executed on the currently open database</tt></dt><dd class="calibre16"><p class="calibre9">                This message indicates that you are connected to the database you are trying to remove. A database cannot be removed
+                from the system while you are actively connected to it.
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">ERROR:  DROP DATABASE: database "example" is being accessed by other users</tt></dt><dd class="calibre16"><p class="calibre9">                This message indicates that another user is connected to the database you are attempting to remove. You must wait until
+                all users are disconnected before being able to successfully remove a database.
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">ERROR:  DROP DATABASE: database "example" does not exist</tt></dt><dd class="calibre16"><p class="calibre9">                This message indicates that there is no database with the specified <tt class="REPLACEABLE"><i class="EMPHASIS">dbname</i></tt> (in this case,
+                <tt class="REPLACEABLE">example</tt>).
+              </p></dd></dl></div>
+</div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN17468" class="calibre8">Using dropdb</a></h3><p class="calibre9">Similar to the <span><i class="EMPHASIS">createdb</i></span> script, there is another command-line wrapper called
+        <span><i class="EMPHASIS">dropdb</i></span> that executes the <tt class="REPLACEABLE">DROP DATABASE</tt> SQL command.  The only
+        functionality that <span><i class="EMPHASIS">dropdb</i></span> provides, as compared to the <tt class="REPLACEABLE">DROP DATABASE</tt> command,
+        is that you execute it from a shell, and you can use the interactive flag to have it prompt you for confirmation. </p><p class="calibre9">The syntax for the <span><i class="EMPHASIS">dropdb</i></span> script is as follows:</p><pre class="SCREEN">  dropdb [ <tt class="REPLACEABLE"><i class="EMPHASIS">options</i></tt> ] <tt class="REPLACEABLE"><i class="EMPHASIS">dbname</i></tt></pre><p class="calibre9">In this syntax, <tt class="REPLACEABLE"><i class="EMPHASIS">dbname</i></tt> is the name of the database to be permanently removed from PostgreSQL,
+        and <tt class="REPLACEABLE"><i class="EMPHASIS">options</i></tt> describe each of the options available to the application.  Most of these options exist
+        to describe the PostgreSQL connection options, and to mimic the options described in <a href="x17149.htm#USINGCREATEDB">the Section called <i class="EMPHASIS">Using createdb</i></a>" 
+        earlier in this chapter. The notable exception is the <span><i class="EMPHASIS">-i</i></span>, or <span><i class="EMPHASIS">- -interactive</i></span>,
+        flag.</p><p class="calibre9">Here is the complete list of options for <span><i class="EMPHASIS">dropdb</i></span>:
+          
+          </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER">-h <tt class="REPLACEABLE"><i class="EMPHASIS">HOSTNAME</i></tt> , - -host=<tt class="REPLACEABLE"><i class="EMPHASIS">HOSTNAME</i></tt></dt><dd class="calibre16"><p class="calibre9">              The <tt class="REPLACEABLE"><i class="EMPHASIS">HOSTNAME</i></tt> that will be connected to, to drop the database. Defaults to
+              <span><i class="EMPHASIS">localhost</i></span>, or a host defined by the <tt class="REPLACEABLE">PGHOST</tt> environment variable.
+            </p></dd><dt class="NAVHEADER">-p <tt class="REPLACEABLE"><i class="EMPHASIS">PORT</i></tt> , - -port=<tt class="REPLACEABLE"><i class="EMPHASIS">PORT</i></tt></dt><dd class="calibre16"><p class="calibre9">              Specifies that the database connection is made on port <tt class="REPLACEABLE"><i class="EMPHASIS">PORT</i></tt>, rather than the
+              default port (usually 5432, though it may have been configured differently when PostgreSQL was
+              compiled, by the <span><i class="EMPHASIS">- -with-pgport</i></span> flag).
+            </p></dd><dt class="NAVHEADER">-U <tt class="REPLACEABLE"><i class="EMPHASIS">USERNAME</i></tt> , - -username=<tt class="REPLACEABLE"><i class="EMPHASIS">USERNAME</i></tt></dt><dd class="calibre16"><p class="calibre9">              Specifies that the username <tt class="REPLACEABLE"><i class="EMPHASIS">USERNAME</i></tt> is the user who connects to PostgreSQL
+              (rather than the name of the system user executing <span><i class="EMPHASIS">dropdb</i></span>) to drop the database.
+            </p></dd><dt class="NAVHEADER">-W, - -password</dt><dd class="calibre16"><p class="calibre9">              Accepts no parameters, and causes a password prompt, which happens automatically if the
+              <span><i class="EMPHASIS">pg_hba.conf</i></span> file is configured not to <span><i class="EMPHASIS">trust</i></span> the requesting host.
+            </p></dd><dt class="NAVHEADER">-i, - -interactive</dt><dd class="calibre16"><p class="calibre9">              Accepts no parameters, and causes the user to be prompted to confirm the removal of the database before
+              actually destroying the data.
+            </p></dd><dt class="NAVHEADER">-e, - -echo</dt><dd class="calibre16"><p class="calibre9">              Accepts no parameters, and causes the <tt class="REPLACEABLE">DROP DATABASE</tt> statement
+              sent to PostgreSQL to be displayed to the screen as it is executed by <span><i class="EMPHASIS">dropdb</i></span>.
+            </p></dd><dt class="NAVHEADER">-q, - -quiet</dt><dd class="calibre16"><p class="calibre9">              Accepts no parameters, and causes no output to be sent to <span><i class="EMPHASIS">stdout</i></span> (though errors will
+              still be sent to <span><i class="EMPHASIS">stderr</i></span>).
+            </p></dd></dl></div>
+<p class="calibre9">It is prudent to always execute the <span><i class="EMPHASIS">dropdb</i></span> command with the <span><i class="EMPHASIS">-i</i></span> flag, as it
+        requires a confirmation before anything is actually removed from PostgreSQL. <a href="x17149.htm#USINGTHEDROPDBCOMMAND">Example 9-13</a>
+        demonstrates the removal of a database named <tt class="REPLACEABLE">example</tt> with the <span><i class="EMPHASIS">-i</i></span> interactive
+        flag, as the <tt class="REPLACEABLE">manager</tt> user.</p><div class="NAVHEADER"><a name="USINGTHEDROPDBCOMMAND"></a><p class="calibre9"><b class="calibre10">Example 9-13. Using the dropdb command</b></p><pre class="SCREEN">[jworsley@booktown ~]$ <tt class="REPLACEABLE"><b class="calibre10">dropdb -U manager -i example</b></tt>
+Database "example" will be permanently deleted.
+Are you sure? (y/n) <tt class="REPLACEABLE"><b class="calibre10">y</b></tt>
+DROP DATABASE</pre></div></div></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="x17006.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x17549.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Initializing the Filesystem</td><td width="34%" valign="top" class="calibre4"><a href="c16573.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Maintaining a Database</td></tr></table></div></div>
+
+{% endraw %}
+

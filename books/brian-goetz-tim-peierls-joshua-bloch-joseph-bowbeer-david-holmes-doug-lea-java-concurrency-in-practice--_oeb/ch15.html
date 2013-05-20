@@ -1,0 +1,25 @@
+---
+layout: page
+title: "Java Concurrency in Practice"
+prev: ch14lev1sec7.html
+next: ch15lev1sec1.html
+book_path: books/brian-goetz-tim-peierls-joshua-bloch-joseph-bowbeer-david-holmes-doug-lea-java-concurrency-in-practice--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a name="ch15" class="calibre18" id="ch15"></a>
+<div class="calibre32" id="calibre_pb_0"></div><div class="calibre32"></div><h2 id="title-IDA2YKWZ" class="docPrefaceTitle">Chapter 15. Atomic Variables and Nonblocking Synchronization</h2>
+<p class="docText1"><a name="iddle1022" class="calibre18" id="iddle1022"></a><a name="iddle1023" class="calibre18" id="iddle1023"></a><a name="iddle1054" class="calibre18" id="iddle1054"></a><a name="iddle1058" class="calibre18" id="iddle1058"></a><a name="iddle1137" class="calibre18" id="iddle1137"></a><a name="iddle1170" class="calibre18" id="iddle1170"></a><a name="iddle1174" class="calibre18" id="iddle1174"></a><a name="iddle1324" class="calibre18" id="iddle1324"></a><a name="iddle1484" class="calibre18" id="iddle1484"></a><a name="iddle1755" class="calibre18" id="iddle1755"></a><a name="iddle1800" class="calibre18" id="iddle1800"></a><a name="iddle2470" class="calibre18" id="iddle2470"></a><a name="iddle2918" class="calibre18" id="iddle2918"></a><a name="iddle3024" class="calibre18" id="iddle3024"></a><a name="iddle3087" class="calibre18" id="iddle3087"></a><a name="iddle3121" class="calibre18" id="iddle3121"></a><a name="iddle3301" class="calibre18" id="iddle3301"></a><a name="iddle3305" class="calibre18" id="iddle3305"></a><a name="iddle3377" class="calibre18" id="iddle3377"></a><a name="iddle3378" class="calibre18" id="iddle3378"></a><a name="iddle3379" class="calibre18" id="iddle3379"></a><a name="iddle3394" class="calibre18" id="iddle3394"></a><a name="iddle3395" class="calibre18" id="iddle3395"></a><a name="iddle3427" class="calibre18" id="iddle3427"></a><a name="iddle3428" class="calibre18" id="iddle3428"></a><a name="iddle3429" class="calibre18" id="iddle3429"></a><a name="iddle3533" class="calibre18" id="iddle3533"></a><a name="iddle3534" class="calibre18" id="iddle3534"></a><a name="iddle3535" class="calibre18" id="iddle3535"></a><a name="iddle4083" class="calibre18" id="iddle4083"></a><a name="iddle4084" class="calibre18" id="iddle4084"></a><a name="iddle4085" class="calibre18" id="iddle4085"></a><a name="iddle5045" class="calibre18" id="iddle5045"></a><a name="iddle5065" class="calibre18" id="iddle5065"></a><a name="iddle5123" class="calibre18" id="iddle5123"></a>Many of the classes in <tt class="calibre25">java.util.concurrent</tt>, such as <tt class="calibre25">Semaphore</tt> and <tt class="calibre25">ConcurrentLinkedQueue</tt>, provide better performance and scalability than alternatives using <tt class="calibre25">synchronized</tt>. In this chapter, we take a look at the primary source of this performance boost: atomic variables and nonblocking synchronization.</p>
+<p class="docText1">Much of the recent research on concurrent algorithms has focused on <span class="docEmphasis">nonblocking algorithms</span>, which use low-level atomic machine instructions such as <span class="docEmphasis">compare-and-swap</span> instead of locks to ensure data integrity under concurrent access. Nonblocking algorithms are used extensively in operating systems and JVMs for thread and process scheduling, garbage collection, and to implement locks and other concurrent data structures.</p>
+<p class="docText1">Nonblocking algorithms are considerably more complicated to design and implement than lock-based alternatives, but they can offer significant scalability and liveness advantages. They coordinate at a finer level of granularity and can greatly reduce scheduling overhead because they don't block when multiple threads contend for the same data. Further, they are immune to deadlock and other liveness problems. In lock-based algorithms, other threads cannot make progress if a thread goes to sleep or spins while holding a lock, whereas nonblocking algorithms are impervious to individual thread failures. As of Java 5.0, it is possible to build efficient nonblocking algorithms in Java using the <span class="docEmphasis">atomic variable classes</span> such as <tt class="calibre25">AtomicInteger</tt> and <tt class="calibre25">AtomicReference</tt>.</p>
+<p class="docText1">Atomic variables can also be used as "better volatile variables" even if you are not developing nonblocking algorithms. Atomic variables offer the same memory semantics as volatile variables, but with additional support for atomic updatesmaking them ideal for counters, sequence generators, and statistics gathering while offering better scalability than lock-based alternatives.</p>
+<a href="21021536.html" class="calibre2"><img src="pixel.jpg" alt="" border="0" class="calibre26"/></a>
+<p class="calibre3"> </p>
+
+</div>
+
+{% endraw %}
+

@@ -1,0 +1,803 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0126.html
+next: f_0128.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.substitute.repeat">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 92</td>
+<td class="arr-recipe-name">Repeat the Previous Substitute Command</td>
+</tr>
+</table>
+<p id="N19A91" class="calibre4">
+<span class="calibre5">
+        At times, we might have to amend the range of a substitute command. We might have made a mistake on our first try, or maybe we just want to rerun the command exactly but on a different buffer. A couple of shortcuts make it easy to repeat the substitute command.
+    </span>
+</p>
+<h3 class="calibre22">Repeat a Line-Wise Substitution Across the Entire File</h3>
+<p id="N19AA1" class="calibre4">
+        Suppose that we’ve just executed this command, which acts upon the current line:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:s/target/replacement/g</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N19AB1" class="calibre4">
+        We realize our mistake at once: we should have prepended <code class="cf">%</code>. No harm done. We can repeat the command across the entire file just by pressing <span class="calibre17">g&amp;</span> (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">g&amp;</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/change.html#g&amp;">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>), which is equivalent to running the following:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:%s//~/&amp;</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N19AD0" class="calibre4">
+        This longhand command spells out the following instruction: repeat the last substitute command using the same flags, the same replacement string, and the current search pattern, but use the <code class="cf">%</code> range. In other words, repeat the last substitution across the entire file.
+      </p>
+<p id="N19AD6" class="calibre4">
+        The next time you catch yourself tweaking the search history to prepend a <code class="cf">%</code> to a substitute command that is otherwise all right, try hitting <span class="calibre17">g&amp;</span> instead.
+      </p>
+<h3 class="calibre22">Amend the Range of a Substitute Command</h3>
+<p id="N19AE3" class="calibre4">
+        Start with this code:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/substitution/mixin.js">substitution/mixin.js</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​mixin = {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​    applyName: <strong class="prompt">function</strong>(config) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​        <strong class="prompt">return</strong> Factory(config, this.getName());​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​    },​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​}​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N19B0D" class="calibre4">
+        Suppose that we want to extend it to look like this:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​mixin = {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​    applyName: <strong class="prompt">function</strong>(config) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​        <strong class="prompt">return</strong> Factory(config, this.getName());​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​    },​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​    applyNumber: <strong class="prompt">function</strong>(config) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​        <strong class="prompt">return</strong> Factory(config, this.getNumber());​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​    },​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​}​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N19B3D" class="calibre4">
+        The new <code class="cf">applyNumber</code> function is almost identical to the existing one. So let’s start off by duplicating the <code class="cf">applyName</code> function. Then we can use the substitute command to change some occurrences of “Name” to “Number.” But there’s a mistake in the example workflow shown in <a xmlns:str="http://exslt.org/strings" href="#table.amend-range">Table 25, ​<em class="calibre5">Mistake in the Use of the Substitute Command</em>​</a>.
+      </p>
+<hr class="calibre37"/>
+<div class="figurecaption" id="table.amend-range">Table 25. Mistake in the Use of the Substitute Command</div>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">{start}</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​mixin = {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    <span class="shade-fg-white">a</span>pplyName: function(config) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​        return Factory(config, this.getName());​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    },​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​}​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">Vjj</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​mixin = {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-black">    applyName: function(config) { </span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-black">        return Factory(config, this.getName()); </span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-black">    <span class="shade-fg-white">}</span>, </span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​}​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">yP</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​mixin = {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    <span class="shade-fg-white">a</span>pplyName: function(config) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​        return Factory(config, this.getName());​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    },​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    applyName: function(config) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​        return Factory(config, this.getName());​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    },​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​}​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">:%s/Name/Number/g</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​mixin = {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    applyNumber: function(config) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​        return Factory(config, this.getNumber());​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    },​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    applyNumber: function(config) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​        <span class="shade-fg-white">r</span>eturn Factory(config, this.getNumber());​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    },​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​}​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<hr class="calibre37"/>
+<p id="N19BFD" class="calibre4">
+        Can you see what went wrong? We used the <code class="cf">%</code> symbol as a range, so it changed every occurrence of “Name” to “Number.” Instead, we should have specified a range to focus the substitute command on the lines of the second function (the duplicate).
+      </p>
+<p id="N19C14" class="calibre4">
+        Not to worry. We can easily undo the mistake and fix it (see <a xmlns:str="http://exslt.org/strings" href="#table.change-range">Table 26, ​<em class="calibre5">Changing the Range of the Substitute Command</em>​</a>).
+      </p>
+<p id="N19C1B" class="calibre4">
+        The <span class="calibre17">gv</span> command enables Visual mode and rehighlights the last selection (we discussed it in <a xmlns:str="http://exslt.org/strings" href="f_0042.html#sec.visual.define">Tip 21</a>). When we press <code class="cf">:</code> in Visual mode, the command line is prepopulated with the range <code class="cf">:’&lt;,’&gt;</code>, which focuses the next Ex command on the selected lines.
+      </p>
+<p id="N19C30" class="calibre4">
+        The <code class="cf">:&amp;&amp;</code> command requires some explanation, since the first and second <code class="cf">&amp;</code> symbols have different meanings. The first one forms the <code class="cf">:&amp;</code> Ex command, which repeats the last <code class="cf">:substitute</code> command (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">:&amp;</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/change.html#%3A%26">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>), while the second one indicates that the flags from the previous <code class="cf">:s</code> command should be reused.
+      </p>
+<hr class="calibre37"/>
+<div class="figurecaption" id="table.change-range">Table 26. Changing the Range of the Substitute Command</div>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">u</span>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​mixin = {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    <span class="shade-fg-white">a</span>pplyName: function(config) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​        return Factory(config, this.getName());​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    },​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    applyName: function(config) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​        return Factory(config, this.getName());​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    },​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​}​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">gv</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​mixin = {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    applyName: function(config) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​        return Factory(config, this.getName());​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    },​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-black">    applyName: function(config) { </span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-black">        return Factory(config, this.getName()); </span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-black">    <span class="shade-fg-white">}</span>, </span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​}​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">:’&lt;,’&gt;&amp;&amp;</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​mixin = {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    applyName: function(config) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​        return Factory(config, this.getName());​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    },​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    applyNumber: function(config) {​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​        return Factory(config, this.getNumber());​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    },​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​}​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<hr class="calibre37"/>
+<h4 class="calibre20">Discussion</h4>
+<p id="N19CE3" class="calibre4">
+          We can always specify a new range and replay the substitution using the <code class="cf">:&amp;&amp;</code> command. It doesn’t matter what range was used the last time. <code class="cf">:&amp;&amp;</code> by itself acts on the current line, <code class="cf">:’&lt;,’&gt;&amp;&amp;</code> acts on the visual selection, and <code class="cf">:%&amp;&amp;</code> acts on the entire file. As we saw already, the <span class="calibre17">g&amp;</span> command is a handy shortcut for <code class="cf">:%&amp;&amp;</code>.
+        </p>
+<div class="sidebar">
+<div class="sidebar-title">Fixing the &amp; Command</div>
+<div class="calibre1">
+<p id="N19D02" class="calibre4">
+        The <span class="calibre17">&amp;</span> command is a synonym for <code class="cf1">:s</code>, which repeats the last substitution. Unfortunately, if any flags were used, the <span class="calibre17">&amp;</span> command disregards them, meaning that the outcome could be quite different from the previous substitution.
+      </p>
+<p id="N19D13" class="calibre4">
+        Making <span class="calibre17">&amp;</span> trigger the <code class="cf1">:&amp;&amp;</code> command is more useful. It preserves flags and therefore produces more consistent results. These mappings fix the <span class="calibre17">&amp;</span> command in Normal mode and create a Visual mode equivalent:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix4" valign="top">
+<span> </span>
+</td>
+<td class="codeline4" valign="top">
+<div class="calibre38">
+​<code class="calibre39">​<strong class="prompt">nnoremap</strong> &amp; :&amp;&amp;<em class="string">&lt;CR&gt;</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix4" valign="top">
+<span> </span>
+</td>
+<td class="codeline4" valign="top">
+<div class="calibre38">
+​<code class="calibre39">​<strong class="prompt">xnoremap</strong> &amp; :&amp;&amp;<em class="string">&lt;CR&gt;</em>​</code>​</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

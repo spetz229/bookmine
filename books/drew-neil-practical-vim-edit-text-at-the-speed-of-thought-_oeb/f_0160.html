@@ -1,0 +1,163 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0159.html
+next: f_0161.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.spell.check">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 118</td>
+<td class="arr-recipe-name">Spell Check Your Work</td>
+</tr>
+</table>
+<p id="N1BFB8" class="calibre4">
+<span class="calibre5">
+        With the spell checker enabled, Vim flags words that are not in its spell file. We can quickly jump between spelling mistakes and have Vim suggest corrections.
+    </span>
+      Take this excerpt of text:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/spell_check/yoru-moustache.txt">spell_check/yoru-moustache.txt</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​Yoru mum has a moustache.​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1BFCA" class="calibre4">
+      The first word has clearly been misspelled. We can make Vim highlight it as such by enabling the built-in spell checker:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:set spell</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1BFDA" class="calibre4">
+      The word “Yoru” should now be flagged with the <code class="cf">SpellBad</code> syntax highlighting. Typically, that means the word will be underlined with a red dashed line, but how it looks will depend on which color scheme you use.
+    </p>
+<p id="N1BFEA" class="calibre4">
+      By default, Vim checks spellings against a dictionary of English words. We’ll see how to customize this in <a xmlns:str="http://exslt.org/strings" href="f_0161.html#sec.spelllang">Tip 119</a>, but for now we’ll make do with the defaults.
+    </p>
+<h3 class="calibre22">Operate Vim’s Spell Checker</h3>
+<p id="N1BFF5" class="calibre4">
+        We can jump backward and forward between flagged words with the <span class="calibre17">[s</span> and <span class="calibre17">]s</span> commands, respectively (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">]s</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/spell.html#]s">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>).
+
+	 
+        With our cursor positioned on a misspelled word, we can ask Vim for a list of suggested corrections by invoking the <span class="calibre17">z=</span> command (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">z=</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/spell.html#z=">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). This figure shows two screenshots taken before and after triggering the <span class="calibre17">z=</span> command:
+    </p>
+<div xmlns:str="http://exslt.org/strings" class="calibre1">
+<img src="images/yoru-mum.png" alt="images/yoru-mum.png" class="calibre21"/>
+</div>
+<p id="N1C02F" class="calibre4">
+        As the prompt indicates, we can replace the misspelled word with “Your” by pressing <span class="calibre17">1&lt;CR&gt;</span>. If the list doesn’t contain what we’re looking for, we can dismiss it by pressing <span class="calibre17">&lt;Esc&gt;</span>.
+      </p>
+<p id="N1C038" class="calibre4">
+        We can skip the prompt altogether by prefixing the <span class="calibre17">z=</span> command with a count, which instructs Vim to use the numbered suggestion. If we’re confident that the first suggestion will be correct, we can run <span class="calibre17">1z=</span> to fix it in one go.
+      </p>
+<p id="N1C041" class="calibre4">
+        When writing, I prefer to separate the composition and spell-checking processes into separate tasks. I’ll often disable the spell checker while I write to avoid being nagged each time I make a mistake. When I’m ready, I’ll make a final pass through the document with the spell checker enabled, fixing each typo that it flags.
+      </p>
+<p id="N1C044" class="calibre4">This table summarizes the essential Normal mode commands for operating Vim’s spell checker:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Command</th>
+<th class="hlines">Effect</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">]s</span>
+</p>
+</td>
+<td class="calibre24">
+<p class="last-para-in-cell">Jump to next spelling error</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">[s</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Jump to previous spelling error</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">z=</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Suggest corrections for current word</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">zg</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Add current word to spell file</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">zw</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Remove current word from spell file</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">zug</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Revert <span class="calibre17">zg</span> or <span class="calibre17">zw</span> command for current word</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N1C09C" class="calibre4">
+        We’ll meet the <span class="calibre17">zg</span>, <span class="calibre17">zw</span>, and <span class="calibre17">zug</span> commands in <a xmlns:str="http://exslt.org/strings" href="f_0162.html#sec.spellfile">Tip 120</a>.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

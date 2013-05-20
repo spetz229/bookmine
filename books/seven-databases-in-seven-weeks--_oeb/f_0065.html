@@ -1,0 +1,26 @@
+---
+layout: page
+title: "Seven Databases in Seven Weeks (for Greg Kennedy)"
+prev: f_0064.html
+next: f_0066.html
+book_path: books/seven-databases-in-seven-weeks--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="sec.captradeoffs" class="calibre18">A2.2 CAP in the Wild</h2>
+<p id="N1B70E" class="calibre5">
+Some partition-tolerant databases can be tuned to be more or less consistent or available on a per-request basis.  Riak works like this, allowing clients to decide at request time what level of consistency they require.  The other databases in this book largely occupy one corner or another of the CAP trade-off triangle.
+    </p>
+<p id="N1B711" class="calibre5">
+Redis, PostgreSQL, and Neo4J are consistent and available (CA); they don’t distribute data and so partitioning is not an issue (though arguably, CAP doesn’t make much sense in non-distributed systems).  MongoDB and HBase are generally consistent and partition tolerant (CP).  In the event of a network partition, they can become unable to respond to certain types of queries (for example, in a Mongo replica set you flag <code class="cf">slaveok</code> to false for reads).  In practice, hardware failure is handled gracefully—other still-networked nodes can cover for the downed server—but strictly speaking, in the CAP theorem sense, they are unavailable.  Finally, CouchDB is available and partition tolerant (AP).  Even though two or more CouchDB servers can replicate data between them, CouchDB doesn’t guarantee consistency between any two servers.
+    </p>
+<p id="N1B717" class="calibre5">
+It’s worth noting that most of these databases can be configured to change CAP type (Mongo can be CA, CouchDB can be CP), but here we’ve noted their default or common behaviors.
+    </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre3"/>
+</div>
+
+{% endraw %}
+

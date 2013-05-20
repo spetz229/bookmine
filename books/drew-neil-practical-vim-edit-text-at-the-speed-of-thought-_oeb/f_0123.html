@@ -1,0 +1,215 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0122.html
+next: f_0124.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.substitute.global">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 88</td>
+<td class="arr-recipe-name">Find and Replace Every Match in a File</td>
+</tr>
+</table>
+<p id="N196B3" class="calibre4">
+<span class="calibre5">
+        By default, the substitute command acts on the current line, changing the first occurrence only. To change every match throughout a file, we have to specify a range and use the <code class="cf">g</code> flag.
+    </span>
+      For demonstration purposes, we’ll use this text:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/substitution/get-rolling.txt">substitution/get-rolling.txt</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​When the going gets tough, the tough get going.​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​If you are going through hell, keep going.​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N196DE" class="calibre4">
+      Let’s try and replace every occurrence of the word <span class="calibre5">going</span> with <span class="calibre5">rolling</span>. First, we’ll enable the <code class="cf">‘hlsearch’</code> option so that we can see what we’re doing (see <a xmlns:str="http://exslt.org/strings" href="f_0114.html#sec.hlsearch">Tip 80</a>, for more details):
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:set hlsearch</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N196FB" class="calibre4">
+      The simplest thing that we could do with the substitute command is to provide a target <code class="cf">{pattern}</code> and replacement <code class="cf">{string}</code>:
+    </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">:s/going/rolling</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">W</span>hen the rolling gets tough, the tough get <span class="shade-fg-black">going</span>.​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​If you are <span class="shade-fg-black">going</span> through hell, keep <span class="shade-fg-black">going</span>.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N19735" class="calibre4">
+      See what’s happened?  Vim has replaced the first occurrence of “going” with “rolling,” but it’s left every other match untouched.
+    </p>
+<p id="N19738" class="calibre4">
+      To understand why, it helps to think of a file as a two-dimensional board made up of characters along the <span class="calibre5">x</span>-axis and lines down the <span class="calibre5">y</span>-axis. By default, the substitute command only acts upon the first match on the current line. Let’s see what’s required to expand its scope to cover the <span class="calibre5">x</span>- and <span class="calibre5">y</span>-axes in their entirety.
+    </p>
+<p id="N19747" class="calibre4">
+        To keep going on the horizontal axis we need to include the <code class="cf">g</code> flag. This stands for <span class="calibre5">global</span>, which is a rather misleading name. One might expect that this flag would cause the substitution to be carried out across the entire file, but in fact, it just means “globally within the current line.” This makes more sense if you remember that Vim is a direct descendent of the line editor <code class="cf">ed</code>, as discussed in <a xmlns:str="http://exslt.org/strings" href="f_0049.html#sidebar.vi.etymology">​<em class="calibre5">On the Etymology of Vim (and Family)</em>​</a>.
+      </p>
+<p id="N19757" class="calibre4">
+        We’ll press <span class="calibre17">u</span> to undo the last change and then try running a variation of the substitute command. This time, we’ll tack the <code class="cf">/g</code> flag on at the end:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">:s/going/rolling/g</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">W</span>hen the rolling gets tough, the tough get rolling.​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​If you are <span class="shade-fg-black">going</span> through hell, keep <span class="shade-fg-black">going</span>.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N1978C" class="calibre4">
+        This time, all occurrences of <span class="calibre5">going</span> on the current line have been changed to <span class="calibre5">rolling</span>, but that still leaves a couple of instances unchanged elsewhere in the file. So how do we tell the substitute command to act on the entire vertical axis of our file?
+      </p>
+<p id="N1979B" class="calibre4">
+        The answer is to provide a range. If we prefix a <code class="cf">%</code> at the start of the substitute command, it will be executed on every line of the file:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">:%s/going/rolling/g</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​When the rolling gets tough, the tough get rolling.​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">I</span>f you are rolling through hell, keep rolling.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N197C3" class="calibre4">
+        The substitute command is just one of many Ex commands, all of which can accept a range in the same manner. <a xmlns:str="http://exslt.org/strings" href="f_0050.html#sec.ex.address">Tip 28</a>, goes into greater depth.
+      </p>
+<p id="N197CA" class="calibre4">
+        To recap, if we want to find and replace all occurrences in the current file, we have to explicitly tell the substitute command to operate on the entire <span class="calibre5">x</span>- and <span class="calibre5">y</span>-axes. The <code class="cf">g</code> flag deals with the horizontal axis, while the <code class="cf">%</code> address deals with the vertical axis.
+      </p>
+<p id="N197D9" class="calibre4">
+        It’s easy enough to forget one or the other of these details. In <a xmlns:str="http://exslt.org/strings" href="f_0127.html#sec.substitute.repeat">Tip 92</a>, we’ll look at a couple of techniques for repeating a substitute command.
+		</p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

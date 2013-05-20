@@ -1,0 +1,41 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/apas05.html
+next: OEBPS/apas07.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Extensions"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect1_d1e15659" class="calibre1"></a>Extensions</h1></div></div></div><p class="calibre3"><a id="I_indexterm_d1e15663" class="calibre1"></a><a id="I_indexterm_d1e15668" class="calibre1"></a>Extending jQuery couldn’t be easier. If you want to add
+    class functions, just create the function straight on the
+    <code class="literal">jQuery</code> object:</p><pre class="screen">jQuery.myExt = function(arg1){ /*...*/ };
+
+// Then, to use
+$.myExt("anyArgs");</pre><p class="calibre3">If you want to add instance functions that will be available on the
+    element selector, just set the function on the <code class="literal">jQuery.fn</code> object,<a id="I_indexterm_d1e15684" class="calibre1"></a><a id="I_indexterm_d1e15687" class="calibre1"></a> which is an alias for <code class="literal">jQuery.prototype</code><a id="I_indexterm_d1e15695" class="calibre1"></a>. It’s good practice to return the context (i.e.,
+    <code class="literal">this</code>) at the end of the extension, which enables
+    chaining:</p><pre class="screen">jQuery.fn.wemExt = function(arg1){
+  $(this).html("Bar");
+  return this;
+};
+
+$("#element").wemExt(1).addClass("foo");</pre><p class="calibre3">It’s also good practice to encapsulate your extension <a id="I_indexterm_d1e15706" class="calibre1"></a><a id="I_indexterm_d1e15709" class="calibre1"></a>in the <a class="ulink" href="http://yuiblog.com/blog/2007/06/12/module-pattern/">module
+    pattern</a>,which prevents any scope leaks and <span class="calibre1">variable</span> conflicts. Wrap your extension in
+    an anonymous function, keeping all the <span class="calibre1">variables</span> local:</p><pre class="screen">(function($){
+  // Local context in here
+  var replaceLinks = function(){
+    var re = /((http|https|ftp):\/\/[\w?=&amp;.\/-;#~%-]+(?![\w\s?&amp;.\/;#~%"=-]*&gt;))/g;
+    $(this).html(
+     $(this).html().replace(re, '&lt;a target="_blank" href="$1"&gt;$1&lt;/a&gt; ')
+    );
+  };
+
+  $.fn.autolink = function() {
+    return this.each(replaceLinks);
+  };
+})(jQuery);</pre></div></div>
+
+{% endraw %}
+

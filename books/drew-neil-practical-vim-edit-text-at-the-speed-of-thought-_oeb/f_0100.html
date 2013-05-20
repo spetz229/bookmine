@@ -1,0 +1,905 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0099.html
+next: f_0101.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.macro.files">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 69</td>
+<td class="arr-recipe-name">Act Upon a Collection of Files</td>
+</tr>
+</table>
+<p id="N1787A" class="calibre4">
+<span class="calibre5">
+        So far, we’ve stuck to tasks that were repeated in the same file, but we can play back a macro across a collection of files. Once again, we’ll consider how to execute the macro in parallel and in series.
+    </span>
+</p>
+<p id="N1788A" class="calibre4">
+      Let’s start with a set of files that look something like this:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/macros/ruby_module/animal.rb">macros/ruby_module/animal.rb</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<em class="comment"># ...[end of copyright notice]</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">class</strong> Animal​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​  <em class="comment"># implementation</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N178AC" class="calibre4">
+      We’ll wrap the class in a module to end up with this:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<em class="comment"># ...[end of copyright notice]</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">module</strong> Rank​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​  <strong class="prompt">class</strong> Animal​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​    <em class="comment"># implementation...</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​  <strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<h3 class="calibre22">Preparation</h3>
+<p id="N178D9" class="calibre4">
+        Source these lines of configuration to reproduce the examples in this tip:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/macros/rc.vim">macros/rc.vim</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">set</strong> nocompatible​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">filetype</strong> plugin indent <strong class="prompt">on</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">set</strong> <strong class="prompt">hidden</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">if</strong> has("<strong class="prompt">autocmd</strong>")​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​  <strong class="prompt">autocmd</strong> <strong class="prompt">FileType</strong> <strong class="prompt">ruby</strong> <strong class="prompt">setlocal</strong> <strong class="prompt">ts</strong>=2 <strong class="prompt">sts</strong>=2 <strong class="prompt">sw</strong>=2 <strong class="prompt">expandtab</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">endif</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1791F" class="calibre4">
+        The <code class="cf">‘hidden’</code> option is discussed in more depth in <a xmlns:str="http://exslt.org/strings" href="f_0062.html#sec.hidden">​<em class="calibre5">Enable the ‘hidden’ Setting Before Running ‘:argdo’ or ‘:bufdo’</em>​</a>.
+      </p>
+<p id="N17929" class="calibre4">
+        If you’d like to follow along, consult <a xmlns:str="http://exslt.org/strings" href="f_0013.html#sec.download.source">​<em class="calibre5">Downloading the Examples</em>​</a>. The directory <code class="cf">code/macros/ruby_module</code> contains the set of files that we’ll be working with.
+      </p>
+<h3 class="calibre22">Build a List of Target Files</h3>
+<p id="N17937" class="calibre4">
+        Let’s stake out the terrain by building a list of the files that we want to act upon. We’ll keep track of them using the argument list (for more details, see <a xmlns:str="http://exslt.org/strings" href="f_0061.html#sec.args">Tip 37</a>):
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:cd code/macros/ruby_module</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:args *.rb</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N17955" class="calibre4">
+        Running <code class="cf">:args</code> without arguments reveals the contents of the list:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:args</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​[animal.rb] banker.rb frog.rb person.rb​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1796C" class="calibre4">
+        We can navigate through this list of files using the <code class="cf">:first</code>, <code class="cf">:last</code>, <code class="cf">:prev</code>, and <code class="cf">:next</code> commands.
+      </p>
+<h3 class="calibre22">Record a Unit of Work</h3>
+<p id="N1797F" class="calibre4">
+        Before we begin, let’s make sure we’re at the start of the arguments list:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:first</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1798F" class="calibre4">
+        Now let’s record a macro that performs the necessary work:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">qa</span>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">#</span> ...[end of copyright notice]​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​class Animal​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  # implementation...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​end​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">gg</span>
+<code class="cf">/class</code>
+<span class="calibre17">&lt;CR&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​# ...[end of copyright notice]​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">c</span>lass Animal​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  # implementation...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​end​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">O</span>
+<code class="cf">module Rank&lt;Esc&gt;</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​# ...[end of copyright notice]​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​module Ran<span class="shade-fg-white">k</span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​class Animal​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  # implementation...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​end​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">j&gt;G</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​# ...[end of copyright notice]​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​module Rank​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  <span class="shade-fg-white">c</span>lass Animal​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    # implementation...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  end​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">Go</span>
+<code class="cf">end&lt;Esc&gt;</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​# ...[end of copyright notice]​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​module Rank​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  class Animal​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    # implementation...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  end​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​en<span class="shade-fg-white">d</span>​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">q</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​# ...[end of copyright notice]​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​module Rank​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  class Animal​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    # implementation...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  end​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​en<span class="shade-fg-white">d</span>​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N17A72" class="calibre4">
+        Each of these files begins with a copyright notice, so we have to take care to properly normalize the cursor position. Pressing <span class="calibre17">gg</span> places the cursor at the start of the file, and <code class="cf">/class</code>
+<span class="calibre17">&lt;CR&gt;</span> jumps forwards to the first occurrence of the word “class.” Having made these preparatory steps, we can now proceed to make the changes.
+      </p>
+<p id="N17A82" class="calibre4">
+        We use the <span class="calibre17">O</span> command to open a new line above the cursor, inserting the new text. Then we advance our cursor to the next line, where we use the <span class="calibre17">&gt;G</span> command to indent each line up to the end of the file. Finally, we jump to the end of the file by pressing <span class="calibre17">G</span> and then using the <span class="calibre17">o</span> command to create a new line below the cursor, inserting the <code class="cf">end</code> keyword there.
+      </p>
+<p id="N17A94" class="calibre4">
+        If you’re following along with your editor, try to resist the urge to save your changes to the file by running <code class="cf">:w</code>. We’ll see why in a moment.
+      </p>
+<h3 class="calibre22">Execute the Macro in Parallel</h3>
+<p id="N17A9E" class="calibre4">
+        The <code class="cf">:argdo</code> command allows us to execute an Ex command once for each buffer in the argument list (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">:argdo</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/editing.html#:argdo">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). But if we were to run <code class="cf">:argdo normal @a</code> right now, there would be side effects. 
+      </p>
+<p id="N17AB5" class="calibre4">
+        Think about it. Running <code class="cf">:argdo normal @a</code> executes the macro that we just recorded in all of the buffers in the argument list, including the first one: the one that we changed as we recorded the macro. As a result, the first buffer gets wrapped in a module twice over.
+      </p>
+<p id="N17ABB" class="calibre4">
+        To prevent this, we’ll revert all of the changes we just made to the first buffer in the argument list by running <code class="cf">:edit!</code> (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">:edit!</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/editing.html#:edit!">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>):
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:edit!</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N17AD2" class="calibre4">
+        If you had already written the changes to a file, then <code class="cf">:edit!</code> won’t work. In this case, you could just use the <span class="calibre17">u</span> command repeatedly until the file looked as it did when you opened it.
+      </p>
+<p id="N17ADB" class="calibre4">
+        Now we can go ahead and execute the macro in all of the buffers in the argument list:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:argdo normal @a</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N17AEB" class="calibre4">
+        This technique takes a bit of setup, but that one command does a lot of work for us. Now let’s see how we could adapt this macro to run in series.
+      </p>
+<h3 class="calibre22">Execute the Macro in Series</h3>
+<p id="N17AF2" class="calibre4">
+        Our macro performs a single unit of work on a single buffer. If we want to make it act upon multiple buffers, we could append a final step that advances to the next buffer in the list. (See <a xmlns:str="http://exslt.org/strings" href="#table.execute-in-series">Table 18, ​<em class="calibre5">Executing the Macro in Series</em>​</a>.)
+      </p>
+<hr class="calibre37"/>
+<div class="figurecaption" id="table.execute-in-series">Table 18. Executing the Macro in Series</div>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">qA</span>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​module Rank​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  class Animal​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    # implementation...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  end​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​en<span class="shade-fg-white">d</span>​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">:next</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​class Banker​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  <span class="shade-fg-white">#</span> implementation...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​end​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">q</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​class Banker​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  <span class="shade-fg-white">#</span> implementation...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​end​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">22@a</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​class Banker​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​  <span class="shade-fg-white">#</span> implementation...​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​end​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<hr class="calibre37"/>
+<p id="N17B85" class="calibre4">
+        While we could run <span class="calibre17">3@a</span> to execute the macro on each of the remaining files in the buffer list, there’s no need to be so precise about it. When we reach the last buffer in the argument list, the <code class="cf">:next</code> command fails and the macro aborts. So, rather than specifying an exact count, we only have to ensure that we provide a number that’s large enough: 22 will do, and it’s easy to type.
+      </p>
+<h3 class="calibre22">Save Changes to All Files</h3>
+<p id="N17B92" class="calibre4">
+        We’ve changed four files, but we haven’t saved any of them yet. We could run <code class="cf">:argdo write</code> to save all files in the argument list, but it would be quicker simply to run this:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:wall</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N17BBA" class="calibre4">
+        Note that this saves all files in the buffer list, so it’s not exactly equivalent to <code class="cf">:argdo write</code> (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">:wa</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/editing.html#:wa">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>).
+      </p>
+<p id="N17BC4" class="calibre4">
+        Another useful command is <code class="cf">:wnext</code> (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">:wn</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/editing.html#:wn">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>), which is equivalent to running <code class="cf">:write</code> followed by <code class="cf">:next</code>. If you are executing a macro in series across several files in the argument list, you may prefer to use this.
+      </p>
+<h3 class="calibre22">Discussion</h3>
+<p id="N17BDD" class="calibre4">
+        Suppose that something caused the macro to fail while executing on the third buffer in the argument list. If we were using the <code class="cf">:argdo normal @a</code> command, then the macro would fail only in that one buffer, whereas if we executed the macro in series by using a count, then it would abort, and any items that follow in the argument list would be left unchanged.
+      </p>
+<p id="N17BE3" class="calibre4">
+        We’ve already seen this effect in <a xmlns:str="http://exslt.org/strings" href="f_0098.html#sec.macro.lines">Tip 67</a>. But the consequences are slightly different this time. When we performed the same task on a block of adjacent lines, we could see everything at a glance. If anything went wrong, it was there right in front of our eyes.
+      </p>
+<p id="N17BEA" class="calibre4">
+        This time we’re working on a set of files, so we can’t see everything in a single glance. If we execute the macro in series and it fails, then it will halt at the place where the error occurs, whereas if we execute the macro in parallel and it fails, we’ll have to browse through the argument list until we find the buffer where the error was raised.
+      </p>
+<p id="N17BED" class="calibre4">
+        In the case where an error is raised, running the macro in parallel may complete the job faster, but it conceals useful information.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

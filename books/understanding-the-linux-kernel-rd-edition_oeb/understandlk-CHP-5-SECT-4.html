@@ -1,0 +1,71 @@
+---
+layout: page
+title: "Understanding the Linux Kernel, 3rd Edition"
+prev: understandlk-CHP-5-SECT-3.html
+next: understandlk-CHP-6.html
+book_path: books/understanding-the-linux-kernel-rd-edition_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a name="understandlk-CHP-5-SECT-4"></a>
+<h3 class="docSection1Title" id="534869-949">5.4. Examples of Race Condition Prevention</h3>
+<p class="docText1">Kernel developers are expected to identify and solve the synchronization problems raised by interleaving kernel control paths. However, avoiding race conditions is a hard task because it requires a clear understanding of how the various components of the kernel interact. To give a feeling of what's really inside the kernel code, let's mention a few typical usages of the synchronization primitives defined in this chapter.</p>
+<a name="understandlk-CHP-5-SECT-4.1"></a>
+<h4 class="docSection2Title">5.4.1. Reference Counters</h4>
+<p class="docText1">Reference counters are widely used inside the kernel to avoid race conditions due to the concurrent allocation and releasing of a resource. A <span class="docEmphasis">reference counter</span> is just an <tt class="calibre25">atomic_t</tt> counter associated with a specific resource such as a memory page, a module, or a file. The counter is atomically increased when a kernel control path starts using the resource, and it is decreased when a kernel control path finishes using the resource. When the reference counter becomes zero, the resource is not being used, and it can be released if necessary.</p>
+<a name="understandlk-CHP-5-SECT-4.2"></a>
+<h4 class="docSection2Title">5.4.2. The Big Kernel Lock</h4><a name="IDX-CHP-5-1615"></a>
+<a name="IDX-CHP-5-1616"></a>
+<a name="IDX-CHP-5-1617"></a>
+<a name="IDX-CHP-5-1618"></a>
+<a name="IDX-CHP-5-1619"></a>
+<p class="docText1">In earlier Linux kernel versions, a <span class="docEmphasis">big kernel lock</span><a name="IDX-CHP-5-1620"></a> 
+ (also known as <span class="docEmphasis">global kernel lock</span>, or <span class="docEmphasis">BKL</span>) was widely used. In Linux 2.0, this lock was a relatively crude spin lock, ensuring that only one processor at a time could run in Kernel Mode. The 2.2 and 2.4 kernels were considerably more flexible and no longer relied on a single spin lock; rather, a large number of kernel data structures were protected by many different spin locks. In Linux kernel version 2.6, the big kernel lock is used to protect old code (mostly functions related to the VFS and to several filesystems).</p>
+<p class="docText1">Starting from kernel version 2.6.11, the big kernel lock is implemented by a semaphore named <tt class="calibre25">kernel_sem</tt> (in earlier 2.6 versions, the big kernel lock was implemented by means of a spin lock). The big kernel lock is slightly more sophisticated than a simple semaphore, however.</p>
+<p class="docText1">Every process descriptor includes a <tt class="calibre25">lock_depth</tt> field, which allows the same process to acquire the big kernel lock several times. Therefore, two consecutive requests for it will not hang the processor (as for normal locks). If the process has not acquired the lock, the field has the value -1; otherwise, the field value plus 1 specifies how many times the lock has been taken. The <tt class="calibre25">lock_depth</tt> field is crucial for allowing interrupt handlers, exception handlers, and deferrable functions to take the big kernel lock: without it, every asynchronous function that tries to get the big kernel lock could generate a deadlock if the current process already owns the lock.</p>
+<p class="docText1">The <tt class="calibre25">lock_kernel( )</tt> and <tt class="calibre25">unlock_kernel( )</tt> functions are used to get and release the big kernel lock. The former function is equivalent to:</p>
+<pre class="calibre27">
+    depth = current-&gt;lock_depth + 1;
+    if (depth == 0)
+        down(&amp;kernel_sem);
+    current-&gt;lock_depth = depth;
+</pre><br class="calibre7"/>
+<p class="docText1">while the latter is equivalent to:</p>
+<pre class="calibre27">
+    if (--current-&gt;lock_depth &lt; 0)
+        up(&amp;kernel_sem);
+</pre><br class="calibre7"/>
+<p class="docText1">Notice that the <tt class="calibre25">if</tt> statements of the <tt class="calibre25">lock_kernel( )</tt> and <tt class="calibre25">unlock_kernel( )</tt> functions need not be executed atomically because <tt class="calibre25">lock_depth</tt> is not a global variable  each CPU addresses a field of its own current process descriptor. Local interrupts inside the <tt class="calibre25">if</tt> statements do not induce race conditions either. Even if the new kernel control path invokes <tt class="calibre25">lock_kernel( )</tt>, it must release the big kernel lock before terminating.</p>
+<p class="docText1">Surprisingly enough, a process holding the big kernel lock is allowed to invoke <tt class="calibre25">schedule( )</tt>, thus relinquishing the CPU. The <tt class="calibre25">schedule( )</tt> function, however, checks the <tt class="calibre25">lock_depth</tt> field of the process being replaced and, if its value is zero or positive, automatically releases the <tt class="calibre25">kernel_sem</tt> semaphore (see the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-7-SECT-4.html#understandlk-CHP-7-SECT-4.4">The schedule( ) Function</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-7.html#understandlk-CHP-7">Chapter 7</a>). Thus, no process that explicitly invokes <tt class="calibre25">schedule( )</tt> can keep the big kernel lock across the process switch. The <tt class="calibre25">schedule( )</tt> function, however, will reacquire the big kernel lock for the process when it will be selected again for execution.</p>
+<p class="docText1">Things are different, however, if a process that holds the big kernel lock is preempted by another process. Up to kernel version 2.6.10 this case could not occur, because acquiring a spin lock automatically disables kernel preemption. The current implementation of the big kernel lock, however, is based on a semaphore, and acquiring it does not automatically disable kernel preemption. Actually, allowing kernel preemption inside critical regions protected by the big kernel lock has been the main reason for changing its implementation. This, in turn, has beneficial effects on the response time of the system.</p>
+<p class="docText1">When a process holding the big kernel lock is preempted, <tt class="calibre25">schedule( )</tt> must not release the semaphore because the process executing the code in the critical region has not voluntarily triggered a process switch, thus if the big kernel lock would be released, another process might take it and corrupt the data structures accessed by the preempted process.</p>
+<p class="docText1">To avoid the preempted process losing the big kernel lock, the <tt class="calibre25">preempt_schedule_irq( )</tt> function temporarily sets the <tt class="calibre25">lock_depth</tt> field of the process to <tt class="calibre25">-</tt>1 (see the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-4-SECT-9.html#understandlk-CHP-4-SECT-9">Returning from Interrupts and Exceptions</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-4.html#understandlk-CHP-4">Chapter 4</a>). Looking at the value of this field, <tt class="calibre25">schedule( )</tt> assumes that the process being replaced does not hold the <tt class="calibre25">kernel_sem</tt> semaphore and thus does not release it. As a result, the <tt class="calibre25">kernel_sem</tt> semaphore continues to be owned by the preempted process. Once this process is selected again by the scheduler, the <tt class="calibre25">preempt_schedule_irq( )</tt> function restores the original value of the <tt class="calibre25">lock_depth</tt> field and lets the process resume execution in the critical section protected by the big kernel lock.</p>
+<a name="understandlk-CHP-5-SECT-4.3"></a>
+<h4 class="docSection2Title">5.4.3. Memory Descriptor Read/Write Semaphore</h4><a name="IDX-CHP-5-1621"></a>
+<a name="IDX-CHP-5-1622"></a>
+<p class="docText1">Each memory descriptor of type <tt class="calibre25">mm_struct</tt> includes its own semaphore in the <tt class="calibre25">mmap_sem</tt> field (see the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-9-SECT-2.html#understandlk-CHP-9-SECT-2">The Memory Descriptor</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-9.html#understandlk-CHP-9">Chapter 9</a>). The semaphore protects the descriptor against race conditions that could arise because a memory descriptor can be shared among several lightweight processes.</p>
+<p class="docText1">For instance, let's suppose that the kernel must create or extend a memory region for some process; to do this, it invokes the <tt class="calibre25">do_mmap( )</tt> function, which allocates a new <tt class="calibre25">vm_area_struct</tt> data structure. In doing so, the current process could be suspended if no free memory is available, and another process sharing the same memory descriptor could run. Without the semaphore, every operation of the second process that requires access to the memory descriptor (for instance, a Page Fault<a name="IDX-CHP-5-1623"></a> 
+ due to a Copy on Write) could lead to severe data corruption.</p>
+<p class="docText1">The semaphore is implemented as a read/write semaphore, because some kernel functions, such as the Page Fault exception handler (see the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-9-SECT-4.html#understandlk-CHP-9-SECT-4">Page Fault Exception Handler</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-9.html#understandlk-CHP-9">Chapter 9</a>), need only to scan the memory descriptors.</p>
+<a name="understandlk-CHP-5-SECT-4.4"></a>
+<h4 class="docSection2Title">5.4.4. Slab Cache List Semaphore</h4><a name="IDX-CHP-5-1624"></a>
+<a name="IDX-CHP-5-1625"></a>
+<a name="IDX-CHP-5-1626"></a>
+<p class="docText1">The list of slab cache descriptors<a name="IDX-CHP-5-1627"></a> 
+ (see the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-8-SECT-2.html#understandlk-CHP-8-SECT-2.2">Cache Descriptor</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-8.html#understandlk-CHP-8">Chapter 8</a>) is protected by the <tt class="calibre25">cache_chain_sem</tt> semaphore, which grants an exclusive right to access and modify the list.</p>
+<p class="docText1">A race condition is possible when <tt class="calibre25">kmem_cache_create( )</tt> adds a new element in the list, while <tt class="calibre25">kmem_cache_shrink( )</tt> and <tt class="calibre25">kmem_cache_reap( )</tt> sequentially scan the list. However, these functions are never invoked while handling an interrupt, and they can never block while accessing the list. The semaphore plays an active role both in multiprocessor systems and in uniprocessor systems with kernel preemption supported.</p>
+<a name="understandlk-CHP-5-SECT-4.5"></a>
+<h4 class="docSection2Title">5.4.5. Inode Semaphore</h4><a name="IDX-CHP-5-1628"></a>
+<p class="docText1">As we'll see in "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-12-SECT-2.html#understandlk-CHP-12-SECT-2.2">Inode Objects</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-12.html#understandlk-CHP-12">Chapter 12</a>, Linux stores the information on a disk file in a memory object called an inode. The corresponding data structure includes its own semaphore in the <tt class="calibre25">i_sem</tt> field.</p>
+<p class="docText1">A huge number of race conditions can occur during filesystem handling. Indeed, each file on disk is a resource held in common for all users, because all processes may (potentially) access the file content, change its name or location, destroy or duplicate it, and so on. For example, let's suppose that a process lists the files contained in some directory. Each disk operation is potentially blocking, and therefore even in uniprocessor systems, other processes could access the same directory and modify its content while the first process is in the middle of the listing operation. Or, again, two different processes could modify the same directory at the same time. All these race conditions are avoided by protecting the directory file with the inode semaphore.</p>
+<p class="docText1">Whenever a program uses two or more semaphores, the potential for deadlock is present, because two different paths could end up waiting for each other to release a semaphore. Generally speaking, Linux has few problems with deadlocks on semaphore requests, because each kernel control path usually needs to acquire just one semaphore at a time. However, in some cases, the kernel must get two or more locks. Inode semaphores are prone to this scenario; for instance, this occurs in the service routine in the <tt class="calibre25">rename( )</tt> system call. In this case, two different inodes are involved in the operation, so both semaphores must be taken. To avoid such deadlocks, semaphore requests are performed in predefined address order.</p>
+
+<br class="calibre7"/>
+
+</div>
+
+{% endraw %}
+

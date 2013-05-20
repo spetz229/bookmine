@@ -1,0 +1,248 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0059.html
+next: f_0061.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.buffer.list">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 36</td>
+<td class="arr-recipe-name">Track Open Files with the Buffer List</td>
+</tr>
+</table>
+<p id="N13936" class="calibre4">
+<span class="calibre5">
+        We can load multiple files during an editing session. Vim lets us manage them using the buffer list.
+    </span>
+</p>
+<h3 class="calibre22">Understand the Distinction Between Files and Buffers</h3>
+<p id="N13950" class="calibre4">
+        Just like any other text editor, Vim allows us to read files, edit them, and save our changes. When we discuss our workflow, it’s tempting to say that we’re editing a file, but that’s not what we’re actually doing. Instead, we’re editing an in-memory representation of a file, which is called a <span class="calibre5">buffer</span> in Vim’s terminology.
+      </p>
+<p id="N13960" class="calibre4">
+        Files are stored on the disk, whereas buffers exist in memory. When we open a file in Vim, its contents are read into a buffer, which takes the same name as the file. Initially, the contents of the buffer will be identical to those of the file, but the two will diverge as we make changes to the buffer. If we decide that we want to keep our changes, we can write the contents of the buffer back into the file. Most Vim commands operate on buffers, but a few operate on files, including the <code class="cf">:write</code>, <code class="cf">:update</code>, and <code class="cf">:saveas</code> commands.
+		</p>
+<h3 class="calibre22">Meet the Buffer List</h3>
+<p id="N1397F" class="calibre4">
+        Vim allows us to work with multiple buffers simultaneously. Let’s open a few files by running these commands in the shell:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ cd code/files</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ vim *.txt</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​2 files to edit​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N13998" class="calibre4">
+        The <code class="cf">*.txt</code> wildcard matches two files in the current directory: <code class="cf">a.txt</code> and <code class="cf">b.txt</code>. This command tells Vim to open both of those files. When Vim starts up, it shows a single window with a buffer representing the first of the two files. The other file isn’t visible, but it has been loaded into a buffer in the background, as we can see by running the following:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:ls</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​1 %a   "a.txt"                        line 1​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​2      "b.txt"                        line 0​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N139B8" class="calibre4">
+        The <code class="cf">:ls</code> command gives us a listing of all the buffers that have been loaded into memory (<strong xmlns:str="http://exslt.org/strings" class="calibre10">:ls</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/windows.html#:ls">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). We can switch to the next buffer in the list by running the <code class="cf">:bnext</code> command:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:bnext</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:ls</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​1 #    "a.txt"                        line 1​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​2 %a   "b.txt"                        line 1​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N139EF" class="calibre4">
+        The <code class="cf">%</code> symbol indicates which of the buffers is visible in the current window, while the <code class="cf">#</code> symbol represents the alternate file. We can quickly toggle between the current and alternate files by pressing <span class="calibre17">&lt;C-^&gt;</span>. Press it once, and we’ll switch to <code class="cf">a.txt</code>; press it a second time, and we’ll get back to <code class="cf">b.txt</code>.
+      </p>
+<h3 class="calibre22">Use the Buffer List</h3>
+<p id="N13A13" class="calibre4">
+        We can traverse the buffer list using four commands—<code class="cf">:bprev</code> and <code class="cf">:bnext</code> to move backward and forward one at a time, and <code class="cf">:bfirst</code> and <code class="cf">:blast</code> to jump to the start or end of the list. It’s a good idea to map them to something easier to reach. See <a xmlns:str="http://exslt.org/strings" href="#sidebar.unimpaired">​<em class="calibre5">Create Mappings to Quickly Traverse Vim’s Lists</em>​</a>, for a suggested mapping.
+      </p>
+<p id="N13A3A" class="calibre4">
+        The <code class="cf">:ls</code> listing starts with a digit, which is assigned to each buffer automatically on creation. We can jump directly to a buffer by number, using the <code class="cf">:buffer N</code> command (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">:b</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/windows.html#:b">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). Alternatively, we can use the more intuitive form, <code class="cf">:buffer {bufname}</code>. The <code class="cf">{bufname}</code> need only contain enough characters from the filepath to uniquely identify the buffer. If we enter a string that matches more than one of the items in the buffer list, we can use tab-completion to choose between the options (see <a xmlns:str="http://exslt.org/strings" href="f_0054.html#sec.tab.complete">Tip 32</a>).
+      </p>
+<p id="N13A65" class="calibre4">
+        The <code class="cf">:bufdo</code> command allows us to execute an Ex command in all of the buffers listed by <code class="cf">:ls</code> (<strong xmlns:str="http://exslt.org/strings" class="calibre10">:bufdo</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/windows.html#:bufdo">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). In practice, I usually find that it’s more practical to use <code class="cf">:argdo</code> instead, which we’ll meet in <a xmlns:str="http://exslt.org/strings" href="f_0061.html#sec.args">Tip 37</a>.
+      </p>
+<div class="sidebar" id="sidebar.unimpaired">
+<div class="sidebar-title">Create Mappings to Quickly Traverse Vim's Lists</div>
+<div class="calibre1">
+<p id="N13A83" class="calibre4">
+          Typing <code class="cf1">:bn</code> and <code class="cf1">:bp</code> can feel laborious. To speed things up a bit, I use these mappings from Tim Pope’s unimpaired.vim plugin:<a id="FNPTR-9" href="f_0064.html#FOOTNOTE-9">[9]</a>
+</p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix4" valign="top">
+<span> </span>
+</td>
+<td class="codeline4" valign="top">
+<div class="calibre38">
+​<code class="calibre39">​<strong class="prompt">nnoremap</strong> <em class="string">&lt;silent&gt;</em> [b :<strong class="prompt">bprevious</strong>
+<em class="string">&lt;CR&gt;</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix4" valign="top">
+<span> </span>
+</td>
+<td class="codeline4" valign="top">
+<div class="calibre38">
+​<code class="calibre39">​<strong class="prompt">nnoremap</strong> <em class="string">&lt;silent&gt;</em> ]b :<strong class="prompt">bnext</strong>
+<em class="string">&lt;CR&gt;</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix4" valign="top">
+<span> </span>
+</td>
+<td class="codeline4" valign="top">
+<div class="calibre38">
+​<code class="calibre39">​<strong class="prompt">nnoremap</strong> <em class="string">&lt;silent&gt;</em> [B :<strong class="prompt">bfirst</strong>
+<em class="string">&lt;CR&gt;</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix4" valign="top">
+<span> </span>
+</td>
+<td class="codeline4" valign="top">
+<div class="calibre38">
+​<code class="calibre39">​<strong class="prompt">nnoremap</strong> <em class="string">&lt;silent&gt;</em> ]B :<strong class="prompt">blast</strong>
+<em class="string">&lt;CR&gt;</em>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N13AD5" class="calibre4">
+          Vim already uses the <span class="calibre17">[</span> and <span class="calibre17">]</span> keys as prefixes for a series of related commands (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">[</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/index.html#[">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>), so these mappings have a consistent feel to them. The unimpaired.vim plugin provides similar mappings for scrolling through the argument (<span class="calibre17">[a</span> and <span class="calibre17">]a</span>), quickfix (<span class="calibre17">[q</span> and <span class="calibre17">]q</span>), location (<span class="calibre17">[l</span> and <span class="calibre17">]l</span>), and tag lists (<span class="calibre17">[t</span> and <span class="calibre17">]t</span>). Check it out.
+        </p>
+</div>
+</div>
+<h3 class="calibre22">Deleting Buffers</h3>
+<p id="N13AFF" class="calibre4">
+        Vim creates a new buffer any time we open a file, and we’ll learn a few ways of doing that in <a xmlns:str="http://exslt.org/strings" href="f_0065.html#chp.files">Chapter 7, ​<em class="calibre5">Open Files and Save Them to Disk</em>​</a>. If we want to delete a buffer, we can do so using the <code class="cf">:bdelete</code> command. This can take one of these forms:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​:bdelete N1 N2 N3​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​:N,M bdelete​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N13B26" class="calibre4">
+        Note that deleting a buffer has no effect on its associated file; it simply removes the in-memory representation. If we wanted to delete buffers numbered 5 through 10 inclusive, we could do so by running <code class="cf">:5,10bd</code>. But if we wanted to keep buffer number 8, then we’d instead have to run <code class="cf">:bd 5 6 7 9 10</code>.
+      </p>
+<p id="N13B2F" class="calibre4">
+        Buffer numbers are automatically assigned by Vim, and we have no means of changing them by hand. So if we want to delete one or more buffers, we first have to look them up to find out their numbers. This procedure is relatively time-consuming. Unless I have a good reason to delete a buffer, I usually don’t bother. As a result, the <code class="cf">:ls</code> listing comes to represent all of the files that I have opened in the course of an editing session.
+      </p>
+<p id="N13B38" class="calibre4">
+        Vim’s built-in controls for managing the buffer list lack flexibility. If we want to arrange buffers in a way that makes sense for our workflow, attempting to organize the buffer list is not the way to go. Instead, we’re better off dividing our workspace using split windows, tab pages, or the argument list. The next few tips will show how.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

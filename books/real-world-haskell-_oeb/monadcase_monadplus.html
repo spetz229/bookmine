@@ -1,0 +1,237 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: monadcase_ap.html
+next: I_sect115_d1e34429.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="monadcase_ap.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect115_d1e34429.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="monadcase_monadplus" class="calibre27" id="monadcase_monadplus"></a><h3 id="title-IDADPLWD" class="docSection1Title">15.3. Looking for Alternatives</h3><a name="x_zi" class="calibre27" id="x_zi"></a><p class="docText">Here's a simple representation of a person's phone
+    numbers:</p><pre class="calibre39">-- file: ch15/VCard.hs
+data Context = Home | Mobile | Business
+               deriving (Eq, Show)
+
+type Phone = String
+
+albulena = [(Home, "+355-652-55512")]
+
+nils = [(Mobile, "+47-922-55-512"), (Business, "+47-922-12-121"),
+        (Home, "+47-925-55-121"), (Business, "+47-922-25-551")]
+
+twalumba = [(Business, "+260-02-55-5121")]</pre><br class="calibre48"/>
+<a name="x_Aj" class="calibre27" id="x_Aj"></a><p class="docText">Suppose we want to get in touch with someone to make a
+    personal call. We don't want his business number, and we'd prefer to use
+    his home number (if he has one) instead of their mobile number:</p><pre class="calibre39">-- file: ch15/VCard.hs
+onePersonalPhone :: [(Context, Phone)] -&gt; Maybe Phone
+onePersonalPhone ps = case lookup Home ps of
+                        Nothing -&gt; lookup Mobile ps
+                        Just n -&gt; Just n</pre><br class="calibre48"/>
+<a name="x_Bj" class="calibre27" id="x_Bj"></a><p class="docText">Of course, if we use Maybe as the result
+    type, we can't accommodate the possibility that someone might have more
+    than one number that meets our criteria. For that, we switch to a
+    list:</p><pre class="calibre39">-- file: ch15/VCard.hs
+allBusinessPhones :: [(Context, Phone)] -&gt; [Phone]
+allBusinessPhones ps = map snd numbers
+    where numbers = case filter (contextIs Business) ps of
+                      [] -&gt; filter (contextIs Mobile) ps
+                      ns -&gt; ns
+
+contextIs a (b, _) = a == b</pre><br class="calibre48"/>
+<a name="x_Cj" class="calibre27" id="x_Cj"></a><p class="docText">Notice that these two functions structure their <tt class="calibre34">case</tt> expressions similarly—one alternative
+    handles the case where the first lookup returns an empty result, while the
+    other handles the nonempty case:</p><pre class="calibre39">ghci&gt; <b class="calibre40">onePersonalPhone twalumba</b>
+Nothing
+ghci&gt; <b class="calibre40">onePersonalPhone albulena</b>
+Just "+355-652-55512"
+ghci&gt; <b class="calibre40">allBusinessPhones nils</b>
+["+47-922-12-121","+47-922-25-551"]</pre><a name="x_Dj" class="calibre27" id="x_Dj"></a><p class="docText">Haskell's <tt class="calibre34">Control.Monad</tt> module defines a
+    typeclass, MonadPlus, that lets us abstract the common
+    pattern out of our <tt class="calibre34">case</tt>
+    expressions:</p><pre class="calibre39">-- file: ch15/VCard.hs
+class Monad m =&gt; MonadPlus m where
+   mzero :: m a	
+   mplus :: m a -&gt; m a -&gt; m a</pre><br class="calibre48"/>
+<a name="x_Ej" class="calibre27" id="x_Ej"></a><p class="docText">The value <tt class="calibre34">mzero</tt> represents an empty result,
+    while <i class="docEmphasis">mplus</i> combines two results into
+    one. Here are the standard definitions of <tt class="calibre34">mzero</tt> and <i class="docEmphasis">mplus</i> for Maybe and lists:</p><pre class="calibre39">-- file: ch15/VCard.hs
+instance MonadPlus [] where
+   mzero = []
+   mplus = (++)
+
+instance MonadPlus Maybe where
+   mzero = Nothing
+
+   Nothing `mplus` ys  = ys
+   xs      `mplus` _ = xs</pre><br class="calibre48"/>
+<a name="x_Fj" class="calibre27" id="x_Fj"></a><p class="docText">We can now use <i class="docEmphasis">mplus</i>
+    to get rid of our <tt class="calibre34">case</tt> expressions
+    entirely. For variety, let's fetch one business and all personal phone
+    numbers:</p><pre class="calibre39">-- file: ch15/VCard.hs
+oneBusinessPhone :: [(Context, Phone)] -&gt; Maybe Phone
+oneBusinessPhone ps = lookup Business ps `mplus` lookup Mobile ps
+
+allPersonalPhones :: [(Context, Phone)] -&gt; [Phone]
+allPersonalPhones ps = map snd $ filter (contextIs Home) ps `mplus`
+                                 filter (contextIs Mobile) ps</pre><br class="calibre48"/>
+<a name="x_Gj" class="calibre27" id="x_Gj"></a><p class="docText">In these functions, because we know that <i class="docEmphasis">lookup</i> returns a value of type
+    Maybe, and <i class="docEmphasis">filter</i>
+    returns a list, it's obvious which version of <i class="docEmphasis">mplus</i> is going to be used in each case.</p><a name="x_Hj" class="calibre27" id="x_Hj"></a><p class="docText">What's more interesting is that we can use
+    <tt class="calibre34">mzero</tt> and <i class="docEmphasis">mplus</i> to write
+    functions that will be useful for <span class="docEmphasis">any</span>
+    MonadPlus instance. As an example, here's the standard
+    <i class="docEmphasis">lookup</i> function, which returns a
+    value of type Maybe:</p><pre class="calibre39">-- file: ch15/VCard.hs
+lookup :: (Eq a) =&gt; a -&gt; [(a, b)] -&gt; Maybe b
+lookup _ []                      = Nothing
+lookup k ((x,y):xys) | x == k    = Just y
+                     | otherwise = lookup k xys</pre><br class="calibre48"/>
+<a name="x_Ij" class="calibre27" id="x_Ij"></a><p class="docText">We can easily generalize the result type to any instance
+    of MonadPlus as follows:</p><pre class="calibre39">-- file: ch15/VCard.hs
+lookupM :: (MonadPlus m, Eq a) =&gt; a -&gt; [(a, b)] -&gt; m b
+lookupM _ []    = mzero
+lookupM k ((x,y):xys)
+    | x == k    = return y `mplus` lookupM k xys
+    | otherwise = lookupM k xys</pre><br class="calibre48"/>
+<a name="x_Jj" class="calibre27" id="x_Jj"></a><p class="docText">This lets us get either no result or one, if our result
+    type is Maybe; all results, if our result type is a list; or
+    something more appropriate for some other exotic instance of
+    MonadPlus.</p><a name="x_rG1" class="calibre27" id="x_rG1"></a><p class="docText">For small functions, such as those we present here,
+    there's little benefit to using <i class="docEmphasis">mplus</i>. The advantage lies in more complex code
+    and in code that is independent of the monad in which it executes. Even if
+    you don't find yourself needing MonadPlus for your own code,
+    you are likely to encounter it in other people's projects.</p><a name="monadcase_monadplusd1e34629" class="calibre27" id="monadcase_monadplusd1e34629"></a><h4 id="title-IDAMULWD" class="docSection1Title">15.3.1. The Name mplus Does Not Imply Addition</h4><a name="x_Kj" class="calibre27" id="x_Kj"></a><p class="docText">Even though the <i class="docEmphasis">mplus</i> function<a name="I_indexterm15_d1e34296" class="calibre27" id="I_indexterm15_d1e34296"></a> contains the text "plus," you should not think of it as
+      necessarily implying that we're trying to add two values.</p><a name="x_Lj" class="calibre27" id="x_Lj"></a><p class="docText">Depending on the monad we're working in, <i class="docEmphasis">mplus</i> <span class="docEmphasis">may</span> implement an
+      operation that looks like addition. For example, <i class="docEmphasis">mplus</i> in the list monad is implemented
+      <a name="I_indexterm15_d1e34311" class="calibre27" id="I_indexterm15_d1e34311"></a><a name="I_indexterm15_d1e34316" class="calibre27" id="I_indexterm15_d1e34316"></a>as the <i class="docEmphasis">(++)</i>
+      operator:</p><pre class="calibre39">ghci&gt; <b class="calibre40">[1,2,3] `mplus` [4,5,6]</b>
+[1,2,3,4,5,6]
+</pre><a name="x_Mj" class="calibre27" id="x_Mj"></a><p class="docText">However, if we switch to another monad, the obvious
+      similarity to addition falls away:</p><pre class="calibre39">ghci&gt; <b class="calibre40">Just 1 `mplus` Just 2</b>
+Just 1
+-</pre><a name="monadcase_monadplusd1e34680" class="calibre27" id="monadcase_monadplusd1e34680"></a><h4 id="title-IDALWLWD" class="docSection1Title">15.3.2. Rules for Working with MonadPlus</h4><p class="docText">Instances of the MonadPlus typeclass must follow a
+      few simple rules in addition to the usual monad rules.</p><p class="docText">An instance must short-circuit if mzero appears on
+      the left of a bind expression. In other words, an expression <tt class="calibre34">mzero
+      &gt;&gt;= f</tt> must evaluate to the same result as
+      <tt class="calibre34">mzero</tt> alone:</p><pre class="calibre39">-- file: ch15/MonadPlus.hs
+    mzero &gt;&gt;= f == mzero</pre><br class="calibre48"/>
+<p class="docText">An instance must short-circuit if <tt class="calibre34">mzero</tt> appears on
+      the <span class="docEmphasis">right</span> of a sequence expression:</p><pre class="calibre39">-- file: ch15/MonadPlus.hs
+    v &gt;&gt; == mzero</pre><br class="calibre48"/>
+<a name="monadcase_monadplusd1e34711" class="calibre27" id="monadcase_monadplusd1e34711"></a><h4 id="title-IDAJXLWD" class="docSection1Title">15.3.3. Failing Safely with MonadPlus</h4><a name="x_Qj" class="calibre27" id="x_Qj"></a><p class="docText">When we introduced the <i class="docEmphasis">fail</i> function in <a class="docLink" href="monads_class.html#monads_class">Section 14.4</a>, we took pains to warn against its use: in
+      many monads, it's implemented as a call to <i class="docEmphasis">error</i>, which has unpleasant
+      consequences.</p><a name="x_Rj" class="calibre27" id="x_Rj"></a><p class="docText">The MonadPlus typeclass gives us a gentler
+      way to fail a computation, without <i class="docEmphasis">fail</i> or <i class="docEmphasis">error</i> blowing up in our faces. The rules that
+      we just introduced allow us to introduce an <tt class="calibre34">mzero</tt> into our
+      code wherever we need to, and computation will short-circuit at that
+      point.</p><a name="x_Sj" class="calibre27" id="x_Sj"></a><p class="docText">In the <tt class="calibre34">Control.Monad</tt> module, <a name="I_indexterm15_d1e34402" class="calibre27" id="I_indexterm15_d1e34402"></a>the standard function <i class="docEmphasis">guard</i> packages up this idea in a convenient
+      form:</p><pre class="calibre39">-- file: ch15/MonadPlus.hs
+guard        :: (MonadPlus m) =&gt; Bool -&gt; m ()
+guard True   =  return ()
+guard False  =  mzero</pre><br class="calibre48"/>
+<a name="x_Tj" class="calibre27" id="x_Tj"></a><p class="docText">As a simple example, here's a function that takes a
+      number <span class="docMonofont">x</span> and computes its value modulo some other
+      number <span class="docMonofont">n</span>. If the result is zero, it returns
+      <span class="docMonofont">x</span>; otherwise, the current monad's
+      <tt class="calibre34">mzero</tt>:</p><pre class="calibre39">-- file: ch15/MonadPlus.hs
+x `zeroMod` n = guard ((x `mod` n) == 0) &gt;&gt; return x</pre><br class="calibre48"/>
+<a href="21061538.html" class="calibre2"><img src="pixel.gif" alt="" border="0" class="calibre31"/></a><ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="monadcase_ap.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect115_d1e34429.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

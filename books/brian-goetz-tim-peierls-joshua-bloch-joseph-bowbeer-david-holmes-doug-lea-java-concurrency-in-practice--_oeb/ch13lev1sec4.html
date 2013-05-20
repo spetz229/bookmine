@@ -1,0 +1,28 @@
+---
+layout: page
+title: "Java Concurrency in Practice"
+prev: ch13lev1sec3.html
+next: ch13lev1sec5.html
+book_path: books/brian-goetz-tim-peierls-joshua-bloch-joseph-bowbeer-david-holmes-doug-lea-java-concurrency-in-practice--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a href="21021536.html" class="calibre2"><img src="pixel.jpg" alt="" border="0" class="calibre26"/></a><a name="ch13lev1sec4" class="calibre18" id="ch13lev1sec4"></a>
+<h3 id="title-IDAJACNU" class="docSection1Title">13.4. Choosing Between Synchronized and ReentrantLock</h3>
+<p class="docText1"><tt class="calibre25">ReentrantLock</tt> provides the same locking and memory semantics as intrinsic locking, as well as additional features such as timed lock waits, interruptible lock waits, fairness, and the ability to implement non-block-structured locking. The performance of <tt class="calibre25">ReentrantLock</tt> appears to dominate that of intrinsic locking, winning slightly on Java 6 and dramatically on Java 5.0. So why not deprecate <tt class="calibre25">synchronized</tt> and encourage all new concurrent code to use <tt class="calibre25">ReentrantLock</tt>? Some authors have in fact suggested this, treating <tt class="calibre25">synchronized</tt> as a "legacy" construct. But this is taking a good thing <span class="docEmphasis">way</span> too far.</p>
+<p class="docText1">Intrinsic locks still have significant advantages over explicit locks. The notation is familiar and compact, and many existing programs already use intrinsic lockingand mixing the two could be confusing and error-prone. <tt class="calibre25">Reentrant-Lock</tt> is definitely a more dangerous tool than synchronization; if you forget to wrap the <tt class="calibre25">unlock</tt> call in a <tt class="calibre25">finally</tt> block, your code will probably appear to run properly, but you've created a time bomb that may well hurt innocent bystanders. Save <tt class="calibre25">ReentrantLock</tt> for situations in which you need something <tt class="calibre25">ReentrantLock</tt> provides that intrinsic locking doesn't.</p>
+<a name="ch13sb02" class="calibre18" id="ch13sb02"></a><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<p class="docText1"><tt class="calibre25">ReentrantLock</tt> is an advanced tool for situations where intrinsic locking is not practical. Use it if you need its advanced features: timed, polled, or interruptible lock acquisition, fair queueing, or non-block-structured locking. Otherwise, prefer <tt class="calibre25">synchronized</tt>.</p>
+</td></tr></table></p><p class="calibre1"> </p>
+<p class="docText1">Under Java 5.0, intrinsic locking has another advantage over <tt class="calibre25">ReentrantLock</tt>: tHRead dumps show which call frames acquired which locks and can detect and identify deadlocked threads. The JVM knows nothing about which threads hold <tt class="calibre25">ReentrantLock</tt>s and therefore cannot help in debugging threading problems using <tt class="calibre25">ReentrantLock</tt>. This disparity is addressed in Java 6 by providing a management and monitoring interface with which locks can register, enabling locking information for <tt class="calibre25">ReentrantLock</tt>s to appear in thread dumps and through other management and debugging interfaces. The availability of this information for debugging is a substantial, if mostly temporary, advantage for <tt class="calibre25">synchronized</tt>; locking information in thread dumps has saved many programmers from utter consternation. The non-block-structured nature of <tt class="calibre25">ReentrantLock</tt> still means that lock acquisitions cannot be tied to specific stack frames, as they can with intrinsic locks.</p>
+<p class="docText1"><a name="iddle1368" class="calibre18" id="iddle1368"></a><a name="iddle1478" class="calibre18" id="iddle1478"></a><a name="iddle1997" class="calibre18" id="iddle1997"></a><a name="iddle2920" class="calibre18" id="iddle2920"></a><a name="iddle3072" class="calibre18" id="iddle3072"></a><a name="iddle3091" class="calibre18" id="iddle3091"></a><a name="iddle3132" class="calibre18" id="iddle3132"></a><a name="iddle3261" class="calibre18" id="iddle3261"></a><a name="iddle3385" class="calibre18" id="iddle3385"></a><a name="iddle3520" class="calibre18" id="iddle3520"></a><a name="iddle3795" class="calibre18" id="iddle3795"></a><a name="iddle3796" class="calibre18" id="iddle3796"></a>Future performance improvements are likely to favor <tt class="calibre25">synchronized</tt> over <tt class="calibre25">ReentrantLock</tt>. Because <tt class="calibre25">synchronized</tt> is built into the JVM, it can perform optimizations such as lock elision for thread-confined lock objects and lock coarsening to eliminate synchronization with intrinsic locks (see <a class="calibre2" href="ch11lev1sec3.html#ch11lev2sec6">Section 11.3.2</a>); doing this with library-based locks seems far less likely. Unless you are deploying on Java 5.0 for the foreseeable future and you have a <span class="docEmphasis">demonstrated</span> need for <tt class="calibre25">ReentrantLock</tt>'s scalability benefits on that platform, it is not a good idea to choose <tt class="calibre25">ReentrantLock</tt> over <tt class="calibre25">synchronized</tt> for performance reasons.</p>
+<a href="21021536.html" class="calibre2"><img src="pixel.jpg" alt="" border="0" class="calibre26"/></a>
+<p class="calibre3"> </p>
+
+</div>
+
+{% endraw %}
+

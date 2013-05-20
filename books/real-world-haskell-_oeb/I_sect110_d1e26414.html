@@ -1,0 +1,165 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect110_d1e26311.html
+next: I_sect110_d1e26457_split_000.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect110_d1e26311.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect110_d1e26457_split_000.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect110_d1e26414" class="calibre27" id="I_sect110_d1e26414"></a><h3 id="643999-872" class="docSection1Title">10.8. Rewriting Our PGM Parser</h3><a name="x_sS" class="calibre27" id="x_sS"></a><p class="docText">With our new parsing code, what does the raw PGM parsing
+    function look like now?</p><pre class="calibre39">-- file: ch10/Parse.hs
+parseRawPGM =
+    parseWhileWith w2c notWhite ==&gt; \header -&gt; skipSpaces ==&gt;&amp;
+    assert (header == "P5") "invalid raw header" ==&gt;&amp;
+    parseNat ==&gt; \width -&gt; skipSpaces ==&gt;&amp;
+    parseNat ==&gt; \height -&gt; skipSpaces ==&gt;&amp;
+    parseNat ==&gt; \maxGrey -&gt;
+    parseByte ==&gt;&amp;
+    parseBytes (width * height) ==&gt; \bitmap -&gt;
+    identity (Greymap width height maxGrey bitmap)
+  where notWhite = (`notElem` " \r\n\t")</pre><br class="calibre48"/>
+<a name="x_tS" class="calibre27" id="x_tS"></a><p class="docText">This definition makes use of a few more helper functions
+    that we present here, following a pattern that should be familiar by
+    now:</p><pre class="calibre39">-- file: ch10/Parse.hs
+parseWhileWith :: (Word8 -&gt; a) -&gt; (a -&gt; Bool) -&gt; Parse [a]
+parseWhileWith f p = fmap f &lt;$&gt; parseWhile (p . f)
+
+parseNat :: Parse Int
+parseNat = parseWhileWith w2c isDigit ==&gt; \digits -&gt;
+           if null digits
+           then bail "no more input"
+           else let n = read digits
+                in if n &lt; 0
+                   then bail "integer overflow"
+                   else identity n
+
+(==&gt;&amp;) :: Parse a -&gt; Parse b -&gt; Parse b
+p ==&gt;&amp; f = p ==&gt; \_ -&gt; f
+
+skipSpaces :: Parse ()
+skipSpaces = parseWhileWith w2c isSpace ==&gt;&amp; identity ()
+
+assert :: Bool -&gt; String -&gt; Parse ()
+assert True  _   = identity ()
+assert False err = bail err</pre><br class="calibre48"/>
+<a name="x_uS" class="calibre27" id="x_uS"></a><p class="docText">The <i class="docEmphasis">(==&gt;&amp;)</i>
+    combinator chains parsers such as <i class="docEmphasis">(==&gt;)</i>, but the righthand side ignores the
+    result from the left. The <i class="docEmphasis">assert</i>
+    function lets us check a property and abort parsing with a useful error
+    message if the property is <tt class="calibre34">False</tt>.</p><a name="x_vS" class="calibre27" id="x_vS"></a><p class="docText">Notice how few of the functions that we have written make
+    any reference to the current parsing state. Most notably, where our old
+    <i class="docEmphasis">parseP5</i> function explicitly passed
+    two-tuples down the chain of dataflow, all of the state management in
+    <i class="docEmphasis">parseRawPGM</i> is hidden from us.</p><a name="x_wS" class="calibre27" id="x_wS"></a><p class="docText">Of course, we can't completely avoid inspecting and
+    modifying the parsing state. Here's a case in point, the last of the
+    helper functions needed by <i class="docEmphasis">parseRawPGM</i>:</p><pre class="calibre39">-- file: ch10/Parse.hs
+parseBytes :: Int -&gt; Parse L.ByteString
+parseBytes n =
+    getState ==&gt; \st -&gt;
+    let n' = fromIntegral n
+        (h, t) = L.splitAt n' (string st)
+        st' = st { offset = offset st + L.length h, string = t }
+    in putState st' ==&gt;&amp;
+       assert (L.length h == n') "end of input" ==&gt;&amp;
+       identity h</pre><br class="calibre48"/>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"><a href="21061538.html" class="calibre2"><img src="btn_next_.gif" alt="Next" border="0" class="calibre31"/></a> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect110_d1e26311.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect110_d1e26457_split_000.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

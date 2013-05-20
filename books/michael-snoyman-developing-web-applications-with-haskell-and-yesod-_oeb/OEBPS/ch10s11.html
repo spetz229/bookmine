@@ -1,0 +1,56 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch10s10.html
+next: OEBPS/ch10s12.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Persistent: Raw SQL"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect110_d1e5878" class="calibre1"></a>Persistent: Raw SQL</h1></div></div></div><p class="calibre7">The Persistent package provides a type-safe interface to data stores. It tries to be
+      backend-agnostic, such as not relying on relational features of SQL. My experience has been
+      that you can easily perform 95% of what you need to do with the high-level interface. (In
+      fact, most of my web apps use the high-level interface exclusively.)</p><p class="calibre7">But occassionally you’ll want to use a feature that’s specific to a backend. One feature
+      I’ve used in the past is full text search. In this case, we’ll use the SQL “LIKE” operator,
+      which is not modeled in Persistent. We’ll get all people with the last name “Snoyman” and
+      print the records out.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">Actually, you <span class="firstname"><em class="calibre4">can</em></span> express a LIKE operator directly in the normal
+        syntax due to a feature added in Persistent 0.6, which allows backend-specific operators.
+        But this is still a good example, so let’s roll with it.</p></div><a id="I_programlisting10_d1e5891" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE OverloadedStrings, TemplateHaskell, QuasiQuotes, TypeFamilies #-}</code>
+<code class="cm">{-# LANGUAGE GeneralizedNewtypeDeriving, GADTs, FlexibleContexts #-}</code>
+<code class="kr">import</code> <code class="nn">Database.Persist.Sqlite</code> <code class="p">(</code><code class="nf">withSqliteConn</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Database.Persist.TH</code> <code class="p">(</code><code class="nf">mkPersist</code><code class="p">,</code> <code class="nf">persist</code><code class="p">,</code> <code class="nf">share</code><code class="p">,</code> <code class="nf">mkMigrate</code><code class="p">,</code> <code class="nf">sqlSettings</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Database.Persist.GenericSql</code> <code class="p">(</code><code class="nf">runSqlConn</code><code class="p">,</code> <code class="nf">runMigration</code><code class="p">,</code> <code class="kt">SqlPersist</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Database.Persist.GenericSql.Raw</code> <code class="p">(</code><code class="nf">withStmt</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Data.Text</code> <code class="p">(</code><code class="kt">Text</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Database.Persist</code>
+<code class="kr">import</code> <code class="nn">Database.Persist.Store</code> <code class="p">(</code><code class="kt">PersistValue</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Control.Monad.IO.Class</code> <code class="p">(</code><code class="nf">liftIO</code><code class="p">)</code>
+<code class="kr">import</code> <code class="kr">qualified</code> <code class="nn">Data.Conduit</code> <code class="kr">as</code> <code class="n">C</code>
+<code class="kr">import</code> <code class="kr">qualified</code> <code class="nn">Data.Conduit.List</code> <code class="kr">as</code> <code class="n">CL</code>
+
+<code class="nf">share</code> <code class="p">[</code><code class="n">mkPersist</code> <code class="n">sqlSettings</code><code class="p">,</code> <code class="n">mkMigrate</code> <code class="s">"migrateAll"</code><code class="p">]</code> <code class="p">[</code><code class="n">persist</code><code class="o">|</code>
+<code class="kt">Person</code>
+    <code class="n">name</code> <code class="kt">Text</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">withSqliteConn</code> <code class="s">":memory:"</code> <code class="o">$</code> <code class="n">runSqlConn</code> <code class="o">$</code> <code class="kr">do</code>
+    <code class="n">runMigration</code> <code class="n">migrateAll</code>
+    <code class="n">insert</code> <code class="o">$</code> <code class="kt">Person</code> <code class="s">"Michael Snoyman"</code>
+    <code class="n">insert</code> <code class="o">$</code> <code class="kt">Person</code> <code class="s">"Miriam Snoyman"</code>
+    <code class="n">insert</code> <code class="o">$</code> <code class="kt">Person</code> <code class="s">"Eliezer Snoyman"</code>
+    <code class="n">insert</code> <code class="o">$</code> <code class="kt">Person</code> <code class="s">"Gavriella Snoyman"</code>
+    <code class="n">insert</code> <code class="o">$</code> <code class="kt">Person</code> <code class="s">"Greg Weber"</code>
+    <code class="n">insert</code> <code class="o">$</code> <code class="kt">Person</code> <code class="s">"Rick Richardson"</code>
+
+    <code class="cm">-- Persistent does not provide the LIKE keyword, but we'd like to get the</code>
+    <code class="cm">-- whole Snoyman family...</code>
+    <code class="kr">let</code> <code class="n">sql</code> <code class="ow">=</code> <code class="s">"SELECT name FROM Person WHERE name LIKE '%Snoyman'"</code>
+    <code class="kt">C</code><code class="o">.</code><code class="n">runResourceT</code> <code class="o">$</code> <code class="n">withStmt</code> <code class="n">sql</code> <code class="kt">[]</code>
+                <code class="kt">C</code><code class="o">.$$</code> <code class="kt">CL</code><code class="o">.</code><code class="n">mapM_</code> <code class="o">$</code> <code class="n">liftIO</code> <code class="o">.</code> <code class="n">print</code>
+</pre><p class="calibre7">There is also higher-level support that allows for automated data marshaling. Please see
+            the Haddock API docs for more details.</p></div></div>
+
+{% endraw %}
+

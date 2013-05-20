@@ -1,0 +1,232 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect115_d1e34429.html
+next: I_sect115_d1e35180.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect115_d1e34429.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect115_d1e35180.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect115_d1e34892" class="calibre27" id="I_sect115_d1e34892"></a><h3 id="title-IDAZ02VD" class="docSection1Title">15.5. Separating Interface from Implementation</h3><a name="x_ar" class="calibre27" id="x_ar"></a><p class="docText">In the <a name="ch15-interfaces" class="calibre27" id="ch15-interfaces"></a>previous section, we saw how to hide the fact that we're
+    using a State monad to hold the state for our
+    Supply monad.</p><a name="x_br" class="calibre27" id="x_br"></a><p class="docText">Another important way to make code more modular involves
+    <a name="I_indexterm15_d1e34909" class="calibre27" id="I_indexterm15_d1e34909"></a><a name="I_indexterm15_d1e34912" class="calibre27" id="I_indexterm15_d1e34912"></a>separating its <span class="docEmphasis">interface</span> (what the code
+    can do) from its <span class="docEmphasis">implementation</span>—how it does
+    it.</p><a name="x_cr" class="calibre27" id="x_cr"></a><p class="docText">The standard random number generator in
+    <tt class="calibre34">System.Random</tt> is known to be quite slow. If we use our
+    <i class="docEmphasis">randomsIO</i> function to provide it with
+    random numbers, then our <i class="docEmphasis">next</i> action
+    will not perform well.</p><a name="x_dr" class="calibre27" id="x_dr"></a><p class="docText">One simple and effective way that we could deal with this
+    is to provide Supply with a better source of random numbers.
+    Let's set this idea aside, though, and consider an alternative approach,
+    one that is useful in many settings. We will separate the actions we can
+    perform with the monad from how it works using a typeclass:</p><pre class="calibre39">-- file: ch15/SupplyClass.hs
+class (Monad m) =&gt; MonadSupply s m | m -&gt; s where
+    next :: m (Maybe s)</pre><br class="calibre48"/>
+<a name="x_er" class="calibre27" id="x_er"></a><p class="docText">This typeclass defines the interface that any supply monad
+    must implement. It bears careful inspection, since it uses several
+    unfamiliar Haskell language extensions. We will cover each one in the
+    sections that follow.</p><a name="monadcase_mptc" class="calibre27" id="monadcase_mptc"></a><h4 id="title-IDAT22VD" class="docSection1Title">15.5.1. Multiparameter Typeclasses</h4><a name="x_fr" class="calibre27" id="x_fr"></a><p class="docText">How should we read the snippet <tt class="calibre34">MonadSupply s
+      m</tt> in the typeclass? If we add parentheses, an equivalent
+      expression is <tt class="calibre34">(MonadSupply s) m</tt>, which is a little clearer.
+      In other words, given some type variable <span class="docMonofont">m</span> that is a
+      Monad, we can make it an instance of the typeclass
+      MonadSupply s. Unlike a regular typeclass, this one has a
+      <span class="docEmphasis">parameter</span>.</p><a name="x_gr" class="calibre27" id="x_gr"></a><p class="docText">As this language extension allows a typeclass to have
+      more than one parameter, its name is <a name="I_indexterm15_d1e34968" class="calibre27" id="I_indexterm15_d1e34968"></a><tt class="calibre34">MultiParamTypeClasses</tt>. The parameter
+      <span class="docMonofont">s</span> serves the same purpose as the Supply
+      type's parameter of the same name: it represents the type of the values
+      handed out by the <i class="docEmphasis">next</i>
+      function.</p><a name="x_hr" class="calibre27" id="x_hr"></a><p class="docText">Notice that we don't need to mention <i class="docEmphasis">(&gt;&gt;=)</i> or <tt class="calibre34">return</tt> in the definition of MonadSupply
+      s, since the typeclass's context (superclass) requires that a
+      MonadSupply s must already be a Monad.</p><a name="I_sect115_d1e34892d1e35342" class="calibre27" id="I_sect115_d1e34892d1e35342"></a><h4 id="title-IDAJ42VD" class="docSection1Title">15.5.2. Functional Dependencies</h4><a name="x_ir" class="calibre27" id="x_ir"></a><p class="docText">To revisit a snippet that we ignored earlier, <tt class="calibre34">| m
+      -&gt; s</tt> is a <span class="docEmphasis">functional dependency</span>, often
+      called a <span class="docEmphasis">fundep</span>. We can read the vertical bar
+      <tt class="calibre34">|</tt> as "such that," and the arrow <tt class="calibre34">-&gt;</tt> as
+      "uniquely determines." Our functional dependency establishes a
+      <span class="docEmphasis">relationship</span> between <span class="docMonofont">m</span> and
+      <span class="docMonofont">s</span>.</p><a name="x_jr" class="calibre27" id="x_jr"></a><p class="docText">The <a name="I_indexterm15_d1e35034" class="calibre27" id="I_indexterm15_d1e35034"></a><tt class="calibre34">FunctionalDependencies</tt> language pragma
+      governs the availability of functional dependencies.</p><a name="x_kr" class="calibre27" id="x_kr"></a><p class="docText">The purpose behind us declaring a relationship is to
+      help the type checker. Recall that a Haskell type checker is essentially
+      a theorem prover, and that it is conservative in how it operates: it
+      insists that its proofs must terminate. A nonterminating proof results
+      in the compiler either giving up or getting stuck in an infinite
+      loop.</p><a name="x_lr" class="calibre27" id="x_lr"></a><p class="docText">With our functional dependency, we are telling the type
+      checker that every time it sees some monad <span class="docMonofont">m</span> being
+      used in the context of a MonadSupply s, the type
+      <span class="docMonofont">s</span> is the only acceptable type to use with it. If we
+      were to omit the functional dependency, the type checker would simply
+      give up with an error message.</p><a name="x_mr" class="calibre27" id="x_mr"></a><p class="docText">It's hard to picture what the relationship between
+      <span class="docMonofont">m</span> and <span class="docMonofont">s</span> really means, so let's
+      look at an instance of this typeclass:</p><pre class="calibre39">-- file: ch15/SupplyClass.hs
+import qualified Supply as S
+
+instance MonadSupply s (S.Supply s) where
+    next = S.next</pre><br class="calibre48"/>
+<a name="x_nr" class="calibre27" id="x_nr"></a><p class="docText">Here, the type variable <span class="docMonofont">m</span> is replaced
+      by the type S.Supply s. Thanks to our functional
+      dependency, the type checker now knows that when it sees a type
+      S.Supply s, the type can be used as an instance of the
+      typeclass MonadSupply s.</p><a name="x_or" class="calibre27" id="x_or"></a><p class="docText">If we didn't have a functional dependency, the type
+      checker would not be able to figure out the relationship between the
+      type parameter of the class MonadSupply s and that of the
+      type Supply s, and it would abort compilation with an
+      error. The definition itself would compile; the type error would not
+      arise until the first time we tried to use it.</p><a name="x_pr" class="calibre27" id="x_pr"></a><p class="docText">To strip away one final layer of abstraction, consider
+      the type S.Supply Int. Without a functional dependency, we
+      could declare this an instance of MonadSupply s. However,
+      if we try to write code using this instance, the compiler would not be
+      able to figure out that the type's Int parameter needs to
+      be the same as the typeclass's <span class="docMonofont">s</span> parameter, and it
+      would report an error.</p><a name="x_qr" class="calibre27" id="x_qr"></a><p class="docText">Functional dependencies can be tricky to understand, and
+      once we move beyond simple uses, they often prove difficult to work with
+      in practice. Fortunately, the most frequent use of functional
+      dependencies is in situations as simple as ours, where they cause little
+      trouble.</p><a name="I_sect115_d1e34892d1e35443" class="calibre27" id="I_sect115_d1e34892d1e35443"></a><h4 id="title-IDAEJ3VD" class="docSection1Title">15.5.3. Rounding Out Our Module</h4><a name="x_rr" class="calibre27" id="x_rr"></a><p class="docText">If we save our typeclass and instance in a source file
+      named <i class="docEmphasis">SupplyClass.hs</i>, we'll need to
+      add a module header such as the following:</p><pre class="calibre39">-- file: ch15/SupplyClass.hs
+{-# LANGUAGE FlexibleInstances, FunctionalDependencies,
+             MultiParamTypeClasses #-}
+
+module SupplyClass
+    (
+      MonadSupply(..)
+    , S.Supply
+    , S.runSupply
+    ) where</pre><br class="calibre48"/>
+<a name="x_sr" class="calibre27" id="x_sr"></a><p class="docText">The <a name="I_indexterm15_d1e35115" class="calibre27" id="I_indexterm15_d1e35115"></a><tt class="calibre34">FlexibleInstances</tt> extension is necessary so
+      that the compiler will accept our instance declaration. This extension
+      relaxes the normal rules for writing instances in some circumstances, in
+      a way that still lets the compiler's type checker guarantee that it will
+      terminate. Our need for <tt class="calibre34">FlexibleInstances</tt> here is caused by
+      our use of functional dependencies, but the details are unfortunately
+      beyond the scope of this book.</p><p class="calibre37"><table border="0" cellspacing="0" cellpadding="1" width="90%" class="calibre41"><tr class="calibre16"><td class="v3"><table width="100%" border="0" cellspacing="0" cellpadding="6" class="calibre42"><tr class="calibre16"><td width="60" valign="top" class="v3"><img src="tip_yellow.gif" alt="" class="calibre43"/></td><td valign="top" class="v3"><p class="docNormalTitle">How to know when a language extension is needed</p><a name="x_tr" class="calibre27" id="x_tr"></a><p class="docText">If <span class="docMonofont">GHC</span>
+        cannot compile a piece of code because it would require some language
+        extension to be enabled, it will tell us which extension we should
+        use. For example, if it decides that our code needs flexible instance
+        support, it will suggest that we try compiling with the <i class="docEmphasis">-XFlexibleInstances</i> option. A
+        <i class="docEmphasis">-X</i> option has the same effect as a <tt class="calibre34">LANGUAGE</tt> directive: it enables a
+        particular extension.</p></td></tr></table></td></tr></table></p><br class="calibre48"/><a name="x_ur" class="calibre27" id="x_ur"></a><p class="docText">Finally, notice that we're re-exporting the <i class="docEmphasis">runSupply</i> and Supply names from
+      this module. It's perfectly legal to export a name from one module even
+      though it's defined in another. In our case, it means that client code
+      needs only to import the <tt class="calibre34">SupplyClass</tt> module, without also
+      importing the <tt class="calibre34">Supply</tt> module. This reduces the number of
+      "moving parts" that a user of our code needs to keep in
+      mind.</p><a name="I_sect115_d1e34892d1e35500" class="calibre27" id="I_sect115_d1e34892d1e35500"></a><h4 id="title-IDACL3VD" class="docSection1Title">15.5.4. Programming to a Monad's Interface</h4><a name="x_tG1" class="calibre27" id="x_tG1"></a><p class="docText">Here is a simple function that fetches two values from
+      our Supply monad, formats them as a string, and returns
+      them:</p><pre class="calibre39">-- file: ch15/Supply.hs
+showTwo :: (Show s) =&gt; Supply s String
+showTwo = do
+  a &lt;- next
+  b &lt;- next
+  return (show "a: " ++ show a ++ ", b: " ++ show b)</pre><br class="calibre48"/>
+<a name="x_uG1" class="calibre27" id="x_uG1"></a><p class="docText">This code is tied by its result type to our
+      Supply monad. We can easily generalize to any monad that
+      implements our MonadSupply interface by modifying our
+      function's type. Notice that the body of the function remains
+      unchanged:</p><pre class="calibre39">-- file: ch15/SupplyClass.hs
+showTwo_class :: (Show s, Monad m, MonadSupply s m) =&gt; m String
+showTwo_class = do
+  a &lt;- next
+  b &lt;- next
+  return (show "a: " ++ show a ++ ", b: " ++ show b)</pre><br class="calibre48"/>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect115_d1e34429.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect115_d1e35180.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

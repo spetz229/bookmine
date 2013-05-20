@@ -1,0 +1,356 @@
+---
+layout: page
+title: "Learning GNU Emacs, 3rd Edition"
+prev: OEBPS/ch06s07.html
+next: OEBPS/ch06s09.html
+book_path: books/learning-gnu-emacs--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h1 class="title"><a id="gnu3-CHP-6-SECT-8" class="calibre1"></a>Building More Complicated Macros</h1></div></div></div><p class="copyright">So far, we've covered the basics of writing,
+executing, and saving keyboard macros. Now let's
+discuss a couple of more advanced features Emacs lets you add to your
+macros: pausing a macro for keyboard input and inserting a query in a
+macro.</p><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-6-SECT-8.1" class="calibre1"></a>Pausing a Macro for Keyboard Input</h2></div></div></div><p class="copyright">Sometimes it's
+<a id="gnu3-CHP-6-ITERM-2281" class="calibre2"></a>
+               <a id="gnu3-CHP-6-ITERM-2282" class="calibre2"></a>
+               <a id="gnu3-CHP-6-ITERM-2283" class="calibre2"></a>useful to pause a macro briefly
+so you can type something. For example, if you write a lot of
+letters, you could have a macro that prints out a template and then
+pauses for you to fill in variables (such as the date and the
+recipient's name). You can perform this task (and
+similar tasks) by inserting a recursive edit into a macro. A
+recursive edit is just a fancy way to say, "Stop and
+let me type a while, then pick up the macro where I left
+off."</p><p class="copyright">When you're defining a macro, type <span><strong class="calibre5">C-u C-x q</strong></span> at the point where you want the
+recursive edit to occur. Emacs enters a recursive edit. (You can tell
+you're in a recursive edit because square brackets
+appear on the mode line; you'll see them in the
+screenshots later in this section.) Nothing you type during the
+recursive edit becomes a part of the macro. You can type whatever you
+want to and then press <span><strong class="calibre5">C-M-c</strong></span> to exit
+the recursive edit. Notice how the square brackets disappear when you
+type <span><strong class="calibre5">C-M-c</strong></span>. When the square brackets
+are no longer on the screen, you have left the recursive edit.
+Anything you type at this point becomes part of the macro. You can
+put as many pauses in your macros as you want to.</p><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h3 class="title4"><a id="gnu3-CHP-6-SECT-8.1.1" class="calibre1"></a>Example</h3></div></div></div><p class="copyright">Here's an example of a macro that puts a business
+letter template on the screen and uses recursive edits to let you
+type your return address, the recipient's name and
+address, and the date. Because the brackets on the mode line are a
+pretty subtle clue to what you are going to type,
+we'll give the user of this macro explicit
+instructions about what to type. <a class="calibre2" href="ch06s08.html#gnu3-CHP-6-TABLE-3" title="Table 6-3. Steps for creating a business letter macro">Table 6-3</a>
+provides these instructions.</p><div class="book"><a id="gnu3-CHP-6-TABLE-3" class="calibre2"></a><p class="title2"><b class="calibre25">Table 6-3. Steps for creating a business letter macro</b></p><div class="table-contents"><a id="gnu3-CHP-6-ITERM-2284" class="calibre2"></a><table summary="Steps for creating a business letter macro" class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre26">
+                              <p class="copyright">Keystrokes</p>
+                           </th><th class="calibre27">
+                              <p class="copyright">Action</p>
+                           </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">F3</strong></span> 
+                                 <span><em class="calibre7">or</em></span> 
+                                 <span><strong class="calibre5">C-x (</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Start keyboard macro definition.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">M-5 Enter</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Put in 5 blank lines.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">Type your address and press C-M-c</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Display <code class="calibre21">Type your address and press C-M-c</code> on the screen.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-a</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move to the beginning of the line.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-u C-x q</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Enter a recursive edit, during which the keystrokes you type are not
+recorded as part of the macro.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-M-c</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Exit the recursive edit.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-e</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move to the end of the line.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">M-5 Enter</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move the cursor down 5 lines.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">Type recipient name and address and press
+C-M-c</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Display <code class="calibre21">Type recipient name and address and press C-M-c</code>
+ on the screen.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-a</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move to the beginning of the line.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-u C-x q</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Enter a recursive edit.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-M-c</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Exit the recursive edit.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-e</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move to the end of the line.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">M-5 Enter</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move the cursor down 5 lines.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">Type date and press C-M-c</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Display <code class="calibre21">Type date and press C-M-c</code> on the screen.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-a</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move to the beginning of the line</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-u C-x q</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Enter a recursive edit.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-M-c</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Exit the recursive edit.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-e</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move to the end of the line.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">M-5 Enter</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move the cursor down 5 lines.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">Dear Space</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Display <span><strong class="calibre5">Dear</strong></span> on the screen.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre30">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">F4</strong></span> 
+                                 <span><em class="calibre7">or</em></span> 
+                                 <span><strong class="calibre5">C-x )</strong></span>
+                              </p>
+                           </td><td class="calibre31">
+                              <p class="copyright">End keyboard macro definition.</p>
+                           </td></tr></tbody></table></div></div><br class="book"/><p class="copyright">The following screens show what the macro defined in <a class="calibre2" href="ch06s08.html#gnu3-CHP-6-TABLE-3" title="Table 6-3. Steps for creating a business letter macro">Table 6-3</a> looks like when you run it.</p><div class="book"><a id="ch06-11-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">Type: <span><strong class="calibre5">F4</strong></span>
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">
+                                 </p><div class="book"><div class="mediaobject"><a id="I_6_tt183" class="calibre2"></a><img src="tagoreillycom20070228oreillyimages126101.png" alt="Steps for creating a business letter macro" class="calibre3"/></div></div><p class="copyright">
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre19">
+                              <p class="copyright">The macro pauses so that you can type your address.</p>
+                           </td></tr></tbody></table></div><div class="book"><a id="ch06-12-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">Type your address and press: <span><strong class="calibre5">C-M-c</strong></span>
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">
+                                 </p><div class="book"><div class="mediaobject"><a id="I_6_tt184" class="calibre2"></a><img src="tagoreillycom20070228oreillyimages126105.png" alt="Steps for creating a business letter macro" class="calibre3"/></div></div><p class="copyright">
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre19">
+                              <p class="copyright">The macro pauses so you can type the recipient's
+name and address.</p>
+                           </td></tr></tbody></table></div><div class="book"><a id="ch06-13-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">Type the recipient's name and address and press:
+<span><strong class="calibre5">C-M-c</strong></span>
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">
+                                 </p><div class="book"><div class="mediaobject"><a id="I_6_tt185" class="calibre2"></a><img src="tagoreillycom20070228oreillyimages126110.png" alt="Steps for creating a business letter macro" class="calibre3"/></div></div><p class="copyright">
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre19">
+                              <p class="copyright">The macro pauses so you can type the date.</p>
+                           </td></tr></tbody></table></div><div class="book"><a id="ch06-14-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">Type the date and press: <span><strong class="calibre5">C-M-c</strong></span>
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">
+                                 </p><div class="book"><div class="mediaobject"><a id="I_6_tt186" class="calibre2"></a><img src="tagoreillycom20070228oreillyimages126114.png" alt="Steps for creating a business letter macro" class="calibre3"/></div></div><p class="copyright">
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre19">
+                              <p class="copyright">The macro finishes by typing the opening for the letter.</p>
+                           </td></tr></tbody></table></div><p class="copyright">Now the macro has finished editing; you can type the
+recipient's name and then the body of the letter,
+and of course you can go back and edit any of the information
+you've already filled in.</p></div></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-6-SECT-8.2" class="calibre1"></a>Adding a Query to a Macro</h2></div></div></div><p class="copyright">The more complex the task your
+<a id="gnu3-CHP-6-ITERM-2285" class="calibre2"></a>
+               <a id="gnu3-CHP-6-ITERM-2286" class="calibre2"></a>macro performs, the more difficult it is
+to make the macro general enough to work in every case. Although
+macros can do a lot of things, they aren't programs:
+you can't have <span><strong class="calibre5">if</strong></span>
+statements, loops, and the other things you associate with a program.
+In particular, a macro can't get input from the user
+and then take some action on the basis of that input.</p><p class="copyright">However, one feature lets a macro get input, in a limited way, from
+the user. You can create a macro that queries the user while it is
+running; it works much like a query-replace. To create this kind of a
+macro, type <span><strong class="calibre5">C-x q</strong></span> when you reach the
+point in the macro definition where you want the macro to query the
+user. Nothing happens immediately; go on defining the macro as you
+normally would.</p><p class="copyright">Things get interesting later, when you execute the macro. When it
+gets to the point in the macro where you typed <span><strong class="calibre5">C-x q</strong></span>, Emacs prints a query in the minibuffer:</p><a id="I_6_tt187" class="calibre2"></a><pre class="programlisting">Proceed with macro? (y, n, RET, C-l, C-r)</pre><p class="copyright">The responses listed here are analogous to those in query-replace:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="copyright">Pressing <span><strong class="calibre5">y</strong></span> means to continue and go
+on to the next repetition, if any.</p></li><li class="listitem"><p class="copyright">Pressing <span><strong class="calibre5">n</strong></span> means to stop executing
+the macro but go on to the next repetition, if any.</p></li><li class="listitem"><p class="copyright">Pressing <span><strong class="calibre5">Enter</strong></span> means to stop
+executing the macro and cancel any repetitions.</p></li><li class="listitem"><p class="copyright">Pressing <span><strong class="calibre5">C-r</strong></span> starts a recursive
+edit, which lets you do any editing or moving around you may want to
+and then resume the macro when you exit the recursive edit. To exit a
+recursive edit, press <span><strong class="calibre5">C-M-c</strong></span>. Emacs
+again asks if you want to proceed with the macro, and you type
+<span><strong class="calibre5">y</strong></span> for yes or <span><strong class="calibre5">n</strong></span> or <span><strong class="calibre5">Enter</strong></span>
+for no.</p></li><li class="listitem"><p class="copyright">Pressing <span><strong class="calibre5">C-l</strong></span> puts the line the
+cursor is on in the middle of the screen (this is good for getting a
+feel for the context). Similar to <span><strong class="calibre5">C-r</strong></span>, Emacs again asks if you want to proceed
+with the macro, and you have to answer <span><strong class="calibre5">y</strong></span>, <span><strong class="calibre5">n</strong></span>, or
+<span><strong class="calibre5">Enter</strong></span>.</p></li><li class="listitem"><p class="copyright">Pressing <span><strong class="calibre5">C-g</strong></span> (although not listed as
+an option) cancels the query and the macro; it is similar to pressing
+<span><strong class="calibre5">Enter</strong></span>.</p></li></ul></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h3 class="title4"><a id="gnu3-CHP-6-SECT-8.2.1" class="calibre1"></a>Example</h3></div></div></div><p class="copyright">Let's say that you write a macro that copies
+comments from a program to another buffer. The comments in our
+program are preceded by a slash, so you start the macro with a search
+for a slash. However, not all comments are worth copying. Following
+the search with a query lets you decide case by case whether the
+search has found a comment you want to copy. <a class="calibre2" href="ch06s08.html#gnu3-CHP-6-TABLE-4" title="Table 6-4. Comment-copying macro with a query">Table 6-4</a> shows a macro to copy comments to another
+buffer.</p><div class="book"><a id="gnu3-CHP-6-TABLE-4" class="calibre2"></a><p class="title2"><b class="calibre25">Table 6-4. Comment-copying macro with a query</b></p><div class="table-contents"><a id="gnu3-CHP-6-ITERM-2287" class="calibre2"></a><a id="gnu3-CHP-6-ITERM-2288" class="calibre2"></a><a id="gnu3-CHP-6-ITERM-2289" class="calibre2"></a><table summary="Comment-copying macro with a query" class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre26">
+                              <p class="copyright">Keystrokes</p>
+                           </th><th class="calibre27">
+                              <p class="copyright">Action</p>
+                           </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">F3</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Start the macro definition.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-s /</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Search for a slash.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">Enter</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Stop the search when it is successful.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-x q</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Insert a query in the macro; Emacs asks you if you want to proceed at
+this point when you run the macro.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">M-f</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move forward one word.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">M-b</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move to the beginning of this word.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-Space</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Set the mark.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-e</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move to the end of the line.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-f</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move forward one character.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">M-w</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Copy the comment to the kill ring.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-x b comments</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move to a buffer called <code class="calibre21">comments</code>.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-y</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Insert the comment in the buffer.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre28">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">C-x b</strong></span>
+                              </p>
+                           </td><td class="calibre29">
+                              <p class="copyright">Move back to the original buffer.</p>
+                           </td></tr><tr class="calibre12"><td class="calibre30">
+                              <p class="copyright">
+                                 <span><strong class="calibre5">F4</strong></span>
+                              </p>
+                           </td><td class="calibre31">
+                              <p class="copyright">End the macro definition.</p>
+                           </td></tr></tbody></table></div></div><br class="book"/></div></div></div></div>
+
+{% endraw %}
+

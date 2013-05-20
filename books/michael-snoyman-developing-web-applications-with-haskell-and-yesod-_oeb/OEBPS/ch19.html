@@ -1,0 +1,336 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch18.html
+next: OEBPS/ch20.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="calibre8"></div><div class="book" title="Chapter 19. Wiki: Markdown, Chat Subsite, Event Source"><div class="book"><div class="book"><div class="book"><div class="calibre8"></div><h1 class="title1"><a id="I_chapter2_d1e8234" class="calibre1"></a>Chapter 19. Wiki: Markdown, Chat Subsite, Event Source</h1></div></div></div><p class="calibre7">This example will tie together a few different ideas. We’ll start with a chat subsite, which
+        allows us to embed a chat widget on any page. We’ll use the HTML5 event source API to handle
+        sending events from the server to the client.</p><a id="I_programlisting2_d1e8239" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">-- @Chat.hs</code>
+<code class="cm">{-# LANGUAGE OverloadedStrings, TypeFamilies, QuasiQuotes,</code>
+<code class="cm">             TemplateHaskell, FlexibleInstances, MultiParamTypeClasses,</code>
+<code class="cm">             FlexibleContexts</code>
+<code class="cm">  #-}</code>
+<code class="cm">-- | This module defines a subsite that allows you to insert a chat box on</code>
+<code class="cm">-- any page of your site. It uses eventsource for sending the messages from</code>
+<code class="cm">-- the server to the browser.</code>
+<code class="kr">module</code> <code class="nn">Chat</code> <code class="kr">where</code>
+
+<code class="kr">import</code> <code class="nn">Yesod</code>
+<code class="kr">import</code> <code class="nn">Control.Concurrent.Chan</code> <code class="p">(</code><code class="kt">Chan</code><code class="p">,</code> <code class="nf">dupChan</code><code class="p">,</code> <code class="nf">writeChan</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Data.Text</code> <code class="p">(</code><code class="kt">Text</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Network.Wai.EventSource</code> <code class="p">(</code><code class="kt">ServerEvent</code> <code class="p">(</code><code class="o">..</code><code class="p">),</code> <code class="nf">eventSourceAppChan</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Language.Haskell.TH.Syntax</code> <code class="p">(</code><code class="kt">Type</code> <code class="p">(</code><code class="kt">VarT</code><code class="p">),</code> <code class="kt">Pred</code> <code class="p">(</code><code class="kt">ClassP</code><code class="p">),</code> <code class="nf">mkName</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Blaze.ByteString.Builder.Char.Utf8</code> <code class="p">(</code><code class="nf">fromText</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Data.Monoid</code> <code class="p">(</code><code class="nf">mappend</code><code class="p">)</code>
+
+<code class="cm">-- | Our subsite foundation. We keep a channel of events that all connections</code>
+<code class="cm">-- will share.</code>
+<code class="kr">data</code> <code class="kt">Chat</code> <code class="ow">=</code> <code class="kt">Chat</code> <code class="p">(</code><code class="kt">Chan</code> <code class="kt">ServerEvent</code><code class="p">)</code>
+
+<code class="cm">-- | We need to know how to check if a user is logged in and how to get</code>
+<code class="cm">-- his/her username (for printing messages).</code>
+<code class="kr">class</code> <code class="p">(</code><code class="kt">Yesod</code> <code class="n">master</code><code class="p">,</code> <code class="kt">RenderMessage</code> <code class="n">master</code> <code class="kt">FormMessage</code><code class="p">)</code>
+        <code class="ow">=&gt;</code> <code class="kt">YesodChat</code> <code class="n">master</code> <code class="kr">where</code>
+    <code class="n">getUserName</code> <code class="ow">::</code> <code class="kt">GHandler</code> <code class="n">sub</code> <code class="n">master</code> <code class="kt">Text</code>
+    <code class="n">isLoggedIn</code> <code class="ow">::</code> <code class="kt">GHandler</code> <code class="n">sub</code> <code class="n">master</code> <code class="kt">Bool</code>
+
+<code class="cm">-- Now we set up our subsite. The first argument is the subsite, very similar</code>
+<code class="cm">-- to how we've used mkYesod in the past. The second argument is specific to</code>
+<code class="cm">-- subsites. What it means here is "the master site must be an instance of</code>
+<code class="cm">-- YesodChat".</code>
+<code class="cm">--</code>
+<code class="cm">-- We define two routes: a route for sending messages from the client to the</code>
+<code class="cm">-- server, and one for opening up the event stream to receive messages from</code>
+<code class="cm">-- the server.</code>
+<code class="nf">mkYesodSub</code> <code class="s">"Chat"</code>
+    <code class="p">[</code> <code class="kt">ClassP</code> <code class="s">''</code><code class="kt">YesodChat</code> <code class="p">[</code><code class="kt">VarT</code> <code class="o">$</code> <code class="n">mkName</code> <code class="s">"master"</code><code class="p">]</code>
+    <code class="p">]</code> <code class="p">[</code><code class="n">parseRoutes</code><code class="o">|</code>
+<code class="o">/</code><code class="n">send</code> <code class="kt">SendR</code> <code class="kt">POST</code>
+<code class="o">/</code><code class="n">recv</code> <code class="kt">ReceiveR</code> <code class="kt">GET</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="cm">-- | Get a message from the user and send it to all listeners.</code>
+<code class="nf">postSendR</code> <code class="ow">::</code> <code class="kt">YesodChat</code> <code class="n">master</code> <code class="ow">=&gt;</code> <code class="kt">GHandler</code> <code class="kt">Chat</code> <code class="n">master</code> <code class="nb">()</code>
+<code class="nf">postSendR</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="n">from</code> <code class="ow">&lt;-</code> <code class="n">getUserName</code>
+
+    <code class="cm">-- Note that we're using GET parameters for simplicity of the Ajax code.</code>
+    <code class="cm">-- This could easily be switched to POST. Nonetheless, our overall</code>
+    <code class="cm">-- approach is still RESTful since this route can only be accessed via a</code>
+    <code class="cm">-- POST request.</code>
+    <code class="n">body</code> <code class="ow">&lt;-</code> <code class="n">runInputGet</code> <code class="o">$</code> <code class="n">ireq</code> <code class="n">textField</code> <code class="s">"message"</code>
+
+    <code class="cm">-- Get the channel</code>
+    <code class="kt">Chat</code> <code class="n">chan</code> <code class="ow">&lt;-</code> <code class="n">getYesodSub</code>
+
+    <code class="cm">-- Send an event to all listeners with the user's name and message.</code>
+    <code class="n">liftIO</code> <code class="o">$</code> <code class="n">writeChan</code> <code class="n">chan</code> <code class="o">$</code> <code class="kt">ServerEvent</code> <code class="kt">Nothing</code> <code class="kt">Nothing</code> <code class="o">$</code> <code class="n">return</code> <code class="o">$</code>
+        <code class="n">fromText</code> <code class="n">from</code> <code class="p">`</code><code class="n">mappend</code><code class="p">`</code> <code class="n">fromText</code> <code class="s">": "</code> <code class="p">`</code><code class="n">mappend</code><code class="p">`</code> <code class="n">fromText</code> <code class="n">body</code>
+
+<code class="cm">-- | Send an eventstream response with all messages streamed in.</code>
+<code class="nf">getReceiveR</code> <code class="ow">::</code> <code class="kt">GHandler</code> <code class="kt">Chat</code> <code class="n">master</code> <code class="nb">()</code>
+<code class="nf">getReceiveR</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="cm">-- First we get the main channel</code>
+    <code class="kt">Chat</code> <code class="n">chan0</code> <code class="ow">&lt;-</code> <code class="n">getYesodSub</code>
+
+    <code class="cm">-- We duplicated the channel, which allows us to create broadcast</code>
+    <code class="cm">-- channels.</code>
+    <code class="n">chan</code> <code class="ow">&lt;-</code> <code class="n">liftIO</code> <code class="o">$</code> <code class="n">dupChan</code> <code class="n">chan0</code>
+
+    <code class="cm">-- Now we use the event source API. eventSourceAppChan takes two parameters:</code>
+    <code class="cm">-- the channel of events to read from, and the WAI request. It returns a</code>
+    <code class="cm">-- WAI response, which we can return with sendWaiResponse.</code>
+    <code class="n">req</code> <code class="ow">&lt;-</code> <code class="n">waiRequest</code>
+    <code class="n">res</code> <code class="ow">&lt;-</code> <code class="n">lift</code> <code class="o">$</code> <code class="n">eventSourceAppChan</code> <code class="n">chan</code> <code class="n">req</code>
+    <code class="n">sendWaiResponse</code> <code class="n">res</code>
+
+<code class="cm">-- | Provide a widget that the master site can embed on any page.</code>
+<code class="nf">chatWidget</code> <code class="ow">::</code> <code class="kt">YesodChat</code> <code class="n">master</code>
+           <code class="ow">=&gt;</code> <code class="p">(</code><code class="kt">Route</code> <code class="kt">Chat</code> <code class="ow">-&gt;</code> <code class="kt">Route</code> <code class="n">master</code><code class="p">)</code>
+           <code class="ow">-&gt;</code> <code class="kt">GWidget</code> <code class="n">sub</code> <code class="n">master</code> <code class="nb">()</code>
+<code class="cm">-- This toMaster argument tells us how to convert a Route Chat into a master</code>
+<code class="cm">-- route. You might think this is redundant information, but taking this</code>
+<code class="cm">-- approach means we can have multiple chat subsites in a single site.</code>
+<code class="nf">chatWidget</code> <code class="n">toMaster</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="cm">-- Get some unique identifiers to help in creating our HTML/CSS. Remember,</code>
+    <code class="cm">-- we have no idea what the master site's HTML will look like, so we</code>
+    <code class="cm">-- should not assume we can make up identifiers that won't be reused.</code>
+    <code class="cm">-- Also, it's possible that multiple chatWidgets could be embedded in the</code>
+    <code class="cm">-- same page.</code>
+    <code class="n">chat</code> <code class="ow">&lt;-</code> <code class="n">lift</code> <code class="n">newIdent</code>   <code class="cm">-- the containing div</code>
+    <code class="n">output</code> <code class="ow">&lt;-</code> <code class="n">lift</code> <code class="n">newIdent</code> <code class="cm">-- the box containing the messages</code>
+    <code class="n">input</code> <code class="ow">&lt;-</code> <code class="n">lift</code> <code class="n">newIdent</code>  <code class="cm">-- input field from the user</code>
+
+    <code class="n">ili</code> <code class="ow">&lt;-</code> <code class="n">lift</code> <code class="n">isLoggedIn</code>  <code class="cm">-- check if we're already logged in</code>
+    <code class="kr">if</code> <code class="n">ili</code>
+        <code class="kr">then</code> <code class="kr">do</code>
+            <code class="cm">-- Logged in: show the widget</code>
+            <code class="p">[</code><code class="n">whamlet</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">div</code> <code class="o">##</code><code class="p">{</code><code class="n">chat</code><code class="p">}</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">h2</code><code class="o">&gt;</code><code class="kt">Chat</code>
+    <code class="o">&lt;</code><code class="n">div</code> <code class="o">##</code><code class="p">{</code><code class="n">output</code><code class="p">}</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">input</code> <code class="o">##</code><code class="p">{</code><code class="n">input</code><code class="p">}</code> <code class="kr">type</code><code class="ow">=</code><code class="n">text</code> <code class="n">placeholder</code><code class="ow">=</code><code class="s">"Enter Message"</code><code class="o">&gt;</code>
+<code class="o">|</code><code class="p">]</code>
+            <code class="cm">-- Just some CSS</code>
+            <code class="n">toWidget</code> <code class="p">[</code><code class="n">lucius</code><code class="o">|</code>
+<code class="o">##</code><code class="p">{</code><code class="n">chat</code><code class="p">}</code> <code class="p">{</code>
+    <code class="n">position</code><code class="kt">:</code> <code class="n">absolute</code><code class="p">;</code>
+    <code class="n">top</code><code class="kt">:</code> <code class="mi">2</code><code class="n">em</code><code class="p">;</code>
+    <code class="n">right</code><code class="kt">:</code> <code class="mi">2</code><code class="n">em</code><code class="p">;</code>
+<code class="p">}</code>
+<code class="o">##</code><code class="p">{</code><code class="n">output</code><code class="p">}</code> <code class="p">{</code>
+    <code class="n">width</code><code class="kt">:</code> <code class="mi">200</code><code class="n">px</code><code class="p">;</code>
+    <code class="n">height</code><code class="kt">:</code> <code class="mi">300</code><code class="n">px</code><code class="p">;</code>
+    <code class="n">border</code><code class="kt">:</code> <code class="mi">1</code><code class="n">px</code> <code class="n">solid</code> <code class="o">#</code><code class="mi">999</code><code class="p">;</code>
+    <code class="n">overflow</code><code class="kt">:</code> <code class="n">auto</code><code class="p">;</code>
+<code class="p">}</code>
+<code class="o">|</code><code class="p">]</code>
+            <code class="cm">-- And now that JavaScript</code>
+            <code class="n">toWidgetBody</code> <code class="p">[</code><code class="n">julius</code><code class="o">|</code>
+<code class="o">//</code> <code class="kt">Set</code> <code class="n">up</code> <code class="n">the</code> <code class="n">receiving</code> <code class="n">end</code>
+<code class="nf">var</code> <code class="n">output</code> <code class="ow">=</code> <code class="n">document</code><code class="o">.</code><code class="n">getElementById</code><code class="p">(</code><code class="s">"#{output}"</code><code class="p">);</code>
+<code class="nf">var</code> <code class="n">src</code> <code class="ow">=</code> <code class="n">new</code> <code class="kt">EventSource</code><code class="p">(</code><code class="s">"@{toMaster ReceiveR}"</code><code class="p">);</code>
+<code class="nf">src</code><code class="o">.</code><code class="n">onmessage</code> <code class="ow">=</code> <code class="n">function</code><code class="p">(</code><code class="n">msg</code><code class="p">)</code> <code class="p">{</code>
+    <code class="o">//</code> <code class="kt">This</code> <code class="n">function</code> <code class="n">will</code> <code class="n">be</code> <code class="n">called</code> <code class="n">for</code> <code class="n">each</code> <code class="n">new</code> <code class="n">message</code><code class="o">.</code>
+    <code class="n">var</code> <code class="n">p</code> <code class="ow">=</code> <code class="n">document</code><code class="o">.</code><code class="n">createElement</code><code class="p">(</code><code class="s">"p"</code><code class="p">);</code>
+    <code class="n">p</code><code class="o">.</code><code class="n">appendChild</code><code class="p">(</code><code class="n">document</code><code class="o">.</code><code class="n">createTextNode</code><code class="p">(</code><code class="n">msg</code><code class="o">.</code><code class="kr">data</code><code class="p">));</code>
+    <code class="n">output</code><code class="o">.</code><code class="n">appendChild</code><code class="p">(</code><code class="n">p</code><code class="p">);</code>
+
+    <code class="o">//</code> <code class="kt">And</code> <code class="n">now</code> <code class="n">scroll</code> <code class="n">down</code> <code class="n">within</code> <code class="n">the</code> <code class="n">output</code> <code class="n">div</code> <code class="n">so</code> <code class="n">the</code> <code class="n">most</code> <code class="n">recent</code> <code class="n">message</code>
+    <code class="o">//</code> <code class="n">is</code> <code class="n">displayed</code><code class="o">.</code>
+    <code class="n">output</code><code class="o">.</code><code class="n">scrollTop</code> <code class="ow">=</code> <code class="n">output</code><code class="o">.</code><code class="n">scrollHeight</code><code class="p">;</code>
+<code class="p">};</code>
+
+<code class="o">//</code> <code class="kt">Set</code> <code class="n">up</code> <code class="n">the</code> <code class="n">sending</code> <code class="n">end</code><code class="kt">:</code> <code class="n">send</code> <code class="n">a</code> <code class="n">message</code> <code class="n">via</code> <code class="kt">Ajax</code> <code class="n">whenever</code> <code class="n">the</code> <code class="n">user</code> <code class="n">hits</code>
+<code class="o">//</code> <code class="n">enter</code><code class="o">.</code>
+<code class="nf">var</code> <code class="n">input</code> <code class="ow">=</code> <code class="n">document</code><code class="o">.</code><code class="n">getElementById</code><code class="p">(</code><code class="s">"#{input}"</code><code class="p">);</code>
+<code class="nf">input</code><code class="o">.</code><code class="n">onkeyup</code> <code class="ow">=</code> <code class="n">function</code><code class="p">(</code><code class="n">event</code><code class="p">)</code> <code class="p">{</code>
+    <code class="n">var</code> <code class="n">keycode</code> <code class="ow">=</code> <code class="p">(</code><code class="n">event</code><code class="o">.</code><code class="n">keyCode</code> <code class="o">?</code> <code class="n">event</code><code class="o">.</code><code class="n">keyCode</code> <code class="kt">:</code> <code class="n">event</code><code class="o">.</code><code class="n">which</code><code class="p">);</code>
+    <code class="kr">if</code> <code class="p">(</code><code class="n">keycode</code> <code class="o">==</code> <code class="s">'13'</code><code class="p">)</code> <code class="p">{</code>
+        <code class="n">var</code> <code class="n">xhr</code> <code class="ow">=</code> <code class="n">new</code> <code class="kt">XMLHttpRequest</code><code class="nb">()</code><code class="p">;</code>
+        <code class="n">var</code> <code class="n">val</code> <code class="ow">=</code> <code class="n">input</code><code class="o">.</code><code class="n">value</code><code class="p">;</code>
+        <code class="n">input</code><code class="o">.</code><code class="n">value</code> <code class="ow">=</code> <code class="s">""</code><code class="p">;</code>
+        <code class="n">var</code> <code class="n">params</code> <code class="ow">=</code> <code class="s">"?message="</code> <code class="o">+</code> <code class="n">encodeURI</code><code class="p">(</code><code class="n">val</code><code class="p">);</code>
+        <code class="n">xhr</code><code class="o">.</code><code class="n">open</code><code class="p">(</code><code class="s">"POST"</code><code class="p">,</code> <code class="s">"@{toMaster SendR}"</code> <code class="o">+</code> <code class="n">params</code><code class="p">);</code>
+        <code class="n">xhr</code><code class="o">.</code><code class="n">send</code><code class="p">(</code><code class="n">null</code><code class="p">);</code>
+    <code class="p">}</code>
+<code class="p">}</code>
+<code class="o">|</code><code class="p">]</code>
+        <code class="kr">else</code> <code class="kr">do</code>
+            <code class="cm">-- User isn't logged in, give a not-logged-in message.</code>
+            <code class="n">master</code> <code class="ow">&lt;-</code> <code class="n">lift</code> <code class="n">getYesod</code>
+            <code class="p">[</code><code class="n">whamlet</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code>
+    <code class="kt">You</code> <code class="n">must</code> <code class="n">be</code> <code class="o">#</code>
+    <code class="o">$</code><code class="n">maybe</code> <code class="n">ar</code> <code class="ow">&lt;-</code> <code class="n">authRoute</code> <code class="n">master</code>
+        <code class="o">&lt;</code><code class="n">a</code> <code class="n">href</code><code class="o">=@</code><code class="p">{</code><code class="n">ar</code><code class="p">}</code><code class="o">&gt;</code><code class="n">logged</code> <code class="kr">in</code>
+    <code class="o">$</code><code class="n">nothing</code>
+        <code class="n">logged</code> <code class="kr">in</code>
+    <code class="nf">\</code> <code class="n">to</code> <code class="n">chat</code><code class="o">.</code>
+<code class="o">|</code><code class="p">]</code>
+</pre><p class="calibre7">This module stands on its own, and can be used in any application. Next we’ll provide such a
+        driver application: a wiki. Our wiki will have a hardcoded homepage, and then a wiki section
+        of the site. We’ll be using <em class="calibre4">multiple dynamic pieces</em> to allow an
+        arbitrary hierarchy of pages within the wiki.</p><p class="calibre7">For storage, we’ll just use a mutable reference to a <code class="literal">Map</code>. For a production
+   application, this should be replaced with a proper database. The content will be stored and
+   served as Markdown. <code class="literal">yesod-auth</code>’s dummy plugin will provide us with (fake)
+   authentication.</p><a id="I_programlisting2_d1e8258" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE OverloadedStrings, TypeFamilies, QuasiQuotes,</code>
+<code class="cm">             TemplateHaskell, FlexibleInstances, MultiParamTypeClasses,</code>
+<code class="cm">             FlexibleContexts</code>
+<code class="cm">  #-}</code>
+<code class="kr">import</code> <code class="nn">Yesod</code>
+<code class="kr">import</code> <code class="nn">Yesod.Auth</code>
+<code class="kr">import</code> <code class="nn">Yesod.Auth.Dummy</code> <code class="p">(</code><code class="nf">authDummy</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Chat</code>
+<code class="kr">import</code> <code class="nn">Control.Concurrent.Chan</code> <code class="p">(</code><code class="kt">Chan</code><code class="p">,</code> <code class="nf">newChan</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Network.Wai.Handler.Warp</code> <code class="p">(</code><code class="nf">run</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Data.Text</code> <code class="p">(</code><code class="kt">Text</code><code class="p">)</code>
+<code class="kr">import</code> <code class="kr">qualified</code> <code class="nn">Data.Text.Lazy</code> <code class="kr">as</code> <code class="n">TL</code>
+<code class="kr">import</code> <code class="kr">qualified</code> <code class="nn">Data.IORef</code> <code class="kr">as</code> <code class="n">I</code>
+<code class="kr">import</code> <code class="kr">qualified</code> <code class="nn">Data.Map</code> <code class="kr">as</code> <code class="n">Map</code>
+<code class="kr">import</code> <code class="nn">Text.Markdown</code> <code class="p">(</code><code class="nf">markdown</code><code class="p">,</code> <code class="nf">def</code><code class="p">)</code>
+
+<code class="cm">-- | Our foundation type has both the chat subsite and a mutable reference to</code>
+<code class="cm">-- a map of all our wiki contents. Note that the key is a list of Texts, since</code>
+<code class="cm">-- a wiki can have an arbitrary hierarchy.</code>
+<code class="cm">--</code>
+<code class="cm">-- In a real application, we would want to store this information in a</code>
+<code class="cm">-- database of some sort.</code>
+<code class="kr">data</code> <code class="kt">Wiki</code> <code class="ow">=</code> <code class="kt">Wiki</code>
+    <code class="p">{</code> <code class="n">getChat</code> <code class="ow">::</code> <code class="kt">Chat</code>
+    <code class="p">,</code> <code class="n">wikiContent</code> <code class="ow">::</code> <code class="kt">I</code><code class="o">.</code><code class="kt">IORef</code> <code class="p">(</code><code class="kt">Map</code><code class="o">.</code><code class="kt">Map</code> <code class="p">[</code><code class="kt">Text</code><code class="p">]</code> <code class="kt">Text</code><code class="p">)</code>
+    <code class="p">}</code>
+
+<code class="cm">-- Set up our routes as usual.</code>
+<code class="nf">mkYesod</code> <code class="s">"Wiki"</code> <code class="p">[</code><code class="n">parseRoutes</code><code class="o">|</code>
+<code class="o">/</code> <code class="kt">RootR</code> <code class="kt">GET</code>                 <code class="cm">-- the homepage</code>
+<code class="o">/</code><code class="n">wiki</code><code class="o">/*</code><code class="kt">Texts</code> <code class="kt">WikiR</code> <code class="kt">GET</code> <code class="kt">POST</code> <code class="cm">-- note the multipiece for the wiki hierarchy</code>
+<code class="o">/</code><code class="n">chat</code> <code class="kt">ChatR</code> <code class="kt">Chat</code> <code class="n">getChat</code>    <code class="cm">-- the chat subsite</code>
+<code class="o">/</code><code class="n">auth</code> <code class="kt">AuthR</code> <code class="kt">Auth</code> <code class="n">getAuth</code>    <code class="cm">-- the auth subsite</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="kr">instance</code> <code class="kt">Yesod</code> <code class="kt">Wiki</code> <code class="kr">where</code>
+    <code class="n">authRoute</code> <code class="kr">_</code> <code class="ow">=</code> <code class="kt">Just</code> <code class="o">$</code> <code class="kt">AuthR</code> <code class="kt">LoginR</code> <code class="cm">-- get a working login link</code>
+
+    <code class="cm">-- Our custom defaultLayout will add the chat widget to every page.</code>
+    <code class="cm">-- We'll also add login and logout links to the top.</code>
+    <code class="n">defaultLayout</code> <code class="n">widget</code> <code class="ow">=</code> <code class="kr">do</code>
+        <code class="n">pc</code> <code class="ow">&lt;-</code> <code class="n">widgetToPageContent</code> <code class="o">$</code> <code class="n">widget</code> <code class="o">&gt;&gt;</code> <code class="n">chatWidget</code> <code class="kt">ChatR</code>
+        <code class="n">mmsg</code> <code class="ow">&lt;-</code> <code class="n">getMessage</code>
+        <code class="n">hamletToRepHtml</code> <code class="p">[</code><code class="n">hamlet</code><code class="o">|</code>
+<code class="o">$</code><code class="n">doctype</code> <code class="mi">5</code>
+<code class="o">&lt;</code><code class="n">html</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">head</code><code class="o">&gt;</code>
+        <code class="o">&lt;</code><code class="n">title</code><code class="o">&gt;#</code><code class="p">{</code><code class="n">pageTitle</code> <code class="n">pc</code><code class="p">}</code>
+        <code class="o">^</code><code class="p">{</code><code class="n">pageHead</code> <code class="n">pc</code><code class="p">}</code>
+    <code class="o">&lt;</code><code class="n">body</code><code class="o">&gt;</code>
+        <code class="o">$</code><code class="n">maybe</code> <code class="n">msg</code> <code class="ow">&lt;-</code> <code class="n">mmsg</code>
+            <code class="o">&lt;</code><code class="n">div</code> <code class="o">.</code><code class="n">message</code><code class="o">&gt;#</code><code class="p">{</code><code class="n">msg</code><code class="p">}</code>
+        <code class="o">&lt;</code><code class="n">nav</code><code class="o">&gt;</code>
+            <code class="o">&lt;</code><code class="n">a</code> <code class="n">href</code><code class="o">=@</code><code class="p">{</code><code class="kt">AuthR</code> <code class="kt">LoginR</code><code class="p">}</code><code class="o">&gt;</code><code class="kt">Login</code>
+            <code class="nf">\</code> <code class="o">|</code> <code class="o">#</code>
+            <code class="o">&lt;</code><code class="n">a</code> <code class="n">href</code><code class="o">=@</code><code class="p">{</code><code class="kt">AuthR</code> <code class="kt">LogoutR</code><code class="p">}</code><code class="o">&gt;</code><code class="kt">Logout</code>
+        <code class="o">^</code><code class="p">{</code><code class="n">pageBody</code> <code class="n">pc</code><code class="p">}</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="cm">-- Fairly standard YesodAuth instance. We'll use the dummy plugin so that you</code>
+<code class="cm">-- can create any name you want, and store the login name as the AuthId.</code>
+<code class="kr">instance</code> <code class="kt">YesodAuth</code> <code class="kt">Wiki</code> <code class="kr">where</code>
+    <code class="kr">type</code> <code class="kt">AuthId</code> <code class="kt">Wiki</code> <code class="ow">=</code> <code class="kt">Text</code>
+    <code class="n">authPlugins</code> <code class="kr">_</code> <code class="ow">=</code> <code class="p">[</code><code class="n">authDummy</code><code class="p">]</code>
+    <code class="n">loginDest</code> <code class="kr">_</code> <code class="ow">=</code> <code class="kt">RootR</code>
+    <code class="n">logoutDest</code> <code class="kr">_</code> <code class="ow">=</code> <code class="kt">RootR</code>
+    <code class="n">getAuthId</code> <code class="ow">=</code> <code class="n">return</code> <code class="o">.</code> <code class="kt">Just</code> <code class="o">.</code> <code class="n">credsIdent</code>
+    <code class="n">authHttpManager</code> <code class="ow">=</code> <code class="ne">error</code> <code class="s">"authHttpManager"</code> <code class="cm">-- not used by authDummy</code>
+
+<code class="cm">-- Just implement authentication based on our yesod-auth usage.</code>
+<code class="kr">instance</code> <code class="kt">YesodChat</code> <code class="kt">Wiki</code> <code class="kr">where</code>
+    <code class="n">getUserName</code> <code class="ow">=</code> <code class="n">requireAuthId</code>
+    <code class="n">isLoggedIn</code> <code class="ow">=</code> <code class="kr">do</code>
+        <code class="n">ma</code> <code class="ow">&lt;-</code> <code class="n">maybeAuthId</code>
+        <code class="n">return</code> <code class="o">$</code> <code class="n">maybe</code> <code class="kt">False</code> <code class="p">(</code><code class="n">const</code> <code class="kt">True</code><code class="p">)</code> <code class="n">ma</code>
+
+<code class="kr">instance</code> <code class="kt">RenderMessage</code> <code class="kt">Wiki</code> <code class="kt">FormMessage</code> <code class="kr">where</code>
+    <code class="n">renderMessage</code> <code class="kr">_</code> <code class="kr">_</code> <code class="ow">=</code> <code class="n">defaultFormMessage</code>
+
+<code class="cm">-- Nothing special here, just giving a link to the root of the wiki.</code>
+<code class="nf">getRootR</code> <code class="ow">::</code> <code class="kt">Handler</code> <code class="kt">RepHtml</code>
+<code class="nf">getRootR</code> <code class="ow">=</code> <code class="n">defaultLayout</code> <code class="p">[</code><code class="n">whamlet</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code><code class="kt">Welcome</code> <code class="n">to</code> <code class="n">the</code> <code class="kt">Wiki</code><code class="o">!</code>
+<code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">a</code> <code class="n">href</code><code class="o">=@</code><code class="p">{</code><code class="n">wikiRoot</code><code class="p">}</code><code class="o">&gt;</code><code class="kt">Wiki</code> <code class="n">root</code>
+<code class="o">|</code><code class="p">]</code>
+  <code class="kr">where</code>
+    <code class="n">wikiRoot</code> <code class="ow">=</code> <code class="kt">WikiR</code> <code class="kt">[]</code>
+
+<code class="cm">-- A form for getting wiki content</code>
+<code class="nf">wikiForm</code> <code class="n">mtext</code> <code class="ow">=</code> <code class="n">renderDivs</code> <code class="o">$</code> <code class="n">areq</code> <code class="n">textareaField</code> <code class="s">"Page body"</code> <code class="n">mtext</code>
+
+<code class="cm">-- Show a wiki page and an edit form</code>
+<code class="nf">getWikiR</code> <code class="ow">::</code> <code class="p">[</code><code class="kt">Text</code><code class="p">]</code> <code class="ow">-&gt;</code> <code class="kt">Handler</code> <code class="kt">RepHtml</code>
+<code class="nf">getWikiR</code> <code class="n">page</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="cm">-- Get the reference to the contents map</code>
+    <code class="n">icontent</code> <code class="ow">&lt;-</code> <code class="n">fmap</code> <code class="n">wikiContent</code> <code class="n">getYesod</code>
+
+    <code class="cm">-- And read the map from inside the reference</code>
+    <code class="n">content</code> <code class="ow">&lt;-</code> <code class="n">liftIO</code> <code class="o">$</code> <code class="kt">I</code><code class="o">.</code><code class="n">readIORef</code> <code class="n">icontent</code>
+
+    <code class="cm">-- Lookup the contents of the current page, if available</code>
+    <code class="kr">let</code> <code class="n">mtext</code> <code class="ow">=</code> <code class="kt">Map</code><code class="o">.</code><code class="n">lookup</code> <code class="n">page</code> <code class="n">content</code>
+
+    <code class="cm">-- Generate a form with the current contents as the default value.</code>
+    <code class="cm">-- Note that we use the Textarea wrapper to get a &lt;textarea&gt;.</code>
+    <code class="p">((</code><code class="kr">_</code><code class="p">,</code> <code class="n">form</code><code class="p">),</code> <code class="kr">_</code><code class="p">)</code> <code class="ow">&lt;-</code> <code class="n">generateFormPost</code> <code class="o">$</code> <code class="n">wikiForm</code> <code class="o">$</code> <code class="n">fmap</code> <code class="kt">Textarea</code> <code class="n">mtext</code>
+    <code class="n">defaultLayout</code> <code class="o">$</code> <code class="kr">do</code>
+        <code class="kr">case</code> <code class="n">mtext</code> <code class="kr">of</code>
+            <code class="cm">-- We're treating the input as markdown. The markdown package</code>
+            <code class="cm">-- automatically handles XSS protection for us.</code>
+            <code class="kt">Just</code> <code class="n">text</code> <code class="ow">-&gt;</code> <code class="n">toWidget</code> <code class="o">$</code> <code class="n">markdown</code> <code class="n">def</code> <code class="o">$</code> <code class="kt">TL</code><code class="o">.</code><code class="n">fromStrict</code> <code class="n">text</code>
+            <code class="kt">Nothing</code> <code class="ow">-&gt;</code> <code class="p">[</code><code class="n">whamlet</code><code class="o">|&lt;</code><code class="n">p</code><code class="o">&gt;</code><code class="kt">Page</code> <code class="n">does</code> <code class="n">not</code> <code class="n">yet</code> <code class="n">exist</code><code class="o">|</code><code class="p">]</code>
+        <code class="p">[</code><code class="n">whamlet</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">h2</code><code class="o">&gt;</code><code class="kt">Edit</code> <code class="n">page</code>
+<code class="o">&lt;</code><code class="n">form</code> <code class="n">method</code><code class="ow">=</code><code class="n">post</code><code class="o">&gt;</code>
+    <code class="o">^</code><code class="p">{</code><code class="n">form</code><code class="p">}</code>
+    <code class="o">&lt;</code><code class="n">div</code><code class="o">&gt;</code>
+        <code class="o">&lt;</code><code class="n">input</code> <code class="kr">type</code><code class="ow">=</code><code class="n">submit</code><code class="o">&gt;</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="cm">-- Get a submitted wiki page and updated the contents.</code>
+<code class="nf">postWikiR</code> <code class="ow">::</code> <code class="p">[</code><code class="kt">Text</code><code class="p">]</code> <code class="ow">-&gt;</code> <code class="kt">Handler</code> <code class="kt">RepHtml</code>
+<code class="nf">postWikiR</code> <code class="n">page</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="n">icontent</code> <code class="ow">&lt;-</code> <code class="n">fmap</code> <code class="n">wikiContent</code> <code class="n">getYesod</code>
+    <code class="n">content</code> <code class="ow">&lt;-</code> <code class="n">liftIO</code> <code class="o">$</code> <code class="kt">I</code><code class="o">.</code><code class="n">readIORef</code> <code class="n">icontent</code>
+    <code class="kr">let</code> <code class="n">mtext</code> <code class="ow">=</code> <code class="kt">Map</code><code class="o">.</code><code class="n">lookup</code> <code class="n">page</code> <code class="n">content</code>
+    <code class="p">((</code><code class="n">res</code><code class="p">,</code> <code class="n">form</code><code class="p">),</code> <code class="kr">_</code><code class="p">)</code> <code class="ow">&lt;-</code> <code class="n">runFormPost</code> <code class="o">$</code> <code class="n">wikiForm</code> <code class="o">$</code> <code class="n">fmap</code> <code class="kt">Textarea</code> <code class="n">mtext</code>
+    <code class="kr">case</code> <code class="n">res</code> <code class="kr">of</code>
+        <code class="kt">FormSuccess</code> <code class="p">(</code><code class="kt">Textarea</code> <code class="n">t</code><code class="p">)</code> <code class="ow">-&gt;</code> <code class="kr">do</code>
+            <code class="n">liftIO</code> <code class="o">$</code> <code class="kt">I</code><code class="o">.</code><code class="n">atomicModifyIORef</code> <code class="n">icontent</code> <code class="o">$</code>
+                <code class="nf">\</code><code class="n">m</code> <code class="ow">-&gt;</code> <code class="p">(</code><code class="kt">Map</code><code class="o">.</code><code class="n">insert</code> <code class="n">page</code> <code class="n">t</code> <code class="n">m</code><code class="p">,</code> <code class="nb">()</code><code class="p">)</code>
+            <code class="n">setMessage</code> <code class="s">"Page updated"</code>
+            <code class="n">redirect</code> <code class="o">$</code> <code class="kt">WikiR</code> <code class="n">page</code>
+        <code class="kr">_</code> <code class="ow">-&gt;</code> <code class="n">defaultLayout</code> <code class="p">[</code><code class="n">whamlet</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">form</code> <code class="n">method</code><code class="ow">=</code><code class="n">post</code><code class="o">&gt;</code>
+    <code class="o">^</code><code class="p">{</code><code class="n">form</code><code class="p">}</code>
+    <code class="o">&lt;</code><code class="n">div</code><code class="o">&gt;</code>
+        <code class="o">&lt;</code><code class="n">input</code> <code class="kr">type</code><code class="ow">=</code><code class="n">submit</code><code class="o">&gt;</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="cm">-- Create our server event channel</code>
+    <code class="n">chan</code> <code class="ow">&lt;-</code> <code class="n">newChan</code>
+
+    <code class="cm">-- Initially have a blank database of wiki pages</code>
+    <code class="n">icontent</code> <code class="ow">&lt;-</code> <code class="kt">I</code><code class="o">.</code><code class="n">newIORef</code> <code class="kt">Map</code><code class="o">.</code><code class="n">empty</code>
+
+    <code class="cm">-- Run our app</code>
+    <code class="n">warpDebug</code> <code class="mi">3000</code> <code class="o">$</code> <code class="kt">Wiki</code> <code class="p">(</code><code class="kt">Chat</code> <code class="n">chan</code><code class="p">)</code> <code class="n">icontent</code>
+</pre></div></div>
+
+{% endraw %}
+

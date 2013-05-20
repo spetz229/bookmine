@@ -1,0 +1,22 @@
+---
+layout: page
+title: "Unknown"
+prev: r23305.htm
+next: r23528.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="r23305.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4"/><td width="10%" valign="bottom" class="calibre5"><a href="r23528.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><h1 class="calibre7"><a name="SQL-COMMIT" class="calibre8">COMMIT</a></h1><div class="NAVHEADER"><a name="AEN23483"></a><h2 class="SECT">Name</h2>COMMIT -- Ends the current transaction block and finalizes changes made within it.</div><div class="NAVHEADER"><a name="AEN23486"></a><h2 class="SECT">Synopsis</h2><pre class="SCREEN">COMMIT [ WORK | TRANSACTION ]</pre><div class="NAVHEADER"><a name="R2-SQL-COMMIT-1"></a><h3 class="AUTHOR">Parameters</h3><p class="calibre9">
+</p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">WORK | TRANSACTION</tt></dt><dd class="calibre16"><p class="calibre9">A pair of optional noise keywords. They can be ignored, or used to make your SQL more readable.</p></dd></dl></div>
+</div><div class="NAVHEADER"><a name="R2-SQL-COMMIT-2"></a><h3 class="AUTHOR">Results</h3><p class="calibre9"> </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">COMMIT</tt></dt><dd class="calibre16"><p class="calibre9">The message returned when the current transaction is successfully committed.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">NOTICE:  COMMIT: no transaction in progress</tt></dt><dd class="calibre16"><p class="calibre9">The notice returned if there is no current transaction for the <tt class="REPLACEABLE">COMMIT</tt> command to actually commit.</p></dd></dl></div>
+</div></div><div class="NAVHEADER"><a name="R1-SQL-COMMIT-1"></a><h2 class="SECT">Description</h2><p class="calibre9">Use the <tt class="REPLACEABLE">COMMIT</tt> command to finalize the current transaction.  Once a <tt class="REPLACEABLE">COMMIT</tt> is performed, any modifications made by the transaction are saved into the database.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>If something unintended happens during a transaction block, you can use the <tt class="REPLACEABLE">ROLLBACK</tt> command to abort the current transaction. This undoes the effect of any SQL executed after the last <tt class="REPLACEABLE">BEGIN</tt> statement.</p></blockquote></div></div><div class="NAVHEADER"><a name="R1-SQL-COMMIT-2"></a><h2 class="SECT">Examples</h2><p class="calibre9">The following example begins a transaction, modifies data, and then commits the modifications:</p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">BEGIN WORK;</b></tt>
+BEGIN
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">INSERT INTO employees VALUES (106, 'Hall', 'Timothy');</b></tt>
+INSERT 3574402 1
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">COMMIT WORK;</b></tt>
+COMMIT</pre></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="r23305.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="r23528.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">COMMENT</td><td width="34%" valign="top" class="calibre4"><a href="c22759.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">COPY</td></tr></table></div></div>
+
+{% endraw %}
+

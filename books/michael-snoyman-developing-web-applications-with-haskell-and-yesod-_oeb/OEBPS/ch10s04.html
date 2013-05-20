@@ -1,0 +1,49 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch10s03.html
+next: OEBPS/ch10s05.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Uniqueness"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect110_d1e5171" class="calibre1"></a>Uniqueness</h1></div></div></div><p class="calibre7">In addition to declaring fields within an entity, you can also declare uniqueness
+            constraints. A typical example would be requiring that a username be unique.</p><div class="example"><a id="uniqueness-x1" class="firstname"></a><p class="title6">Example 10-1. Unique Username</p><div class="book"><pre class="programlisting1">User
+    username Text
+    UniqueUsername username</pre></div></div><p class="calibre7">While each field name must begin with a lowercase letter, the uniqueness constraints must
+            begin with an uppercase letter.</p><a id="I_programlisting10_d1e5186" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE QuasiQuotes, TypeFamilies, GeneralizedNewtypeDeriving, TemplateHaskell,</code>
+<code class="cm">             OverloadedStrings, GADTs, FlexibleContexts #-}</code>
+<code class="kr">import</code> <code class="nn">Database.Persist</code>
+<code class="kr">import</code> <code class="nn">Database.Persist.Sqlite</code>
+<code class="kr">import</code> <code class="nn">Database.Persist.TH</code>
+<code class="kr">import</code> <code class="nn">Data.Time</code>
+<code class="kr">import</code> <code class="nn">Control.Monad.IO.Class</code> <code class="p">(</code><code class="nf">liftIO</code><code class="p">)</code>
+
+<code class="nf">share</code> <code class="p">[</code><code class="n">mkPersist</code> <code class="n">sqlSettings</code><code class="p">,</code> <code class="n">mkMigrate</code> <code class="s">"migrateAll"</code><code class="p">]</code> <code class="p">[</code><code class="n">persist</code><code class="o">|</code>
+<code class="kt">Person</code>
+    <code class="n">firstName</code> <code class="kt">String</code>
+    <code class="n">lastName</code> <code class="kt">String</code>
+    <code class="n">age</code> <code class="kt">Int</code>
+    <code class="kt">PersonName</code> <code class="n">firstName</code> <code class="n">lastName</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">withSqliteConn</code> <code class="s">":memory:"</code> <code class="o">$</code> <code class="n">runSqlConn</code> <code class="o">$</code> <code class="kr">do</code>
+    <code class="n">runMigration</code> <code class="n">migrateAll</code>
+    <code class="n">insert</code> <code class="o">$</code> <code class="kt">Person</code> <code class="s">"Michael"</code> <code class="s">"Snoyman"</code> <code class="mi">26</code>
+    <code class="n">michael</code> <code class="ow">&lt;-</code> <code class="n">getBy</code> <code class="o">$</code> <code class="kt">PersonName</code> <code class="s">"Michael"</code> <code class="s">"Snoyman"</code>
+    <code class="n">liftIO</code> <code class="o">$</code> <code class="n">print</code> <code class="n">michael</code>
+</pre><p class="calibre7">To declare a unique combination of fields, we add an extra line to our declaration. Persistent knows that it is defining a unique constructor, since the line begins with a capital letter. Each following word must be a field in this entity.</p><p class="calibre7">The main restriction on uniqueness is that it can only be applied non-null fields. The
+      reason for this is that the SQL standard is ambiguous on how uniqueness should be applied to
+        <code class="literal">NULL</code> (e.g., is <code class="literal">NULL=NULL</code> true or false?). Besides that ambiguity, most SQL engines in fact
+      implement rules that would be <span class="firstname"><em class="calibre4">contrary</em></span> to what the Haskell data types
+      anticipate (e.g., PostgreSQL says that <code class="literal">NULL=NULL</code> is false,
+      whereas Haskell says <code class="literal">Nothing == Nothing</code> is <code class="literal">True</code>).</p><p class="calibre7">In addition to providing nice guarantees at the database level about consistency
+            of your data, uniqueness constraints can also be used to perform some specific queries
+            within your Haskell code, like the <code class="literal">getBy</code> demonstrated above.
+            This happens via the <code class="literal">Unique</code> associated type. In the example
+            above, we end up with a new constructor:</p><a id="I_programlisting10_d1e5219" class="firstname"></a><pre class="programlistinghaskell"><code class="kt">PersonName</code> <code class="ow">::</code> <code class="kt">String</code> <code class="ow">-&gt;</code> <code class="kt">String</code> <code class="ow">-&gt;</code> <code class="kt">Unique</code> <code class="kt">Person</code>
+</pre></div></div>
+
+{% endraw %}
+

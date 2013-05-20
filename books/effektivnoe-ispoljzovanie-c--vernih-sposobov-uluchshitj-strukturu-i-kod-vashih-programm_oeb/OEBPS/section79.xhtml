@@ -1,0 +1,276 @@
+---
+layout: page
+title: "Эффективное использование C++. 55 верных способов улучшить структуру и код ваших программ"
+prev: OEBPS/section78.xhtml
+next: OEBPS/section80.xhtml
+book_path: books/effektivnoe-ispoljzovanie-c--vernih-sposobov-uluchshitj-strukturu-i-kod-vashih-programm_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <div class="calibre">
+      <div class="title1">
+        <h2 class="calibre3">Правило 46: Определяйте внутри шаблонов функции, не являющиеся членами, когда желательны преобразования типа</h2>
+      </div>
+      <p class="calibre2">В правиле 24 объясняется, почему только к свободным функциям применяются неявные преобразования типов всех аргументов. В качестве примера была приведена функция operator* для класса Rational. Прежде чем продолжить чтение, рекомендую вам освежить этот пример в памяти, потому что сейчас мы вернемся к этой теме, рассмотрев безобидные, на первый взгляд, модификации примера из правила 24. Отличие только в том, что и класс Rational, и operator* в нем сделаны шаблонами:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;typename T&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class Rational {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Rational(const T&amp; numerator = 0, // см. в правиле 20 – почему</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const T&amp; denominator = 1); // параметр передается по ссылке</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const T numerator() const; // см. в правиле 28 – почему</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const T denominator() const; // результат возвращается по</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">... // значению, а в правиле 3 –</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// почему они константны</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;typename T&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Rational&lt;T&gt; operator*(const Rational&lt;T&gt;&amp; lhs,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Rational&lt;T&gt;&amp; rhs)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{...}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Как и в правиле 24, мы собираемся поддерживать смешанную арифметику, поэтому хотелось бы, чтобы приведенный ниже код компилировался. Мы не ожидаем подвохов, потому что аналогичный код в правиле 24 работал. Единственное отличие в том, что класс Rational и функция-член operator* теперь шаблоны:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">Raional&lt;int&gt; oneHalf(1, 2); // это пример из правила 24,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// но Rational – теперь шаблон</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Ratinal&lt;int&gt; result = oneHalf * 2; // ошибка! Не компилируется</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Тот факт, что этот код не компилируется, наводит на мысль, что в шаблоне Rational есть нечто, отличающее его от нешаблонной версии. И это на самом деле так. В правиле 24 компилятор знал, какую функцию мы пытаемся вызвать (operator*, принимающую два параметра типа Rational), здесь же ему об этом ничего не известно. Поэтому компилятор пытается <em class="calibre5">решить,</em> какую функцию нужно конкретизировать (то есть создать) из шаблона operator*. Он знает, что имя этой функции operator* и она принимает два параметра типа Rational&lt;T&gt;, но для того чтобы произвести конкретизацию, нужно выяснить, что такое T. Проблема в том, что компилятор не может этого сделать.</p>
+      <p class="calibre2">Пытаясь вывести T, компилятор смотрит на типы аргументов, переданных при вызове operator*. В данном случае это Rational&lt;int&gt; (тип переменной oneHalf) и int (тип литерала 2). Каждый параметр рассматривается отдельно.</p>
+      <p class="calibre2">Вывод на основе типа oneHalf сделать легко. Первый параметр operator* объявлен как Rational&lt;T&gt;, а первый аргумент, переданный operator* (oneHalf), имеет тип Rational&lt;int&gt;, поэтому T должен быть int. К сожалению, вывести тип другого параметра не так просто. Из объявления известно, что тип второго параметра operator* равен Rational&lt;T&gt;, но второй аргумент, переданный функции operator* (число 2), имеет тип int. Как компилятору определить, что есть T в данном случае? Можно ожидать, что он воспользутся не-explicit конструктором, чтобы преобразовать 2 в Rational&lt;int&gt; и таким образом сделать вывод, что T есть int, но на деле этого не происходит. Компилятор не поступает так потому, что функции неявного преобразования типа <em class="calibre5">никогда</em> не рассматриваются при выводе аргументов шаблона. Никогда. Да, такие преобразования используются при вызовах функций, но перед тем, как вызывать функцию, нужно убедиться, что она существуют. Чтобы убедиться в этом, необходимо вывести типы параметров для всех потенциально подходящих шаблонов функций (чтобы можно было конкретизировать правильную функцию). Но неявные преобразования типов посредством вызова конструкторов при выводе аргументов шаблона не рассматриваются. В правиле 24 никаких шаблонов не было, поэтому и проблема вывода аргументов шаблона не возникала. Здесь же мы имеем дело с шаблонной частью C++ (см. правило 1), и она выходит на первый план.</p>
+      <p class="calibre2">Мы можем помочь компилятору в выводе аргументов шаблона, воспользовавшись объявлением дружественной функции в шаблонном классе. Это означает, что класс Rational&lt;T&gt; может объявить operator* для Rational&lt;T&gt; как функцию-друга. К шаблонам классов процедура вывода аргументов не имеет отношения (она применяется только к шаблонам функций), поэтому тип T всегда известен в момент конкретизации Rational&lt;T&gt;. Это упрощает объявление соответствующей функции operator* как друга класса Rational&lt;T&gt;:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;typename T&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class Rational {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">friend // объявление функции</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Rational operator*(const Rational&amp; lhs, // operator*</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Rational&amp; rhs); // (подробности см. ниже)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;typename T&gt; // определение функции</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Rational&lt;T&gt; operator*(const Rational&lt;T&gt;&amp; lhs, // operator*</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Rational&lt;T&gt;&amp; rhs)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{...}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Теперь вызовы operator* с аргументами разных типов скомпилируются, потому что при объявлении объект oneHalf типа Rational&lt;int&gt; конкретизируется класс Rational&lt;int&gt; и вместе с ним функция-друг operator*, которая принимает параметры Rational&lt;int&gt;. Поскольку объявляется <em class="calibre5">функция</em> (а не <em class="calibre5">шаблон функции),</em> компилятор может для вывода типов параметров пользоваться функциями неявного преобразования (например, не-explicit конструкторами Rational) и, стало быть, сумеет разобраться в вызове operator* с параметрами разных типов.</p>
+      <p class="calibre2">К сожалению, фраза «сумеет разобраться» в данном контексте имеет иронический оттенок, поскольку хотя код и компилируется, но не компонуется. Вскоре мы займемся этой проблемой, но сначала я хочу сделать одно замечание о синтаксисе, используемом для объявления функции operator* в классе Rational.</p>
+      <p class="calibre2">Внутри шаблона класса имя шаблона можно использовать как сокращенное обозначение шаблона вместе с параметрами, поэтому внутри Ratonal&lt;T&gt; разрешается писать просто Rational вместо Ratonal&lt;T&gt;. В данном примере это экономит лишь несколько символов, но когда есть несколько параметров с длинными именами, это помогает уменьшить размер исходного кода и одновременно сделать его яснее. Я вспомнил об этом, потому что operator* объявлен как принимающий и возвращающий Rational вместо Rational&lt;T&gt;. Также корректно было бы объявить operator* следующим образом:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;typename T&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class Rational {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">friend</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Rational&lt;T&gt; operator*(const Rational&lt;T&gt;&amp; lhs,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Rational&lt;T&gt;&amp; rhs);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Однако проще (и часто так и делается) использовать сокращенную форму.</p>
+      <p class="calibre2">Теперь вернемся к проблеме компоновки. Код, содержащий вызов с параметрами различных типов, компилируется, потому что компилятор знает, что мы хотим вызвать вполне определенную функцию (operator*, принимающую параметры типа Rational&lt;int&gt; и Rational&lt;int&gt;), но эта функция только <em class="calibre5">объявлена</em> внутри Rational, но не <em class="calibre5">определена</em> там. Наша цель – заставить шаблон функции operator*, не являющейся членом класса, предоставить это определение, но таким образом ее не достичь. Если мы объявляем функцию самостоятельно (а так и происходит, когда она находится внутри шаблона Rational), то должны позаботиться и об ее определении. В данном случае мы нигде не привели определения, поэтому компоновщик его и не находит.</p>
+      <p class="calibre2">Простейший способ исправить ситуацию – объединить тело operator* с его объявлением:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;typename T&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class Rational {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">friend Rational operator*(const Rational&amp; lhs, const Rational&amp; rhs)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">return Rational(lhs.numerator() * rhs.numerator(), // та же</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">lhs.denominator () * rhs.denominator()); // реализация,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">} // что и</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// в правиле 24</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Наконец-то все работает как нужно: вызовы operator* с параметрами смешанных типов компилируются, компонуются и запускаются. Ура!</p>
+      <p class="calibre2">Интересное наблюдение, касающееся этой техники: использование отношения дружественности никак не связано с желанием получить доступ к закрытой части класса. Чтобы сделать возможными преобразования типа для всех аргументов, нам нужна функция, не являющаяся членом (см. правило 24); а для того чтобы получить автоматическую конкретизацию правильной функции, нам нужно объявить ее внутри класса. Единственный способ объявить свободную функцию внутри класса – сделать ее другом (friend). Что мы и делаем. Необычно? Да. Эффективно? Вне всяких сомнений.</p>
+      <p class="calibre2">Как объясняется в правиле 30, функции, определенные внутри класса, неявно объявляются встроенными; это касается и функций-друзей, подобных нашей operator*. Вы можете минимизировать эффект от неявного встраивания, сделав так, чтобы operator* не делала ничего, помимо вызова вспомогательной функции, определенной вне класса. В данном случае в этом нет особой необходимости, потому что функция operator* и так состоит всего из одной строки, но для более сложных функций с телом это может оказаться желательным. Поэтому стоит иметь в виду идиому «иметь друга, вызывающего вспомогательную функцию».</p>
+      <p class="calibre2">Тот факт, что Rational – это шаблонный класс, означает, что вспомогательная функция обычно также будет шаблоном, поэтому код в заголовочном файле, определяющем Rational, обычно выглядит примерно так:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;typename T&gt; class Ratonal; // объявление</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// шаблона Rational</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;typename T&gt; // объявление</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Rational&lt;T&gt; doMultiply(const Rational&lt;T&gt;&amp; lhs, // шаблона</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Rational&lt;T&gt;&amp; rhs); // вспомогательной</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// функции</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;typename T&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class Rational {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">friend</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Rational operator*( const Rational&amp; lhs,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Rational&amp; rhs) // друг объявляет</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{ return doMultiply(lhs, rhs};} // вспомогательную</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">... // функцию</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Многие компиляторы требуют, чтобы все определения шаблонов находились в заголовочных файлах, поэтому может понадобиться определить в заголовке еще и функцию doMultiply. Как объясняется в правиле 30, такие шаблоны не обязаны быть встроенными. Вот как это может выглядеть:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;typename T&gt; // определение шаблона</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Rational&lt;T&gt; doMultiply( const Rational&lt;T&gt;&amp; lhs, // вспомогательной</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Rational&lt;T&gt;&amp; rhs) // функции</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{ // в заголовочном файле</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">return Rational(lhs.numerator() * rhs.numerator(), // при необходимости</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">lhs.denominator () * rhs.denominator());</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Конечно, будучи шаблоном, doMultiply не поддерживает умножения значений разного типа, но ей это и не нужно. Она вызывается только из operator*, который обеспечивает поддержку параметров смешанного типа! По существу, <em class="calibre5">функция</em> operator* поддерживает любые преобразования типа, необходимые для перемножения объектов класса Rational, а затем передает эти два объекта соответствующей конкретизации <em class="calibre5">шаблона</em> doMultiply, которая и выполняет собственно операцию умножения. Кооперация в действии, не так ли?</p>
+      <div class="subtitle">
+        <p class="subtitle1">
+          <strong class="calibre4">
+            <em class="calibre5">Что следует помнить</em>
+          </strong>
+        </p>
+      </div>
+      <p class="calibre2">• Когда вы пишете шаблон класса, в котором есть функции, нуждающиеся в неявных преобразованиях типа для всех параметров, определяйте такие функции как друзей внутри шаблона класса.</p>
+    </div>
+  </div>
+
+{% endraw %}
+

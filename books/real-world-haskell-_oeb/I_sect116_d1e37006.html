@@ -1,0 +1,131 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect116_d1e36989.html
+next: I_sect116_d1e37048.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect116_d1e36989.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect116_d1e37048.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect116_d1e37006" class="calibre27" id="I_sect116_d1e37006"></a><h3 id="title-IDAFGI5N" class="docSection1Title">16.8. Parsing Without Variables</h3><a name="x_hj" class="calibre27" id="x_hj"></a><p class="docText">A few of our parsers just shown use <tt class="calibre34">do</tt> notation and bind the result of an
+    intermediate parse to a variable for later use. One such function is
+    <i class="docEmphasis">p_pair</i>:</p><pre class="calibre39">-- file: ch16/FormParse.hs
+p_pair :: CharParser () (String, Maybe String)
+p_pair = do
+  name &lt;- many1 p_char
+  value &lt;- optionMaybe (char '=' &gt;&gt; many p_char)
+  return (name, value)</pre><br class="calibre48"/>
+<a name="x_ij" class="calibre27" id="x_ij"></a><p class="docText">We can get rid of the need for explicit variables by using
+    the <i class="docEmphasis">liftM2</i> combinator from
+    <tt class="calibre34">Control.Monad</tt>:</p><pre class="calibre39">-- file: ch16/FormParse.hs
+p_pair_app1 =
+    liftM2 (,) (many1 p_char) (optionMaybe (char '=' &gt;&gt; many p_char))</pre><br class="calibre48"/>
+<a name="x_jj" class="calibre27" id="x_jj"></a><p class="docText">This parser has exactly the same type and behavior as
+    <i class="docEmphasis">p_pair</i>, but it's one line long.
+    Instead of writing our parser in a "procedural" style, we've
+    simply switched to a programming style that emphasizes that we're
+    <span class="docEmphasis">applying</span> parsers and <span class="docEmphasis">combining</span>
+    their results.</p><a name="x_kj" class="calibre27" id="x_kj"></a><p class="docText">We can take this applicative style of writing a parser
+    much further. In most cases, the extra compactness that we will gain will
+    <span class="docEmphasis">not</span> come at any cost in readability, beyond the
+    initial effort of coming to grips with the idea.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect116_d1e36989.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect116_d1e37048.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

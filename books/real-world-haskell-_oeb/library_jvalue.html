@@ -1,0 +1,174 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect15_d1e12707.html
+next: library_anatomy.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect15_d1e12707.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="library_anatomy.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="library_jvalue" class="calibre27" id="library_jvalue"></a><h3 id="title-IDACCNVC" class="docSection1Title">5.2. Representing JSON Data in Haskell</h3><a name="x_Ji" class="calibre27" id="x_Ji"></a><p class="docText">To work with<a name="I_indexterm5_d1e12752" class="calibre27" id="I_indexterm5_d1e12752"></a><a name="I_indexterm5_d1e12757" class="calibre27" id="I_indexterm5_d1e12757"></a> JSON data in Haskell, we use an algebraic data type to
+    represent the range of possible JSON types:</p><pre class="calibre39">-- file: ch05/SimpleJSON.hs
+data JValue = JString String
+            | JNumber Double
+            | JBool Bool
+            | JNull
+            | JObject [(String, JValue)]
+            | JArray [JValue]
+              deriving (Eq, Ord, Show)</pre><br class="calibre48"/>
+<a name="x_Ki" class="calibre27" id="x_Ki"></a><p class="docText">For each JSON type, we supply a distinct value
+    constructor. Some of these constructors have parameters: if we want to
+    construct a JSON string, we must provide a String value as an
+    argument to the <tt class="calibre34">JString</tt> constructor.</p><a name="x_Li" class="calibre27" id="x_Li"></a><p class="docText">To start experimenting with this code, save the file
+    <i class="docEmphasis">SimpleJSON.hs</i> in your editor, switch
+    to a <i class="docEmphasis">ghci</i> window, and load the file
+    into <i class="docEmphasis">ghci</i>:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:load SimpleJSON</b>
+[1 of 1] Compiling SimpleJSON       ( SimpleJSON.hs, interpreted )
+Ok, modules loaded: SimpleJSON.
+ghci&gt; <b class="calibre40">JString "foo"</b>
+JString "foo"
+ghci&gt; <b class="calibre40">JNumber 2.7</b>
+JNumber 2.7
+ghci&gt; <b class="calibre40">:type JBool True</b>
+JBool True :: JValue</pre><a name="x_Mi" class="calibre27" id="x_Mi"></a><p class="docText">We can see how to use a constructor to take a normal
+    Haskell value and turn it into a JValue. To do the reverse,
+    we use pattern matching. Here's a function that we can add to <i class="docEmphasis">SimpleJSON.hs</i> that will extract a string from a
+    JSON value for us. If the JSON value actually contains a string, our
+    function will wrap the string with the <tt class="calibre34">Just</tt> constructor;
+    otherwise, it will return <tt class="calibre34">Nothing</tt>:</p><pre class="calibre39">-- file: ch05/SimpleJSON.hs
+getString :: JValue -&gt; Maybe String
+getString (JString s) = Just s
+getString _           = Nothing</pre><br class="calibre48"/>
+<a name="x_Ni" class="calibre27" id="x_Ni"></a><p class="docText">When we save the modified source file, we can reload it in
+    <i class="docEmphasis">ghci</i> and try the new <a name="I_indexterm5_d1e12827" class="calibre27" id="I_indexterm5_d1e12827"></a>definition. (The <tt class="calibre34">:reload</tt> command
+    remembers the last source file we loaded, so we do not need to name it
+    explicitly.)</p><pre class="calibre39">ghci&gt; <b class="calibre40">:reload</b>
+Ok, modules loaded: SimpleJSON.
+ghci&gt; <b class="calibre40">getString (JString "hello")</b>
+Just "hello"
+ghci&gt; <b class="calibre40">getString (JNumber 3)</b>
+Nothing</pre><a name="x_Oi" class="calibre27" id="x_Oi"></a><p class="docText">A few more accessor functions and we've got a small body
+    of code to work with:</p><pre class="calibre39">-- file: ch05/SimpleJSON.hs
+getInt (JNumber n) = Just (truncate n)
+getInt _           = Nothing
+
+getDouble (JNumber n) = Just n
+getDouble _           = Nothing
+
+getBool (JBool b) = Just b
+getBool _         = Nothing
+
+getObject (JObject o) = Just o
+getObject _           = Nothing
+
+getArray (JArray a) = Just a
+getArray _          = Nothing
+
+isNull v            = v == JNull</pre><br class="calibre48"/>
+<a name="x_iD1" class="calibre27" id="x_iD1"></a><p class="docText">The <i class="docEmphasis">truncate</i>
+    function<a name="I_indexterm5_d1e12860" class="calibre27" id="I_indexterm5_d1e12860"></a> turns a floating-point or rational number into an integer
+    by dropping the digits after the decimal point:</p><pre class="calibre39">ghci&gt; <b class="calibre40">truncate 5.8</b>
+5
+ghci&gt; <b class="calibre40">:module +Data.Ratio</b>
+ghci&gt; <b class="calibre40">truncate (22 % 7)</b>
+3</pre>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"><a href="21061538.html" class="calibre2"><img src="btn_next_.gif" alt="Next" border="0" class="calibre31"/></a> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect15_d1e12707.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="library_anatomy.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

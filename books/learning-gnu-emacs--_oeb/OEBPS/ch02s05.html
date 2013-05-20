@@ -1,0 +1,306 @@
+---
+layout: page
+title: "Learning GNU Emacs, 3rd Edition"
+prev: OEBPS/ch02s04.html
+next: OEBPS/ch02s06.html
+book_path: books/learning-gnu-emacs--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h1 class="title"><a id="gnu3-CHP-2-SECT-5" class="calibre1"></a>Editing Tricks and Shortcuts</h1></div></div></div><p class="copyright">Now that you've learned the basics of
+editing—moving the cursor to the right position, deleting,
+copying, and moving text—you can learn some tricks that make
+editing easier.</p><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-2-SECT-5.1" class="calibre1"></a>Fixing Transpositions</h2></div></div></div><p class="copyright">The most common
+<a id="gnu3-CHP-2-ITERM-1771" class="calibre2"></a>
+               <a id="gnu3-CHP-2-ITERM-1772" class="calibre2"></a>
+               <a id="gnu3-CHP-2-ITERM-1773" class="calibre2"></a>
+               <a id="gnu3-CHP-2-ITERM-1774" class="calibre2"></a>typo
+involves the transposition of two letters, and most typos are noticed
+immediately after you make them. Pressing <span><strong class="calibre5">C-t</strong></span> transposes two letters, to put them in the
+right order:</p><div class="book"><a id="ch02-15-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre13">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Before C-t</strong></span>
+                           </p>
+                        </th><th class="calibre14">
+                           <p class="copyright">
+                              <span><strong class="calibre5">After C-t</strong></span>
+                           </p>
+                        </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre18">
+                           <a id="I_2_tt50" class="calibre2"></a><pre class="programlisting">the best of tims<span>e</span>, it</pre>
+                        </td><td class="calibre19">
+                           <a id="I_2_tt51" class="calibre2"></a><pre class="programlisting">                              <span><strong class="calibre5">the best of times</strong></span>  
+                              <span><strong class="calibre5">it</strong></span></pre>
+                        </td></tr></tbody></table></div><p class="copyright">To transpose two letters, put the cursor on the second of the two
+letters to be transposed. Press <span><strong class="calibre5">C-t</strong></span>.
+(If you often transpose letters, word abbreviation mode, discussed in
+<a class="calibre2" href="ch03.html" title="Chapter 3. Search and Replace">Chapter 3</a>, cleans up typos automatically.)</p><p class="copyright">You can also transpose two words, lines, paragraphs, or sentences. To
+transpose two words, put the cursor between the two words and press
+<span><strong class="calibre5">M-t</strong></span>. After Emacs has finished, the
+cursor follows the second of the two (transposed) words:</p><div class="book"><a id="ch02-16-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre13">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Before M-t</strong></span>
+                           </p>
+                        </th><th class="calibre14">
+                           <p class="copyright">
+                              <span><strong class="calibre5">After M-t</strong></span>
+                           </p>
+                        </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre18">
+                           <a id="I_2_tt52" class="calibre2"></a><pre class="programlisting">one three two</pre>
+                        </td><td class="calibre19">
+                           <a id="I_2_tt53" class="calibre2"></a><pre class="programlisting">                              <span><strong class="calibre5">one two three</strong></span></pre>
+                        </td></tr></tbody></table></div><p class="copyright">Interestingly, Emacs moves words, but not
+<a id="gnu3-CHP-2-ITERM-1775" class="calibre2"></a>punctuation.
+Let's say that two names are reversed:</p><div class="book"><a id="ch02-17-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre13">
+                           <a id="I_2_tt54" class="calibre2"></a><pre class="programlisting">                              <span><strong class="calibre5">Before M-t</strong></span></pre>
+                        </th><th class="calibre14">
+                           <a id="I_2_tt55" class="calibre2"></a><pre class="programlisting">                              <span><strong class="calibre5">After M-t</strong></span></pre>
+                        </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre18">
+                           <a id="I_2_tt56" class="calibre2"></a><pre class="programlisting">Charles, <span>D</span>ickens</pre>
+                        </td><td class="calibre19">
+                           <a id="I_2_tt57" class="calibre2"></a><pre class="programlisting">                              <span><strong class="calibre5">Dickens, Charles</strong></span></pre>
+                        </td></tr></tbody></table></div><p class="copyright">To transpose two lines, put the cursor anywhere on the second of the
+two and press <span><strong class="calibre5">C-x C-t</strong></span>. Emacs moves
+the second before the first:</p><div class="book"><a id="ch02-18-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre13">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Before C-x C-t</strong></span>
+                           </p>
+                        </th><th class="calibre14">
+                           <p class="copyright">
+                              <span><strong class="calibre5">After C-x C-t</strong></span>
+                           </p>
+                        </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre16">
+                           <a id="I_2_tt58" class="calibre2"></a><pre class="programlisting">second line</pre>
+                        </td><td class="calibre17">
+                           <a id="I_2_tt59" class="calibre2"></a><pre class="programlisting">                              <span><strong class="calibre5">first line</strong></span></pre>
+                        </td></tr><tr class="calibre12"><td class="calibre16">
+                           <a id="I_2_tt60" class="calibre2"></a><pre class="programlisting">                              <span>f</span>
+                              <span><em class="calibre7">irst line</em></span></pre>
+                        </td><td class="calibre17">
+                           <a id="I_2_tt61" class="calibre2"></a><pre class="programlisting">                              <span><strong class="calibre5">second line</strong></span></pre>
+                        </td></tr><tr class="calibre12"><td class="calibre18">
+                           <a id="I_2_tt62" class="calibre2"></a><pre class="programlisting">third line</pre>
+                        </td><td class="calibre19">
+                           <a id="I_2_tt63" class="calibre2"></a><pre class="programlisting">                              <span>t</span>
+                              <span><strong class="calibre5">hird line</strong></span></pre>
+                        </td></tr></tbody></table></div><p class="copyright">
+               <a class="calibre2" href="ch02s05.html#gnu3-CHP-2-TABLE-9" title="Table 2-9. Transposition commands">Table 2-9</a> summarizes the transposition
+<a id="gnu3-CHP-2-ITERM-1776" class="calibre2"></a>
+               <a id="gnu3-CHP-2-ITERM-1777" class="calibre2"></a>commands.</p><div class="book"><a id="gnu3-CHP-2-TABLE-9" class="calibre2"></a><p class="title2"><b class="calibre25">Table 2-9. Transposition commands</b></p><div class="table-contents"><table summary="Transposition commands" class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre26">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Keystrokes</strong></span>
+                           </p>
+                        </th><th class="calibre26">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Command name</strong></span>
+                           </p>
+                        </th><th class="calibre27">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Action</strong></span>
+                           </p>
+                        </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-t</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">transpose-chars</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Transpose two letters.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">M-t</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">transpose-words</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Transpose two words.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-x C-t</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">transpose-lines</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Transpose two lines.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">(<span><em class="calibre7">none</em></span>)</p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">transpose-sentences</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Transpose two sentences.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre30">
+                           <p class="copyright">(<span><em class="calibre7">none</em></span>)</p>
+                        </td><td class="calibre30">
+                           <p class="copyright">
+                              <span><strong class="calibre5">transpose-paragraphs</strong></span>
+                           </p>
+                        </td><td class="calibre31">
+                           <p class="copyright">Transpose two paragraphs.</p>
+                        </td></tr></tbody></table></div></div><br class="book"/></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-2-SECT-5.2" class="calibre1"></a>Changing Capitalization</h2></div></div></div><p class="copyright">Mistakes in capitalization are also
+<a id="gnu3-CHP-2-ITERM-1778" class="calibre2"></a>
+               <a id="gnu3-CHP-2-ITERM-1779" class="calibre2"></a>
+               <a id="gnu3-CHP-2-ITERM-1780" class="calibre2"></a>common
+and annoying typing errors. Emacs has some special commands for
+fixing capitalization. To capitalize the first letter of any word,
+put the cursor on the first letter and press <span><strong class="calibre5">M-c</strong></span>. To put a word in lowercase, press
+<span><strong class="calibre5">M-l</strong></span>. To put a word in
+<a id="gnu3-CHP-2-ITERM-1781" class="calibre2"></a>
+               <a id="gnu3-CHP-2-ITERM-1782" class="calibre2"></a>uppercase,
+press <span><strong class="calibre5">M-u</strong></span>. The key bindings here are
+mnemonic: <span><strong class="calibre5">Meta</strong></span> followed by <span><strong class="calibre5">c</strong></span> for capitalize, <span><strong class="calibre5">l</strong></span> for lowercase, and <span><strong class="calibre5">u</strong></span> for uppercase. Note that if the cursor is in
+the middle of a word, Emacs takes action only from the character
+under the cursor to the end of the word. You can easily use <span><strong class="calibre5">M-l</strong></span> to lowercase the second half of a word,
+and so on.</p><p class="copyright">If you notice that the word you just typed is incorrect, you can use
+the same commands prefaced by <span><strong class="calibre5">Meta-</strong></span>
+(press and hold <span><strong class="calibre5">Meta</strong></span> followed by a
+hyphen). This corrects the previous word without moving the cursor.
+If the cursor is positioned in the middle of a word, using <span><strong class="calibre5">Meta-</strong></span> before a command causes it to work on
+the first part of the word (the part preceding the cursor), rather
+than the part following the cursor.</p><p class="copyright">For example, starting with <span><strong class="calibre5">
+                  <code class="calibre21">abcd</code>
+               </strong></span>
+               <span>e</span>
+               <span><strong class="calibre5">
+                  <code class="calibre21">fghij</code>
+               </strong></span>:</p><div class="book"><a id="ch02-20-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre13">
+                           <p class="copyright">
+                              <span><strong class="calibre5">If you press</strong></span>:</p>
+                        </th><th class="calibre14">
+                           <p class="copyright">
+                              <span><strong class="calibre5">You'll get</strong></span>:</p>
+                        </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre16">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Meta  -  u</strong></span>
+                           </p>
+                        </td><td class="calibre17">
+                           <a id="I_2_tt64" class="calibre2"></a><pre class="programlisting">abcdEFGHIJ</pre>
+                        </td></tr><tr class="calibre12"><td class="calibre16">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Meta  - M-u</strong></span>
+                           </p>
+                        </td><td class="calibre17">
+                           <a id="I_2_tt65" class="calibre2"></a><pre class="programlisting">ABCD<span>e</span>fghij</pre>
+                        </td></tr><tr class="calibre12"><td class="calibre16">
+                           <p class="copyright">
+                              <span><strong class="calibre5">M-c</strong></span>
+                           </p>
+                        </td><td class="calibre17">
+                           <a id="I_2_tt66" class="calibre2"></a><pre class="programlisting">abcdEfghij</pre>
+                        </td></tr><tr class="calibre12"><td class="calibre18">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Meta  - M-c</strong></span>
+                           </p>
+                        </td><td class="calibre19">
+                           <a id="I_2_tt67" class="calibre2"></a><pre class="programlisting">Abcd<span>e</span>fghij</pre>
+                        </td></tr></tbody></table></div><p class="copyright">
+               <a class="calibre2" href="ch02s05.html#gnu3-CHP-2-TABLE-10" title="Table 2-10. Capitalization commands">Table 2-10</a> summarizes the
+<a id="gnu3-CHP-2-ITERM-1783" class="calibre2"></a>
+               <a id="gnu3-CHP-2-ITERM-1784" class="calibre2"></a>capitalization commands.</p><div class="book"><a id="gnu3-CHP-2-TABLE-10" class="calibre2"></a><p class="title2"><b class="calibre25">Table 2-10. Capitalization commands</b></p><div class="table-contents"><table summary="Capitalization commands" class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre26">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Keystrokes</strong></span>
+                           </p>
+                        </th><th class="calibre26">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Command name</strong></span>
+                           </p>
+                        </th><th class="calibre27">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Action</strong></span>
+                           </p>
+                        </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">M-c</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">capitalize-word</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Capitalize first letter of word.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">M-u</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">upcase-word</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Uppercase word.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">M-l</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">downcase-word</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Lowercase word.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Meta  - M-c</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">negative-argument; capitalize-word</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Capitalize previous word.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Meta - M-u</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">negative-argument; upcase-word</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Uppercase previous word.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre30">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Meta  - M-l</strong></span>
+                           </p>
+                        </td><td class="calibre30">
+                           <p class="copyright">
+                              <span><strong class="calibre5">negative-argument; downcase-word</strong></span>
+                           </p>
+                        </td><td class="calibre31">
+                           <p class="copyright">Lowercase previous word.</p>
+                        </td></tr></tbody></table></div></div><br class="book"/></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-2-SECT-5.3" class="calibre1"></a>Overwrite Mode</h2></div></div></div><p class="copyright">You may be used to
+<a id="gnu3-CHP-2-ITERM-1785" class="calibre2"></a>
+               <a id="gnu3-CHP-2-ITERM-1786" class="calibre2"></a>
+               <a id="gnu3-CHP-2-ITERM-1787" class="calibre2"></a>typing
+over old text rather than having to delete it. There is a certain
+satisfaction in destroying some really bad text in this way. You can
+do this in Emacs, too, by entering a minor mode called overwrite
+mode. When you're in overwrite mode, any new text
+you type wipes out the text that's underneath. When
+you're not in overwrite mode (i.e., in normal
+Emacs), any new text you type is inserted at the cursor position and
+any subsequent text is pushed to the right. (Other software may refer
+to this as insert mode; because it is the way GNU Emacs normally
+behaves, it doesn't have a name here.)</p><p class="copyright">To enter overwrite mode, press the <span><strong class="calibre5">Insert</strong></span> key.<sup class="calibre6">[<a id="gnu3-CHP-2-FNOTE-6" href="#ftn.gnu3-CHP-2-FNOTE-6" class="calibre2">6</a>]</sup> 
+               <span><strong class="calibre5">Ovwrt</strong></span>
+should appear on the mode line. If this doesn't work
+(or if you don't have an <span><strong class="calibre5">Insert</strong></span> key), type <span><strong class="calibre5">M-x
+overwrite-mode Enter</strong></span>. You can turn off overwrite mode by
+typing <span><strong class="calibre5">M-x overwrite-mode Enter</strong></span>
+again. Using Emacs's command completion, simply type
+<span><strong class="calibre5">M-x ov</strong></span> and press <span><strong class="calibre5">Enter</strong></span>. This is enough of a unique string to
+tell Emacs you want to toggle overwrite mode. Completion, one of the
+best shortcuts in Emacs, is discussed further in <a class="calibre2" href="ch14.html" title="Chapter 14. The Help System">Chapter 14</a>.</p></div><div class="book"><br class="book"/><hr class="calibre4"/><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-2-FNOTE-6" href="#gnu3-CHP-2-FNOTE-6" class="calibre2">6</a>] </sup>On a Mac keyboard,
+we found that the <span><strong class="calibre5">Help</strong></span> key, to the
+left of <span><strong class="calibre5">Home</strong></span>, toggles overwrite
+mode.</p></div></div></div></div>
+
+{% endraw %}
+

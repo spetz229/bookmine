@@ -1,0 +1,135 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect12_d1e5384_split_001.html
+next: funcstypes_end.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect12_d1e5384_split_000.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="funcstypes_end.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect12_d1e5476" class="calibre27" id="I_sect12_d1e5476"></a><h3 id="title-IDAIB5RD" class="docSection1Title">2.13. Why the Fuss over Purity?</h3><a name="x_tm" class="calibre27" id="x_tm"></a><p class="docText">Few programming<a name="I_indexterm2_d1e5481" class="calibre27" id="I_indexterm2_d1e5481"></a><a name="I_indexterm2_d1e5486" class="calibre27" id="I_indexterm2_d1e5486"></a> languages go as far as Haskell in insisting that purity
+    should be the default. This choice has profound and valuable
+    consequences.</p><a name="x_um" class="calibre27" id="x_um"></a><p class="docText">Because the result of applying a pure function can only
+    depend on its arguments, we can often get a strong hint of what a pure
+    function does by simply reading its name and understanding its type
+    signature. As an example, let's look at <i class="docEmphasis">not</i>:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type not</b>
+not :: Bool -&gt; Bool
+</pre><a name="x_de" class="calibre27" id="x_de"></a><p class="docText">Even if we don't know the name of this function, its
+    signature alone limits the possible valid behaviors it could have:</p><ul class="calibre18"><li class="calibre19"><p class="docText">Ignore its argument and always return either
+        <tt class="calibre34">true</tt> or <tt class="calibre34">False</tt>.</p></li><li class="calibre19"><p class="docText">Return its argument unmodified.</p></li><li class="calibre19"><p class="docText">Negate its argument.</p></li></ul><a name="x_vm" class="calibre27" id="x_vm"></a><p class="docText">We also know that this function
+    <span class="docEmphasis">can</span><span class="docEmphasis">not</span> do some things: access
+    files, talk to the network, and tell what time it is.</p><a name="x_wm" class="calibre27" id="x_wm"></a><p class="docText">Purity makes the job of understanding code easier. The
+    behavior of a pure function does not depend on the value of a global
+    variable, or the contents of a database, or the state of a network
+    connection. Pure code is inherently modular: every function is
+    self-contained and has a well-defined interface.</p><a name="x_xm" class="calibre27" id="x_xm"></a><p class="docText">A nonobvious consequence of purity being the default is
+    that working <a name="I_indexterm2_d1e5533" class="calibre27" id="I_indexterm2_d1e5533"></a>with <span class="docEmphasis">impure</span> code becomes easier.
+    Haskell encourages a style of programming in which we separate code that
+    <span class="docEmphasis">must</span> have side effects from code that doesn't need
+    side effects. In this style, impure code tends to be simple, with the
+    "heavy lifting" performed in pure code.</p><a name="x_ym" class="calibre27" id="x_ym"></a><p class="docText">Much of the risk in software lies in talking to the
+    outside world, be it coping with bad or missing data or handling malicious
+    attacks. Because Haskell's type system tells us exactly which parts of our
+    code have side effects, we can be appropriately on guard. Because our
+    favored coding style keeps impure code isolated and simple, our
+    "attack surface" is small.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect12_d1e5384_split_000.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="funcstypes_end.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

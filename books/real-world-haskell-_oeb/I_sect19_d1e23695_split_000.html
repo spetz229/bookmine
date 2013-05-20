@@ -1,0 +1,151 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect19_d1e23452.html
+next: I_sect19_d1e23695_split_001.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect19_d1e23452.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="find_predicate.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect19_d1e23695" class="calibre27" id="I_sect19_d1e23695"></a><h3 id="title-IDA2ATNE" class="docSection1Title">9.5. Sizing a File Safely</h3><a name="x_eO" class="calibre27" id="x_eO"></a><p class="docText">Although<a name="I_indexterm9_d1e23700" class="calibre27" id="I_indexterm9_d1e23700"></a><a name="ch09-filessizing" class="calibre27" id="ch09-filessizing"></a> <tt class="calibre34">System.Directory</tt> doesn't let us find out how
+    large a file is, we can use the similarly portable <tt class="calibre34">System.IO</tt>
+    module<a name="I_indexterm9_d1e23713" class="calibre27" id="I_indexterm9_d1e23713"></a> to do this. It contains a function named <i class="docEmphasis">hFileSize</i>, which returns the size in bytes of
+    an open file. Here's a simple function that wraps it:</p><pre class="calibre39">-- file: ch09/BetterPredicate.hs
+simpleFileSize :: FilePath -&gt; IO Integer
+
+simpleFileSize path = do
+  h &lt;- openFile path ReadMode
+  size &lt;- hFileSize h
+  hClose h
+  return size</pre><br class="calibre48"/>
+<a name="x_fO" class="calibre27" id="x_fO"></a><p class="docText">While this function works, it's not yet suitable for us to
+    use. In <i class="docEmphasis">betterFind</i>, we call <i class="docEmphasis">getFileSize</i> unconditionally on any directory
+    entry; it should return <tt class="calibre34">Nothing</tt> if an entry is not a plain
+    file, or it returns the size wrapped by <tt class="calibre34">Just</tt> otherwise. This
+    function instead throws an exception if an entry is not a plain file or
+    could not be opened (perhaps due to insufficient permissions), and returns
+    the size unwrapped.</p><a name="x_gO" class="calibre27" id="x_gO"></a><p class="docText">Here's a safer version of this function:</p><pre class="calibre39">-- file: ch09/BetterPredicate.hs
+saferFileSize :: FilePath -&gt; IO (Maybe Integer)
+
+saferFileSize path = handle (\_ -&gt; return Nothing) $ do
+  h &lt;- openFile path ReadMode
+  size &lt;- hFileSize h
+  hClose h
+  return (Just size)</pre><br class="calibre48"/>
+<a name="x_hO" class="calibre27" id="x_hO"></a><p class="docText">The body of the function is almost identical, save for the
+    <i class="docEmphasis">handle</i> clause.</p><a name="x_jO" class="calibre27" id="x_jO"></a><p class="docText">Our exception handler ignores the exception it's passed
+    and returns <tt class="calibre34">Nothing</tt>. The only change to the body that follows
+    is that it wraps the file size with <i class="docEmphasis">Just</i>.</p><a name="x_kO" class="calibre27" id="x_kO"></a><p class="docText">The <i class="docEmphasis">saferFileSize</i>
+    function now has the correct type signature, and it won't throw any
+    exceptions. But it's still not completely well behaved. There are
+    directory entries on which <i class="docEmphasis">openFile</i>
+    will succeed, but <i class="docEmphasis">hFileSize</i> will
+    throw an exception. This can happen with, for example, named pipes. Such
+    an exception will be caught by <i class="docEmphasis">handle</i>, but our call to <i class="docEmphasis">hClose</i> will never occur.</p><a name="x_lO" class="calibre27" id="x_lO"></a><p class="docText">A Haskell implementation will automatically close the file
+    handle when it notices that the handle is no longer being used. That will
+    not occur until the garbage collector <a name="I_indexterm9_d1e23774" class="calibre27" id="I_indexterm9_d1e23774"></a>runs, and the delay until the next garbage collection pass
+    is not predictable.</p><a name="x_mO" class="calibre27" id="x_mO"></a><p class="docText">File handles are scarce resources, <a name="I_indexterm9_d1e23782" class="calibre27" id="I_indexterm9_d1e23782"></a> enforced by the underlying operating system. On Linux, for
+    example, a process is by default allowed to have only 1,024 files open
+    <span class="docEmphasis">simultaneously</span>.</p><a name="x_nO" class="calibre27" id="x_nO"></a><p class="docText">It's not hard to imagine a scenario in which a program
+    that called a version of <i class="docEmphasis">betterFind</i>
+    that used <i class="docEmphasis">saferFileSize</i> could crash
+    due to <i class="docEmphasis">betterFind</i> exhausting the
+    supply of open file handles before enough garbage file handles could be
+    closed.</p><a name="x_oO" class="calibre27" id="x_oO"></a><p class="docText">This is a particularly pernicious kind of bug: it has
+    several aspects that combine to make it incredibly difficult to track
+    down. It will only be triggered if <i class="docEmphasis">betterFind</i> visits a <span class="docEmphasis">sufficiently</span> large number of nonfiles to hit
+    the process's limit on open file handles, and then returns to a caller
+    that tries to open another file before any of the accumulated garbage file
+    handles are closed.</p><a name="x_AF1" class="calibre27" id="x_AF1"></a><p class="docText">To make matters worse, any subsequent error will be
+    caused by data that is no longer reachable from within the program and has
+    yet to be garbage-collected. Such a bug is thus dependent on the structure
+    of the program, the contents of the filesystem, and how close the current
+    run of the program is to triggering the garbage collector.</p><a name="x_BF1" class="calibre27" id="x_BF1"></a><p class="docText">This sort of problem is easy to overlook during
+    development, and when it later occurs in the field (as these awkward
+    problems always seem to do), it will be much harder to diagnose.</p><a name="x_pO" class="calibre27" id="x_pO"></a><p class="docText">Fortunately, we can avoid this kind of error very easily,
+    while also making our function <span class="docEmphasis">shorter</span>.</p><a name="find_acquire_use_release" class="calibre27" id="find_acquire_use_release"></a><h4 id="title-IDAZFTNE" class="docSection1Title">9.5.1. The Acquire-Use-Release Cycle</h4><a name="x_qO" class="calibre27" id="x_qO"></a><p class="docText">We <a name="I_indexterm9_d1e23825" class="calibre27" id="I_indexterm9_d1e23825"></a><a name="I_indexterm9_d1e23828" class="calibre27" id="I_indexterm9_d1e23828"></a>need <i class="docEmphasis">hClose</i> to always
+      be called if <i class="docEmphasis">openFile</i> succeeds. The
+      <tt class="calibre34">Control.Exception</tt> module<a name="I_indexterm9_d1e23841" class="calibre27" id="I_indexterm9_d1e23841"></a> provides the <i class="docEmphasis">bracket</i>
+      function for exactly this purpose:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type bracket</b>
+bracket :: IO a -&gt; (a -&gt; IO b) -&gt; (a -&gt; IO c) -&gt; IO c
+</pre><a name="x_rO" class="calibre27" id="x_rO"></a><p class="docText">The <i class="docEmphasis">bracket</i>
+      function<a name="I_indexterm9_d1e23860" class="calibre27" id="I_indexterm9_d1e23860"></a> takes three actions as arguments. The first action
+      acquires a resource. The second releases the resource. The third runs in
+      between, while the resource is acquired; let's call this the
+      "use" action. If the "acquire" action
+      succeeds, the "release" action is
+      <span class="docEmphasis">always</span> called. This guarantees that the resource
+      will always be released. The "use" and
+      "release" actions are each passed the resource acquired by
+      the "acquire" action.</p><a name="x_sO" class="calibre27" id="x_sO"></a><p class="docText">If an exception occurs while the "use"
+      action is executing, <i class="docEmphasis">bracket</i> calls
+      the "release" action and rethrows the exception. If the
+      "use" action succeeds, <i class="docEmphasis">bracket</i> calls the "release"
+      action and returns the value returned by the "use"
+      action.</p><a name="x_tO" class="calibre27" id="x_tO"></a><p class="docText">We can now write a function that is completely safe—it
+      will not throw exceptions, neither will it accumulate garbage file
+      handles that could cause spurious failures elsewhere in our
+      program:</p><pre class="calibre39">-- file: ch09/BetterPredicate.hs
+getFileSize path = handle (\_ -&gt; return Nothing) $
+  bracket (openFile path ReadMode) hClose $ \h -&gt; do
+    size &lt;- hFileSize h
+    return (Just size)</pre><br class="calibre48"/>
+<a name="x_uO" class="calibre27" id="x_uO"></a><p class="docText">Look again closely at the arguments of <i class="docEmphasis">bracket</i>. The first opens the file and returns
+      the open file handle. The second closes the handle. The third simply
+      calls <i class="docEmphasis">hFileSize</i> on<a name="I_indexterm9_d1e23922" class="calibre27" id="I_indexterm9_d1e23922"></a> the handle and wraps the result in <i class="docEmphasis">Just</i>.</p><a name="x_vO" class="calibre27" id="x_vO"></a><p class="docText">We need to use both <i class="docEmphasis">bracket</i> and <i class="docEmphasis">handle</i> for this function to operate
+      correctly. The former ensures that we don't accumulate garbage file
+      handles, while the latter gets rid of exceptions.</p><a name="I_sidebar9_d1e23937" class="calibre27" id="I_sidebar9_d1e23937"></a></td>
+                    </tr>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

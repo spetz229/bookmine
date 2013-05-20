@@ -1,0 +1,139 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0139.html
+next: f_0141.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.ctags.configure">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 102</td>
+<td class="arr-recipe-name">Configure Vim to Work with ctags</td>
+</tr>
+</table>
+<p id="N1AA89" class="calibre4">
+<span class="calibre5">
+        If we want to use Vim’s ctag navigation commands, we must ensure that the tags file is up-to-date and that Vim knows where to look for it.
+    </span>
+</p>
+<h3 class="calibre22">Tell Vim Where to Find the Tags File</h3>
+<p id="N1AA9F" class="calibre4">
+        The <code class="cf">‘tags’</code> option specifies where Vim should look to find a <code class="cf">tags</code> file (<strong xmlns:str="http://exslt.org/strings" class="calibre10">'tags'</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/options.html#'tags'">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). When <code class="cf">./</code> is used in the <code class="cf">‘tags’</code> option, Vim replaces it with the path of the currently active file. We can inspect the defaults:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:set tags?</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​tags=./tags,tags​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1AACA" class="calibre4">
+        With these settings, Vim looks for a <code class="cf">tags</code> file in the directory of the current file and in the working directory. Under certain conditions, if a match is found in the first <code class="cf">tags</code> file, Vim won’t even look in the second file (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">tags-option</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/tagsrch.html#tags-option">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a> for more details).
+
+	 
+        Using Vim’s default settings, we could keep a <code class="cf">tags</code> file in every subdirectory of our project. Or we could keep it simple by creating a global <code class="cf">tags</code> file in the project root directory.
+      </p>
+<p id="N1AAE3" class="calibre4">
+        If you run <code class="cf">ctags</code> often enough to keep the index up-to-date, then your <code class="cf">tags</code> file (or files) could show up in every source code check-in. To keep your commit history clean, tell your source control to ignore <code class="cf">tags</code> files.
+      </p>
+<h3 class="calibre22">Generate the tags File</h3>
+<p id="N1AAF3" class="calibre4">
+        As we saw in <a xmlns:str="http://exslt.org/strings" href="f_0139.html#sec.ctags.usage">​<em class="calibre5">Indexing a Codebase with ctags</em>​</a>, <code class="cf">ctags</code> can be executed from the command line. But we needn’t leave Vim to regenerate the <code class="cf">tags</code> file.
+      </p>
+<h4 class="calibre20">Simple Case: Execute ctags Manually</h4>
+<p id="N1AB0B" class="calibre4">
+          We can invoke <code class="cf">ctags</code> directly from Vim by running the following:
+        </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:!ctags -R</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1AB1E" class="calibre4">
+          Starting from Vim’s current working directory, this command would recurse through all subdirectories, indexing every file. The resulting <code class="cf">tags</code> file would be written in the current working directory.
+        </p>
+<p id="N1AB2B" class="calibre4">
+          If we were to tweak the command by adding such options as <code class="cf">--exclude=.git</code> or <code class="cf">--languages=-sql</code>, typing it out would become more of a chore. We could save ourselves some time by creating a mapping for it:
+		  </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:nnoremap &lt;f5&gt; :!ctags -R&lt;CR&gt;</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1AB48" class="calibre4">
+          That lets us rebuild the index just by pressing the <span class="calibre17">&lt;F5&gt;</span> key, but we still have to remember periodically to generate the tags file. Now let’s consider a couple of options for automating this process.
+        </p>
+<h4 class="calibre20">Automatically Execute ctags Each Time a File is Saved</h4>
+<p id="N1AB52" class="calibre4">
+          Vim’s autocommand feature allows us to invoke a command on each occurrence of an event, such as a buffer being created, opened, or written to file. We could set up an autocommand that invokes <code class="cf">ctags</code> every time we save a file:
+        </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:autocmd BufWritePost * call system("ctags -R")</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1AB73" class="calibre4">
+          This would re-index our entire codebase each time we saved changes to a single file.
+          </p>
+<h4 class="calibre20">Automatically Execute ctags with Version Control Hooks</h4>
+<p id="N1AB7B" class="calibre4">
+          Most source control systems provide hooks that allow us to execute a script in response to events on the repository. We can use these to instruct our source control to re-index the repository every time we commit our code.
+        </p>
+<p id="N1AB85" class="calibre4">
+          In “Effortless Ctags with Git,” Tim Pope demonstrates how to set up hooks for the <code class="cf">post-commit</code>, <code class="cf">post-merge</code>, and <code class="cf">post-checkout</code> events.<a id="FNPTR-29" href="f_0141.html#FOOTNOTE-29">[29]</a> The beauty of this solution is that it uses global hooks, so configuring each individual repository on your system is unnecessary.
+        </p>
+<h4 class="calibre20">Discussion</h4>
+<p id="N1AB9B" class="calibre4">
+          Each strategy for indexing our source code has its pros and cons. The manual solution is simplest, but having to remember to regenerate the index means that it’s more likely to go stale.
+        </p>
+<p id="N1AB9E" class="calibre4">
+          Using an autocommand to invoke <code class="cf">ctags</code> every time a buffer is saved ensures that our <code class="cf">tags</code> file is always up-to-date, but at what cost? For a small codebase, the time taken to run <code class="cf">ctags</code> may be imperceptible, but for larger projects, the lag may be long enough to interrupt our workflow. Also, this technique is blind to any changes that happen to a file outside of the editor.
+        </p>
+<p id="N1ABAA" class="calibre4">
+          Re-indexing our codebase on each commit strikes a good balance. Sure, the <code class="cf">tags</code> file might fall out of step with our working copy, but the errors are tolerable. The code that we’re actively working on is the code we’re least likely to want to navigate using tags. And remember that keywords in the <code class="cf">tags</code> file are addressed with a search command (see <a xmlns:str="http://exslt.org/strings" href="f_0139.html#sec.tags.file">​<em class="calibre5">The Anatomy of a tags File</em>​</a>), which makes them reasonably robust in the face of changes.
+        </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

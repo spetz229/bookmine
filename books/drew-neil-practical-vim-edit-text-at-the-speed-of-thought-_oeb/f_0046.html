@@ -1,0 +1,304 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0045.html
+next: f_0047.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.visual.block.columns">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 25</td>
+<td class="arr-recipe-name">Change Columns of Text</td>
+</tr>
+</table>
+<p id="N12445" class="calibre4">
+<span class="calibre5">
+        We can use Visual-Block mode to insert text into several lines of text simultaneously.
+    </span> 
+      Visual-Block mode is not just useful to us when working with tabular data. Oftentimes, we can benefit from this feature when working with code. For example, take this snippet of (suboptimal) CSS:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/visual_mode/sprite.css">visual_mode/sprite.css</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">li</strong>.one   <strong class="prompt">a</strong>{ background-image: <em class="string">url('/images/sprite.png')</em>; }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">li</strong>.two   <strong class="prompt">a</strong>{ background-image: <em class="string">url('/images/sprite.png')</em>; }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">li</strong>.three <strong class="prompt">a</strong>{ background-image: <em class="string">url('/images/sprite.png')</em>; }​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1248D" class="calibre4">
+      Suppose that the <code class="cf">sprite.png</code> file has been moved from <code class="cf">images/</code> into a <code class="cf">components/</code> directory. We’ll need to change each of these lines to reference the file’s new location. We could do this using Visual-Block mode as shown in <a xmlns:str="http://exslt.org/strings" href="#table.all-lines">Table 7, ​<em class="calibre5">Inserting into Multiple Lines</em>​</a>.
+    </p>
+<hr class="calibre37"/>
+<div class="figurecaption" id="table.all-lines">Table 7. Inserting into Multiple Lines</div>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="calibre4">
+<code class="cf">{start}</code>
+</p>
+<p class="last-para-in-cell">
+<code class="cf">
+<span class="calibre5">Normal mode</span>
+</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​li.one   a{ background-image: url('/<span class="shade-fg-white">i</span>mages/sprite.png'); }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​li.two   a{ background-image: url('/images/sprite.png'); }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​li.three a{ background-image: url('/images/sprite.png'); }​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="calibre4">
+<span class="calibre17">&lt;C-v&gt;jje</span>
+</p>
+<p class="last-para-in-cell">
+<code class="cf">
+<span class="calibre5">Visual mode</span>
+</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​li.one   a{ background-image: url('/<span class="shade-fg-black">images</span>/sprite.png'); }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​li.two   a{ background-image: url('/<span class="shade-fg-black">images</span>/sprite.png'); }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​li.three a{ background-image: url('/<span class="shade-fg-black">image<span class="shade-fg-white">s</span>
+</span>/sprite.png'); }​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="calibre4">
+<span class="calibre17">c</span>
+</p>
+<p class="last-para-in-cell">
+<code class="cf">
+<span class="calibre5">Insert mode</span>
+</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​li.one   a{ background-image: url('/<span class="shade-fg-white">/</span>sprite.png'); }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​li.two   a{ background-image: url('//sprite.png'); }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​li.three a{ background-image: url('//sprite.png'); }​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="calibre4">
+<code class="cf">components</code>
+</p>
+<p class="last-para-in-cell">
+<code class="cf">
+<span class="calibre5">Insert mode</span>
+</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​li.one   a{ background-image: url('/components<span class="shade-fg-white">/</span>sprite.png'); }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​li.two   a{ background-image: url('//sprite.png'); }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​li.three a{ background-image: url('//sprite.png'); }​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="calibre4">
+<code class="cf">&lt;Esc&gt;</code>
+</p>
+<p class="last-para-in-cell">
+<code class="cf">
+<span class="calibre5">Normal mode</span>
+</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​li.one   a{ background-image: url('/component<span class="shade-fg-white">s</span>/sprite.png'); }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​li.two   a{ background-image: url('/components/sprite.png'); }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​li.three a{ background-image: url('/components/sprite.png'); }​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<hr class="calibre37"/>
+<p id="N12561" class="calibre4">
+      The procedure should look pretty familiar. We begin by defining the selection that we want to operate on, which happens to be a rectangular Visual-Block. When we hit the <span class="calibre17">c</span> key, all of the selected text disappears and we are dropped into Insert mode.
+    </p>
+<p id="N12567" class="calibre4">
+      As we type the word “components” in Insert mode, it appears on the topmost line only. Nothing happens to the two lines below. We see the text that we typed in those lines only when we press <span class="calibre17">&lt;Esc&gt;</span> to return to Normal mode.
+    </p>
+<p id="N1256D" class="calibre4">
+      The behavior of Vim’s Visual-Block change command may be a little surprising. It seems inconsistent that the deletion should affect all marked lines simultaneously, but the insertion affects only the topmost line (at least for the duration of Insert mode). Some text editors provide similar functionality, but they update all selected lines at the same time. If you’re used to that kind of behavior (as I was), then you might find Vim’s implementation less polished. But in practice, it makes no difference in the final outcome. So long as you dip into Insert mode only for short bursts, you shouldn’t have any surprises.
+	  </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

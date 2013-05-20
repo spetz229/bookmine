@@ -1,0 +1,235 @@
+---
+layout: page
+title: "Unknown"
+prev: x16230.htm
+next: x17006.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="x16230.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4"/><td width="10%" valign="bottom" class="calibre5"><a href="x17006.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><div class="calibre18"></div><h1 id="calibre_toc_10" class="calibre7"><a name="DATABASEMANAGEMENT" class="calibre8">Chapter 9. Database Management</a></h1><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><b class="calibre10">Table of Contents</b></dt><dt class="NAVHEADER"><a href="c16573.htm#AEN16579">Starting and Stopping PostgreSQL</a></dt><dt class="NAVHEADER"><a href="x17006.htm">Initializing the Filesystem</a></dt><dt class="NAVHEADER"><a href="x17149.htm">Creating and Removing a Database</a></dt><dt class="NAVHEADER"><a href="x17549.htm">Maintaining a Database</a></dt><dt class="NAVHEADER"><a href="x17860.htm">Backing Up and Restoring Data</a></dt></dl></div><p class="calibre9">This chapter covers several topics associated with managing a PostgreSQL database system, including starting
+  and stopping the PostgreSQL backend, initializing the filesystem, and the creation, removal, and maintenance of individual
+  databases. There is also a section devoted to the topic of backing up and restoring data from a database.</p><div class="NAVHEADER"><h1 class="calibre7"><a name="AEN16579" class="calibre8">Starting and Stopping PostgreSQL</a></h1><p class="calibre9">In this section we cover two options provided with PostgreSQL that are used to start and stop PostgreSQL.  The first is
+    a general purpose application called <span><i class="EMPHASIS">pg_ctl</i></span>, which should function identically on any machine,
+    regardless of the system. This script is intended to be run by the system user (e.g., the user who owns the data directory)
+    configured to execute the <span><i class="EMPHASIS">postmaster</i></span> backend.</p><p class="calibre9">The second script provided is the <span><i class="EMPHASIS">SysV</i></span>-style script, found in the
+    <span><i class="EMPHASIS">contrib/start-scripts</i></span> subdirectory within the PostgreSQL source path. The installation of the
+    <span><i class="EMPHASIS">SysV</i></span> script is discussed in <a href="c360.htm">Chapter 2</a>. By default this script is
+    named <span><i class="EMPHASIS">linux</i></span>, as it is intended for a Linux system's start-script directory, though in the installation instructions
+    it is renamed to a script called <span><i class="EMPHASIS">postgresql</i></span> in the system's service start-up directory (e.g.,
+    <span><i class="EMPHASIS">/etc/rc.d/init.d</i></span> ).</p><p class="calibre9">The main functional difference between <span><i class="EMPHASIS">pg_ctl</i></span> and the SysV-style service script is that
+    <span><i class="EMPHASIS">pg_ctl</i></span> is intended to be used by the user who runs the <span><i class="EMPHASIS">postmaster</i></span> backend
+    (e.g., <span><i class="EMPHASIS">postgres</i></span>), whereas the service script is intended to be run by the <span><i class="EMPHASIS">root</i></span>
+    user.</p><p class="calibre9">The service script is not strictly Linux-specific, and should be compatible with most systems based on SysV start-up
+    scripts. However, if you are not running Linux, you may prefer to stick with the <span><i class="EMPHASIS">pg_ctl</i></span> script.</p><div class="NAVHEADER"><h2 class="SECT"><a name="AEN16600" class="calibre8">Using pg_ctl</a></h2><p class="calibre9">        The <span><i class="EMPHASIS">pg_ctl</i></span> script is provided with PostgreSQL as a general control application. With it, you
+        can start, stop, restart, or check on the status of PostgreSQL.
+      </p><p class="calibre9">Here is the syntax for <span><i class="EMPHASIS">pg_ctl</i></span>, from the <span><i class="EMPHASIS">-  -help</i></span> option:</p><pre class="SCREEN">  pg_ctl start   [-w] [-D <tt class="REPLACEABLE"><i class="EMPHASIS">DATADIR</i></tt> ] [-s] [-l <tt class="REPLACEABLE"><i class="EMPHASIS">FILENAME</i></tt> ] [-o "<tt class="REPLACEABLE"><i class="EMPHASIS">OPTIONS</i></tt>"]
+  pg_ctl stop    [-W] [-D <tt class="REPLACEABLE"><i class="EMPHASIS">DATADIR</i></tt> ] [-s] [-m <tt class="REPLACEABLE"><i class="EMPHASIS">SHUTDOWN-MODE</i></tt> ]
+  pg_ctl restart [-w] [-D <tt class="REPLACEABLE"><i class="EMPHASIS">DATADIR</i></tt> ] [-s] [-m <tt class="REPLACEABLE"><i class="EMPHASIS">SHUTDOWN-MODE</i></tt> ] [-o "<tt class="REPLACEABLE"><i class="EMPHASIS">OPTIONS</i></tt>"]
+  pg_ctl status  [-D <tt class="REPLACEABLE"><i class="EMPHASIS">DATADIR</i></tt>]</pre><p class="calibre9">The following options may be passed to <span><i class="EMPHASIS">pg_ctl</i></span>:
+        
+        </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER">-w</dt><dd class="calibre16"><p class="calibre9">              
+              Causes the <span><i class="EMPHASIS">pg_ctl</i></span> application to wait until the operation has finished before returning to a
+              command line.  This option may be passed to either the <span><i class="EMPHASIS">start</i></span> or <span><i class="EMPHASIS">restart</i></span>
+              action; by default, the application sends the command on to the <span><i class="EMPHASIS">postmaster</i></span> and exits
+              immediately for these actions.
+            
+            </p></dd><dt class="NAVHEADER">-W</dt><dd class="calibre16"><p class="calibre9">              
+              Causes the <span><i class="EMPHASIS">pg_ctl</i></span> application <span><i class="EMPHASIS">not</i></span> to wait until the operation has
+              finished before returning to a command line. This option may only be passed to the <span><i class="EMPHASIS">stop</i></span>
+              action; by default, the application sends the stop command on to the <span><i class="EMPHASIS">postmaster</i></span>, and waits for
+              the action to finish before exiting.
+            
+            </p></dd><dt class="NAVHEADER">-D <tt class="REPLACEABLE"><i class="EMPHASIS">DATADIR</i></tt></dt><dd class="calibre16"><p class="calibre9">              
+              Specifies the directory that contains the default database files. This is optional, because you may have this
+              value already set in the <tt class="REPLACEABLE">PGDATA</tt> environment variable. If the
+              <tt class="REPLACEABLE">PGDATA</tt> environment variable is not set, the <span><i class="EMPHASIS">-D</i></span> flag is
+              required.
+            
+            </p></dd><dt class="NAVHEADER">-s</dt><dd class="calibre16"><p class="calibre9">              
+              Suppresses any output from the <span><i class="EMPHASIS">pg_ctl</i></span> application, aside from system errors. If
+              this flag is not specified, information about the activity within the database (or specific information about
+              startup or shutdown, depending on the action) will be displayed to the screen of the user who initiated the
+              command.
+            
+            </p></dd><dt class="NAVHEADER">-l <tt class="REPLACEABLE"><i class="EMPHASIS">FILENAME</i></tt></dt><dd class="calibre16"><p class="calibre9">              
+              Specifies a file <tt class="REPLACEABLE"><i class="EMPHASIS">FILENAME</i></tt> to append database activity to. This option is only available
+              with the <span><i class="EMPHASIS">start</i></span> action.
+            
+            </p></dd><dt class="NAVHEADER">-m <tt class="REPLACEABLE"><i class="EMPHASIS">SHUTDOWN-MODE</i></tt></dt><dd class="calibre16"><p class="calibre9">              
+              Sets the <tt class="REPLACEABLE"><i class="EMPHASIS">SHUTDOWN-MODE</i></tt> with which to shut down the <span><i class="EMPHASIS">postmaster</i></span> backend.
+              
+              </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre17"><dt class="NAVHEADER">smart</dt><dd class="calibre16"><p class="calibre9">                    
+                    Makes <span><i class="EMPHASIS">postmaster</i></span> wait for all clients to disconnect before shutting down.
+                  
+                  </p></dd><dt class="NAVHEADER">fast</dt><dd class="calibre16"><p class="calibre9">                    
+                    Shuts <span><i class="EMPHASIS">postmaster</i></span> down without waiting for clients to disconnect.
+                  
+                  </p></dd><dt class="NAVHEADER">immediate</dt><dd class="calibre16"><p class="calibre9">                    
+                    Shuts <span><i class="EMPHASIS">postmaster</i></span> down more abruptly than <span><i class="EMPHASIS">fast</i></span> mode, bypassing
+                    normal shutdown procedures. This mode causes the database to restart in <span><i class="EMPHASIS">recovery</i></span> mode
+                    the next time it starts, which verifies the integrity of the system.
+                  
+                  </p></dd></dl></div>
+<p class="calibre9">              
+              This option is of course only available to the <span><i class="EMPHASIS">stop</i></span> and <span><i class="EMPHASIS">restart</i></span> actions.
+              
+            </p></dd><dt class="NAVHEADER">-o "<tt class="REPLACEABLE"><i class="EMPHASIS">OPTIONS</i></tt>"</dt><dd class="calibre16"><p class="calibre9">              
+              Passes the options specified by <tt class="REPLACEABLE"><i class="EMPHASIS">OPTIONS</i></tt> (within double quotes) to be passed directly through
+              to the <span><i class="EMPHASIS">postmaster</i></span> (e.g., the <span><i class="EMPHASIS">-i</i></span> flag to enable TCP/IP connections).  See
+              <a href="c16573.htm#CALLINGPOSTMASTERDIRECTLY">the Section called <i class="EMPHASIS">Calling postmaster Directly</i></a>" later in this chapter for a complete list of these flags.
+              
+            </p></dd></dl></div><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>Many of the run-time configuration options for <span><i class="EMPHASIS">postmaster</i></span> can be found in the
+        <span><i class="EMPHASIS">postgresql.conf</i></span> file, which is stored in the PostgreSQL data path (e.g.,
+        <span><i class="EMPHASIS">/usr/local/pgsql/data</i></span>). The options in this file are of a more technical nature, and should not be
+        modified unless you are sure you understand their purpose.</p></blockquote></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN16698" class="calibre8">Starting PostgreSQL with pg_ctl</a></h3><p class="calibre9">To start PostgreSQL's <span><i class="EMPHASIS">postmaster</i></span> backend, the <span><i class="EMPHASIS">start</i></span> argument must be
+        passed to <span><i class="EMPHASIS">pg_ctl</i></span>. Remember that <span><i class="EMPHASIS">pg_ctl</i></span> must be run by the
+        <span><i class="EMPHASIS">postgres</i></span> user (or whatever user you have configured to own the PostgreSQL data path).</p><p class="calibre9"><a href="c16573.htm#STARTINGPOSTGRESQLWITHPGCTLEXAMPLE">Example 9-1</a> starts the <span><i class="EMPHASIS">postmaster</i></span> backend, using the
+        data path of <span><i class="EMPHASIS">/usr/local/pgsql/data</i></span>. The database system starts up successfully, reports the last
+        time the database system was shut down, and provides various debugging statements before returning the
+        <span><i class="EMPHASIS">postgres</i></span> user to a shell prompt.</p><div class="NAVHEADER"><a name="STARTINGPOSTGRESQLWITHPGCTLEXAMPLE"></a><p class="calibre9"><b class="calibre10">Example 9-1. Starting PostgreSQL with pg_ctl</b></p><pre class="SCREEN">[postgres@booktown ~]$ <tt class="REPLACEABLE"><b class="calibre10">pg_ctl -D /usr/local/pgsql/data start</b></tt>
+postmaster successfully started
+DEBUG:  database system was shut down at 2001-09-17 08:06:34 PDT
+DEBUG:  CheckPoint record at (0, 1000524052)
+DEBUG:  Redo record at (0, 1000524052); Undo record at (0, 0); Shutdown TRUE
+DEBUG:  NextTransactionId: 815832; NextOid: 3628113
+DEBUG:  database system is in production state
+
+[postgres@booktown ~]$</pre></div></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN16715" class="calibre8">Stopping PostgreSQL with pg_ctl</a></h3><p class="calibre9">The PostgreSQL <span><i class="EMPHASIS">postmaster</i></span> backend can be stopped in the same fashion that it is started—by passing the <span><i class="EMPHASIS">stop</i></span> argument to <span><i class="EMPHASIS">pg_ctl</i></span>. The application <span><i class="EMPHASIS">pg_ctl</i></span>
+        checks for the running postmaster process, and, if the stop command was executed by the user who owns the running processes (e.g., <span><i class="EMPHASIS">postgres</i></span>)
+        the server is shut down.</p><p class="calibre9">There are three ways in which PostgreSQL can shut down the backend: <span><i class="EMPHASIS">smart</i></span>,
+        <span><i class="EMPHASIS">fast</i></span>, and <span><i class="EMPHASIS">immediate</i></span>. These arguments are passed to <span><i class="EMPHASIS">pg_ctl</i></span>
+        following the <span><i class="EMPHASIS">-m</i></span> flag, to indicate the desired shutdown mode.</p><p class="calibre9">A <span><i class="EMPHASIS">smart</i></span> shutdown (the default) causes PostgreSQL to wait for all clients to first cancel their
+        connections before shutting down. A <span><i class="EMPHASIS">fast</i></span> shutdown causes PostgreSQL to simply shut down through its
+        normal routine, without checking client status. An <span><i class="EMPHASIS">immediate</i></span> shutdown bypasses the normal shutdown
+        procedure, and will require the system to go through a <span><i class="EMPHASIS">recovery</i></span> mode when restarted.</p><div class="NAVHEADER"><p class="calibre9"></p><table class="calibre" border="1" width="100%"><tr class="calibre1"><td class="calibre23"><b class="calibre10">Warning</b></td></tr><tr class="calibre1"><td class="calibre15"><p class="calibre9">Never use <span><i class="EMPHASIS">kill -9</i></span> (<span><i class="EMPHASIS">kill -KILL</i></span>) on the <span><i class="EMPHASIS">postmaster</i></span>
+          process. This can result in lost or corrupted data.</p></td></tr></table></div><p class="calibre9"><a href="c16573.htm#STOPPINGPOSTGRESQLWITHPGCTLEXAMPLE">Example 9-2</a> calls the <span><i class="EMPHASIS">pg_ctl</i></span> script to stop the
+        <span><i class="EMPHASIS">postmaster</i></span> process in <span><i class="EMPHASIS">fast</i></span> mode. The <span><i class="EMPHASIS"> postmaster </i></span> backend
+         will not wait for any client connections to disconnect before shutting down.</p><div class="NAVHEADER"><a name="STOPPINGPOSTGRESQLWITHPGCTLEXAMPLE"></a><p class="calibre9"><b class="calibre10">Example 9-2. Stopping PostgreSQL with pg_ctl</b></p><pre class="SCREEN">[postgres@booktown ~]$ <tt class="REPLACEABLE"><b class="calibre10">pg_ctl -D /usr/local/pgsql/data stop -m fast</b></tt>
+Fast Shutdown request at Mon Sep 17 09:23:39 2001
+DEBUG:  shutting down
+waiting for postmaster to shut down.....
+DEBUG:  database system is shut down
+done
+postmaster successfully shut down
+[postgres@booktown ~]$</pre></div><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>The <span><i class="EMPHASIS">smart</i></span> shutdown is equivalent to a <span><i class="EMPHASIS">kill -TERM</i></span> on the running
+          postmaster process, while <span><i class="EMPHASIS">fast</i></span> is equivalent to a <span><i class="EMPHASIS">kill -INT</i></span>, and
+          <span><i class="EMPHASIS">immediate</i></span> is equivalent to a <span><i class="EMPHASIS">kill -QUIT</i></span>.</p></blockquote></div></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN16757" class="calibre8">Restarting PostgreSQL with pg_ctl</a></h3><p class="calibre9">You may pass the <span><i class="EMPHASIS">restart</i></span> argument to <span><i class="EMPHASIS">pg_ctl</i></span> as shorthand for sequential
+        <span><i class="EMPHASIS">stop</i></span> and <span><i class="EMPHASIS">start</i></span> calls to <span><i class="EMPHASIS">pg_ctl</i></span>. This argument may also
+        specify the <span><i class="EMPHASIS">-m</i></span> flag to indicate the preferred shutdown mode.</p><p class="calibre9">PostgreSQL stores the most recently used start-up options in a temporary file called <span><i class="EMPHASIS">postmaster.opts</i></span>, within the
+        PostgreSQL data path (<tt class="REPLACEABLE">PGDATA</tt>). This file is used when <span><i class="EMPHASIS">pg_ctl</i></span> is
+        invoked with the <span><i class="EMPHASIS">restart</i></span> argument to ensure that your run-time options are preserved. Avoid placing your own
+        configurations on the <span><i class="EMPHASIS">postmaster.opts</i></span> file, as it will be overwritten when <span><i class="EMPHASIS">pg_ctl</i></span> is executed
+        with the <span><i class="EMPHASIS">start</i></span> argument.
+        </p><p class="calibre9"><a href="c16573.htm#RESTARTINGPOSTGRESQLWITHPGCTL">Example 9-3</a> restarts the Book Town database server with the
+        <span><i class="EMPHASIS">postgres</i></span> user.</p><div class="NAVHEADER"><a name="RESTARTINGPOSTGRESQLWITHPGCTL"></a><p class="calibre9"><b class="calibre10">Example 9-3. Restarting PostgreSQL with pg_ctl</b></p><pre class="SCREEN">[postgres@booktown ~]$ <tt class="REPLACEABLE"><b class="calibre10">pg_ctl -D /usr/local/pgsql/data restart</b></tt>
+Smart Shutdown request at Mon Sep 17 08:33:51 2001
+DEBUG:  shutting down
+waiting for postmaster to shut down.....DEBUG:  database system is shut down
+done
+postmaster successfully shut down
+postmaster successfully started
+[postgres@booktown ~]$
+DEBUG:  database system was shut down at 2001-09-17 08:33:53 PDT
+DEBUG:  CheckPoint record at (0, 1000524116)
+DEBUG:  Redo record at (0, 1000524116); Undo record at (0, 0); Shutdown TRUE
+DEBUG:  NextTransactionId: 815832; NextOid: 3628113
+DEBUG:  database system is in production state
+
+[postgres@booktown ~]$</pre></div></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN16781" class="calibre8">Checking status of PostgreSQL with pg_ctl</a></h3><p class="calibre9">You may use the <span><i class="EMPHASIS">status</i></span> argument to check the status of a running
+         <span><i class="EMPHASIS">postmaster</i></span> process. While not having any effect on the data itself, the data path must be known to
+        <span><i class="EMPHASIS">pg_ctl</i></span>.  If the <tt class="REPLACEABLE">PGDATA</tt> environmental variable is not set,
+        the <span><i class="EMPHASIS">-D</i></span> flag must be passed to <span><i class="EMPHASIS">pg_ctl</i></span>. </p><p class="calibre9"><a href="c16573.htm#CHECKINGSTATUSWITHPGCTLEXAMPLE">Example 9-4</a> checks the status of the Book Town PostgreSQL server.</p><div class="NAVHEADER"><a name="CHECKINGSTATUSWITHPGCTLEXAMPLE"></a><p class="calibre9"><b class="calibre10">Example 9-4. Checking status with pg_ctl</b></p><pre class="SCREEN">[postgres@booktown ~]$ <tt class="REPLACEABLE"><b class="calibre10">pg_ctl -D /usr/local/pgsql/data status</b></tt>
+pg_ctl: postmaster is running (pid: 11575)
+Command line was:
+/usr/local/pgsql/bin/postmaster '-D' '/usr/local/pgsql/data' '-i' '-s'
+[postgres@booktown ~]$</pre></div><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>A lot of typing can be saved by making sure the <tt class="REPLACEABLE">PGDATA</tt> variable is set.  If you
+          intend to always use the same data directory, you may set the <tt class="REPLACEABLE">PGDATA</tt> variable (e.g.,
+          in the <span><i class="EMPHASIS">/etc/profile</i></span> file, as is recommended in <a href="c360.htm">Chapter 2</a>) and never
+          have to apply the <span><i class="EMPHASIS">-D</i></span> flag.</p></blockquote></div></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="USINGTHESYSVSCRIPT" class="calibre8">Using the SysV Script</a></h2><p class="calibre9">The SysV-style script, if installed, operates similarly to the <span><i class="EMPHASIS">pg_ctl</i></span> script. In fact, the SysV-style
+      script operates as a management program that wraps around the <span><i class="EMPHASIS">pg_ctl</i></span> command. The primary difference is
+      that the SysV script is intended to be invoked by the <span><i class="EMPHASIS">root</i></span> user, rather than the user who owns
+      and runs PostgreSQL (e.g., <span><i class="EMPHASIS">postgres</i></span>). The script itself handles the switching of the userids at the
+      appropriate times.</p><p class="calibre9">Using the SysV script instead of manually invoking <span><i class="EMPHASIS">pg_ctl</i></span> is advantageous in that it simplifies
+      system startup and shutdown procedures. The <span><i class="EMPHASIS">postgresql</i></span> script file
+      in <span><i class="EMPHASIS">/etc/rc.d/init.d/</i></span> is a plain text file, and can be modified in any standard text editor. Within
+      this file you may easily locate the startup and shutdown routines, and add or remove options to <span><i class="EMPHASIS">pg_ctl</i></span>
+      as you most commonly use them. The <span><i class="EMPHASIS">pg_ctl</i></span> commands are simplified by using either the single
+      administrative <span><i class="EMPHASIS">start</i></span> or <span><i class="EMPHASIS">stop</i></span> parameter with the <span><i class="EMPHASIS">postgresql</i></span> script.</p><p class="calibre9">The instructions for installation of the <span><i class="EMPHASIS">postgresql</i></span> script are covered in <a href="c360.htm">Chapter 2</a>.  Depending on your machine's configuration, there may be more than one method of invoking
+      the script once it has been properly installed.  Remember that the actual name of the SysV script file in the
+      <span><i class="EMPHASIS">/etc/rc.d/init.d/</i></span> directory may be an arbitrary name, depending on how it was copied. The most common
+      names given to this script are <span><i class="EMPHASIS">postgresql</i></span> and <span><i class="EMPHASIS">postgres</i></span>.</p><p class="calibre9">If your system supports the <span><i class="EMPHASIS">service</i></span> command, you should be able to use it as a wrapper to the
+      installed PostgreSQL script with the following syntax:</p><pre class="SCREEN">service postgresql { start | stop | restart | status }</pre><p class="calibre9">The <span><i class="EMPHASIS">service</i></span> command accepts only the parameters described in the preceding syntax.  No
+      other options are accepted. You can modify the way any of these general modes runs by editing the script (e.g.,
+      <span><i class="EMPHASIS">/etc/rc.d/init.d/postgresql</i></span>) manually. <a href="c16573.htm#STARTINGPOSTGRESQLWITHPOSTGRESQLSCRIPT">Example 9-5</a> uses
+      the <span><i class="EMPHASIS">service</i></span> command to start PostgreSQL.</p><div class="NAVHEADER"><a name="STARTINGPOSTGRESQLWITHPOSTGRESQLSCRIPT"></a><p class="calibre9"><b class="calibre10">Example 9-5. Starting PostgreSQL with service command</b></p><pre class="SCREEN">[root@booktown ~]# <tt class="REPLACEABLE"><b class="calibre10">service postgresql start</b></tt>
+Starting PostgreSQL: ok
+[root@booktown ~]#</pre></div><p class="calibre9">Alternatively, if the <span><i class="EMPHASIS">service</i></span> command does not exist on your system, the <span><i class="EMPHASIS">postgresql</i></span>
+       script can be manually invoked with its complete system path:</p><pre class="SCREEN">/etc/rc.d/init.d/postgresql { start | stop | restart | status }</pre><p class="calibre9"><a href="c16573.htm#CHECKINGSTATUSWITHPOSTGRESQLSCRIPT">Example 9-6</a> checks the status of PostgreSQL's backend process by directly
+      calling the <span><i class="EMPHASIS">postgresql</i></span> script in the complete path. This assumes that your system has its SysV
+      start-up scripts installed in the <span><i class="EMPHASIS">/etc/rc.d/init.d/</i></span> directory.
+      </p><div class="NAVHEADER"><a name="CHECKINGSTATUSWITHPOSTGRESQLSCRIPT"></a><p class="calibre9"><b class="calibre10">Example 9-6. Checking status with postgresql script</b></p><pre class="SCREEN">[root@booktown ~]# <tt class="REPLACEABLE"><b class="calibre10">/etc/rc.d/init.d/postgresql status</b></tt>
+pg_ctl: postmaster is running (pid: 13238)
+Command line was:
+/usr/local/pgsql/bin/postmaster '-D' '/usr/local/pgsql/data'
+[root@booktown ~]#</pre></div><p class="calibre9">As you can see from the output of <a href="c16573.htm#CHECKINGSTATUSWITHPOSTGRESQLSCRIPT">Example 9-6</a>, the SysV script is just a
+      convenient wrapper to the <span><i class="EMPHASIS">pg_ctl</i></span> command discussed in the previous section.</p></div><div class="NAVHEADER"><h2 class="SECT"><a name="CALLINGPOSTMASTERDIRECTLY" class="calibre8">Calling postmaster Directly</a></h2><p class="calibre9">The <span><i class="EMPHASIS">postmaster</i></span> program is the multi-user PostgreSQL database server backend itself. This is the
+      process that your PostgreSQL clients actually connect to, where a connection to a <span><i class="EMPHASIS">postgres</i></span> backend is
+      negotiated.</p><p class="calibre9">This binary is typically not called manually, but is indirectly executed through either the
+      <span><i class="EMPHASIS">pg_ctl</i></span> or SysV script discussed earlier in this section. However, these scripts at some point call
+      the <span><i class="EMPHASIS">postmaster</i></span> binary directly, and it can be helpful in configuring your PostgreSQL system to know
+      what the <span><i class="EMPHASIS">postmaster</i></span> is, and what it does.</p><p class="calibre9">The <span><i class="EMPHASIS">postmaster</i></span> can only access one database cluster at a time, though you may have several
+      concurrent <span><i class="EMPHASIS">postmaster</i></span> applications running on different ports with a different database cluster for
+      each.</p><p class="calibre9">Here is the syntax for the <span><i class="EMPHASIS">postmaster</i></span> program:</p><pre class="SCREEN">  postmaster [ -A { 0 | 1 } ] [ -B <tt class="REPLACEABLE"><i class="EMPHASIS">buffers</i></tt> ] [ -c <tt class="REPLACEABLE"><i class="EMPHASIS">name</i></tt>=<tt class="REPLACEABLE"><i class="EMPHASIS">value</i></tt> ] [ -d <tt class="REPLACEABLE"><i class="EMPHASIS">debug_level</i></tt> ]
+             [ -D <tt class="REPLACEABLE"><i class="EMPHASIS">datadir</i></tt> ] [ -F ] [ -h <tt class="REPLACEABLE"><i class="EMPHASIS">hostname</i></tt> ] [ -i ] [ -k <tt class="REPLACEABLE"><i class="EMPHASIS">directory</i></tt> ] [ -l ]
+             [ -N <tt class="REPLACEABLE"><i class="EMPHASIS">max_connections</i></tt> ] [ -o <tt class="REPLACEABLE"><i class="EMPHASIS">options</i></tt> ] [ -p <tt class="REPLACEABLE"><i class="EMPHASIS">port</i></tt> ] [ -S ] [ -n | -s ]</pre><p class="calibre9">The following are each of the parameters available to the <span><i class="EMPHASIS">postmaster</i></span> program, as of PostgreSQL 7.1.x:
+        
+        </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER">-A { 0 | 1 }</dt><dd class="calibre16"><p class="calibre9">The run-time assertion check flag. This enables debugging, if this option was enabled during compilation
+              of PostgreSQL. This flag should only be used by knowledgeable developers working on PostgreSQL itself.</p></dd><dt class="NAVHEADER">-B <tt class="REPLACEABLE"><i class="EMPHASIS">buffers</i></tt></dt><dd class="calibre16"><p class="calibre9">The number of shared-memory disk buffers that <span><i class="EMPHASIS">postmaster</i></span> will allocate for
+                use by the backend. By default, this is 64.
+              </p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>The value passed to <span><i class="EMPHASIS">-B</i></span> must be at least twice the number supplied for the
+                <span><i class="EMPHASIS">-N</i></span> parameter.</p></blockquote></div></dd><dt class="NAVHEADER">-c <tt class="REPLACEABLE"><i class="EMPHASIS">name</i></tt>=<tt class="REPLACEABLE"><i class="EMPHASIS">value</i></tt></dt><dd class="calibre16"><p class="calibre9">An arbitrary run-time configuration, setting <tt class="REPLACEABLE"><i class="EMPHASIS">name</i></tt> to <tt class="REPLACEABLE"><i class="EMPHASIS">value</i></tt>. Any
+              configuration settings found in the <span><i class="EMPHASIS">postgresql.conf</i></span> file (within the database cluster's data
+              directory) may be over-ridden with this option.</p></dd><dt class="NAVHEADER">-d <tt class="REPLACEABLE"><i class="EMPHASIS">debug_level</i></tt></dt><dd class="calibre16"><p class="calibre9">The debug level, which determines the amount of debugging output that will be logged by the backend.  The
+               default is 0. The higher the number, the more output will be generated. Values as high as
+               4 are reasonable for normal use, though a value of 4 will quickly take up disk space if you are logging the debug output.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>Unless the standard output and standard error streams from <span><i class="EMPHASIS">postmaster</i></span> are redirected
+                 to a file (e.g., from the shell, or with the <span><i class="EMPHASIS">-l</i></span> option to <span><i class="EMPHASIS">pg_ctl</i></span>) all
+                 debugging information will be displayed to the controlling terminal session of the
+                 <span><i class="EMPHASIS">postmaster</i></span> process.</p></blockquote></div></dd><dt class="NAVHEADER">-D <tt class="REPLACEABLE"><i class="EMPHASIS">datadir</i></tt></dt><dd class="calibre16"><p class="calibre9">The data directory of the intended database cluster. If this is not supplied,
+              <span><i class="EMPHASIS">postmaster</i></span> will use either the value of the <tt class="REPLACEABLE">PGDATA</tt>
+              environment variable, or the <span><i class="EMPHASIS">/data</i></span> path off of the path defined in the
+              <tt class="REPLACEABLE">POSTGRESHOME</tt> environment variable.  If neither environment variable is set, the
+              default compile-time directory is used (e.g., <span><i class="EMPHASIS">/usr/local/pgsql/data</i></span>).</p></dd><dt class="NAVHEADER">-F</dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE">fsync</tt>-disabling option. Using this increases performance, at the risk of
+              data corruption, in the event that the operating system or physical hardware crashes unexpectedly. Be sure you know
+              what you are doing before you use this flag!</p></dd><dt class="NAVHEADER">-h <tt class="REPLACEABLE"><i class="EMPHASIS">host</i></tt></dt><dd class="calibre16"><p class="calibre9">The host address to listen on; by default, PostgreSQL's backends will listen on all configured addresses,
+              including <span><i class="EMPHASIS">localhost</i></span>.</p></dd><dt class="NAVHEADER">-i</dt><dd class="calibre16"><p class="calibre9">The TCP/IP client-connection flag, which allows connections via TCP/IP. If this option is not specified, the
+              backend will accept only local domain socket connections.</p></dd><dt class="NAVHEADER">-k <tt class="REPLACEABLE"><i class="EMPHASIS">directory</i></tt></dt><dd class="calibre16"><p class="calibre9">The directory for the UNIX domain socket, which <span><i class="EMPHASIS">postmaster</i></span> will listen on for local
+              connections. This defaults to <span><i class="EMPHASIS">/tmp/</i></span>.</p></dd><dt class="NAVHEADER">-l</dt><dd class="calibre16"><p class="calibre9">The SSL flag. Use this to enable SSL connections. The <span><i class="EMPHASIS">-i</i></span> parameter must also be
+              given.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>You must have compiled PostgreSQL with SSL enabled to use the <span><i class="EMPHASIS">-I</i></span> option.</p></blockquote></div></dd><dt class="NAVHEADER">-N <tt class="REPLACEABLE"><i class="EMPHASIS">max_connections</i></tt></dt><dd class="calibre16"><p class="calibre9">The maximum number of concurrent backend processes that <span><i class="EMPHASIS">postmaster</i></span> can start. By
+              default, this value is set to 32. The maximum allowed number for this value is
+              1024. Make sure that your allocated <tt class="REPLACEABLE"><i class="EMPHASIS">buffers</i></tt> are configured for the
+              maximum number of concurrent backends (the <span><i class="EMPHASIS">-B</i></span> parameter, which must be at least twice the
+              <tt class="REPLACEABLE"><i class="EMPHASIS">max_connections</i></tt> value).</p></dd><dt class="NAVHEADER">-o <tt class="REPLACEABLE"><i class="EMPHASIS">options</i></tt></dt><dd class="calibre16"><p class="calibre9">Any <tt class="REPLACEABLE"><i class="EMPHASIS">options</i></tt> that <span><i class="EMPHASIS">postmaster</i></span> should send to the
+              <span><i class="EMPHASIS">postgres</i></span> backends when they are first started. These options are listed in <a href="a29297.htm">Appendix B</a>. Surround the <tt class="REPLACEABLE"><i class="EMPHASIS">options</i></tt> string with quotes, if more than
+              one option is passed.</p></dd><dt class="NAVHEADER">-p <tt class="REPLACEABLE"><i class="EMPHASIS">port</i></tt></dt><dd class="calibre16"><p class="calibre9">The TCP/IP <tt class="REPLACEABLE"><i class="EMPHASIS">port</i></tt> number (or socket file extension) that this instance of <span><i class="EMPHASIS">postmaster</i></span>
+              should listen for connections on.  If this is left unspecified, the default is taken from the
+              <tt class="REPLACEABLE">PGPORT</tt> environment variable, or the compile-time default (usually
+              5432).</p></dd><dt class="NAVHEADER">-S</dt><dd class="calibre16"><p class="calibre9">The <span><i class="EMPHASIS">silent mode</i></span> flag.  This will cause PostgreSQL to disassociate from the user's
+              terminal session, start its own process group, and redirect its standard output and standard error to
+              <span><i class="EMPHASIS">/dev/null</i></span>.</p><div class="NAVHEADER"><p class="calibre9"></p><table class="calibre" border="1" width="90%"><tr class="calibre1"><td class="calibre23"><b class="calibre10">Warning</b></td></tr><tr class="calibre1"><td class="calibre15"><p class="calibre9">Using the <span><i class="EMPHASIS">-S</i></span> switch makes it very difficult to troubleshoot problems, since all tracing
+                and logging output that would normally be generated by the postmaster and its child backend processes will be
+                discarded.</p></td></tr></table></div></dd></dl></div>
+<p class="calibre9">The <span><i class="EMPHASIS">postmaster</i></span> also accepts the following two debugging options, for interested developers:
+        
+        </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER">-n</dt><dd class="calibre16"><p class="calibre9">The <span><i class="EMPHASIS">-n</i></span> flag stops <span><i class="EMPHASIS">postmaster</i></span> from re-initializing shared data
+                structures.  A debugging tool can then be used to gain information about the memory's state at the time of the
+                crash.</p></dd><dt class="NAVHEADER">-s</dt><dd class="calibre16"><p class="calibre9">The <span><i class="EMPHASIS">-s</i></span> flag causes <span><i class="EMPHASIS">postmaster</i></span> to use the
+              <span><i class="EMPHASIS">SIGSTOP</i></span> signal to stop backend processes, without terminating the processes.
+              Using this signal will keep the backend processes in memory instead of terminating them, which allows a developer
+              to collect a core dump from each backend process manually. Each core dump can then be individually examined for
+              debugging information.</p></dd></dl></div>
+</div></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="x16230.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x17006.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Encrypting sessions</td><td width="34%" valign="top" class="calibre4"><a href="p15677.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Initializing the Filesystem</td></tr></table></div></div>
+
+{% endraw %}
+

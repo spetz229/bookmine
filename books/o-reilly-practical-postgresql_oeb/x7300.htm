@@ -1,0 +1,76 @@
+---
+layout: page
+title: "Unknown"
+prev: x7234.htm
+next: x7379.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="x7234.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 4. Using SQL with PostgreSQL</td><td width="10%" valign="bottom" class="calibre5"><a href="x7379.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="USINGSUBQUERIES" class="calibre8">Using Sub-Queries</a></h1><p class="calibre9">Sub-queries, first introduced to PostgreSQL in version 6.3, add a tremendous amount of flexibility to your SQL
+      statements. Sub-queries are often referred to as sub-selects, as they allow a <tt class="REPLACEABLE">SELECT</tt> statement
+      to be executed arbitrarily within the body of another SQL statement. A sub-query is executed by enclosing it in a set
+      of parentheses. Sub-queries are generally used to return a single row as an atomic value, though they may be used to
+      compare values against multiple rows with the <tt class="REPLACEABLE">IN</tt> keyword.</p><p class="calibre9">Sub-queries are allowed at nearly any meaningful point in a SQL statement, including the target list, the
+      <tt class="REPLACEABLE">WHERE</tt> clause, and so on. A simple sub-query could be used as a search condition.
+      For example, between a pair of tables. <a href="x7300.htm#ASIMPLESUBQUERY">Example 4-59</a> demonstrates such a use of a sub-query.</p><div class="NAVHEADER"><a name="ASIMPLESUBQUERY"></a><p class="calibre9"><b class="calibre10">Example 4-59. A simple sub-query</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT title FROM books</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       WHERE author_id = (SELECT id FROM authors</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">                         WHERE last_name='Geisel'</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">                         AND first_name='Theodor Seuss');</b></tt>
+            title
+-----------------------------
+ The Cat in the Hat
+ Bartholomew and the Oobleck
+(2 rows)</pre></div><p class="calibre9"><a href="x7300.htm#ASIMPLESUBQUERY">Example 4-59</a> uses the equal-to operator to compare the one row result of a sub-query on the
+      <tt class="REPLACEABLE">authors</tt> table with the <tt class="REPLACEABLE">author_id</tt> column in the
+      <tt class="REPLACEABLE">books</tt> table. In a single statement, the author identification number is acquired from the
+      <tt class="REPLACEABLE">authors</tt> table by a <tt class="REPLACEABLE">WHERE</tt> clause specifying the name of
+      <span><i class="EMPHASIS">Theodor Seuss Geisel</i></span>, and the single identifier field returned is compared against the
+      <tt class="REPLACEABLE">author_id</tt> column of the <tt class="REPLACEABLE">books</tt> table to return any books
+      by Dr. Seuss.</p><p class="calibre9">Note that caution should be taken with this sort of sub-query: to use a normal value operator on the results
+      of a sub-query, <span><i class="EMPHASIS">only one field</i></span> must be returned. For example, if a more general sub-query were used
+      to check for an author identifier, and several rows were found, you might see an error such as the following:</p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT title FROM books</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       WHERE author_id = (SELECT id FROM authors</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">                         WHERE last_name ~ 'G');</b></tt>
+ERROR:  More than one tuple returned by a subselect used as an
+expression.</pre><p class="calibre9">Normal comparison operators cannot check for a single value being equal to multiple values, so a check for
+      equivalence between the <tt class="REPLACEABLE">author_id</tt> column and multiple rows causes an error. This
+      could be solved with a <tt class="REPLACEABLE">LIMIT 1</tt> clause to ensure that the sub-query never returns
+      more than a single row.</p><p class="calibre9">If you are interested in checking for the existence of a single value within a set of other values, use the <tt class="REPLACEABLE">IN</tt> keyword as an operator upon the result set from a sub-query. <a href="x7300.htm#ASUBQUERYUSINGIN">Example 4-60</a> illustrates comparing a sub-query which produces several results (the authors whose names begin
+      with <span><i class="EMPHASIS">A</i></span> through <span><i class="EMPHASIS">E</i></span>) to the <tt class="REPLACEABLE">author_id</tt> column via the
+      <tt class="REPLACEABLE">IN</tt> keyword (see <a href="c7547.htm#USINGOPERATORS">the Section called <i class="EMPHASIS">Operators</i> in Chapter 5</a>" in <a href="c7547.htm">Chapter 5</a> for more about the regular
+      expression being employed).</p><div class="NAVHEADER"><a name="ASUBQUERYUSINGIN"></a><p class="calibre9"><b class="calibre10">Example 4-60. A sub-query using IN</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT title FROM books</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       WHERE author_id IN (SELECT id FROM authors</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">                           WHERE last_name ~ '^[A-E]');</b></tt>
+         title
+-----------------------
+ 2001: A Space Odyssey
+ Franklin in the Dark
+ Goodnight Moon
+ Little Women
+ The Velveteen Rabbit
+ Perl Cookbook
+(6 rows)</pre></div><p class="calibre9">As a result of the use of <tt class="REPLACEABLE">IN</tt>, books from several authors may be found in the
+      <tt class="REPLACEABLE">books</tt> table through a comparison against several rows from a sub-query. Note that while the
+      <tt class="REPLACEABLE">IN</tt> keyword allows you to compare against multiple rows, the number of columns against which to be match must be identical.</p><p class="calibre9">If you wish to use <tt class="REPLACEABLE">IN</tt> to compare several columns, you may group column names
+      together in the <tt class="REPLACEABLE">WHERE</tt> clause with parentheses immediately preceding
+      <tt class="REPLACEABLE">IN</tt>. The number of columns grouped must be the same as those in the target list of the
+      sub-query, and of the same data type for comparison.</p><p class="calibre9"><a href="x7300.htm#AMULTICOLUMNSUBQUERYUSINGIN">Example 4-61</a> demonstrates a sub-query which targets the
+      <tt class="REPLACEABLE">isbn</tt> column of the <tt class="REPLACEABLE">editions</tt> table, and an integer
+      constant of 0, for each paperback book (with a <tt class="REPLACEABLE">type</tt> value of
+      <span><i class="EMPHASIS">p</i></span>). Those rows are then returned and compared against the <tt class="REPLACEABLE">isbn</tt> column
+      and the <tt class="REPLACEABLE">stock</tt> column of the <tt class="REPLACEABLE">stock</tt> table with the
+      <tt class="REPLACEABLE">IN</tt> keyword, effectively selecting any paperback book that is out of stock.</p><div class="NAVHEADER"><a name="AMULTICOLUMNSUBQUERYUSINGIN"></a><p class="calibre9"><b class="calibre10">Example 4-61. A multi-column sub-query using IN</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT isbn, cost, retail FROM stock</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       WHERE (isbn, stock)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       IN (SELECT isbn, 0 FROM editions</b></tt>
+booktown(# <tt class="REPLACEABLE"><b class="calibre10">           WHERE type = 'p');</b></tt>
+    isbn    | cost  | retail
+------------+-------+--------
+ 0394800753 | 16.00 |  16.95
+ 0394900014 | 23.00 |  23.95
+ 0451457994 | 17.00 |  22.95
+(3 rows)</pre></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="x7234.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x7379.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Removing Rows with DELETE</td><td width="34%" valign="top" class="calibre4"><a href="c4890.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Using Views</td></tr></table></div></div>
+
+{% endraw %}
+

@@ -1,0 +1,1343 @@
+---
+layout: page
+title: "Learning GNU Emacs, 3rd Edition"
+prev: OEBPS/ch05.html
+next: OEBPS/ch05s03.html
+book_path: books/learning-gnu-emacs--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h1 class="title"><a id="gnu3-CHP-5-SECT-2" class="calibre1"></a>Using Dired, the Directory Editor</h1></div></div></div><p class="copyright">Dired is one of the most interesting <a id="gnu3-CHP-5-ITERM-2153" class="calibre2"></a>
+            <a id="gnu3-CHP-5-ITERM-2154" class="calibre2"></a>features
+of Emacs. With Dired, you can look at a listing of all the files in a
+directory, delete them, rename them, copy them, and perform almost
+all basic file operations. More important, Dired can make you more
+productive. For example, you can work with groups of files, deleting,
+moving, compressing, or even query-replacing strings in them.</p><p class="copyright">There are several ways to start directory editing. If
+you're not in Emacs, invoke Emacs with a directory
+name as an argument, for example:</p><a id="I_5_tt146" class="calibre2"></a><pre class="programlisting">% <strong class="calibre5"><code class="calibre32">emacs literature</code></strong></pre><p class="copyright">Emacs starts up editing the directory
+<span><em class="calibre7">literature</em></span>: you'll see a single
+window that contains a listing of the <span><em class="calibre7">literature</em></span>
+directory. You can also start the directory editor by using <span><strong class="calibre5">C-x C-f</strong></span> (or any other command for visiting a
+file) and naming a directory, rather than a file. For example, typing
+<span><strong class="calibre5">C-x C-f literature</strong></span> gets you ready to
+edit the <span><em class="calibre7">literature</em></span> directory. Typing <span><strong class="calibre5">C-x d</strong></span> (for <span><strong class="calibre5">dired</strong></span>) or selecting the folder icon on the
+toolbar also starts Dired; you then specify a directory name.
+Finally, dragging a folder onto the Emacs window also starts
+Dired.<sup class="calibre6">[<a id="gnu3-CHP-5-FNOTE-2" href="#ftn.gnu3-CHP-5-FNOTE-2" class="calibre2">2</a>]</sup>
+         </p><p class="copyright">No matter how you start the editor, the result is the same.</p><div class="book"><a id="ch05-10-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre17">
+                        <p class="copyright">Type: <span><strong class="calibre5">C-x C-f literature Enter</strong></span>
+                        </p>
+                     </td></tr><tr class="calibre12"><td class="calibre17">
+                        <p class="copyright">
+                           </p><div class="book"><div class="mediaobject"><a id="I_5_tt147" class="calibre2"></a><img src="tagoreillycom20070228oreillyimages125980.png" alt="Using Dired, the Directory Editor" class="calibre3"/></div></div><p class="copyright">
+                        </p>
+                     </td></tr><tr class="calibre12"><td class="calibre19">
+                        <p class="copyright">A basic directory editor display.</p>
+                     </td></tr></tbody></table></div><p class="copyright">As you can see, Dired's display is
+<a id="gnu3-CHP-5-ITERM-2155" class="calibre2"></a>similar
+to what you see if you type <span><strong class="calibre5">ls -l</strong></span> at
+a Unix shell prompt. The permissions <a id="gnu3-CHP-5-ITERM-2156" class="calibre2"></a>
+            <a id="gnu3-CHP-5-ITERM-2157" class="calibre2"></a>associated
+with the file, the owner, the group name, the size of the file, and
+the date last modified all precede the filename. All files and
+directories are listed, including those whose names start with a dot.
+The cursor starts out on a filename, rather than in the first column.</p><p class="copyright">Also, if your display supports
+<a id="gnu3-CHP-5-ITERM-2158" class="calibre2"></a>colors
+(unfortunately this book doesn't),
+you'll see that directories are blue, backup and
+auto-save files are tan, and symbolic links are purple. Colors are a
+function of font-lock mode. If you don't see colors
+in your directory listing, type <span><strong class="calibre5">M-x
+font-lock-mode Enter</strong></span> or add the following line to your
+<span><em class="calibre7">.emacs</em></span> file:</p><a id="I_5_tt148" class="calibre2"></a><pre class="programlisting">(global-font-lock-mode t)</pre><p class="copyright">By default, the list
+<a id="gnu3-CHP-5-ITERM-2159" class="calibre2"></a>is
+sorted by filename, but you can sort it by date instead. Look at the
+mode line. It says <span><strong class="calibre5">(</strong></span>
+            <code class="calibre21">Dired
+by name</code>
+            <span><strong class="calibre5">)</strong></span>. To change the
+order of the display, type <span><strong class="calibre5">s</strong></span> (for
+<span><strong class="calibre5">dired-sort-toggle-or-edit</strong></span>). This
+command puts the newest files at the top of the list, solving the
+"Where's that file I worked on
+yesterday?" problem quite easily. The mode line says
+<span><strong class="calibre5">(</strong></span>
+            <code class="calibre21">Dired by
+date</code>
+            <span><strong class="calibre5">)</strong></span>. Typing <span><strong class="calibre5">s</strong></span> again toggles the sort, putting it back in
+alphabetical order.</p><p class="copyright">If you remember the commands used to edit the buffer list (from <a class="calibre2" href="ch04.html" title="Chapter 4. Using Buffers, Windows, and Frames">Chapter 4</a>), you will find that they are almost
+identical to the directory editor commands. You can do many
+additional things, but the basic commands are the same.</p><div class="warning"><h3 class="title6"><a id="gnu3-CHP-5-NOTE-12" class="calibre1"></a>Warning</h3><p class="calibre35">Remember, in the directory editor you are working directly with
+files, not with buffers. When you delete a file using Dired,
+it's gone permanently.</p></div><p class="copyright">There are several ways to move around in Dired. The commands
+<span><strong class="calibre5">Space</strong></span>, <span><strong class="calibre5">C-n</strong></span>, and <span><strong class="calibre5">n</strong></span>
+all move you to the next file in the list. <span><strong class="calibre5">Del</strong></span>, <span><strong class="calibre5">C-p</strong></span>, and
+<span><strong class="calibre5">p</strong></span> all move you to the previous file.
+Arrow keys and <span><strong class="calibre5">PgUp</strong></span> and <span><strong class="calibre5">PgDown</strong></span> work as well. You can also use any of
+the search commands (incremental search, word search, and so on) to
+find a particular file.</p><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-5-SECT-2.1" class="calibre1"></a>
+               <span class="firstname"><strong class="calibre36">Viewing and Editing Files</strong></span>
+            </h2></div></div></div><p class="copyright">When you look at a directory
+<a id="gnu3-CHP-5-ITERM-2160" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2161" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2162" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2163" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2164" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2165" class="calibre2"></a>listing, you may want to get a quick
+look at the files. Dired's <span><strong class="calibre5">v</strong></span> command does just this: put the cursor on
+the file you want to view and press <span><strong class="calibre5">v</strong></span> (for <span><strong class="calibre5">dired-view-file</strong></span>). Emacs displays the file in
+view mode.<sup class="calibre6">[<a id="gnu3-CHP-5-FNOTE-3" href="#ftn.gnu3-CHP-5-FNOTE-3" class="calibre2">3</a>]</sup> This is a
+read-only mode, so you can't modify the file. Press
+<span><strong class="calibre5">C-c</strong></span> or <span><strong class="calibre5">q</strong></span> to return to the directory listing. While
+you're viewing the file, you can use <span><strong class="calibre5">s</strong></span> to start an incremental search, or press
+<span><strong class="calibre5">Enter</strong></span> to scroll the display down one
+line. Typing <strong class="calibre5"><code class="calibre21">=</code></strong> tells you what line the cursor
+is on. There are a number of shortcuts for other Emacs commands (like
+marking text), but frankly, the regular commands work correctly.
+There's no reason to remember a special set of
+commands when the ones you already know work.</p><p class="copyright">If you want to edit a file from the Dired buffer, move to the line
+the file is on and press <span><strong class="calibre5">Enter</strong></span> (a
+variety of other keystrokes work as well, such as <span><strong class="calibre5">f</strong></span> for find or <span><strong class="calibre5">e</strong></span> for edit). Emacs finds the file and you can
+edit it. This is a completely normal editing buffer: you can make any
+changes you want, save them, visit other files, and so on. Typing
+<span><strong class="calibre5">C-x b</strong></span> followed by the name of the
+directory you were working in moves you back to the Dired buffer. Or
+you can use the buffer menu (<span><strong class="calibre5">C-x
+C-b</strong></span>) to find and display the Dired buffer.</p><p class="copyright">Viewing and editing files is nice, but you already know how to do
+that—right? You're waiting for the interesting
+stuff: how to delete files.</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-5-SECT-2.2" class="calibre1"></a>Deleting, Copying, and Renaming Files</h2></div></div></div><p class="copyright">As we've said, file deletion is almost
+<a id="gnu3-CHP-5-ITERM-2166" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2167" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2168" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2169" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2170" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2171" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2172" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2173" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2174" class="calibre2"></a>identical to buffer deletion with the
+buffer list. If you learned how to delete buffers, you know the
+basics of deleting files with Dired. First, you flag a file for
+deletion by moving to the file's name and typing
+<span><strong class="calibre5">d</strong></span>. Doing this places a <span><strong class="calibre5">D</strong></span> on the left margin and moves the cursor to
+the next file in the list. You can flag as many files as you want.
+You can change your mind at this point and type <span><strong class="calibre5">u</strong></span> to undelete the file. At some later time,
+you type <span><strong class="calibre5">x</strong></span> to delete the files (more
+on this in a minute). The following screen shows what the Dired
+buffer looks like when you flag a few files for deletion.</p><div class="book"><a id="ch05-12-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre17">
+                           <p class="copyright">Type: <span><strong class="calibre5">d d d</strong></span>
+                           </p>
+                        </td></tr><tr class="calibre12"><td class="calibre17">
+                           <p class="copyright">
+                              </p><div class="book"><div class="mediaobject"><a id="I_5_tt149" class="calibre2"></a><img src="tagoreillycom20070228oreillyimages125987.png" alt="Deleting, Copying, and Renaming Files" class="calibre3"/></div></div><p class="copyright">
+                           </p>
+                        </td></tr><tr class="calibre12"><td class="calibre19">
+                           <p class="copyright">Three files flagged for deletion (Windows).</p>
+                        </td></tr></tbody></table></div><p class="copyright">As we mentioned, you can type <span><strong class="calibre5">u</strong></span> at
+any time to remove the deletion flags from the files. Typing
+<span><strong class="calibre5">u</strong></span> moves you to the next file in the
+list, and, if it is marked, unmarks it. You can also use <span><strong class="calibre5">Del</strong></span> to unmark. This command undeletes the
+<span><em class="calibre7">previous</em></span> file in the list and then moves up one
+line.</p><p class="copyright">Because Emacs generates
+<a id="gnu3-CHP-5-ITERM-2175" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2176" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2177" class="calibre2"></a>backup
+files and, at times, auto-save files, you may want to delete them
+from time to time. Emacs offers shortcut commands to flag such files.
+Typing <strong class="calibre5"><code class="calibre21">#</code></strong> flags all the auto-save files (files
+whose names start and end with <strong class="calibre5"><code class="calibre21">#</code></strong>) for
+deletion. Emacs flags them with D. Typing <strong class="calibre5"><code class="calibre21">~</code></strong>
+flags all the backup files (whose names end with <span><strong class="calibre5">~</strong></span>) for deletion. You can remove the flags from
+backup files you want to keep, for example, the backup copies of
+files you've recently worked on.</p><p class="copyright">When you really want files to be deleted from disk, press <span><strong class="calibre5">x</strong></span>. Emacs displays the names of all the files
+flagged for deletion and asks you if you want to delete them.</p><div class="book"><a id="ch05-13-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre17">
+                           <p class="copyright">Type: <span><strong class="calibre5">x</strong></span>
+                           </p>
+                        </td></tr><tr class="calibre12"><td class="calibre17">
+                           <p class="copyright">
+                              </p><div class="book"><div class="mediaobject"><a id="I_5_tt150" class="calibre2"></a><img src="tagoreillycom20070228oreillyimages125993.png" alt="Deleting, Copying, and Renaming Files" class="calibre3"/></div></div><p class="copyright">
+                           </p>
+                        </td></tr><tr class="calibre12"><td class="calibre19">
+                           <p class="copyright">Emacs asks you to confirm the deletion by typing <span><strong class="calibre5">yes</strong></span> (Windows).</p>
+                        </td></tr></tbody></table></div><p class="copyright">Type <span><strong class="calibre5">yes</strong></span> to delete them all or type
+<span><strong class="calibre5">no</strong></span> to return to the Dired buffer
+without deleting any of them.</p><p class="copyright">This is the usual way of deleting files, but if you want a file
+deleted right away, type an uppercase <span><strong class="calibre5">D</strong></span>. Emacs asks if you want to delete the file
+<span><strong class="calibre5">(yes or no)</strong></span>. Type <span><strong class="calibre5">yes</strong></span> to delete the file immediately or
+<span><strong class="calibre5">no</strong></span> to change your mind. In Dired,
+this is one of a number of cases in which the lowercase letter (like
+<span><strong class="calibre5">d</strong></span> to flag for deletion) and the
+uppercase letter (like <span><strong class="calibre5">D</strong></span> to delete
+immediately) have a different meaning.</p><p class="copyright">To copy a file in Dired, type <span><strong class="calibre5">C</strong></span> next
+to it (it must be a capital C). Emacs asks for the name of the file
+you want to copy to. Type the name and press <span><strong class="calibre5">Enter</strong></span>. Emacs says, <code class="calibre21">Copied: 1
+file</code>. To copy several files in the list, preface the C with
+a number. For example, typing <span><strong class="calibre5">3C</strong></span>
+would copy this file and the next two files. (See
+"Working with Groups of Files"
+later in this chapter for fancier ways to select a group of files to
+operate on.)</p><p class="copyright">To rename a file with Dired (similar to the Unix <span><strong class="calibre5">mv</strong></span> command), type <span><strong class="calibre5">R</strong></span> next to the filename. Emacs asks what the
+new name should be. Type it and press <span><strong class="calibre5">Enter</strong></span>. Emacs says, <code class="calibre21">Moved: 1
+file</code>.</p><p class="copyright">If you move files between platforms, you can wind up with some
+filenames in uppercase and some in lowercase. Files moving from older
+versions of Windows may be in all caps, for example. Simply mark the
+files in question by typing <span><strong class="calibre5">m</strong></span>, then
+press <span><strong class="calibre5">%l</strong></span> for lowercase or <span><strong class="calibre5">%u</strong></span> for uppercase.
+Voilà—painless case consistency.</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-5-SECT-2.3" class="calibre1"></a>Compressing and Uncompressing Files</h2></div></div></div><p class="copyright">Compressing files saves disk
+<a id="gnu3-CHP-5-ITERM-2178" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2179" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2180" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2181" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2182" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2183" class="calibre2"></a>space, and Dired provides an easy way to
+do it. Put the cursor on the line of the file you want to compress
+and press <span><strong class="calibre5">Z</strong></span> (for <span><strong class="calibre5">dired-do-compress</strong></span>). Emacs asks the following:</p><a id="I_5_tt151" class="calibre2"></a><pre class="programlisting">Compress or uncompress <em class="calibre7"><code class="calibre32">filename</code></em>? (y or n)</pre><p class="copyright">Emacs compresses the file if it's not compressed and
+uncompresses it if it is.<sup class="calibre6">[<a id="gnu3-CHP-5-FNOTE-4" href="#ftn.gnu3-CHP-5-FNOTE-4" class="calibre2">4</a>]</sup> Press <span><strong class="calibre5">y</strong></span> to compress or uncompress the current file.
+Compression happens immediately, so you can watch both the extension
+and file size change as Emacs compresses the file.</p><p class="copyright">What about editing compressed files? Although it's
+not on by default, Emacs has an automatic compression/decompression
+mode called auto-compress mode. To enter it for this session, type
+<span><strong class="calibre5">M-x auto-compress-mode Enter</strong></span>, which
+turns automatic compression on. To enable auto-compression
+automatically, add this line to your <span><em class="calibre7">.emacs</em></span>
+file:</p><a id="I_5_tt152" class="calibre2"></a><pre class="programlisting">(auto-compression-mode           1)</pre></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-5-SECT-2.4" class="calibre1"></a>
+               <span class="firstname"><strong class="calibre36">Comparing Files</strong></span>
+            </h2></div></div></div><p class="copyright">In <a class="calibre2" href="ch04.html" title="Chapter 4. Using Buffers, Windows, and Frames">Chapter 4</a>, we discussed
+<a id="gnu3-CHP-5-ITERM-2184" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2185" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2186" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2187" class="calibre2"></a>comparing files in two windows. Emacs
+provides a way to do this using the <span><strong class="calibre5">diff</strong></span> command in Dired. Set the mark on the
+file you want <span><strong class="calibre5">diff</strong></span> to compare, put
+the cursor on the other file, then type <span><strong class="calibre5">=</strong></span>. Emacs compares the two files and opens a
+window with a <code class="calibre21">*diff*</code> buffer containing the output
+from the command.</p><p class="copyright">Emacs has a separate option for comparing a file to its backup file.
+Put the cursor on the file you want to compare with its backup and
+type <span><strong class="calibre5">M-=</strong></span>. Emacs displays a
+<code class="calibre21">*diff*</code> buffer showing the differences between the
+two files.</p><p class="copyright">If you are serious about version control, you may want to check out
+<a class="calibre2" href="ch12.html" title="Chapter 12. Version Control">Chapter 12</a>, which discusses version control as
+well as the GNU tool <span><strong class="calibre5">ediff</strong></span>.</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-5-SECT-2.5" class="calibre1"></a>Running Shell Commands on Files</h2></div></div></div><p class="copyright">While Dired's <a id="gnu3-CHP-5-ITERM-2188" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2189" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2190" class="calibre2"></a>implementation of <span><strong class="calibre5">diff</strong></span> is useful (and there are implementations
+of <span><strong class="calibre5">chmod</strong></span>, <span><strong class="calibre5">grep</strong></span>, and <span><strong class="calibre5">find</strong></span> as well), in a more general sense, you
+can perform any command on a file by pressing an exclamation point
+(<span><strong class="calibre5">!</strong></span>). For example,
+let's alphabetize the phone list file using the
+<span><strong class="calibre5">sort</strong></span> command.</p><div class="book"><a id="ch05-14-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre17">
+                           <p class="copyright">Move to the <span><em class="calibre7">phone</em></span> file and press <span><strong class="calibre5">!</strong></span>
+                           </p>
+                        </td></tr><tr class="calibre12"><td class="calibre17">
+                           <p class="copyright">
+                              </p><div class="book"><div class="mediaobject"><a id="I_5_tt153" class="calibre2"></a><img src="tagoreillycom20070228oreillyimages125998.png" alt="Running Shell Commands on Files" class="calibre3"/></div></div><p class="copyright">
+                           </p>
+                        </td></tr><tr class="calibre12"><td class="calibre19">
+                           <p class="copyright">Emacs asks what command you want to run (Mac OS X).</p>
+                        </td></tr></tbody></table></div><div class="book"><a id="ch05-15-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre17">
+                           <p class="copyright">Type: <span><strong class="calibre5">sort</strong></span>
+                           </p>
+                        </td></tr><tr class="calibre12"><td class="calibre17">
+                           <p class="copyright">
+                              </p><div class="book"><div class="mediaobject"><a id="I_5_tt154" class="calibre2"></a><img src="tagoreillycom20070228oreillyimages126007.png" alt="Running Shell Commands on Files" class="calibre3"/></div></div><p class="copyright">
+                           </p>
+                        </td></tr><tr class="calibre12"><td class="calibre19">
+                           <p class="copyright">Emacs displays the output from the command in a separate window (Mac
+OS X).</p>
+                        </td></tr></tbody></table></div><p class="copyright">Usually, asterisks (*) and question <a id="gnu3-CHP-5-ITERM-2191" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2192" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2193" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2194" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2195" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2196" class="calibre2"></a>marks are used as
+wildcards in commands. In Dired, they have a special meaning. An
+asterisk means "use the file I'm on
+or the files I've marked"; that way
+you don't have to type filenames explicitly. When
+multiple files are marked, a question mark means to run this command
+separately on each file.</p><p class="copyright">In a slightly more complex example, you might have a command with
+more than one file as an argument. For example, you might want to
+make a new file out of the sorted phone list.</p><div class="book"><a id="ch05-16-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre17">
+                           <p class="copyright">Move the cursor to the <span><em class="calibre7">phone</em></span> file, then type:
+<span><strong class="calibre5">!</strong></span>
+                           </p>
+                        </td></tr><tr class="calibre12"><td class="calibre17">
+                           <p class="copyright">
+                              </p><div class="book"><div class="mediaobject"><a id="I_5_tt155" class="calibre2"></a><img src="tagoreillycom20070228oreillyimages126015.png" alt="Running Shell Commands on Files" class="calibre3"/></div></div><p class="copyright">
+                           </p>
+                        </td></tr><tr class="calibre12"><td class="calibre19">
+                           <p class="copyright">Emacs asks what command you want to run (Mac OS X).</p>
+                        </td></tr></tbody></table></div><p class="copyright">Now tell Emacs you want
+<a id="gnu3-CHP-5-ITERM-2197" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2198" class="calibre2"></a>to sort your
+<span><em class="calibre7">phone</em></span> file and put the output in a new file
+called <span><em class="calibre7">phonesorted</em></span>. The cursor is on the
+<span><em class="calibre7">phone</em></span> file, so you don't need
+to type its name in the command. Substitute an asterisk (*) for the
+name of the file:</p><div class="book"><a id="ch05-17-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre17">
+                           <p class="copyright">Type: <span><strong class="calibre5">sort * &gt; phonesorted</strong></span>
+                           </p>
+                        </td></tr><tr class="calibre12"><td class="calibre17">
+                           <p class="copyright">
+                              </p><div class="book"><div class="mediaobject"><a id="I_5_tt156" class="calibre2"></a><img src="tagoreillycom20070228oreillyimages126019.png" alt="Running Shell Commands on Files" class="calibre3"/></div></div><p class="copyright">
+                           </p>
+                        </td></tr><tr class="calibre12"><td class="calibre19">
+                           <p class="copyright">The operating system sorts the <span><em class="calibre7">phone</em></span> file and
+puts the output into the new file <span><em class="calibre7">phonesorted</em></span>
+(Mac OS X).</p>
+                        </td></tr></tbody></table></div><p class="copyright">We created the file, but it doesn't appear on the
+display, which is not automatically updated in this case. To see the
+<span><em class="calibre7">phonesorted</em></span> file, type <span><strong class="calibre5">g</strong></span>.</p><div class="book"><a id="ch05-18-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre17">
+                           <p class="copyright">Type: <span><strong class="calibre5">g</strong></span>
+                           </p>
+                        </td></tr><tr class="calibre12"><td class="calibre17">
+                           <p class="copyright">
+                              </p><div class="book"><div class="mediaobject"><a id="I_5_tt157" class="calibre2"></a><img src="tagoreillycom20070228oreillyimages126024.png" alt="Running Shell Commands on Files" class="calibre3"/></div></div><p class="copyright">
+                           </p>
+                        </td></tr><tr class="calibre12"><td class="calibre19">
+                           <p class="copyright">Emacs updates the Dired display, showing the file
+<span><em class="calibre7">phonesorted</em></span> (Mac OS X).</p>
+                        </td></tr></tbody></table></div><p class="copyright">Dired is frankly inconsistent about whether you type <span><strong class="calibre5">g</strong></span> before the display is updated. Some
+commands, as we'll see shortly, update the display
+immediately. Others, such as running shell commands on files, do not
+(Emacs really doesn't know what shell commands
+it's running or their effect on the display). A good
+rule of thumb is to type <span><strong class="calibre5">g</strong></span> if you
+don't see what you expect to see.</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-5-SECT-2.6" class="calibre1"></a>Working with Groups of Files</h2></div></div></div><p class="copyright">So far we've talked about working with one file at a
+time; any commands you give apply to the file the cursor is on.
+Working with multiple files is a better illustration of the real
+power of Dired. You can organize your directories in a flash once you
+learn a few shortcuts. First let's talk about some
+ways to select files, and then we'll talk about what
+we can do with the selected files.</p><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h3 class="title4"><a id="gnu3-CHP-5-SECT-2.6.1" class="calibre1"></a>Selecting files</h3></div></div></div><p class="copyright">So far we've primarily
+<a id="gnu3-CHP-5-ITERM-2199" class="calibre2"></a>
+                  <a id="gnu3-CHP-5-ITERM-2200" class="calibre2"></a>talked
+about flagging files for deletion. When you want to do something else
+with a group of files, you first mark them with an asterisk. Pressing
+<span><strong class="calibre5">m</strong></span> marks the file the cursor is on;
+an asterisk appears where you normally see a D. Typing <span><strong class="calibre5">3m</strong></span> marks this file and the next two files.
+Once you mark files with an asterisk, Emacs assumes that any command
+you issue is meant for these files. So if you have three files marked
+with an asterisk and press <span><strong class="calibre5">Z</strong></span> to
+compress, Emacs assumes you want to compress those three files. After
+the compression, the files remain marked with asterisks. So how do
+you get rid of the asterisks when you're done with
+these files?</p><p class="copyright">To remove the asterisks, you press <span><strong class="calibre5">M-Del</strong></span> (for <span><strong class="calibre5">dired-unmark-all-files</strong></span>). Emacs asks which
+marks to remove. Press <span><strong class="calibre5">Enter</strong></span>, and
+Emacs removes all the marks.</p><p class="copyright">Sometimes it's easier to mark the files you
+don't want to work with than those you do. Pressing
+<span><strong class="calibre5">t</strong></span> toggles the marks, marking all
+unmarked files and removing marks from those previously marked.</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h3 class="title4"><a id="gnu3-CHP-5-SECT-2.6.2" class="calibre1"></a>Selecting likely candidates for deletion</h3></div></div></div><p class="copyright">Marking files sequentially
+<a id="gnu3-CHP-5-ITERM-2201" class="calibre2"></a>
+                  <a id="gnu3-CHP-5-ITERM-2202" class="calibre2"></a>
+                  <a id="gnu3-CHP-5-ITERM-2203" class="calibre2"></a>
+                  <a id="gnu3-CHP-5-ITERM-2204" class="calibre2"></a>is simple but, in all honesty,
+it's not very powerful. Emacs provides commands for
+selecting types of files that you often want to get rid of when
+you're cleaning up a directory: backup files,
+auto-save files, and so-called garbage files.</p><p class="copyright">Auto-save files are
+<a id="gnu3-CHP-5-ITERM-2205" class="calibre2"></a>
+                  <a id="gnu3-CHP-5-ITERM-2206" class="calibre2"></a>
+                  <a id="gnu3-CHP-5-ITERM-2207" class="calibre2"></a>created
+when a session terminates abnormally; they have the format
+<code class="calibre21">#</code>
+                  <em class="calibre7"><code class="calibre21">filename</code></em>
+                  <code class="calibre21">#</code>.
+Backup files which Emacs creates periodically, have the format
+<em class="calibre7"><code class="calibre21">filename</code></em>
+                  <code class="calibre21">~</code>. To mark
+these files in Dired, type <span><strong class="calibre5">#</strong></span> or
+<span><strong class="calibre5">~</strong></span> respectively.</p><p class="copyright">Emacs also has an option that automatically selects
+"garbage" files. By default, this
+includes files with the following extensions:
+<span><em class="calibre7">.log</em></span>, <span><em class="calibre7">.toc</em></span>,
+<span><em class="calibre7">.dvi</em></span>, <span><em class="calibre7">.bak</em></span>,
+<span><em class="calibre7">.orig</em></span>, and <span><em class="calibre7">.rej</em></span>. Garbage
+files are defined by a regular expression, which is contained in the
+variable <span><strong class="calibre5">dired-garbage-files-regexp</strong></span>;
+you can change the value of this variable to define garbage files as
+you see fit (after all, one man's junk is another
+man's treasure).</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h3 class="title4"><a id="gnu3-CHP-5-SECT-2.6.3" class="calibre1"></a>Selecting files by type</h3></div></div></div><p class="copyright">Dired provides commands
+<a id="gnu3-CHP-5-ITERM-2208" class="calibre2"></a>
+                  <a id="gnu3-CHP-5-ITERM-2209" class="calibre2"></a>
+                  <a id="gnu3-CHP-5-ITERM-2210" class="calibre2"></a>for
+selecting executable files, directories, and symbolic links. To
+select executable files, type <span><strong class="calibre5">* *</strong></span>.
+To select directories, type <span><strong class="calibre5">* /</strong></span>.
+Typing <span><strong class="calibre5">* @</strong></span> marks symbolic links.</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h3 class="title4"><a id="gnu3-CHP-5-SECT-2.6.4" class="calibre1"></a>Using regular expressions to choose files</h3></div></div></div><p class="copyright">Often you want to select
+<a id="gnu3-CHP-5-ITERM-2211" class="calibre2"></a>
+                  <a id="gnu3-CHP-5-ITERM-2212" class="calibre2"></a>
+                  <a id="gnu3-CHP-5-ITERM-2213" class="calibre2"></a>
+                  <a id="gnu3-CHP-5-ITERM-2214" class="calibre2"></a>related files and either archive them,
+move them, compress them, or just delete them. Typically, you use
+wildcards to select multiple files. In Dired, you use regular
+expressions. To mark a group of files whose filenames match a regular
+expression, press <span><strong class="calibre5">%</strong></span> followed by
+<span><strong class="calibre5">m</strong></span> to mark them with an asterisk.</p><p class="copyright">For example, let's mark all the files that start
+with <span><em class="calibre7">ch</em></span>. Remembering the quick lesson on regular
+expressions from <a class="calibre2" href="ch03.html" title="Chapter 3. Search and Replace">Chapter 3</a>, <span><strong class="calibre5">^</strong></span> finds the beginning of a word, so the
+regular expression <span><strong class="calibre5">^ch</strong></span> would mark
+all the files that start with <span><em class="calibre7">ch</em></span>.</p><div class="book"><a id="ch05-19-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">Type: <span><strong class="calibre5">%m</strong></span>
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">
+                                 </p><div class="book"><div class="mediaobject"><a id="I_5_tt158" class="calibre2"></a><img src="tagoreillycom20070228oreillyimages126028.png" alt="Using regular expressions to choose files" class="calibre3"/></div></div><p class="copyright">
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre19">
+                              <p class="copyright">Emacs asks for a regular expression so that it can mark the files
+(Windows).</p>
+                           </td></tr></tbody></table></div><div class="book"><a id="ch05-20-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">Type: <span><strong class="calibre5">^ch Enter</strong></span>
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">
+                                 </p><div class="book"><div class="mediaobject"><a id="I_5_tt159" class="calibre2"></a><img src="tagoreillycom20070228oreillyimages126033.png" alt="Using regular expressions to choose files" class="calibre3"/></div></div><p class="copyright">
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre19">
+                              <p class="copyright">Emacs marks all the files starting with <span><em class="calibre7">ch</em></span> and
+tells you how many it marked.</p>
+                           </td></tr></tbody></table></div><p class="copyright">Sometimes it's more useful to mark files whose
+<span><em class="calibre7">contents</em></span> match a given regular expression. To
+mark files that contain a certain regular expression, type <span><strong class="calibre5">% g</strong></span>, followed by the regular expression to
+match (think <span><em class="calibre7">g</em></span> for <span><em class="calibre7">grep</em></span> if
+you're familiar with <span><em class="calibre7">grep</em></span>).</p><p class="copyright">Now that we've got the files marked,
+let's talk about what to do with them.</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h3 class="title4"><a id="gnu3-CHP-5-SECT-2.6.5" class="calibre1"></a>Operating on groups of files</h3></div></div></div><p class="copyright">In the course of <a id="gnu3-CHP-5-ITERM-2215" class="calibre2"></a>
+                  <a id="gnu3-CHP-5-ITERM-2216" class="calibre2"></a>
+                  <a id="gnu3-CHP-5-ITERM-2217" class="calibre2"></a>daily work, a directory can get cluttered
+with many different kinds of files. Eventually, you need to make
+subdirectories to organize the files by project, then move the files
+to those subdirectories. You can do both these things from within
+Dired.</p><p class="copyright">Let's say that the <span><em class="calibre7">ch</em></span> files are
+chapters from a novel you work on in your spare time. We need a
+subdirectory called <span><em class="calibre7">novel</em></span> to store the files in.
+You can create a directory by typing <span><strong class="calibre5">+</strong></span> (for <span><strong class="calibre5">dired-create-directory</strong></span>).</p><div class="book"><a id="ch05-21-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">Type: <span><strong class="calibre5">+</strong></span>
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">
+                                 </p><div class="book"><div class="mediaobject"><a id="I_5_tt160" class="calibre2"></a><img src="tagoreillycom20070228oreillyimages126037.png" alt="Operating on groups of files" class="calibre3"/></div></div><p class="copyright">
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre19">
+                              <p class="copyright">Emacs asks for a directory name (Windows).</p>
+                           </td></tr></tbody></table></div><div class="book"><a id="ch05-22-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">Type: <span><strong class="calibre5">novel Enter</strong></span>
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">
+                                 </p><div class="book"><div class="mediaobject"><a id="I_5_tt161" class="calibre2"></a><img src="tagoreillycom20070228oreillyimages126042.png" alt="Operating on groups of files" class="calibre3"/></div></div><p class="copyright">
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre19">
+                              <p class="copyright">Emacs creates the directory and displays it on the screen (Windows).</p>
+                           </td></tr></tbody></table></div><p class="copyright">Now let's move the <span><em class="calibre7">ch</em></span> files we
+marked into the new directory. We'll use the rename
+command, <span><strong class="calibre5">R</strong></span>. This command, like the
+Unix <span><strong class="calibre5">mv</strong></span> command, is used for
+renaming files and for moving them. Because we have marked more than
+one file with an asterisk, when we type <span><strong class="calibre5">R</strong></span>, Emacs assumes we mean to move the marked
+files.</p><div class="book"><a id="ch05-23-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">Type: <span><strong class="calibre5">R</strong></span>
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">
+                                 </p><div class="book"><div class="mediaobject"><a id="I_5_tt162" class="calibre2"></a><img src="tagoreillycom20070228oreillyimages126046.png" alt="Operating on groups of files" class="calibre3"/></div></div><p class="copyright">
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre19">
+                              <p class="copyright">Emacs asks where you want to move the marked files to (Windows).</p>
+                           </td></tr></tbody></table></div><div class="book"><a id="ch05-24-fm2xml" class="calibre2"></a><table class="calibre8"><colgroup class="calibre9"><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">Type: <span><strong class="calibre5">novel Enter</strong></span>
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre17">
+                              <p class="copyright">
+                                 </p><div class="book"><div class="mediaobject"><a id="I_5_tt163" class="calibre2"></a><img src="tagoreillycom20070228oreillyimages126051.png" alt="Operating on groups of files" class="calibre3"/></div></div><p class="copyright">
+                              </p>
+                           </td></tr><tr class="calibre12"><td class="calibre19">
+                              <p class="copyright">Emacs moves the files (Windows).</p>
+                           </td></tr></tbody></table></div><p class="copyright">Now you can see that the files have moved. Marking files by regular
+expression allows you to work with a select group of files quickly.</p><p class="copyright">One of the more interesting things you can do with a group of files
+is perform a query-replace on all
+<a id="gnu3-CHP-5-ITERM-2218" class="calibre2"></a>
+                  <a id="gnu3-CHP-5-ITERM-2219" class="calibre2"></a>of
+them with a single command. On large projects, a last-minute change
+often forces arduous searching and replacing of certain text in each
+file. First, select the files you want to include in the
+query-replace, then press <span><strong class="calibre5">Q</strong></span> (for
+<span><strong class="calibre5">dired-do-query-replace</strong></span>). Put in the
+search string, then the replacement string (the strings can be plain
+text or a regular expression) and Emacs starts a query-replace that
+moves you through each file sequentially. Here's the
+only hitch: if you interrupt the query-replace with a recursive edit,
+you can't restart it without going back to the Dired
+buffer.</p><p class="copyright">Another interesting command is searching across files for a given
+regular expression. To do this, mark the files, then press <span><strong class="calibre5">A</strong></span>. Emacs stops at the first match; press
+<span><strong class="calibre5">M-</strong></span>, to move to the next match.</p></div></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-5-SECT-2.7" class="calibre1"></a>Navigating Directories</h2></div></div></div><p class="copyright">Often when you are cleaning
+<a id="gnu3-CHP-5-ITERM-2220" class="calibre2"></a>
+               <a id="gnu3-CHP-5-ITERM-2221" class="calibre2"></a>up
+directories, you're moving files between them,
+organizing subdirectories, and the like. This naturally involves a
+lot of moving among directories.</p><p class="copyright">To move to the parent directory of the one you're
+in, press <span><strong class="calibre5">^</strong></span>. To move to the next
+directory in the buffer, press <span><strong class="calibre5">&gt;</strong></span>;
+pressing <span><strong class="calibre5">&lt;</strong></span>, not surprisingly,
+moves you to the previous directory in the buffer.</p><p class="copyright">Sometimes it's more convenient to edit a directory
+and its subdirectories in the same buffer. To insert a subdirectory
+in the current Dired buffer, move to it and press <span><strong class="calibre5">i</strong></span>. Emacs inserts the subdirectory at the end
+of the buffer. If you insert more subdirectories in this fashion,
+they will appear in alphabetical order at the end of the buffer.</p><p class="copyright">As you can see, much of your file maintenance and cleanup can be done
+easily from within Dired. <a class="calibre2" href="ch05s02.html#gnu3-CHP-5-TABLE-2" title="Table 5-2. Dired commands">Table 5-2</a> summarizes
+Dired commands, some of which we haven't fully
+discussed. There's more to learn about
+Dired,<sup class="calibre6">[<a id="gnu3-CHP-5-FNOTE-5" href="#ftn.gnu3-CHP-5-FNOTE-5" class="calibre2">5</a>]</sup> but now that you know the basics, you can experiment on
+your own.</p><div class="book"><a id="gnu3-CHP-5-TABLE-2" class="calibre2"></a><p class="title2"><b class="calibre25">Table 5-2. Dired commands</b></p><div class="table-contents"><a id="gnu3-CHP-5-ITERM-2222" class="calibre2"></a><a id="gnu3-CHP-5-ITERM-2223" class="calibre2"></a><table summary="Dired commands" class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre26">
+                           <p class="copyright">Keystrokes</p>
+                        </th><th class="calibre26">
+                           <p class="copyright">Command name</p>
+                        </th><th class="calibre27">
+                           <p class="copyright">Action</p>
+                        </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-x d</strong></span>
+                              <span><em class="calibre7">File</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Open Directory</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Start Dired.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">A</strong></span>
+                              <span><em class="calibre7">Operate</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Search Files</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-do-search</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Do a regular expression search on marked files; stops at first match;
+<span><strong class="calibre5">M-</strong></span>, finds next match.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">B</strong></span>
+                              <span><em class="calibre7">Operate</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Byte-compile</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-do-byte-compile</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Byte-compile file.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C</strong></span>
+                              <span><em class="calibre7">Operate</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Copy to</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-do-copy</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Copy file.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">d</strong></span>
+                              <span><em class="calibre7">Mark</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Flag</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-flag-file-deletion</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Flag for deletion.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">D</strong></span>
+                              <span><em class="calibre7">Operate</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Delete</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-do-delete</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Query for immediate deletion.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">e</strong></span>
+                           </p>
+
+                           <p class="copyright">
+                              <span><em class="calibre7">Immediate</em></span> 
+                              <span>→</span> 
+                              <span><em class="calibre7">Find This
+File</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-find-file</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Edit file.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">f</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-advertised-find-file</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Find (so you can edit).</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">g</strong></span>
+                              <span><em class="calibre7">Immediate</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Refresh</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">revert-buffer</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Reread the directory from disk.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">G</strong></span>
+                              <span><em class="calibre7">Operate</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Change Group</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-do-chgrp</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Change group permissions.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">h</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">describe-mode</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Display descriptive help text for Dired.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">H</strong></span>
+                              <span><em class="calibre7">Operate</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Hardlink to ..</em></span>.</p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-do-hardlink</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Create a hard link to this file; Emacs asks you to name the hard link
+(not all OSes support hard links).</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">i</strong></span>
+                              <span><em class="calibre7">Subdir</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Insert This Subdir ..</em></span>.</p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-maybe-insert-subdir</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Add a listing of this subdirectory to the current dired buffer; if
+it's already there, just move to it.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">k</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-do-kill-lines</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Remove line from display (don't delete file).</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">L</strong></span>
+                              <span><em class="calibre7">Operate</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Load</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-do-load</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Load file.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">m</strong></span> or <span><strong class="calibre5">*
+m</strong></span>
+                              <span><em class="calibre7">Mark</em></span> 
+                              <span>→</span>
+                              <span><em class="calibre7">Mark</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-mark</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Mark with <span><strong class="calibre5">*</strong></span>.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">M</strong></span>
+                              <span><em class="calibre7">Operate</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Change Mode</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-do-chmod</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Use <span><strong class="calibre5">chmod</strong></span> command on this file.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">n</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-next-line</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Move to next line.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">o</strong></span>
+                              <span><em class="calibre7">Immediate</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Find in Other Window</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-find-file-other-window</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Find file in another window; move there.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-o</strong></span>
+                              <span><em class="calibre7">Immediate</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Display in Other Window</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-display-file</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Find file in another window; don't move there.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">O</strong></span>
+                              <span><em class="calibre7">Operate</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Change Owner</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-do-chown</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Change ownership of file.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">p</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-previous-line</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Move up a line.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">P</strong></span>
+                              <span><em class="calibre7">Operate</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Print</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-do-print</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Print file.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">q</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">quit-window</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Quit Dired.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Q</strong></span> 
+                              <span><em class="calibre7">Operate</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Query Replace in Files</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-do-query-replace</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Query replace string in marked files.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">R</strong></span>
+                              <span><em class="calibre7">Operate</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Rename to</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-do-rename</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Rename file.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">S</strong></span>
+                              <span><em class="calibre7">Operate</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Symlink to</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-do-symlink</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Create a symbolic link to this file; Emacs asks you to name the
+symbolic link.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">s</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-sort-toggle-or-edit</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Sort the Dired display by date or by filename (toggles between
+these).</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">t</strong></span>
+                              <span><em class="calibre7">Mark</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Toggle Marks</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-toggle-marks</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Toggle marks on files and directories; pressing <span><strong class="calibre5">t</strong></span> once marks all unmarked files and
+directories; pressing <span><strong class="calibre5">t</strong></span> again
+restores original marks.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">u</strong></span>
+                              <span><em class="calibre7">Mark</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Unmark</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-unmark</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Remove mark.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">v</strong></span>
+                              <span><em class="calibre7">Immediate</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">View This File</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-view-file</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">View file (read-only).</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">w</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-copy-filename-as-kill</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Copy filename into the kill ring; if multiple files are marked, copy
+names of all marked files to kill ring.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">x</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-do-flagged-delete</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Delete files flagged with <span><strong class="calibre5">D</strong></span>.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">y</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-show-file-type</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Display information on the type of the file using the <span><strong class="calibre5">file</strong></span> command.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Z</strong></span>
+                              <span><em class="calibre7">Operate</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Compress</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-do-compress</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Compress or uncompress file.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">~</strong></span>
+                              <span><em class="calibre7">Mark</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Flag Backup Files</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-flag-backup-files</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Flag backup files for deletion; <span><strong class="calibre5">C-u
+~</strong></span> removes flags.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">#</strong></span>
+                              <span><em class="calibre7">Mark</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Flag Auto-save Files</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-flag-auto-save-files</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Flag auto-save files for deletion; <span><strong class="calibre5">C-u
+#</strong></span> removes flags.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">&amp;</strong></span>
+                              <span><em class="calibre7">Mark</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Flag Garbage Files</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-flag-garbage-files</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Flag "garbage" files for deletion.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">.<span><em class="calibre7">Mark</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Mark Old Backups</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-clean-directory</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Flag numbered backups for deletion (if any).</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">=</strong></span>
+                              <span><em class="calibre7">Immediate</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Diff</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-diff</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Compare this file to another file (the one at the mark).</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">M-=</strong></span>
+                              <span><em class="calibre7">Immediate</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Compare With Backup</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-backup-diff</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Compare this file with its backup file.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">!</strong></span> or
+<span><strong class="calibre5">X</strong></span>
+                              <span><em class="calibre7">Operate</em></span> 
+                              <span>→</span> 
+                              <span><em class="calibre7">Shell
+Command</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-do-shell-command</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Ask for shell command to execute on the current file or marked files.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">+</strong></span>
+                              <span><em class="calibre7">Immediate</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Create Directory</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-create-directory</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Create a directory.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">&gt;</strong></span>
+                              <span><em class="calibre7">Subdir</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Next Dirline</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-next-dirline</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Move to next directory.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">&lt;</strong></span>
+                              <span><em class="calibre7">Subdir</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Prev Dirline</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-prev-dirline</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Move to previous directory.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">^</strong></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-up-directory</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Find the parent directory in a new Dired buffer.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">$</strong></span>
+                              <span><em class="calibre7">Subdir</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Hide/Unhide Subdir</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-hide-subdir</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Hide or show the current directory or subdirectory.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">M-$</strong></span>
+                              <span><em class="calibre7">Subdir</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Hide All</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-hide-all</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Hide all subdirectories, leaving only their names; repeat command to
+show.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-M-n</strong></span>
+                              <span><em class="calibre7">Subdir</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Next Subdir</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-next-subdir</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Move to next subdirectory (if you've inserted
+subdirectories using <span><strong class="calibre5">i</strong></span>).</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-M-p</strong></span>
+                              <span><em class="calibre7">Subdir</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Prev Subdir</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-prev-subdir</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Move to previous subdirectory (if you've inserted
+subdirectories using <span><strong class="calibre5">i</strong></span>).</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-M-u</strong></span>
+                              <span><em class="calibre7">Subdir</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Tree Up</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-tree-up</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">If you've inserted subdirectories using <span><strong class="calibre5">i</strong></span>, move to the parent directory in this
+buffer.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-M-d</strong></span>
+                              <span><em class="calibre7">Subdir</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Tree Down</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-tree-down</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">If you've inserted subdirectories using <span><strong class="calibre5">i</strong></span>, move to the first subdirectory for this
+directory in this buffer.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">* c</strong></span>
+                              <span><em class="calibre7">Mark</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Change Marks</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-change-marks</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Change marks on specified files, for example, from <span><strong class="calibre5">*</strong></span> (generic mark) to <span><strong class="calibre5">D</strong></span> (flagged for deletion).</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">* !</strong></span> or
+<span><strong class="calibre5">M-Del</strong></span>
+                              <span><em class="calibre7">Mark</em></span> 
+                              <span>→</span> 
+                              <span><em class="calibre7">Unmark
+All</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-unmark-all-files</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Remove all marks from all files.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">* *</strong></span>
+                              <span><em class="calibre7">Mark</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Mark Executables</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-mark-executables</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Mark executables; <span><strong class="calibre5">C-u *</strong></span> unmarks.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">* /</strong></span>
+                              <span><em class="calibre7">Mark</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Mark Directories</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-mark-directories</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Mark directories; <span><strong class="calibre5">C-u /</strong></span> unmarks.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">* @</strong></span>
+                              <span><em class="calibre7">Mark</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Mark Symlinks</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-mark-symlinks</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Mark symlinks; <span><strong class="calibre5">C-u * @</strong></span> unmarks.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">M-}</strong></span>
+                              <span><em class="calibre7">Mark</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Next Marked</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-next-marked-file</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Move to the next file marked with <span><strong class="calibre5">*</strong></span>
+or <span><strong class="calibre5">D</strong></span>.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">M-{</strong></span>
+                              <span><em class="calibre7">Mark</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Previous Marked</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-prev-marked-file</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Move to previous file marked with <span><strong class="calibre5">*</strong></span>
+or <span><strong class="calibre5">D</strong></span>.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">% d</strong></span>
+                              <span><em class="calibre7">Regexp</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Flag</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-flag-files-regexp</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Flag for deletion files that match regular expression.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">% g</strong></span>
+                              <span><em class="calibre7">Regexp</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Mark Containing</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-mark-files-containing-regexp</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Mark files whose contents match regular expression.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">% l</strong></span>
+                              <span><em class="calibre7">Regexp</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Downcase</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-downcase</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Lowercase marked files.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">% R</strong></span>
+                              <span><em class="calibre7">Regexp</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Mark</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-do-rename-regexp</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Rename files with filenames that match regular expression.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre30">
+                           <p class="copyright">
+                              <span><strong class="calibre5">% u</strong></span>
+                              <span><em class="calibre7">Regexp</em></span>
+                              <span>→</span> 
+                              <span><em class="calibre7">Upcase</em></span>
+                           </p>
+                        </td><td class="calibre30">
+                           <p class="copyright">
+                              <span><strong class="calibre5">dired-upcase</strong></span>
+                           </p>
+                        </td><td class="calibre31">
+                           <p class="copyright">Uppercase marked files.</p>
+                        </td></tr></tbody></table></div></div><br class="book"/></div><div class="book"><br class="book"/><hr class="calibre4"/><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-5-FNOTE-2" href="#gnu3-CHP-5-FNOTE-2" class="calibre2">2</a>] </sup>The one exception to this is running Emacs in
+the Mac OS X Terminal application, which has its own drag-and-drop
+behavior. In the terminal—and thus in Emacs running in the
+terminal window—dragging and dropping a folder inserts the
+complete pathname of that folder rather than opening the folder in
+Dired.</p></div><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-5-FNOTE-3" href="#gnu3-CHP-5-FNOTE-3" class="calibre2">3</a>] </sup>What if it's a file that
+shouldn't be viewed in Emacs, like a JPG or a PDF?
+In this case, the variable <span><strong class="calibre5">dired-view-command-alist</strong></span> associates viewers
+with file extensions. The defaults for this command work on Linux,
+but require some tweaking on other platforms. See <a class="calibre2" href="ch10.html" title="Chapter 10. Customizing Emacs">Chapter 10</a> for an example of using Custom to change
+this variable for Mac OS X and Windows.</p></div><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-5-FNOTE-4" href="#gnu3-CHP-5-FNOTE-4" class="calibre2">4</a>] </sup>Emacs understands only
+<span><strong class="calibre5">compress</strong></span> and <span><strong class="calibre5">gzip</strong></span> formats, not ZIP or other proprietary
+file compression algorithms. When you uncompress files, Emacs
+recognizes and correctly uncompresses files with the following
+suffixes: <span><em class="calibre7">.z</em></span>, <span><em class="calibre7">.Z</em></span>, or
+<span><em class="calibre7">.gz</em></span>. When you compress files, Emacs uses
+<span><strong class="calibre5">gzip</strong></span>, resulting in files that end in
+<span><em class="calibre7">.gz</em></span>.</p></div><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-5-FNOTE-5" href="#gnu3-CHP-5-FNOTE-5" class="calibre2">5</a>] </sup>And if all the Dired features
+aren't enough, there's Dired-x, an
+add-in module that includes other features such as omitting
+unimportant files from the listing, finding files mentioned in any
+buffer, and additional variables and means of marking files. For more
+details, see the Info text on this subject (type <span><strong class="calibre5">C-h i</strong></span> to get to the Info menu).</p></div></div></div></div>
+
+{% endraw %}
+

@@ -1,0 +1,101 @@
+---
+layout: page
+title: "Unknown"
+prev: c18591.htm
+next: x19270.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="c18591.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 10. User and Group Management</td><td width="10%" valign="bottom" class="calibre5"><a href="x19270.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="AEN19123" class="calibre8">Managing Groups</a></h1><p class="calibre9">Groups serve to simplify the assignment of rights. Ordinary privileges must be granted to a
+    single user, one at a time. This can be tedious if several users need to be assigned the same access to a variety of
+    database objects.</p><p class="calibre9">Groups are created to avoid this problem. A group simply requires a name, and can be created empty (without users).
+    Once created, users who are intended to share common access
+    privileges are added into the group together, and are henceforth associated by their membership in that group.
+    Rights on database objects are then granted to the <span><i class="EMPHASIS">group</i></span>, rather than to each
+    <span><i class="EMPHASIS">member</i></span> of the group. For a system with many users and databases, groups make managing rights
+    less of an administrative chore.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>Users may belong to any number of groups, or no groups at all.</p><a name="AEN19134"></a><blockquote class="NOTE"><p class="calibre9"></p></blockquote></blockquote></div><div class="NAVHEADER"><h2 class="SECT"><a name="CREATINGGROUPS" class="calibre8">Creating and Removing Groups</a></h2><p class="calibre9">Before you get started managing groups, you should first understand how to create and remove them from the system.
+      Each of these procedures requires superuser privileges. See <a href="c18591.htm#MANAGINGUSERS">the Section called <i class="EMPHASIS">Managing Users</i></a>" earlier in this chapter for more
+      about superusers.</p><div class="NAVHEADER"><h3 class="AUTHOR"><a name="CREATINGAGROUP" class="calibre8">Creating a group</a></h3><p class="calibre9">Any superuser may create a new group in PostgreSQL with the <tt class="REPLACEABLE">CREATE GROUP</tt>
+        command. Here is the syntax for <tt class="REPLACEABLE">CREATE GROUP</tt>:</p><pre class="SCREEN">  CREATE GROUP <tt class="REPLACEABLE"><i class="EMPHASIS">groupname</i></tt>
+         [ WITH
+              [ SYSID <tt class="REPLACEABLE"><i class="EMPHASIS">groupid</i></tt> ]
+              [ USER  <tt class="REPLACEABLE"><i class="EMPHASIS">username</i></tt> [, ...] ] ]</pre><p class="calibre9">In this syntax, <tt class="REPLACEABLE"><i class="EMPHASIS">groupname</i></tt> is the name of the group that you wish to create. A group's name
+        must start with an alphabetical character, and may not exceed 31 characters in length.
+	Providing the <tt class="REPLACEABLE">WITH</tt> keyword allows for either of the optional attributes to be specified.
+        If you wish to specify the system ID to use for the new group, use the SYSID keyword to specify the <tt class="REPLACEABLE"><i class="EMPHASIS">groupid</i></tt>
+        value. Use the <tt class="REPLACEABLE">USER</tt> keyword to include one or more users to the group at creation time. Separate usernames by commas.</p><p class="calibre9">        Additionally, the PostgreSQL user and group tables operate separately from each other. This separation does allow
+	a user's <tt class="REPLACEABLE">usesysid</tt> and a group's <tt class="REPLACEABLE">grosysid</tt>
+	to be identical within the PostgreSQL system.</p><p class="calibre9">As an example, <a href="x19123.htm#CREATINGAGROUPEXAMPLE">Example 10-11</a> creates the <tt class="REPLACEABLE">sales</tt> group, and
+        adds two users to it upon its creation. These users are <tt class="REPLACEABLE">allen</tt>, and
+        <tt class="REPLACEABLE">vincent</tt> (presumably, members of Book Town's sales department).</p><div class="NAVHEADER"><a name="CREATINGAGROUPEXAMPLE"></a><p class="calibre9"><b class="calibre10">Example 10-11. Creating a group</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">CREATE GROUP sales</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">             WITH USER allen, vincent;</b></tt>
+CREATE GROUP</pre></div><p class="calibre9">The <tt class="REPLACEABLE">CREATE GROUP</tt> server message indicates that the group was created successfully.
+        You may verify the creation of a group, as well as view all existing groups, with a query on the
+        <tt class="REPLACEABLE">pg_group</tt> system table. <a href="x19123.htm#VERIFYINGAGROUP">Example 10-12</a> executes such a query.</p><div class="NAVHEADER"><a name="VERIFYINGAGROUP"></a><p class="calibre9"><b class="calibre10">Example 10-12. Verifying a group</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT * FROM pg_group;</b></tt>
+  groname   | grosysid |   grolist
+------------+----------+-------------
+ sales      |        1 | {7017,7016}
+ accounting |        2 |
+ marketing  |        3 |
+(3 rows)</pre></div><p class="calibre9">Notice that the <tt class="REPLACEABLE">grolist</tt> column is an array, containing the PostgreSQL user ID of
+        each user in the group. These are the same user IDs which can be seen in the <tt class="REPLACEABLE">pg_user</tt>
+        view. For example:</p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT usename FROM pg_user</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">               WHERE usesysid = 7017 OR usesysid = 7016;</b></tt>
+ usename
+---------
+ allen
+ vincent
+(2 rows)</pre></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN19181" class="calibre8">Removing a group</a></h3><p class="calibre9">Any superuser may also remove a group with the <tt class="REPLACEABLE">DROP GROUP</tt> SQL command. You should
+        exercise caution with this command, as it is irreversible, and you will not be prompted to verify the removal of the
+        group (even if there are users still in the group). Unlike <tt class="REPLACEABLE">DROP DATABASE</tt>, <tt class="REPLACEABLE">DROP GROUP</tt>
+        may be performed within a transaction block.</p><p class="calibre9">Here is the syntax for <tt class="REPLACEABLE">DROP GROUP</tt>:</p><pre class="SCREEN">  DROP GROUP <tt class="REPLACEABLE"><i class="EMPHASIS">groupname</i></tt></pre><p class="calibre9">The <tt class="REPLACEABLE"><i class="EMPHASIS">groupname</i></tt> is the name of the group to be permanently removed. <a href="x19123.htm#REMOVINGAGROUP">Example 10-13</a> removes an outdated <tt class="REPLACEABLE">marketing</tt> group from the Book Town
+        database.</p><div class="NAVHEADER"><a name="REMOVINGAGROUP"></a><p class="calibre9"><b class="calibre10">Example 10-13. Removing a group</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">DROP GROUP marketing;</b></tt>
+DROP GROUP</pre></div><p class="calibre9">The <tt class="REPLACEABLE">DROP GROUP</tt> server message returned from <a href="x19123.htm#REMOVINGAGROUP">Example 10-13</a>
+        indicates that the group was successfully destroyed. Note that removing a group does not remove
+        permissions placed on it, but rather "disembodies" them. Any permissions placed on a database object which have rights assigned to a dropped
+        group will appear to be assigned to a group <span><i class="EMPHASIS">system ID</i></span>, rather than to a group.
+         </p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>Inadvertently dropped groups can be restored to their previous functionality by creating a new group with the
+          same system ID as the dropped group. This involves the <tt class="REPLACEABLE">SYSID</tt> keyword, as documented
+          in <a href="x19123.htm#CREATINGAGROUP">the Section called <i class="EMPHASIS">Creating a group</i></a>." If you assign group permissions to a table and then drop the
+	  group, the group permissions on the table will be retained. However, you will need to add the appropriate users to
+          the newly recreated group for the table permissions to be effective for members of that group.
+          </p></blockquote></div></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="ADDINGUSERSTOGROUPS" class="calibre8">Associating Users with Groups</a></h2><p class="calibre9">Users are both added and removed from groups in PostgreSQL through the <tt class="REPLACEABLE">ALTER GROUP</tt>
+      SQL command. Here is the syntax for the <tt class="REPLACEABLE">ALTER GROUP</tt> command:</p><pre class="SCREEN">  ALTER GROUP <tt class="REPLACEABLE"><i class="EMPHASIS">groupname</i></tt> { ADD | DROP } USER <tt class="REPLACEABLE"><i class="EMPHASIS">username</i></tt> [, ... ]</pre><p class="calibre9">The <tt class="REPLACEABLE"><i class="EMPHASIS">groupname</i></tt> is the name of the group to be modified, while the <tt class="REPLACEABLE"><i class="EMPHASIS">username</i></tt> is
+      the name of the user to be added or removed, depending on whether the <tt class="REPLACEABLE">ADD</tt>
+      or <tt class="REPLACEABLE">DROP</tt> keyword is specified.</p><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN19220" class="calibre8">Adding a user to a group</a></h3><p class="calibre9">Suppose that Booktown hires two new sales associates, David and Ben, and gives them usernames <tt class="REPLACEABLE">david</tt> and <tt class="REPLACEABLE">ben</tt>, respectively.
+        
+        <a href="x19123.htm#ADDINGAUSERTOAGROUP">Example 10-14</a> uses the <tt class="REPLACEABLE">ALTER GROUP</tt> command adds these new users to
+        the <tt class="REPLACEABLE">sales</tt> group.</p><div class="NAVHEADER"><a name="ADDINGAUSERTOAGROUP"></a><p class="calibre9"><b class="calibre10">Example 10-14. Adding a user to a group</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">ALTER GROUP sales ADD USER david, ben;</b></tt>
+ALTER GROUP</pre></div><p class="calibre9">The <tt class="REPLACEABLE">ALTER GROUP</tt> server message returned in <a href="x19123.htm#ADDINGAUSERTOAGROUP">Example 10-14</a>
+        indicates that the users <tt class="REPLACEABLE">david</tt> and <tt class="REPLACEABLE">ben</tt> were successfully
+        added to the <tt class="REPLACEABLE">sales</tt> group. <a href="x19123.htm#VERIFYINGUSERADDITION">Example 10-15</a> demonstrates another
+        query to the <tt class="REPLACEABLE">pg_ group</tt> table to verify the addition of those new users to the group. Note
+        that there are now four system IDs in the
+        <tt class="REPLACEABLE">grolist</tt> column for the sales group.</p><div class="NAVHEADER"><a name="VERIFYINGUSERADDITION"></a><p class="calibre9"><b class="calibre10">Example 10-15. Verifying user addition</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT * FROM pg_group WHERE groname = 'sales';</b></tt>
+ groname | grosysid |        grolist
+---------+----------+-----------------------
+ sales   |        1 | {7019,7018,7017,7016}
+(1 row)</pre></div></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN19245" class="calibre8">Removing a user from a group</a></h3><p class="calibre9">Suppose that some time later David is transferred from sales to accounting. In order to maintain the correct group
+        association, and to make sure that David does not have any rights granted exclusively to the
+        <tt class="REPLACEABLE">sales</tt> group, his user (<tt class="REPLACEABLE">david</tt>) should be removed from
+        that group; <a href="x19123.htm#REMOVINGAUSERFROMAGROUP">Example 10-16</a> achieves this.</p><div class="NAVHEADER"><a name="REMOVINGAUSERFROMAGROUP"></a><p class="calibre9"><b class="calibre10">Example 10-16. Removing a user from a group</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">ALTER GROUP sales DROP USER david;</b></tt>
+ALTER GROUP</pre></div><p class="calibre9">The <tt class="REPLACEABLE">ALTER GROUP</tt> message returned from <a href="x19123.htm#REMOVINGAUSERFROMAGROUP">Example 10-16</a>
+        indicates that the <tt class="REPLACEABLE">david</tt> user was successfully removed from the
+        <tt class="REPLACEABLE">sales</tt> group.</p><p class="calibre9">To complete his transition to the accounting department, David must then have his user added to the
+        <tt class="REPLACEABLE">accounting</tt> group. The following statements use similar syntax as the statements in
+        <a href="x19123.htm#ADDINGAUSERTOAGROUP">Example 10-14</a> and <a href="x19123.htm#VERIFYINGUSERADDITION">Example 10-15</a>. The net effect is that the
+        <tt class="REPLACEABLE">david</tt> user is added into the <tt class="REPLACEABLE">accounting</tt> group. This means
+        that any special rights granted to this group will be implicitly granted to <tt class="REPLACEABLE">david</tt> for as long as he
+        is a member of the group.</p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">ALTER GROUP accounting ADD USER david;</b></tt>
+ALTER GROUP
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT * FROM pg_group;</b></tt>
+  groname   | grosysid |     grolist
+------------+----------+------------------
+ sales      |        1 | {7016,7017,7019}
+ accounting |        2 | {7018}
+(2 rows)</pre></div></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="c18591.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x19270.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">User and Group Management</td><td width="34%" valign="top" class="calibre4"><a href="c18591.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Granting Privileges</td></tr></table></div></div>
+
+{% endraw %}
+

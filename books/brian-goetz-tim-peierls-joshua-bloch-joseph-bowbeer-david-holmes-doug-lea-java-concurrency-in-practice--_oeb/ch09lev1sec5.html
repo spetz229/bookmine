@@ -1,0 +1,23 @@
+---
+layout: page
+title: "Java Concurrency in Practice"
+prev: ch09lev1sec4.html
+next: ch09lev1sec6.html
+book_path: books/brian-goetz-tim-peierls-joshua-bloch-joseph-bowbeer-david-holmes-doug-lea-java-concurrency-in-practice--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a name="ch09lev1sec5" class="calibre18" id="ch09lev1sec5"></a>
+<h3 id="title-IDAXT0UP" class="docSection1Title">9.5. Other Forms of Single-threaded Subsystems</h3>
+<p class="docText1">Thread confinement is not restricted to GUIs: it can be used whenever a facility is implemented as a single-threaded subsystem. Sometimes thread confinement is forced on the developer for reasons that have nothing to do with avoiding synchronization or deadlock. For example, some native libraries require that all access to the library, even loading the library with <tt class="calibre25">System.loadLibrary</tt>, bemade from the same thread.</p>
+<p class="docText1">Borrowing from the approach taken by GUI frameworks, you can easily create a dedicated thread or single-threaded executor for accessing the native library, and provide a proxy object that intercepts calls to the thread-confined object and submits them as tasks to the dedicated thread. <tt class="calibre25">Future</tt> and <tt class="calibre25">newSingleThreadExecutor</tt> work together to make this easy; the proxy method can <tt class="calibre25">submit</tt> the task and immediately call <tt class="calibre25">Future.get</tt> to wait for the result. (If the class to be threadconfined implements an interface, you can automate the process of having each method submit a <tt class="calibre25">Callable</tt> to a background thread executor and waiting for the result using dynamic proxies.)</p>
+<a href="21021536.html" class="calibre2"><img src="pixel.jpg" alt="" border="0" class="calibre26"/></a>
+<p class="calibre3"> </p>
+
+</div>
+
+{% endraw %}
+

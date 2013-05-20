@@ -1,0 +1,146 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: glob_translate_split_001.html
+next: glob_use_split_000.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="glob_translate_split_000.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="glob_use_split_000.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="glob_lazyfn" class="calibre27" id="glob_lazyfn"></a><h3 id="643999-940" class="docSection1Title">8.6. An important Aside: Writing Lazy Functions</h3><a name="x_LG" class="calibre27" id="x_LG"></a><p class="docText">In<a name="I_indexterm8_d1e22510" class="calibre27" id="I_indexterm8_d1e22510"></a> an <a name="I_indexterm8_d1e22512" class="calibre27" id="I_indexterm8_d1e22512"></a>imperative language, the <i class="docEmphasis">globToRegex'</i> function is one that we'd usually
+    express as a loop. For example, Python's standard
+    <tt class="calibre34">fnmatch</tt> module includes a function named <i class="docEmphasis">translate</i> that does exactly the same job as our
+    <i class="docEmphasis">globToRegex</i> function. It's written as
+    a loop.</p><a name="x_MG" class="calibre27" id="x_MG"></a><p class="docText">If you've been exposed to functional programming through a
+    language such as Scheme or ML, you've probably had drilled into your head
+    the notion that "the way to emulate a loop is via tail recursion."</p><a name="x_NG" class="calibre27" id="x_NG"></a><p class="docText">Looking at the <i class="docEmphasis">globToRegex'</i> function, we can see that it is
+    <span class="docEmphasis">not</span> tail recursive. To see why, examine its final
+    clause again (several of its other clauses are structured
+    similarly):</p><pre class="calibre39">-- file: ch08/GlobRegex.hs
+globToRegex' (c:cs) = escape c ++ globToRegex' cs</pre><br class="calibre48"/>
+<a name="x_OG" class="calibre27" id="x_OG"></a><p class="docText">It applies itself recursively, and the result of the
+    recursive application is used as a parameter to<a name="I_indexterm8_d1e22545" class="calibre27" id="I_indexterm8_d1e22545"></a><a name="I_indexterm8_d1e22550" class="calibre27" id="I_indexterm8_d1e22550"></a> the <i class="docEmphasis">(++)</i> function.
+    Since the recursive application <span class="docEmphasis">isn't</span> the last thing
+    the function does, <i class="docEmphasis">globToRegex'</i> is
+    not tail recursive.</p><a name="x_PG" class="calibre27" id="x_PG"></a><p class="docText">Why is our definition of this function not tail recursive?
+    The answer lies with Haskell's nonstrict evaluation strategy. Before we
+    start talking about that, let's quickly talk about why, in a traditional
+    language, we'd try to avoid this kind of recursive definition. Here is a
+    simpler definition of the <i class="docEmphasis">(++)</i>
+    operator. It is recursive, but not tail recursive:</p><pre class="calibre39">-- file: ch08/append.hs
+(++) :: [a] -&gt; [a] -&gt; [a]
+
+(x:xs) ++ ys = x : (xs ++ ys)
+[]     ++ ys = ys</pre><br class="calibre48"/>
+<a name="x_rE1" class="calibre27" id="x_rE1"></a><p class="docText">In a strict language, if we evaluate <tt class="calibre34">"foo" ++
+    "bar"</tt>, the entire list is constructed, and then returned.
+    Non-strict evaluation defers much of the work until it is needed.</p><a name="x_bG" class="calibre27" id="x_bG"></a><p class="docText">If we demand an element of the expression <tt class="calibre34">"foo" ++
+    "bar"</tt>, the first pattern of the function's definition matches, and
+    we return the expression <tt class="calibre34">x : (xs ++ ys)</tt>. Because the
+    <tt class="calibre34">(:)</tt> constructor is nonstrict, the evaluation of <tt class="calibre34">xs ++
+    ys</tt> can be deferred: we generate more elements of the result at
+    whatever rate they are demanded. When we generate more of the result, we
+    will no longer be using <span class="docMonofont">x</span>, so the garbage collector can
+    reclaim it. Since we generate elements of the result on demand, and do not
+    hold onto parts that we are done with, the compiler can evaluate our code
+    in constant space.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"><a href="21061538.html" class="calibre2"><img src="btn_next_.gif" alt="Next" border="0" class="calibre31"/></a> 
+           
+          <span class="calibre33"><a target="_self" href="glob_translate_split_000.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="glob_use_split_000.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

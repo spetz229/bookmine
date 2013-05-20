@@ -1,0 +1,190 @@
+---
+layout: page
+title: "Understanding the Linux Kernel, 3rd Edition"
+prev: understandlk-CHP-11-SECT-3.html
+next: understandlk-CHP-12.html
+book_path: books/understanding-the-linux-kernel-rd-edition_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a name="understandlk-CHP-11-SECT-4"></a>
+<h3 class="docSection1Title">11.4. System Calls Related to Signal Handling</h3><a name="IDX-CHP-11-2797"></a>
+<a name="IDX-CHP-11-2798"></a>
+<a name="IDX-CHP-11-2799"></a>
+<a name="IDX-CHP-11-2800"></a>
+<a name="IDX-CHP-11-2801"></a>
+<a name="IDX-CHP-11-2802"></a>
+<a name="IDX-CHP-11-2803"></a>
+<p class="docText1">As stated in the introduction of this chapter, programs running in User Mode are allowed to send and receive signals. This means that a set of system calls must be defined to allow these kinds of operations. Unfortunately, for historical reasons, several system calls exist that serve essentially the same purpose. As a result, some of these system calls are never invoked. For instance, <tt class="calibre25">sys_sigaction( )</tt> and <tt class="calibre25">sys_rt_sigaction( )</tt> are almost identical, so the <tt class="calibre25">sigaction( )</tt><a name="IDX-CHP-11-2804"></a> 
+ wrapper function included in the C library ends up invoking <tt class="calibre25">sys_rt_sigaction( )</tt> instead of <tt class="calibre25">sys_sigaction( )</tt>. We will describe some of the most significant system calls in the following sections.</p>
+<a name="understandlk-CHP-11-SECT-4.1"></a>
+<h4 class="docSection2Title">11.4.1. The kill( ) System Call</h4><a name="IDX-CHP-11-2805"></a>
+<p class="docText1">The <tt class="calibre25">kill(pid,sig)</tt> system call is commonly used to send signals to conventional processes or multithreaded applications; its corresponding service routine is the <tt class="calibre25">sys_kill( )</tt> function. The integer <tt class="calibre25">pid</tt> parameter has several meanings, depending on its numerical value:</p>
+<dl class="docText1"><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">pid</span> &gt; 0</span></p></dt>
+<dd class="calibre20"><p class="docList">The <tt class="calibre25">sig</tt> signal is sent to the thread group of the process whose PID is equal to <tt class="calibre25">pid</tt>.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">pid</span> = 0</span></p></dt>
+<dd class="calibre20"><p class="docList">The <tt class="calibre25">sig</tt> signal is sent to all thread groups of the processes in the same process group as the calling process.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">pid</span> = -1</span></p></dt>
+<dd class="calibre20"><p class="docList">The signal is sent to all processes, except <span class="docEmphasis">swapper</span> (PID 0), <span class="docEmphasis">init</span> (PID 1), and <tt class="calibre25">current</tt>.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">pid</span> &lt; -1</span></p></dt>
+<dd class="calibre20"><p class="docList">The signal is sent to all thread groups of the processes in the process group -<span class="docEmphasis">pid</span>.</p></dd></dl>
+<p class="docText1">The <tt class="calibre25">sys_kill( )</tt> function sets up a minimal <tt class="calibre25">siginfo_t</tt> table for the signal, and then invokes <tt class="calibre25">kill_something_info( )</tt>:</p>
+<pre class="calibre27">
+    info.si_signo = sig;
+    info.si_errno = 0;
+    info.si_code = SI_USER;
+    info._sifields._kill._pid = current-&gt;tgid;
+    info._sifields._kill._uid = current-&gt;uid;
+    return kill_something_info(sig, &amp;info, pid);</pre><br class="calibre7"/>
+<p class="docText1">The <tt class="calibre25">kill_something_info( )</tt> function, in turn, invokes either <tt class="calibre25">kill_proc_info( )</tt> (to send the signal to a single thread group via <tt class="calibre25">group_send_sig_info( )</tt>), or <tt class="calibre25">kill_pg_info( )</tt> (to scan all processes in the destination process group and invoke <tt class="calibre25">send_sig_info( )</tt> for each of them), or repeatedly <tt class="calibre25">group_send_sig_info( )</tt> for each process in the system (if <tt class="calibre25">pid</tt> is <tt class="calibre25">-1</tt>).</p>
+<p class="docText1">The <tt class="calibre25">kill( )</tt> system call is able to send every signal, even the so-called real-time signals that have numbers ranging from 32 to 64. However, as we saw in the earlier section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-11-SECT-2.html#understandlk-CHP-11-SECT-2">Generating a Signal</a>," the <tt class="calibre25">kill( )</tt> system call does not ensure that a new element is added to the pending signal queue of the destination process, so multiple instances of pending signals can be lost. Real-time signals should be sent by means of a system call such as <tt class="calibre25">rt_sigqueueinfo( )</tt><a name="IDX-CHP-11-2806"></a> 
+ (see the later section "<a class="pcalibre5 docLink pcalibre1" href="#understandlk-CHP-11-SECT-4.7">System Calls for Real-Time Signals</a>").</p>
+<p class="docText1">System V<a name="IDX-CHP-11-2807"></a> 
+ and BSD<a name="IDX-CHP-11-2808"></a> 
+ Unix variants also have a <tt class="calibre25">killpg( )</tt><a name="IDX-CHP-11-2809"></a> 
+ system call, which is able to explicitly send a signal to a group of processes. In Linux, the function is implemented as a library function that uses the <tt class="calibre25">kill( )</tt> system call. Another variation is <tt class="calibre25">raise( )</tt><a name="IDX-CHP-11-2810"></a> 
+, which sends a signal to the current process (that is, to the process executing the function). In Linux, <tt class="calibre25">raise()</tt> is implemented as a library function.</p>
+<a name="understandlk-CHP-11-SECT-4.2"></a>
+<h4 class="docSection2Title">11.4.2. The tkill( ) and tgkill( ) System Calls</h4><a name="IDX-CHP-11-2811"></a>
+<a name="IDX-CHP-11-2812"></a>
+<a name="IDX-CHP-11-2813"></a>
+<a name="IDX-CHP-11-2814"></a>
+<a name="IDX-CHP-11-2815"></a>
+<a name="IDX-CHP-11-2816"></a>
+<a name="IDX-CHP-11-2817"></a>
+<a name="IDX-CHP-11-2818"></a>
+<a name="IDX-CHP-11-2819"></a>
+<a name="IDX-CHP-11-2820"></a>
+<p class="docText1">The <tt class="calibre25">tkill( )</tt> and <tt class="calibre25">tgkill( )</tt> system calls send a signal to a specific process in a thread group. The <tt class="calibre25">pthread_kill( )</tt> function of every POSIX-compliant <span class="docEmphasis">pthread</span> library invokes either of them to send a signal to a specific lightweight process.</p>
+<p class="docText1">The <tt class="calibre25">tkill( )</tt> system call expects two parameters: the PID <tt class="calibre25">pid</tt> of the process to be signaled and the signal number <tt class="calibre25">sig</tt>. The <tt class="calibre25">sys_tkill( )</tt> service routine fills a <tt class="calibre25">siginfo</tt> table, gets the process descriptor address, makes some permission checks (such as those in step 2 in the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-11-SECT-2.html#understandlk-CHP-11-SECT-2.3">The group_send_sig_info( ) Function</a>"), and invokes <tt class="calibre25">specific_send_sig_info( )</tt> to send the signal.</p>
+<p class="docText1">The <tt class="calibre25">tgkill( )</tt> system call differs from <tt class="calibre25">tkill( )</tt> because it has a third parameter: the thread group ID<a name="IDX-CHP-11-2821"></a> 
+ (<tt class="calibre25">tgid</tt>) of the thread group that includes the process to be signaled. The <tt class="calibre25">sys_tgkill( )</tt> service routine performs exactly the same operations as <tt class="calibre25">sys_tkill( )</tt>, but also checks that the process being signaled actually belongs to the thread group <tt class="calibre25">tgid</tt>. This additional check solves a race condition that occurs when a signal is sent to a process that is being killed: if another multithreaded application is creating lightweight processes fast enough, the signal could be delivered to the wrong process. The <tt class="calibre25">tgkill( )</tt> system call solves the problem, because the thread group ID is never changed during the life span of a multithreaded application.</p>
+<a name="understandlk-CHP-11-SECT-4.3"></a>
+<h4 class="docSection2Title">11.4.3. Changing a Signal Action</h4>
+<p class="docText1">The <tt class="calibre25">sigaction(sig,act,oact)</tt> system call allows users to specify an action for a signal; of course, if no signal action is defined, the kernel executes the default action associated with the delivered signal.</p>
+<p class="docText1">The corresponding <tt class="calibre25">sys_sigaction( )</tt> service routine acts on two parameters: the <tt class="calibre25">sig</tt> signal number and the <tt class="calibre25">act</tt> table of type <tt class="calibre25">old_sigaction</tt> that specifies the new action. A third <tt class="calibre25">oact</tt> optional output parameter may be used to get the previous action associated with the signal. (The <tt class="calibre25">old_sigaction</tt> data structure contains the same fields as the <tt class="calibre25">sigaction</tt> structure described in the earlier section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-11-SECT-1.html#understandlk-CHP-11-SECT-1.3">Data Structures Associated with Signals</a>," but in a different order.)</p>
+<p class="docText1">The function checks first whether the <tt class="calibre25">act</tt> address is valid. Then it fills the <tt class="calibre25">sa_handler</tt>, <tt class="calibre25">sa_flags</tt>, and <tt class="calibre25">sa_mask</tt> fields of a <tt class="calibre25">new_ka</tt> local variable of type <tt class="calibre25">k_sigaction</tt> with the corresponding fields of <tt class="calibre25">*act</tt>:</p>
+<pre class="calibre27">
+    _ _get_user(new_ka.sa.sa_handler, &amp;act-&gt;sa_handler);
+    _ _get_user(new_ka.sa.sa_flags, &amp;act-&gt;sa_flags);
+    _ _get_user(mask, &amp;act-&gt;sa_mask);
+    siginitset(&amp;new_ka.sa.sa_mask, mask);</pre><br class="calibre7"/>
+<p class="docText1">The function invokes <tt class="calibre25">do_sigaction( )</tt> to copy the new <tt class="calibre25">new_ka</tt> table into the entry at the <tt class="calibre25">sig-1</tt> position of <tt class="calibre25">current-&gt;sig-&gt;action (</tt> the number of the signal is one higher than the position in the array because there is no zero signal):</p>
+<pre class="calibre27">
+    k = &amp;current-&gt;sig-&gt;action[sig-1];
+    if (act) {
+        *k = *act;
+        sigdelsetmask(&amp;k-&gt;sa.sa_mask, sigmask(SIGKILL) | sigmask(SIGSTOP));
+        if (k-&gt;sa.sa_handler == SIG_IGN || (k-&gt;sa.sa_handler == SIG_DFL &amp;&amp;
+         (sig==SIGCONT || sig==SIGCHLD || sig==SIGWINCH || sig==SIGURG))) {
+        rm_from_queue(sigmask(sig), &amp;current-&gt;signal-&gt;shared_pending);
+            t = current;
+            do {
+                rm_from_queue(sigmask(sig), &amp;current-&gt;pending);
+                recalc_sigpending_tsk(t);
+                t = next_thread(t);
+            } while (t != current);
+        }
+    }</pre><br class="calibre7"/>
+<p class="docText1">The POSIX standard requires that setting a signal action to either <tt class="calibre25">SIG_IGN</tt> or <tt class="calibre25">SIG_DFL</tt> when the default action is "ignore" causes every pending signal of the same type to be discarded. Moreover, notice that no matter what the requested masked signals are for the signal handler, <tt class="calibre25">SIGKILL</tt> and <tt class="calibre25">SIGSTOP</tt> are never masked.</p>
+<p class="docText1">The <tt class="calibre25">sigaction( )</tt> system call also allows the user to initialize the <tt class="calibre25">sa_flags</tt> field in the <tt class="calibre25">sigaction</tt> table. We listed the values allowed for this field and the related meanings in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-11-SECT-1.html#understandlk-CHP-11-TABLE-6">Table 11-6</a> (earlier in this chapter).</p>
+<p class="docText1">Older System V<a name="IDX-CHP-11-2822"></a> 
+ Unix variants offered the <tt class="calibre25">signal( )</tt><a name="IDX-CHP-11-2823"></a> 
+ system call, which is still widely used by programmers. Recent C libraries implement <tt class="calibre25">signal( )</tt> by means of <tt class="calibre25">rt_sigaction( )</tt><a name="IDX-CHP-11-2824"></a> 
+. However, Linux still supports older C libraries and offers the <tt class="calibre25">sys_signal( )</tt> service routine:</p>
+<pre class="calibre27">
+    new_sa.sa.sa_handler = handler;
+    new_sa.sa.sa_flags = SA_ONESHOT | SA_NOMASK;
+    ret = do_sigaction(sig, &amp;new_sa, &amp;old_sa);
+    return ret ? ret : (unsigned long)old_sa.sa.sa_handler;</pre><br class="calibre7"/>
+<a name="understandlk-CHP-11-SECT-4.4"></a>
+<h4 class="docSection2Title">11.4.4. Examining the Pending Blocked Signals</h4><a name="IDX-CHP-11-2825"></a>
+<a name="IDX-CHP-11-2826"></a>
+<p class="docText1">The <tt class="calibre25">sigpending( )</tt><a name="IDX-CHP-11-2827"></a> 
+ system call allows a process to examine the set of pending blocked signalsi.e., those that have been raised while blocked. The corresponding <tt class="calibre25">sys_sigpending( )</tt> service routine acts on a single parameter, <tt class="calibre25">set</tt>, namely, the address of a user variable where the array of bits must be copied:</p>
+<pre class="calibre27">
+    sigorsets(&amp;pending, &amp;current-&gt;pending.signal,
+                        &amp;current-&gt;signal-&gt;shared_pending.signal);
+    sigandsets(&amp;pending, &amp;current-&gt;blocked, &amp;pending);
+    copy_to_user(set, &amp;pending, 4);</pre><br class="calibre7"/>
+<a name="understandlk-CHP-11-SECT-4.5"></a>
+<h4 class="docSection2Title">11.4.5. Modifying the Set of Blocked Signals</h4><a name="IDX-CHP-11-2828"></a>
+<a name="IDX-CHP-11-2829"></a>
+<a name="IDX-CHP-11-2830"></a>
+<a name="IDX-CHP-11-2831"></a>
+<a name="IDX-CHP-11-2832"></a>
+<a name="IDX-CHP-11-2833"></a>
+<p class="docText1">The <tt class="calibre25">sigprocmask( )</tt><a name="IDX-CHP-11-2834"></a> 
+ system call allows processes to modify the set of blocked signals; it applies only to regular (non-real-time) signals. The corresponding <tt class="calibre25">sys_sigprocmask( )</tt> service routine acts on three parameters:</p>
+<dl class="docText1"><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">oset</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">Pointer in the process address space to a bit array where the previous bit mask must be stored.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">set</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">Pointer in the process address space to the bit array containing the new bit mask.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">how</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">Flag that may have one of the following values:</p>
+<dl class="docList5"><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">SIG_BLOCK</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">The <tt class="calibre25">*set</tt> bit mask array specifies the signals that must be added to the bit mask array of blocked signals.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">SIG_UNBLOCK</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">The <tt class="calibre25">*set</tt> bit mask array specifies the signals that must be removed from the bit mask array of blocked signals.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">SIG_SETMASK</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">The <tt class="calibre25">*set</tt> bit mask array specifies the new bit mask array of blocked signals.</p></dd></dl></dd></dl>
+<p class="docText1">The function invokes <tt class="calibre25">copy_from_user( )</tt> to copy the value pointed to by the <tt class="calibre25">set</tt> parameter into the <tt class="calibre25">new_set</tt> local variable and copies the bit mask array of standard blocked signals of <tt class="calibre25">current</tt> into the <tt class="calibre25">old_set</tt> local variable. It then acts as the <tt class="calibre25">how</tt> flag specifies on these two variables:</p>
+<pre class="calibre27">
+    if (copy_from_user(&amp;new_set, set, sizeof(*set)))
+        return -EFAULT;
+    new_set &amp;= ~(sigmask(SIGKILL)|sigmask(SIGSTOP));
+    old_set = current-&gt;blocked.sig[0];
+    if (how == SIG_BLOCK)
+        sigaddsetmask(&amp;current-&gt;blocked, new_set);
+    else if (how == SIG_UNBLOCK)
+        sigdelsetmask(&amp;current-&gt;blocked, new_set);
+    else if (how == SIG_SETMASK)
+        current-&gt;blocked.sig[0] = new_set;
+    else
+        return -EINVAL;
+    recalc_sigpending(current);
+    if (oset &amp;&amp; copy_to_user(oset, &amp;old_set, sizeof(*oset)))
+            return -EFAULT;
+    return 0;</pre><br class="calibre7"/>
+<a name="understandlk-CHP-11-SECT-4.6"></a>
+<h4 class="docSection2Title">11.4.6. Suspending the Process</h4><a name="IDX-CHP-11-2835"></a>
+<a name="IDX-CHP-11-2836"></a>
+<p class="docText1">The <tt class="calibre25">sigsuspend( )</tt><a name="IDX-CHP-11-2837"></a> 
+ system call puts the process in the <tt class="calibre25">TASK_INTERRUPTIBLE</tt> state, after having blocked the standard signals specified by a bit mask array to which the <tt class="calibre25">mask</tt> parameter points. The process will wake up only when a nonignored, nonblocked signal is sent to it.</p>
+<p class="docText1">The corresponding <tt class="calibre25">sys_sigsuspend( )</tt> service routine executes these statements:</p>
+<pre class="calibre27">
+    mask &amp;= ~(sigmask(SIGKILL) | sigmask(SIGSTOP));
+    saveset = current-&gt;blocked;
+    siginitset(&amp;current-&gt;blocked, mask);
+    recalc_sigpending(current);
+    regs-&gt;eax = -EINTR;
+    while (1) {
+        current-&gt;state = TASK_INTERRUPTIBLE;
+        schedule( );
+        if (do_signal(regs, &amp;saveset))
+            return -EINTR;
+    }</pre><br class="calibre7"/>
+<p class="docText1">The <tt class="calibre25">schedule( )</tt> function selects another process to run. When the process that issued the <tt class="calibre25">sigsuspend( )</tt> system call is executed again, <tt class="calibre25">sys_sigsuspend( )</tt> invokes the <tt class="calibre25">do_signal( )</tt> function to deliver the signal that has awakened the process. If that function returns the value 1, the signal is not ignored. Therefore the system call terminates by returning the error code <tt class="calibre25">-EINTR</tt>.</p>
+<p class="docText1">The <tt class="calibre25">sigsuspend( )</tt> system call may appear redundant, because the combined execution of <tt class="calibre25">sigprocmask( )</tt><a name="IDX-CHP-11-2838"></a> 
+ and <tt class="calibre25">sleep( )</tt><a name="IDX-CHP-11-2839"></a> 
+ apparently yields the same result. But this is not true: because processes can be interleaved at any time, one must be conscious that invoking a system call to perform action A followed by another system call to perform action B is not equivalent to invoking a single system call that performs action A and then action B.</p>
+<p class="docText1">In this particular case, <tt class="calibre25">sigprocmask( )</tt> might unblock a signal that is delivered before invoking <tt class="calibre25">sleep( )</tt>. If this happens, the process might remain in a <tt class="calibre25">TASK_INTERRUPTIBLE</tt> state forever, waiting for the signal that was already delivered. On the other hand, the <tt class="calibre25">sigsuspend( )</tt> system call does not allow signals to be sent after unblocking and before the <tt class="calibre25">schedule( )</tt> invocation, because other processes cannot grab the CPU during that time interval.</p>
+<a name="understandlk-CHP-11-SECT-4.7"></a>
+<h4 class="docSection2Title">11.4.7. System Calls for Real-Time Signals</h4>
+<p class="docText1">Because the system calls previously examined apply only to standard signals, additional system calls must be introduced to allow User Mode processes to handle real-time signals<a name="IDX-CHP-11-2840"></a> 
+.</p>
+<p class="docText1">Several system calls for<a name="IDX-CHP-11-2841"></a> 
+ real-time signals (<tt class="calibre25">rt_sigaction( )</tt><a name="IDX-CHP-11-2842"></a> 
+, <tt class="calibre25">rt_sigpending( )</tt><a name="IDX-CHP-11-2843"></a> 
+, <tt class="calibre25">rt_sigprocmask( )</tt><a name="IDX-CHP-11-2844"></a> 
+, and <tt class="calibre25">rt_sigsuspend( )</tt><a name="IDX-CHP-11-2845"></a> 
+) are similar to those described earlier and won't be discussed further. For the same reason, we won't discuss two other system calls that deal with queues of real-time signals:</p>
+<a name="IDX-CHP-11-2846"></a><a name="IDX-CHP-11-2847"></a><a name="IDX-CHP-11-2848"></a><a name="IDX-CHP-11-2849"></a><a name="IDX-CHP-11-2850"></a><dl class="docText1"><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">rt_sigqueueinfo( )</span></span></span></p></dt><a name="IDX-CHP-11-2846"></a>
+<dd class="calibre20"><p class="docList">Sends a real-time signal so that it is added to the shared pending signal queue of the destination process. Usually invoked through the <tt class="calibre25">sigqueue( )</tt><a name="IDX-CHP-11-2847"></a> 
+ standard library function.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">rt_sigtimedwait( )</span></span></span></p></dt><a name="IDX-CHP-11-2848"></a>
+<dd class="calibre20"><p class="docList">Dequeues a blocked pending signal without delivering it and returns the signal number to the caller; if no blocked signal is pending, suspends the current process for a fixed amount of time. Usually invoked through the <tt class="calibre25">sigwaitinfo( )</tt><a name="IDX-CHP-11-2849"></a> 
+ and <tt class="calibre25">sigtimedwait( )</tt><a name="IDX-CHP-11-2850"></a> 
+ standard library functions.</p></dd></dl>
+
+<br class="calibre7"/>
+
+</div>
+
+{% endraw %}
+

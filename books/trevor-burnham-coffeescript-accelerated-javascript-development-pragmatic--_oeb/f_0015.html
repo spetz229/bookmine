@@ -1,0 +1,126 @@
+---
+layout: page
+title: "CoffeeScript (for jay muratore)"
+prev: f_0014.html
+next: f_0016.html
+book_path: books/trevor-burnham-coffeescript-accelerated-javascript-development-pragmatic--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="sec.debugging" class="calibre13">1.4 Debugging CoffeeScript</h2>
+<p id="N1077E" class="calibre5">
+      One issue many folks have with writing code in a language like CoffeeScript is that runtime errors reference <code class="cf">compiled</code> code, not source code. That’s a legitimate concern, and several solutions have been discussed.<a id="FNPTR-27" href="f_0016.html#FOOTNOTE-27">[27]</a> Unfortunately, for now you’re left with stack traces whose line numbers have little to do with your source code.
+    </p>
+<p id="N1078A" class="calibre5">
+      Here’s the good news: CoffeeScript’s compiled JavaScript is very readable. If you understand how the two languages are related (and I hope you will after reading this book), then matching a point of failure in your program to the original CoffeeScript source is pretty easy.
+    </p>
+<p id="N1078D" class="calibre5">
+      It’s not ideal, but it’s the price of being on the cutting edge. As the CoffeeScript ecosystem grows and the tools get better, it’ll get easier and easier to track down bugs. The folks at the Mozilla Foundation are hard at work adding CoffeeScript debugging support to Firefox, and Node can’t be far behind. Until then, test your code thoroughly, use debug-mode logging, and know your JavaScript.
+    </p>
+<p id="N10790" class="calibre5">
+      What was that middle thing? Oh, right. Under Node.js and browsers equipped with a developer console (or a bookmarklet like the previously mentioned Firebug Lite), you can display messages using <code class="cf">console.log</code>. Two possible problems: you don’t always want to log every detail, and you don’t want to call <code class="cf">console.log</code> if it doesn’t exist. A common solution is to use a wrapper function, but then you don’t get those precious JavaScript line numbers when you log something (since all the logging is being done from the same place: the wrapper function). So here’s one approach I recommend:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">window.debugMode = document.location.hash.match(/debug/) and console?</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console.log <em class="string">'This is the first of many debug-mode outputs'</em> <strong class="prompt">if</strong> debugMode</code>
+</td>
+</tr>
+</table>
+<p id="N107B5" class="calibre5">
+      In this example, <code class="cf">debugMode</code> will be <code class="cf">true</code> if and only if the “hash” in the address bar contains the string <code class="cf">debug</code> (e.g. <code class="cf">page.html#debug</code>) and the browser has a <code class="cf">console</code> object. This gives you an easy way to enable/disable all those extra messages when you load the page. Declaring <code class="cf">debugMode</code> as a property of <code class="cf">window</code> makes it a global variable.
+    </p>
+<p id="N107CD" class="calibre5">
+      A simpler but less versatile approach is to use a soak (see <a href="f_0028.html#sec.soaks">​<em class="emph">Soaks: ’a?.b’</em>​</a>) to ensure that <code class="cf">console.log</code> is only called when <code class="cf">console</code> exists:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console?.log <em class="string">'Thanks to ?, this line is perfectly safe!'</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N107E6" class="calibre5">
+      Under Node, there are plenty of libraries for displaying output at several levels of verbosity (just do a quick Google search for “nodejs logging library”), including my own styout, which comes with support for colored-console output.<a id="FNPTR-28" href="f_0016.html#FOOTNOTE-28">[28]</a>
+</p>
+<p id="N107F3" class="calibre5">
+      Logging can replace comments, providing more information during development on how the code is working. For example, here’s a typical piece of documented code:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">area = height * (base1 + base2) / 2<em class="comment"></em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<em class="comment"># now we have the area of the trapezoid</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N10806" class="calibre5">
+     The comment could be replaced with a call to <code class="cf">console.log</code> as follows:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">area = height * (base1 + base2) / 2</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console.log <em class="string">"The area of the trapezoid is </em>#{area}<em class="string">"</em> <strong class="prompt">if</strong> debugMode</code>
+</td>
+</tr>
+</table>
+<p id="N10826" class="calibre5">
+      Another common idiom is to make assertions throughout code. The standard <code class="cf">console</code> object has an <code class="cf">assert</code> function that serves that purpose nicely, taking a value and an error message (to be displayed if the value is non-truthy):
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">fundamentalLaws = [<em class="string">'death'</em>, <em class="string">'taxes'</em>, <em class="string">'gravity'</em>]</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">if</strong> debugMode</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  console.assert <em class="string">'gravity'</em> <strong class="prompt">in</strong> fundamentalLaws, <em class="string">'gravity oughta be a law!'</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N10853" class="calibre5">
+      Finally, the most important guard against bugs is to write well-structured code. While the tools don’t exist yet to give you an exact line number for your runtime error, at least you should always be able to track down the part of your app that’s causing you grief.
+    </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

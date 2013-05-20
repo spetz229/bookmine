@@ -1,0 +1,55 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch04s06.html
+next: OEBPS/ch05s02.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="calibre8"></div><div class="book" title="Chapter 5. Widgets"><div class="book"><div class="book"><div class="book"><div class="calibre8"></div><h1 class="title1"><a id="I_chapter5_d1e1987" class="calibre1"></a>Chapter 5. Widgets</h1></div></div></div><p class="calibre7">One of the challenges in web development is that we have to coordinate three different
+    client-side technologies: HTML, CSS, and JavaScript. Worse still, we have to place these
+    components in different locations on the page: CSS in a style tag in the head, JavaScript in a
+    script tag in the head, and HTML in the body. And never mind if you want to put your CSS and
+    JavaScript in separate files!</p><p class="calibre7">In practice, this works out fairly nicely when building a single page, because we can
+    separate our structure (HTML), style (CSS), and logic (JavaScript). But when we want to build
+    modular pieces of code that can be easily composed, it can be a headache to coordinate all three
+    pieces separately. Widgets are Yesod’s solution to the problem. They also help with the
+    issue of including libraries, such as jQuery, one time only.</p><p class="calibre7">Our four template languages—Hamlet, Cassius, Lucius and Julius—provide the raw tools for
+    constructing your output. Widgets provide the glue that allows them to work together
+    seamlessly.</p><div class="book" title="Synopsis"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect15_d1e1996" class="calibre1"></a>Synopsis</h1></div></div></div><a id="I_programlisting5_d1e1999" class="firstname"></a><pre class="programlistinghaskell"><code class="nf">getRootR</code> <code class="ow">=</code> <code class="n">defaultLayout</code> <code class="o">$</code> <code class="kr">do</code>
+    <code class="n">setTitle</code> <code class="s">"My Page Title"</code>
+    <code class="n">toWidget</code> <code class="p">[</code><code class="n">lucius</code><code class="o">|</code> <code class="n">h1</code> <code class="p">{</code> <code class="n">color</code><code class="kt">:</code> <code class="n">green</code><code class="p">;</code> <code class="p">}</code> <code class="o">|</code><code class="p">]</code>
+    <code class="n">addScriptRemote</code> <code class="s">"https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"</code>
+    <code class="n">toWidget</code> <code class="p">[</code><code class="n">julius</code><code class="o">|</code>
+<code class="o">$</code><code class="p">(</code><code class="n">function</code><code class="nb">()</code> <code class="p">{</code>
+    <code class="o">$</code><code class="p">(</code><code class="s">"h1"</code><code class="p">)</code><code class="o">.</code><code class="n">click</code><code class="p">(</code><code class="n">function</code><code class="nb">()</code><code class="p">{</code> <code class="n">alert</code><code class="p">(</code><code class="s">"You clicked on the heading!"</code><code class="p">);</code> <code class="p">});</code>
+<code class="p">});</code>
+<code class="o">|</code><code class="p">]</code>
+    <code class="n">toWidgetHead</code> <code class="p">[</code><code class="n">hamlet</code><code class="o">|</code> <code class="o">&lt;</code><code class="n">meta</code> <code class="n">name</code><code class="ow">=</code><code class="n">keywords</code> <code class="n">content</code><code class="ow">=</code><code class="s">"some sample keywords"</code><code class="o">&gt;|</code><code class="p">]</code>
+    <code class="n">toWidget</code> <code class="p">[</code><code class="n">hamlet</code><code class="o">|</code> <code class="o">&lt;</code><code class="n">h1</code><code class="o">&gt;</code><code class="kt">Here's</code> <code class="n">one</code> <code class="n">way</code> <code class="kr">of</code> <code class="n">including</code> <code class="n">content</code> <code class="o">|</code><code class="p">]</code>
+    <code class="p">[</code><code class="n">whamlet</code><code class="o">|</code> <code class="o">&lt;</code><code class="n">h2</code><code class="o">&gt;</code><code class="kt">Here's</code> <code class="n">another</code> <code class="o">|</code><code class="p">]</code>
+    <code class="n">toWidgetBody</code> <code class="p">[</code><code class="n">julius</code><code class="o">|</code> <code class="n">alert</code><code class="p">(</code><code class="s">"This is included in the body itself"</code><code class="p">);</code> <code class="o">|</code><code class="p">]</code>
+</pre><p class="calibre7">This produces the following HTML (indentation added):</p><a id="I_programlisting5_d1e2003" class="firstname"></a><pre class="programlistinghaskell">&lt;!DOCTYPE html&gt; 
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;title&gt;My Page Title&lt;/title&gt;
+        &lt;style&gt;h1 { color : green }&lt;/style&gt;
+        &lt;script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"&gt;&lt;/script&gt;
+        &lt;script&gt;
+$(function() {
+    $("h1").click(function(){ alert("You clicked on the heading!"); });
+});
+&lt;/script&gt;
+        &lt;meta name="keywords" content="some sample keywords"&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;h1&gt;Here's one way of including content &lt;/h1&gt;
+        &lt;h2&gt;Here's another &lt;/h2&gt;
+        &lt;script&gt; alert("This is included in the body itself"); &lt;/script&gt;
+    &lt;/body&gt;
+&lt;/html&gt;</pre></div></div></div>
+
+{% endraw %}
+

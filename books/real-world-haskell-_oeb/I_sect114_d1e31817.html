@@ -1,0 +1,151 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect114_d1e31773.html
+next: I_sect114_d1e31941.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect114_d1e31773.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect114_d1e31941.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect114_d1e31817" class="calibre27" id="I_sect114_d1e31817"></a><h3 id="title-IDAKXT1F" class="docSection1Title">14.9. Building the Logger Monad</h3><a name="x_HY" class="calibre27" id="x_HY"></a><p class="docText">The definition of our Logger type is very
+    simple:</p><pre class="calibre39">-- file: ch14/Logger.hs
+newtype Logger a = Logger { execLogger :: (a, Log) }</pre><br class="calibre48"/>
+<a name="x_IY" class="calibre27" id="x_IY"></a><p class="docText">It's a pair, where the first element is the result of an
+    action, and the second is a list of messages logged while that action was
+    run.</p><a name="x_JY" class="calibre27" id="x_JY"></a><p class="docText">We've wrapped the tuple in a <tt class="calibre34">newtype</tt> to make
+    it a distinct type. The <i class="docEmphasis">runLogger</i>
+    function extracts the tuple from its wrapper. The function that we're
+    exporting to execute a logged action, <i class="docEmphasis">runLogger</i>, is just a synonym for <i class="docEmphasis">execLogger</i>:</p><pre class="calibre39">-- file: ch14/Logger.hs
+runLogger = execLogger</pre><br class="calibre48"/>
+<a name="x_KY" class="calibre27" id="x_KY"></a><p class="docText">Our <i class="docEmphasis">record</i> helper
+    function creates a singleton list of the message that we pass it:</p><pre class="calibre39">-- file: ch14/Logger.hs
+record s = Logger ((), [s])</pre><br class="calibre48"/>
+<a name="x_bG1" class="calibre27" id="x_bG1"></a><p class="docText">The result of this action is <tt class="calibre34">()</tt>, so that's
+    the value we put in the result slot.</p><a name="x_LY" class="calibre27" id="x_LY"></a><p class="docText">Let's begin our <tt class="calibre34">Monad</tt> instance with <tt class="calibre34">return</tt>, which is trivial. It logs nothing and
+    stores its input in the result slot of the tuple:</p><pre class="calibre39">-- file: ch14/Logger.hs
+instance Monad Logger where
+    return a = Logger (a, [])</pre><br class="calibre48"/>
+<a name="x_MY" class="calibre27" id="x_MY"></a><p class="docText">Slightly more interesting is <i class="docEmphasis">(&gt;&gt;=)</i>, which is the heart of the monad.
+    It combines an action and a monadic function to give a new result and a
+    new log:</p><pre class="calibre39">-- file: ch14/Logger.hs
+    -- (&gt;&gt;=) :: Logger a -&gt; (a -&gt; Logger b) -&gt; Logger b
+    m &gt;&gt;= k = let (a, w) = execLogger m
+                  n      = k a
+                  (b, x) = execLogger n
+              in Logger (b, w ++ x)</pre><br class="calibre48"/>
+<a name="x_NY" class="calibre27" id="x_NY"></a><p class="docText">Let's spell out explicitly what is going on. We use
+    <i class="docEmphasis">runLogger</i> to extract the result
+    <span class="docMonofont">a</span> from the action <span class="docMonofont">m</span>, and we pass it
+    to the monadic function <span class="docMonofont">k</span>. We extract the result
+    <span class="docMonofont">b</span> from that in turn, and put it into the result slot of
+    the final action. We concatenate the logs <span class="docMonofont">w</span> and
+    <span class="docMonofont">x</span> to give the new log.</p><a name="I_sect114_d1e31817d1e32235" class="calibre27" id="I_sect114_d1e31817d1e32235"></a><h4 id="title-IDANCU1F" class="docSection1Title">14.9.1. Sequential Logging, Not Sequential Evaluation</h4><a name="x_OY" class="calibre27" id="x_OY"></a><p class="docText">Our definition of <i class="docEmphasis">(&gt;&gt;=)</i> ensures that messages logged on
+      the left will appear in the new log before those on the right. However,
+      it says nothing about when the values <span class="docMonofont">a</span> and
+      <span class="docMonofont">b</span> are evaluated: <i class="docEmphasis">(&gt;&gt;=)</i> is lazy.</p><a name="x_PY" class="calibre27" id="x_PY"></a><p class="docText">Like most other aspects of a monad's behavior,
+      strictness is under the control of the its implementor. It is not a
+      constant shared by all monads. Indeed, some monads come in multiple
+      flavors, each with different levels of strictness.</p><a name="I_sect114_d1e31817d1e32254" class="calibre27" id="I_sect114_d1e31817d1e32254"></a><h4 id="title-IDADDU1F" class="docSection1Title">14.9.2. The Writer Monad</h4><a name="x_vq" class="calibre27" id="x_vq"></a><p class="docText">Our Logger monad is a specialized version
+      of the standard Writer monad, which can be found in the
+      Control.Monad.Writer module of the <tt class="calibre34">mtl</tt>
+      package. We will present a Writer example in <a class="docLink" href="I_sect115_d1e35473_split_000.html#monadcase_io_class">Section 15.8.3</a>.</p>
+<a href="21061538.html" class="calibre2"><img src="pixel.gif" alt="" border="0" class="calibre31"/></a><ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect114_d1e31773.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect114_d1e31941.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

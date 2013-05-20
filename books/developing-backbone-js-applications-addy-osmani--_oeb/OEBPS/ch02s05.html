@@ -1,0 +1,108 @@
+---
+layout: page
+title: "Developing Backbone.js Applications"
+prev: OEBPS/ch02s04.html
+next: OEBPS/ch02s06.html
+book_path: books/developing-backbone-js-applications-addy-osmani--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Collections"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="collections" class="calibre1"></a>Collections</h1></div></div></div><p class="calibre6">
+      Collections are sets of Models and are created by extending
+      <code class="literal">Backbone.Collection</code>.
+    </p><p class="calibre6">
+      Normally, when creating a collection you’ll also want to pass
+      through a property specifying the model that your collection will
+      contain, as well as any instance properties required.
+    </p><p class="calibre6">
+      In the following example, we create a PhotoCollection that will
+      contain our Photo models:
+    </p><pre class="programlistingjavascript"><code class="kd">var</code> <code class="nx">PhotoCollection</code> <code class="o">=</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">Collection</code><code class="p">.</code><code class="nx">extend</code><code class="p">({</code>
+    <code class="nx">model</code><code class="o">:</code> <code class="nx">Photo</code>
+<code class="p">});</code>
+</pre><p class="calibre6">
+      <span class="firstname"><strong class="calibre8">Getters and Setters</strong></span>
+    </p><p class="calibre6">
+      There are a few different ways to retrieve a model from a
+      collection. The most straight-forward is to use
+      <code class="literal">Collection.get()</code> which accepts a single id as
+      follows:
+    </p><pre class="programlistingjavascript"><code class="kd">var</code> <code class="nx">skiingEpicness</code> <code class="o">=</code> <code class="nx">PhotoCollection</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="mi">2</code><code class="p">);</code>
+</pre><p class="calibre6">
+      Sometimes you may also want to get a model based on its client id.
+      The client id is a property that Backbone automatically assigns
+      models that have not yet been saved. You can get a model’s client
+      id from its <code class="literal">.cid</code> property.
+    </p><pre class="programlistingjavascript"><code class="kd">var</code> <code class="nx">mySkiingCrash</code> <code class="o">=</code> <code class="nx">PhotoCollection</code><code class="p">.</code><code class="nx">getByCid</code><code class="p">(</code><code class="mi">456</code><code class="p">);</code>
+</pre><p class="calibre6">
+      Backbone Collections don’t have setters as such, but do support
+      adding new models via <code class="literal">.add()</code> and removing
+      models via <code class="literal">.remove()</code>.
+    </p><pre class="programlistingjavascript"><code class="kd">var</code> <code class="nx">a</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">Model</code><code class="p">({</code> <code class="nx">title</code><code class="o">:</code> <code class="s">'my vacation'</code><code class="p">}),</code>
+    <code class="nx">b</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">Model</code><code class="p">({</code> <code class="nx">title</code><code class="o">:</code> <code class="s">'my holiday'</code><code class="p">});</code>
+
+<code class="kd">var</code> <code class="nx">photoCollection</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">PhotoCollection</code><code class="p">([</code><code class="nx">a</code><code class="p">,</code><code class="nx">b</code><code class="p">]);</code>
+<code class="nx">photoCollection</code><code class="p">.</code><code class="nx">remove</code><code class="p">([</code><code class="nx">a</code><code class="p">,</code><code class="nx">b</code><code class="p">]);</code>
+</pre><p class="calibre6">
+      <span class="firstname"><strong class="calibre8">Listening for events</strong></span>
+    </p><p class="calibre6">
+      As collections represent a group of items, we’re also able to
+      listen for <code class="literal">add</code> and <code class="literal">remove</code>
+      events for when new models are added or removed from the
+      collection. Here’s an example:
+    </p><pre class="programlistingjavascript"><code class="kd">var</code> <code class="nx">PhotoCollection</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">Collection</code><code class="p">();</code>
+<code class="nx">PhotoCollection</code><code class="p">.</code><code class="nx">on</code><code class="p">(</code><code class="s">"add"</code><code class="p">,</code> <code class="kd">function</code><code class="p">(</code><code class="nx">photo</code><code class="p">)</code> <code class="p">{</code>
+  <code class="nx">console</code><code class="p">.</code><code class="nx">log</code><code class="p">(</code><code class="s">"I liked "</code> <code class="o">+</code> <code class="nx">photo</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">"title"</code><code class="p">)</code> <code class="o">+</code> <code class="s">' its this one, right? '</code>  <code class="o">+</code> <code class="nx">photo</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">"src"</code><code class="p">));</code>
+<code class="p">});</code>
+
+<code class="nx">PhotoCollection</code><code class="p">.</code><code class="nx">add</code><code class="p">([</code>
+  <code class="p">{</code><code class="nx">title</code><code class="o">:</code> <code class="s">"My trip to Bali"</code><code class="p">,</code> <code class="nx">src</code><code class="o">:</code> <code class="s">"bali-trip.jpg"</code><code class="p">},</code>
+  <code class="p">{</code><code class="nx">title</code><code class="o">:</code> <code class="s">"The flight home"</code><code class="p">,</code> <code class="nx">src</code><code class="o">:</code> <code class="s">"long-flight-oofta.jpg"</code><code class="p">},</code>
+  <code class="p">{</code><code class="nx">title</code><code class="o">:</code> <code class="s">"Uploading pix"</code><code class="p">,</code> <code class="nx">src</code><code class="o">:</code> <code class="s">"too-many-pics.jpg"</code><code class="p">}</code>
+<code class="p">]);</code>
+</pre><p class="calibre6">
+      In addition, we’re able to bind a <code class="literal">change</code> event
+      to listen for changes to models in the collection.
+    </p><pre class="programlistingjavascript"><code class="nx">PhotoCollection</code><code class="p">.</code><code class="nx">on</code><code class="p">(</code><code class="s">"change:title"</code><code class="p">,</code> <code class="kd">function</code><code class="p">(){</code>
+    <code class="nx">console</code><code class="p">.</code><code class="nx">log</code><code class="p">(</code><code class="s">'there have been updates made to this collections titles'</code><code class="p">);</code>    
+<code class="p">});</code>
+</pre><p class="calibre6">
+      <span class="firstname"><strong class="calibre8">Fetching models from the server</strong></span>
+    </p><p class="calibre6">
+      <code class="literal">Collections.fetch()</code> retrieves a default set of
+      models from the server in the form of a JSON array. When this data
+      returns, the current collection’s contents will be replaced with
+      the contents of the array.
+    </p><pre class="programlistingjavascript"><code class="kd">var</code> <code class="nx">PhotoCollection</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">Collection</code><code class="p">;</code>
+<code class="nx">PhotoCollection</code><code class="p">.</code><code class="nx">url</code> <code class="o">=</code> <code class="s">'/photos'</code><code class="p">;</code>
+<code class="nx">PhotoCollection</code><code class="p">.</code><code class="nx">fetch</code><code class="p">();</code>
+</pre><p class="calibre6">
+      Under the covers, <code class="literal">Backbone.sync</code> is the function
+      called every time Backbone tries to read or save models to the
+      server. It uses jQuery or Zepto’s ajax implementations to make
+      these RESTful requests, however this can be overridden as per your
+      needs.
+    </p><p class="calibre6">
+      In the above example if we wanted to log an event when
+      <code class="literal">.sync()</code> was called, we could do this:
+    </p><pre class="programlistingjavascript"><code class="nx">Backbone</code><code class="p">.</code><code class="nx">sync</code> <code class="o">=</code> <code class="kd">function</code><code class="p">(</code><code class="nx">method</code><code class="p">,</code> <code class="nx">model</code><code class="p">)</code> <code class="p">{</code>
+  <code class="nx">console</code><code class="p">.</code><code class="nx">log</code><code class="p">(</code><code class="s">"I've been passed "</code> <code class="o">+</code> <code class="nx">method</code> <code class="o">+</code> <code class="s">" with "</code> <code class="o">+</code> <code class="nx">JSON</code><code class="p">.</code><code class="nx">stringify</code><code class="p">(</code><code class="nx">model</code><code class="p">));</code>
+<code class="p">};</code>
+</pre><p class="calibre6">
+      <span class="firstname"><strong class="calibre8">Resetting/Refreshing
+      Collections</strong></span>
+    </p><p class="calibre6">
+      Rather than adding or removing models individually, you might
+      occasionally wish to update an entire collection at once.
+      <code class="literal">Collection.reset()</code> allows us to replace an
+      entire collection with new models as follows:
+    </p><p class="calibre6">
+      <code class="literal">javascript PhotoCollection.reset([   {title: "My trip to Scotland", src: "scotland-trip.jpg"},   {title: "The flight from Scotland", src: "long-flight.jpg"},   {title: "Latest snap of lock-ness", src: "lockness.jpg"}]);</code>
+      Note that using <code class="literal">Collection.reset()</code> doesn’t fire
+      any <code class="literal">add</code> or <code class="literal">remove</code> events. A
+      <code class="literal">reset</code> event is fired instead.
+    </p></div></div>
+
+{% endraw %}
+

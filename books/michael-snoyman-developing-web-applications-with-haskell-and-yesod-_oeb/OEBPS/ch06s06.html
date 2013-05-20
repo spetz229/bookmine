@@ -1,0 +1,26 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch06s05.html
+next: OEBPS/ch06s07.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Authentication/Authorization"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect16_d1e2869" class="calibre1"></a>Authentication/Authorization</h1></div></div></div><p class="calibre7">For simple applications, checking permissions inside each handler function can be a
+      simple, convenient approach. However, it doesn’t scale well. Eventually, you’re going to want
+      to have a more declarative approach. Many systems out there define ACLs, special config files,
+      and a lot of other hocus-pocus. In Yesod, it’s just plain old Haskell. There are three methods
+      involved:</p><div class="book"><dl class="book"><dt class="calibre9"><span class="firstname">isWriteRequest</span></dt><dd class="calibre10"><p class="calibre7">Determine if the current request is a “read” or “write”
+            operations. By default, Yesod follows RESTful principles, and assumes <code class="literal">GET</code>, <code class="literal">HEAD</code>, <code class="literal">OPTIONS</code>, and <code class="literal">TRACE</code>
+            requests are read-only, while all others are can write.</p></dd><dt class="calibre9"><span class="firstname">isAuthorized</span></dt><dd class="calibre10"><p class="calibre7">Takes a route (i.e., type-safe URL) and a boolean indicating whether or not the
+     request is a write request. It returns an <code class="literal">AuthResult</code>, which can have one of
+     three values:</p><div class="book"><ul class="itemizedlist1"><li class="listitem"><p class="calibre7"><code class="literal">Authorized</code></p></li><li class="listitem"><p class="calibre7"><code class="literal">AuthenticationRequired</code></p></li><li class="listitem"><p class="calibre7"><code class="literal">Unauthorized</code></p></li></ul></div><p class="calibre7">By default, it returns <code class="literal">Authorized</code> for all requests.</p></dd><dt class="calibre9"><span class="firstname">authRoute</span></dt><dd class="calibre10"><p class="calibre7">If <code class="literal">isAuthorized</code> returns <code class="literal">AuthenticationRequired</code>, then redirect to the given route. If no route is
+            provided (the default), return a 403 “Permission Denied” message.</p></dd></dl></div><p class="calibre7">These methods tie in nicely with the <code class="function">yesod-auth</code>
+      package, which is used by the scaffolded site to provide a number of authentication options,
+      such as OpenID, BrowserID, email, username, and Twitter. We’ll cover more concrete examples in
+      the auth chapter.</p></div></div>
+
+{% endraw %}
+

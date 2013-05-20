@@ -1,0 +1,60 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch08s05.html
+next: OEBPS/ch08s07.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Validation"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect18_d1e4104" class="calibre1"></a>Validation</h1></div></div></div><p class="calibre7">How would we make our form only accept cars created after 1990? If you remember, we said
+      above that the <code class="literal">Field</code> itself contained the information on
+      what is a valid entry. So all we need to do is write a new <code class="literal">Field</code>, right? Well, that would be a bit tedious. Instead, let’s just modify an
+      existing one:</p><a id="I_programlisting8_d1e4115" class="firstname"></a><pre class="programlistinghaskell"><code class="nf">carAForm</code> <code class="ow">::</code> <code class="kt">Maybe</code> <code class="kt">Car</code> <code class="ow">-&gt;</code> <code class="kt">AForm</code> <code class="kt">Synopsis</code> <code class="kt">Synopsis</code> <code class="kt">Car</code>
+<code class="nf">carAForm</code> <code class="n">mcar</code> <code class="ow">=</code> <code class="kt">Car</code>
+    <code class="o">&lt;$&gt;</code> <code class="n">areq</code> <code class="n">textField</code>    <code class="s">"Model"</code> <code class="p">(</code><code class="n">carModel</code> <code class="o">&lt;$&gt;</code> <code class="n">mcar</code><code class="p">)</code>
+    <code class="o">&lt;*&gt;</code> <code class="n">areq</code> <code class="n">carYearField</code> <code class="s">"Year"</code>  <code class="p">(</code><code class="n">carYear</code>  <code class="o">&lt;$&gt;</code> <code class="n">mcar</code><code class="p">)</code>
+    <code class="o">&lt;*&gt;</code> <code class="n">aopt</code> <code class="n">textField</code>    <code class="s">"Color"</code> <code class="p">(</code><code class="n">carColor</code> <code class="o">&lt;$&gt;</code> <code class="n">mcar</code><code class="p">)</code>
+  <code class="kr">where</code>
+    <code class="n">errorMessage</code> <code class="ow">::</code> <code class="kt">Text</code>
+    <code class="n">errorMessage</code> <code class="ow">=</code> <code class="s">"Your car is too old, get a new one!"</code>
+
+    <code class="n">carYearField</code> <code class="ow">=</code> <code class="n">check</code> <code class="n">validateYear</code> <code class="n">intField</code>
+
+    <code class="n">validateYear</code> <code class="n">y</code>
+        <code class="o">|</code> <code class="n">y</code> <code class="o">&lt;</code> <code class="mi">1990</code> <code class="ow">=</code> <code class="kt">Left</code> <code class="n">errorMessage</code>
+        <code class="o">|</code> <code class="n">otherwise</code> <code class="ow">=</code> <code class="kt">Right</code> <code class="n">y</code>
+</pre><p class="calibre7">The trick here is the <code class="literal">check</code> function. It takes a
+      function (<code class="literal">validateYear</code>) that returns either an error
+      message or a modified field value. In this example, we haven’t modified the value at all. That
+      is usually going to be the case. This kind of checking is very common, so we have a
+      shortcut:</p><a id="I_programlisting8_d1e4125" class="firstname"></a><pre class="programlistinghaskell">    <code class="n">carYearField</code> <code class="ow">=</code> <code class="n">checkBool</code> <code class="p">(</code><code class="o">&gt;=</code> <code class="mi">1990</code><code class="p">)</code> <code class="n">errorMessage</code> <code class="n">intField</code>
+</pre><p class="calibre7"><code class="literal">checkBool</code> takes two parameters: a condition that must be fulfilled,
+            and an error message to be displayed if it was not.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">You may have noticed the explicit <code class="literal">Text</code> type signature
+        on <code class="literal">errorMessage</code>. In the presence of <code class="literal">OverloadedStrings</code>, this is necessary. In order to support i18n,
+        messages can have many different data types, and GHC has no way of determining which
+        instance of <code class="literal">IsString</code> you intended to use.</p></div><p class="calibre7">It’s great to make sure the car isn’t too old. But what if we want to make sure that the
+      year specified is not from the future? In order to look up the current year, we’ll need to run
+      some <code class="literal">IO</code>. For such circumstances, we’ll need <code class="literal">checkM</code>:</p><a id="I_programlisting8_d1e4154" class="firstname"></a><pre class="programlistinghaskell">    <code class="n">carYearField</code> <code class="ow">=</code> <code class="n">checkM</code> <code class="n">inPast</code> <code class="o">$</code> <code class="n">checkBool</code> <code class="p">(</code><code class="o">&gt;=</code> <code class="mi">1990</code><code class="p">)</code> <code class="n">errorMessage</code> <code class="n">intField</code>
+
+    <code class="n">inPast</code> <code class="n">y</code> <code class="ow">=</code> <code class="kr">do</code>
+        <code class="n">thisYear</code> <code class="ow">&lt;-</code> <code class="n">liftIO</code> <code class="n">getCurrentYear</code>
+        <code class="n">return</code> <code class="o">$</code> <code class="kr">if</code> <code class="n">y</code> <code class="o">&lt;=</code> <code class="n">thisYear</code>
+            <code class="kr">then</code> <code class="kt">Right</code> <code class="n">y</code>
+            <code class="kr">else</code> <code class="kt">Left</code> <code class="p">(</code><code class="s">"You have a time machine!"</code> <code class="ow">::</code> <code class="kt">Text</code><code class="p">)</code>
+
+<code class="nf">getCurrentYear</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="kt">Int</code>
+<code class="nf">getCurrentYear</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="n">now</code> <code class="ow">&lt;-</code> <code class="n">getCurrentTime</code>
+    <code class="kr">let</code> <code class="n">today</code> <code class="ow">=</code> <code class="n">utctDay</code> <code class="n">now</code>
+    <code class="kr">let</code> <code class="p">(</code><code class="n">year</code><code class="p">,</code> <code class="kr">_</code><code class="p">,</code> <code class="kr">_</code><code class="p">)</code> <code class="ow">=</code> <code class="n">toGregorian</code> <code class="n">today</code>
+    <code class="n">return</code> <code class="o">$</code> <code class="n">fromInteger</code> <code class="n">year</code>
+</pre><p class="calibre7"><code class="literal">inPast</code> is a function that will return an <code class="literal">Either</code>
+            result. However, it uses a <code class="literal">Handler</code> monad. We use <code class="literal">liftIO getCurrentYear</code> to get the current year and then compare it against
+            the user-supplied year. Also, notice how we can chain together multiple validators.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">Since the <code class="literal">checkM</code> validator runs in the <code class="literal">Handler</code> monad, it has access to a lot of the stuff you can
+        normally do in Yesod. This is especially useful for running database actions, which we’ll
+        cover in the Persistent chapter.</p></div></div></div>
+
+{% endraw %}
+

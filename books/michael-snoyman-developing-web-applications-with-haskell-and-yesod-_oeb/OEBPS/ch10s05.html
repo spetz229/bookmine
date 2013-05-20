@@ -1,0 +1,85 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch10s04.html
+next: OEBPS/ch10s06.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Queries"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect110_d1e5221" class="calibre1"></a>Queries</h1></div></div></div><p class="calibre7">Depending on what your goal is, there are different approaches to querying the database.
+            Some commands query based on a numeric ID, while others will filter. Queries also differ
+            in the number of results they return: some lookups should return no more than one result
+            (if the lookup key is unique) while others can return many results.</p><p class="calibre7">Persistent therefore provides a few different query functions. As usual, we try to encode
+            as many invariants in the types as possible. For example, a query that can return only 0
+            or 1 results will use a <code class="literal">Maybe</code> wrapper, whereas a query returning many
+            results will return a list.</p><div class="book" title="Fetching by ID"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3086796" class="calibre1"></a>Fetching by ID</h2></div></div></div><p class="calibre7">The simplest query you can perform in Persistent is getting based on an ID. Since this
+   value may or may not exist, its return type is wrapped in a <code class="literal">Maybe</code>.</p><div class="example"><a id="fetching-by-id-x2" class="firstname"></a><p class="title6">Example 10-2. Using get</p><div class="book"><pre class="programlistinghaskell">    <code class="n">personId</code> <code class="ow">&lt;-</code> <code class="n">insert</code> <code class="o">$</code> <code class="kt">Person</code> <code class="s">"Michael"</code> <code class="s">"Snoyman"</code> <code class="mi">26</code>
+    <code class="n">maybePerson</code> <code class="ow">&lt;-</code> <code class="n">get</code> <code class="n">personId</code>
+    <code class="kr">case</code> <code class="n">maybePerson</code> <code class="kr">of</code>
+        <code class="kt">Nothing</code> <code class="ow">-&gt;</code> <code class="n">liftIO</code> <code class="o">$</code> <code class="n">putStrLn</code> <code class="s">"Just kidding, not really there"</code>
+        <code class="kt">Just</code> <code class="n">person</code> <code class="ow">-&gt;</code> <code class="n">liftIO</code> <code class="o">$</code> <code class="n">print</code> <code class="n">person</code>
+</pre></div></div><p class="calibre7">This can be very useful for sites that provide URLs like <em class="calibre4">/person/5</em>. However, in such a case, we don’t usually care about the <code class="literal">Maybe</code> wrapper, and just want the value, returning a 404 message
+        if it is not found. Fortunately, the <code class="function">get404</code> function
+        helps us out here. We’ll go into more details when we see integration with Yesod.</p></div><div class="book" title="Fetching by Unique Constraint"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3086857" class="calibre1"></a>Fetching by Unique Constraint</h2></div></div></div><p class="calibre7"><code class="literal">getBy</code> is almost identical to <code class="literal">get</code>, except it takes a
+            uniqueness constraint instead of an ID it takes a Unique value.</p><div class="example"><a id="fetching-by-unique-constraint-x2" class="firstname"></a><p class="title6">Example 10-3. Using getBy</p><div class="book"><pre class="programlistinghaskell">    <code class="n">personId</code> <code class="ow">&lt;-</code> <code class="n">insert</code> <code class="o">$</code> <code class="kt">Person</code> <code class="s">"Michael"</code> <code class="s">"Snoyman"</code> <code class="mi">26</code>
+    <code class="n">maybePerson</code> <code class="ow">&lt;-</code> <code class="n">getBy</code> <code class="o">$</code> <code class="kt">UniqueName</code> <code class="s">"Michael"</code> <code class="s">"Snoyman"</code>
+    <code class="kr">case</code> <code class="n">maybePerson</code> <code class="kr">of</code>
+        <code class="kt">Nothing</code> <code class="ow">-&gt;</code> <code class="n">liftIO</code> <code class="o">$</code> <code class="n">putStrLn</code> <code class="s">"Just kidding, not really there"</code>
+        <code class="kt">Just</code> <code class="n">person</code> <code class="ow">-&gt;</code> <code class="n">liftIO</code> <code class="o">$</code> <code class="n">print</code> <code class="n">person</code>
+</pre></div></div><p class="calibre7">Like <code class="literal">get404</code>, there is also a <code class="literal">getBy404</code> function.</p></div><div class="book" title="Select Functions"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3086909" class="calibre1"></a>Select Functions</h2></div></div></div><p class="calibre7">Most likely, you’re going to want more powerful queries. You’ll want to find everyone
+        over a certain age; all cars available in blue; all users without a registered email
+        address. For this, you need one of the select functions.</p><p class="calibre7">All the select functions use a similar interface, with slightly different outputs:</p><div class="informaltable"><table class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th class="calibre19">Function</th><th class="calibre20">Returns</th></tr></thead><tbody class="calibre21"><tr class="calibre18"><td class="calibre22">selectSource</td><td class="calibre23">A <code class="literal">Source</code> containing all the IDs and values from the database.
+     This allows you to write streaming code.<div class="note" title="Note"><h3 class="title8">Note</h3><p class="calibre7">We cover <code class="literal1">Source</code>s in detail in the conduits appendix.
+                    Additionally, there’s another function called <code class="literal1">selectSourceConn</code> that allows you more control of connection
+                    allocation. We use this in the Sphinx case study.</p></div></td></tr><tr class="calibre24"><td class="calibre22">selectList</td><td class="calibre23">A list containing all the IDs and values from the database. All records will
+     be loaded into memory.</td></tr><tr class="calibre18"><td class="calibre22">selectFirst</td><td class="calibre23">Takes just the first ID and value from the database, if available</td></tr><tr class="calibre24"><td class="calibre25">selectKeys</td><td class="calibre26">Returns only the keys, without the values, as a
+     <code class="literal">Source</code>.</td></tr></tbody></table></div><p class="calibre7"><code class="literal">selectList</code> is the most commonly used, so we will cover it
+   specifically. Understanding the others should be trivial after that.</p><p class="calibre7"><code class="literal">selectList</code> takes two arguments: a list of <code class="literal">Filter</code>s,
+   and a list of <code class="literal">SelectOpt</code>s. The former is what limits your results based on
+   characteristics; it allows for equals, less than, is member of, and such.
+    <code class="literal">SelectOpt</code>s provides for three different features: sorting, limiting output to a
+   certain number of rows, and offsetting results by a certain number of rows.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">The combination of limits and offsets is very important; it allows for efficient
+   pagination in your webapps.</p></div><p class="calibre7">Let’s jump straight into an example of filtering, and then analyze it.</p><a id="I_programlisting10_d1e5351" class="firstname"></a><pre class="programlistinghaskell">    <code class="n">people</code> <code class="ow">&lt;-</code> <code class="n">selectList</code> <code class="p">[</code><code class="kt">PersonAge</code> <code class="o">&gt;.</code> <code class="mi">25</code><code class="p">,</code> <code class="kt">PersonAge</code> <code class="o">&lt;=.</code> <code class="mi">30</code><code class="p">]</code> <code class="kt">[]</code>
+    <code class="n">liftIO</code> <code class="o">$</code> <code class="n">print</code> <code class="n">people</code>
+</pre><p class="calibre7">As simple as that example is, we really need to cover three points:</p><div class="book"><ol class="orderedlist"><li class="listitem"><p class="calibre7"><code class="literal">PersonAge</code> is a constructor for an associated
+            phantom type. That might sound scary, but what’s important is that it uniquely
+            identifies the “age” column of the “person” table, and that it
+            knows that the age field is an <code class="literal">Int</code>. (That’s the
+            phantom part.)</p></li><li class="listitem"><p class="calibre7">We have a bunch of Persistent filtering operators. They’re all pretty
+            straightforward: just tack a period to the end of what you’d expect. There are three
+            gotchas here, I’ll explain below.</p></li><li class="listitem"><p class="calibre7">The list of filters is ANDed together, so that our constraint means “age is greater
+            than 25 AND age is less than or equal to 30”. We’ll describe ORing later.</p></li></ol></div><p class="calibre7">The one operator that’s surprisingly named is “not equals.” We use <code class="literal">!=.</code>, since <code class="literal">/=.</code> is used for
+        updates (for “divide-and-set”, described later). Don’t worry: if you use the
+        wrong one, the compiler will catch you. The other two surprising operators are the “is
+        member” and “is not member”. They are, respectively, <code class="literal">&lt;-.</code> and <code class="literal">/&lt;-.</code> (both end
+        with a period).</p><p class="calibre7">And regarding ORs, we use the <code class="literal">||.</code> operator. For example:</p><a id="I_programlisting10_d1e5393" class="firstname"></a><pre class="programlistinghaskell">    <code class="n">people</code> <code class="ow">&lt;-</code> <code class="n">selectList</code>
+        <code class="p">(</code>       <code class="p">[</code><code class="kt">PersonAge</code> <code class="o">&gt;.</code> <code class="mi">25</code><code class="p">,</code> <code class="kt">PersonAge</code> <code class="o">&lt;=.</code> <code class="mi">30</code><code class="p">]</code>
+            <code class="o">||.</code> <code class="p">[</code><code class="kt">PersonFirstName</code> <code class="o">/&lt;-.</code> <code class="p">[</code><code class="s">"Adam"</code><code class="p">,</code> <code class="s">"Bonny"</code><code class="p">]]</code>
+            <code class="o">||.</code> <code class="p">([</code><code class="kt">PersonAge</code> <code class="o">==.</code> <code class="mi">50</code><code class="p">]</code> <code class="o">||.</code> <code class="p">[</code><code class="kt">PersonAge</code> <code class="o">==.</code> <code class="mi">60</code><code class="p">])</code>
+        <code class="p">)</code>
+        <code class="kt">[]</code>
+    <code class="n">liftIO</code> <code class="o">$</code> <code class="n">print</code> <code class="n">people</code>
+</pre><p class="calibre7">This (completely nonsensical) example means: find people who are 26-30, inclusive, OR whose
+   names are neither Adam or Bonny, OR whose age is either 50 or 60.</p><div class="book" title="SelectOpt"><div class="book"><div class="book"><div class="book"><h3 class="title5"><a id="id3087180" class="calibre1"></a>SelectOpt</h3></div></div></div><p class="calibre7">All of our <code class="literal">selectList</code> calls have included an empty
+          list as the second parameter. That specifies no options, meaning: sort however the
+          database wants, return all results, and don’t skip any results. A <code class="literal">SelectOpt</code> has four constructors that can be used to change all that.</p><div class="book"><dl class="book"><dt class="calibre9"><span class="firstname">Asc</span></dt><dd class="calibre10"><p class="calibre7">Sort by the given column in ascending order. This uses the same phantom type as
+     filtering, such as <code class="literal">PersonAge</code>.</p></dd><dt class="calibre9"><span class="firstname">Desc</span></dt><dd class="calibre10"><p class="calibre7">Same as <code class="literal">Asc</code>, in descending order.</p></dd><dt class="calibre9"><span class="firstname">LimitTo</span></dt><dd class="calibre10"><p class="calibre7">Takes an <code class="literal">Int</code> argument. Only return up to the specified number of
+     results.</p></dd><dt class="calibre9"><span class="firstname">OffsetBy</span></dt><dd class="calibre10"><p class="calibre7">Takes an <code class="literal">Int</code> argument. Skip the specified number of results.</p></dd></dl></div><p class="calibre7">The following code defines a function that will break down results into pages. It returns all
+   people aged 18 and over, and then sorts them by age (oldest person first). For people with the
+   same age, they are sorted alphabetically by last name, then first name.</p><a id="I_programlisting10_d1e5447" class="firstname"></a><pre class="programlistinghaskell"><code class="nf">resultsForPage</code> <code class="n">pageNumber</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="kr">let</code> <code class="n">resultsPerPage</code> <code class="ow">=</code> <code class="mi">10</code>
+    <code class="n">selectList</code>
+        <code class="p">[</code> <code class="kt">PersonAge</code> <code class="o">&gt;=.</code> <code class="mi">18</code>
+        <code class="p">]</code>
+        <code class="p">[</code> <code class="kt">Desc</code> <code class="kt">PersonAge</code>
+        <code class="p">,</code> <code class="kt">Asc</code> <code class="kt">PersonLastName</code>
+        <code class="p">,</code> <code class="kt">Asc</code> <code class="kt">PersonFirstName</code>
+        <code class="p">,</code> <code class="kt">LimitTo</code> <code class="n">resultsPerPage</code>
+        <code class="p">,</code> <code class="kt">OffsetBy</code> <code class="o">$</code> <code class="p">(</code><code class="n">pageNumber</code> <code class="o">-</code> <code class="mi">1</code><code class="p">)</code> <code class="o">*</code> <code class="n">resultsPerPage</code>
+        <code class="p">]</code>
+</pre></div></div></div></div>
+
+{% endraw %}
+

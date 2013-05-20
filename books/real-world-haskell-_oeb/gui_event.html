@@ -1,0 +1,137 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: gui_glade.html
+next: gui_init.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="gui_glade.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="gui_init.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="gui_event" class="calibre27" id="gui_event"></a><h3 id="643999-928" class="docSection1Title">23.4. Event-Driven Programming</h3><a name="x_Rw" class="calibre27" id="x_Rw"></a><p class="docText">GTK+, like many GUI toolkits,<a name="I_indexterm23_d1e45800" class="calibre27" id="I_indexterm23_d1e45800"></a><a name="I_indexterm23_d1e45805" class="calibre27" id="I_indexterm23_d1e45805"></a> is an <span class="docEmphasis">event-driven</span> toolkit. That means
+    that instead of, say, displaying a dialog box and waiting for the user to
+    click on a button, we instead tell gtk2hs what function to call if a
+    certain button is clicked, but don't sit there waiting for a click in the
+    dialog box.</p><a name="x_Sw" class="calibre27" id="x_Sw"></a><p class="docText">This is different from the model traditionally used for
+    console programs. When you think about it, though, it almost has to be. A
+    GUI program could have multiple windows open, and writing code to sit
+    there waiting for input in the particular combination of open windows
+    could be a complicated proposition.</p><a name="x_Tw" class="calibre27" id="x_Tw"></a><p class="docText">Event-driven programming complements Haskell nicely. As
+    we've discussed over and over in this book, functional languages thrive on
+    passing around functions. So we'll be passing functions to gtk2hs that get
+    called when certain events occur. These are known <a name="I_indexterm23_d1e45816" class="calibre27" id="I_indexterm23_d1e45816"></a>as <span class="docEmphasis">callback functions</span>.</p><a name="x_Uw" class="calibre27" id="x_Uw"></a><p class="docText">At the core of a GTK+ program is the <span class="docEmphasis">main
+    loop</span>. This<a name="I_indexterm23_d1e45828" class="calibre27" id="I_indexterm23_d1e45828"></a> is the part of the program that waits for actions from the
+    user or commands from the program and carries them out. The GTK+ main loop
+    is handled entirely by GTK+. To us, it looks like an I/O action that we
+    execute, which doesn't return until the GUI has been disposed of.</p><a name="x_Vw" class="calibre27" id="x_Vw"></a><p class="docText">Since the main loop is responsible for doing everything
+    from handling clicks of a mouse to redrawing a window when it has been
+    uncovered, it must always be available. We can't just run a long-running
+    task—such as downloading a podcast episode—from within the main loop. This
+    would make the GUI unresponsive, and actions such as clicking a Cancel
+    button wouldn't be processed in a timely manner.</p><a name="x_Ww" class="calibre27" id="x_Ww"></a><p class="docText">Therefore, we will be using multithreading to handle these
+    long-running tasks. More information on multithreading can be found in
+    <a class="docLink" href="concurrent_split_000.html#concurrent">Chapter 24</a>. For now, just know that we will use
+    <tt class="calibre34">forkIO</tt> to create new threads for
+    long-running tasks such as downloading podcast feeds and episodes. For
+    very quick tasks, such as adding a new podcast to the database, we will
+    not bother with a separate thread since it will be executed so fast that
+    the user will never notice.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"><a href="21061538.html" class="calibre2"><img src="btn_next_.gif" alt="Next" border="0" class="calibre31"/></a> 
+           
+          <span class="calibre33"><a target="_self" href="gui_glade.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="gui_init.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

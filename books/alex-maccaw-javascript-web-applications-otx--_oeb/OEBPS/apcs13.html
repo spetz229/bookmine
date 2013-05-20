@@ -1,0 +1,59 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/apcs12.html
+next: OEBPS/apcs14.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Flexible Box Model"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect1_d1e16982" class="calibre1"></a>Flexible Box Model</h1></div></div></div><p class="calibre3"><a id="I_indexterm_d1e16986" class="calibre1"></a><a id="I_indexterm_d1e16991" class="calibre1"></a><a id="I_indexterm_d1e16994" class="calibre1"></a><a id="I_indexterm_d1e16999" class="calibre1"></a>CSS3 introduces the flexible box model, a new way of
+    displaying content. It’s really useful, as it brings some features to CSS
+    that GUI frameworks, such as Adobe Flex, have had for a while.
+    Traditionally, if you wanted a list aligned horizontally, you used floats.
+    The flexible box model lets you do that and more. Let’s take a look at the
+    code:</p><pre class="screen">.hbox {
+  display: -webkit-box;
+  -webkit-box-orient: horizontal;
+  -webkit-box-align: stretch;
+  -webkit-box-pack: left;
+
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  -moz-box-align: stretch;
+  -moz-box-pack: left;
+}
+
+.vbox {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-box-align: stretch;
+
+  display: -moz-box;
+  -moz-box-orient: vertical;
+  -moz-box-align: stretch;
+}</pre><p class="calibre3">We’re setting the display to <code class="literal">-webkit-box</code> or <code class="literal">-moz-box</code>, and then setting the direction in
+    which the children will be laid out. By default, all the children will
+    expand equally to fit their parent. However, you can alter this behavior
+    by setting the <code class="literal">box-flex</code>
+    attribute.</p><p class="calibre3">By setting <code class="literal">box-flex</code> to 0, you’re
+    specifying that an element shouldn’t expand, whereas if you set the flex
+    to 1 or higher, the element will expand to fit the available content. For
+    example, a sidebar may have a flex attribute of 0, and the main content
+    may have a flex attribute of 1:</p><pre class="screen">#sidebar {
+  -webkit-box-flex: 0;
+  -moz-box-flex: 0;
+  box-flex: 0;
+
+  width: 200px;
+}
+
+#content {
+  -webkit-box-flex: 1;
+  -moz-box-flex: 1;
+  box-flex: 1;
+}</pre><p class="calibre3">Browser support:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre3">Firefox: with <code class="literal">-moz-</code></p></li><li class="listitem"><p class="calibre3">Chrome: with <code class="literal">-webkit-</code></p></li><li class="listitem"><p class="calibre3">Safari: with <code class="literal">-webkit-</code></p></li><li class="listitem"><p class="calibre3">IE &gt;= 10: with <code class="literal">-ms-</code></p></li><li class="listitem"><p class="calibre3">Opera: no support</p></li></ul></div></div></div>
+
+{% endraw %}
+

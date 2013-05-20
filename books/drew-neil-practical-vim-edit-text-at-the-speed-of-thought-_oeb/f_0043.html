@@ -1,0 +1,335 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0042.html
+next: f_0044.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="N11F83">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 22</td>
+<td class="arr-recipe-name">Repeat Line-Wise Visual Commands</td>
+</tr>
+</table>
+<p id="N11F89" class="calibre4">
+<span class="calibre5">
+        When we use the dot command to repeat a change made to a visual selection, it repeats the change on the same range of text. In this tip, we’ll make a change to a line-wise selection and then repeat it with the dot command.
+    </span>
+</p>
+<p id="N11F9F" class="calibre4">
+      When we execute a command from Visual mode, we are dropped back into Normal mode and the range of text that was marked out in Visual mode is unselected. So what should we do if we want to perform another Visual mode command on the same range of text?
+    </p>
+<p id="N11FA2" class="calibre4">
+      Suppose that we had the following excerpt of malformatted Python:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/visual_mode/fibonacci-malformed.py">visual_mode/fibonacci-malformed.py</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">def</strong> fib(n):​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​    a, b = 0, 1​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​    <strong class="prompt">while</strong> a &lt; n:​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">print</strong> a,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​a, b = b, a+b​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​fib(42)​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N11FC8" class="calibre4">
+      This code sample uses four spaces per indentation. First, we’ll have to configure Vim to match this style.
+    </p>
+<h3 class="calibre22">Preparation</h3>
+<p id="N11FCF" class="calibre4">
+        To make the <span class="calibre17">&lt;</span> and <span class="calibre17">&gt;</span> commands work properly, we should set the <code class="cf">‘shiftwidth’</code> and <code class="cf">‘softtabstop’</code> settings to 4 and enable <code class="cf">‘expandtab’</code>. If you want to understand how these settings work together, check out the “Tabs and Spaces” episode on Vimcasts.org.<a id="FNPTR-6" href="f_0047.html#FOOTNOTE-6">[6]</a> This one-liner does the trick:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:set shiftwidth=4 softtabstop=4 expandtab</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<h3 class="calibre22">Indent Once, Then Repeat</h3>
+<p id="N12014" class="calibre4">
+        In our malformed Python excerpt, the two lines below the <code class="cf">while</code> keyword should be indented further by two levels. We could fix it by visually selecting the text and triggering the <span class="calibre17">&gt;</span> command to indent it. But that would only increase the indentation by one level before dropping us back into Normal mode.
+      </p>
+<p id="N12029" class="calibre4">
+        One solution would be to reselect the same text using the <span class="calibre17">gv</span> command and then invoke the indentation command again. But if you’re getting a feel for the Vim way, then this should raise alarm bells for you.
+      </p>
+<p id="N1202F" class="calibre4">
+        When we need to repeat ourselves, the dot command is our friend. Rather than reselecting the same range of text and repeating the same command manually, we can just hit the <span class="calibre17">.</span> key from Normal mode. Here it is in action:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">{start}</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​def fib(n):​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    a, b = 0, 1​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    while a &lt; n:​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">p</span>rint a,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​a, b = b, a+b​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​fib(42)​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">Vj</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​def fib(n):​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    a, b = 0, 1​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    while a &lt; n:​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-black">print a, </span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-black">
+<span class="shade-fg-white">a</span>, b = b, a+b </span>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​fib(42)​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&gt;.</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​def fib(n):​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    a, b = 0, 1​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​    while a &lt; n:​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​        <span class="shade-fg-white">p</span>rint a,​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​        a, b = b, a+b​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​fib(42)​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N120B4" class="calibre4">
+        If you’re good at counting, you might prefer to hit the target in a single blow by running <span class="calibre17">2&gt;</span> from Visual mode. I prefer using the dot command because it gives me instant visual feedback. If I need to trigger the indentation command again, I just hit <span class="calibre17">.</span> another time. Or if I get trigger-happy and overshoot my mark, I press the <span class="calibre17">u</span> key to bring it back in line. <a xmlns:str="http://exslt.org/strings" href="f_0030.html#sec.repeat.versus.count">Tip 11</a>, discusses the differences in a little more detail.
+      </p>
+<p id="N120C4" class="calibre4">
+        When we use the dot command to repeat a Visual mode command, it acts on the same amount of text as was marked by the most recent visual selection. This behavior tends to work in our favor when we make line-wise visual selections, but it can have surprising results with character-wise selections. Next, we’ll look at an example that illustrates this.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

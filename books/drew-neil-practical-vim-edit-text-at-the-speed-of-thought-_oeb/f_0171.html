@@ -1,0 +1,159 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0170.html
+next: f_0172.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="sec.filetype.detection" class="calibre19">A1.3 Apply Customizations to Certain Types of Files</h2>
+<p id="N1C5A1" class="calibre4">
+      Our preferences may vary from one type of file to another. For example, suppose that we work with a house style that advises two spaces for indentation in Ruby and four-column-wide tabs for JavaScript. We could apply these settings by putting the following lines in our <code class="cf">vimrc</code>:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/customizations/filetype-indentation.vim">customizations/filetype-indentation.vim</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">if</strong> has("<strong class="prompt">autocmd</strong>")​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​  <strong class="prompt">filetype</strong> <strong class="prompt">on</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​  <strong class="prompt">autocmd</strong> <strong class="prompt">FileType</strong> <strong class="prompt">ruby</strong> <strong class="prompt">setlocal</strong> <strong class="prompt">ts</strong>=2 <strong class="prompt">sts</strong>=2 <strong class="prompt">sw</strong>=2 <strong class="prompt">et</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​  <strong class="prompt">autocmd</strong> <strong class="prompt">FileType</strong> javascript <strong class="prompt">setlocal</strong> <strong class="prompt">ts</strong>=4 <strong class="prompt">sts</strong>=4 <strong class="prompt">sw</strong>=4 noet​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">endif</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1C601" class="calibre4">
+      The <code class="cf">autocmd</code> declaration tells Vim to listen for an event and to execute the specified commands whenever that event fires (<strong xmlns:str="http://exslt.org/strings" class="calibre10">:autocmd</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/autocmd.html#:autocmd">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). In this case we’re listening for the <code class="cf">FileType</code> event, which is triggered when Vim detects the type of the current file. 
+    </p>
+<p id="N1C613" class="calibre4">
+      We can have more than one autocommand listening for the same event. Suppose that we want to use <code class="cf">nodelint</code> as the compiler for JavaScript files. We could add this line to the example above:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">autocmd</strong> <strong class="prompt">FileType</strong> javascript <strong class="prompt">compiler</strong> nodelint​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1C62D" class="calibre4">
+      Both autocommands would be executed each time the <code class="cf">FileType</code> event was triggered on a JavaScript file.
+    </p>
+<p id="N1C633" class="calibre4">
+      Putting autocommands in the <code class="cf">vimrc</code> file works fine if you only have to make one or two customizations for a file type. But if we wanted to apply lots of settings to a particular kind of file, then it starts to look messy. The <code class="cf">ftplugin</code> is an alternative mechanism for applying customizations to file types. Instead of declaring our JavaScript preferences in the <code class="cf">vimrc</code> using autocommands, we could place them in a file called <code class="cf">~/.vim/after/ftplugin/javascript.vim</code>:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/customizations/ftplugin/javascript.vim">customizations/ftplugin/javascript.vim</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">setlocal</strong> <strong class="prompt">ts</strong>=4 <strong class="prompt">sts</strong>=4 <strong class="prompt">sw</strong>=4 noet​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">compiler</strong> nodelint​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1C663" class="calibre4">
+      This file is just like a regular <code class="cf">vimrc</code>, except that the settings will only be applied to JavaScript files. We could also create a <code class="cf">ftplugin/ruby.vim</code> file for Ruby customizations and another for each file type that we work with regularly. For more details, look up <strong xmlns:str="http://exslt.org/strings" class="calibre10">ftplugin-name</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/usr_05.html#ftplugin-name">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>.
+    </p>
+<p id="N1C670" class="calibre4">
+      For the <code class="cf">ftplugin</code> mechanism to work, we must ensure that both file-type detection and plugins are enabled. Check that this line is present in your <code class="cf">vimrc</code> file:
+	</p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​filetype plugin on​</code>​</div>
+</td>
+</tr>
+</table>
+
+<div class="footnotes">
+<h4 class="calibre20">Footnotes</h4>
+<table cellspacing="3" class="table-of-contents">
+<tr valign="top" class="calibre14">
+<td class="footnote-number">
+<a id="FOOTNOTE-39" href="f_0169.html#FNPTR-39">[39]</a>
+</td>
+<td class="calibre8">
+<p id="N1C46B" class="calibre4">
+<a href="http://vimcasts.org/e/2">http://vimcasts.org/e/2</a>
+</p>
+</td>
+</tr>
+</table>
+</div>
+<div class="copyright">Copyright © 2012, The Pragmatic Bookshelf.</div>
+
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

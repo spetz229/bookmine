@@ -1,0 +1,123 @@
+---
+layout: page
+title: "Developing Backbone.js Applications"
+prev: OEBPS/ch02s03.html
+next: OEBPS/ch02s05.html
+book_path: books/developing-backbone-js-applications-addy-osmani--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Views"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="views-1" class="calibre1"></a>Views</h1></div></div></div><p class="calibre6">
+      Views in Backbone don’t contain the markup for your application,
+      but rather they are there to support models by defining the logic
+      for how they should be represented to the user. This is usually
+      achieved using JavaScript templating (e.g. Mustache, jQuery-tmpl,
+      etc.). A view’s <code class="literal">render()</code> function can be bound
+      to a model’s <code class="literal">change()</code> event, allowing the view
+      to always be up to date without requiring a full page refresh.
+    </p><div class="book" title="Creating new views"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="creating-new-views" class="calibre1"></a>Creating new views</h2></div></div></div><p class="calibre6">
+        Similar to the previous sections, creating a new view is
+        relatively straight-forward. To create a new View, simply extend
+        <code class="literal">Backbone.View</code>. I’ll explain this code in
+        detail below:
+      </p><pre class="programlistingjavascript"><code class="kd">var</code> <code class="nx">PhotoSearch</code> <code class="o">=</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">View</code><code class="p">.</code><code class="nx">extend</code><code class="p">({</code>
+    <code class="nx">el</code><code class="o">:</code> <code class="nx">$</code><code class="p">(</code><code class="s">'#results'</code><code class="p">),</code>
+    <code class="nx">render</code><code class="o">:</code> <code class="kd">function</code><code class="p">(</code> <code class="nx">event</code> <code class="p">){</code>
+        <code class="kd">var</code> <code class="nx">compiled_template</code> <code class="o">=</code> <code class="nx">_</code><code class="p">.</code><code class="nx">template</code><code class="p">(</code> <code class="nx">$</code><code class="p">(</code><code class="s">"#results-template"</code><code class="p">).</code><code class="nx">html</code><code class="p">()</code> <code class="p">);</code>
+        <code class="kd">this</code><code class="p">.</code><code class="nx">$el</code><code class="p">.</code><code class="nx">html</code><code class="p">(</code> <code class="nx">compiled_template</code><code class="p">(</code><code class="kd">this</code><code class="p">.</code><code class="nx">model</code><code class="p">.</code><code class="nx">toJSON</code><code class="p">())</code> <code class="p">);</code>
+        <code class="kd">return</code> <code class="kd">this</code><code class="p">;</code> <code class="c">//recommended as this enables calls to be chained.</code>
+    <code class="p">},</code>
+    <code class="nx">events</code><code class="o">:</code> <code class="p">{</code>
+        <code class="s">"submit #searchForm"</code><code class="o">:</code>  <code class="s">"search"</code><code class="p">,</code>
+        <code class="s">"click .reset"</code><code class="o">:</code> <code class="s">"reset"</code><code class="p">,</code>
+        <code class="s">"click .advanced"</code><code class="o">:</code> <code class="s">"switchContext"</code>
+    <code class="p">},</code>
+    <code class="nx">search</code><code class="o">:</code> <code class="kd">function</code><code class="p">(</code> <code class="nx">event</code> <code class="p">){</code>
+        <code class="c">//executed when a form '#searchForm' has been submitted</code>
+    <code class="p">},</code>
+    <code class="nx">reset</code><code class="o">:</code> <code class="kd">function</code><code class="p">(</code> <code class="nx">event</code> <code class="p">){</code>
+        <code class="c">//executed when an element with class "reset" has been clicked.</code>
+    <code class="p">},</code>
+    <code class="nx">switchContext</code><code class="o">:</code> <code class="kd">function</code><code class="p">(</code> <code class="nx">event</code> <code class="p">){</code>
+        <code class="c">//executed when an element with class "advanced" has been clicked.</code>
+    <code class="p">}</code>
+<code class="p">});</code>
+</pre></div><div class="book" title="What is el?"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="what-is-el" class="calibre1"></a>What is <code class="literal1">el</code>?</h2></div></div></div><p class="calibre6">
+        <code class="literal">el</code> is basically a reference to a DOM element
+        and all views must have one. It allows for all of the contents
+        of a view to be inserted into the DOM at once, which makes for
+        faster rendering as browser performs the minimum required
+        reflows and repaints.
+      </p><p class="calibre6">
+        There are two ways to attach a DOM element to a view: the
+        element already exists in the page or a new element is created
+        for the view and added manually by the developer. If the element
+        already exists in the page, you can set <code class="literal">el</code> as
+        either a CSS selector that matches the element or a simple
+        reference to the DOM element.
+      </p><pre class="programlistingjavascript"><code class="nx">el</code><code class="o">:</code> <code class="s">'#footer'</code><code class="p">,</code> 
+<code class="c">// OR</code>
+<code class="nx">el</code><code class="o">:</code> <code class="nb">document</code><code class="p">.</code><code class="nx">getElementById</code><code class="p">(</code> <code class="s">'footer'</code> <code class="p">)</code>
+</pre><p class="calibre6">
+        If you want to create a new element for your view, set any
+        combination of the following view’s properties:
+        <code class="literal">tagName</code>, <code class="literal">id</code> and
+        <code class="literal">className</code>. A new element will be created for
+        you by the framework and a reference to it will be available at
+        the <code class="literal">el</code> property.
+      </p><pre class="programlistingjavascript">
+tagName: 'p', // required, but defaults to 'div' if not set
+className: 'container', // optional, you can assign multiple classes to this property like so 'container homepage'
+id: 'header', // optional
+</pre><p class="calibre6">
+        The above code creates the <code class="literal">DOMElement</code> below
+        but doesn’t append it to the DOM.
+      </p><pre class="programlistingjavascript">
+&lt;p id="header" class="container"&gt;&lt;/p&gt;
+</pre><p class="calibre6">
+        <span class="firstname"><strong class="calibre8">Understanding
+        <code class="literal2">render()</code></strong></span>
+      </p><p class="calibre6">
+        <code class="literal">render()</code> is an optional function that defines
+        the logic for rendering a template. We’ll use Underscore’s
+        micro-templating in these examples, but remember you can use
+        other templating frameworks if you prefer.
+      </p><p class="calibre6">
+        The <code class="literal">_.template</code> method in Underscore compiles
+        JavaScript templates into functions which can be evaluated for
+        rendering. In the above view, I’m passing the markup from a
+        template with id <code class="literal">results-template</code> to
+        <code class="literal">_.template()</code> to be compiled. Next, I set the
+        html of the <code class="literal">el</code> DOM element to the output of
+        processing a JSON version of the model associated with the view
+        through the compiled template.
+      </p><p class="calibre6">
+        Presto! This populates the template, giving you a data-complete
+        set of markup in just a few short lines of code.
+      </p><p class="calibre6">
+        <span class="firstname"><strong class="calibre8">The <code class="literal2">events</code>
+        attribute</strong></span>
+      </p><p class="calibre6">
+        The Backbone <code class="literal">events</code> attribute allows us to
+        attach event listeners to either custom selectors, or directly
+        to <code class="literal">el</code> if no selector is provided. An event
+        takes the form
+        <code class="literal">{"eventName selector": "callbackFunction"}</code>
+        and a number of event-types are supported, including
+        <code class="literal">click</code>, <code class="literal">submit</code>,
+        <code class="literal">mouseover</code>, <code class="literal">dblclick</code> and
+        more.
+      </p><p class="calibre6">
+        What isn’t instantly obvious is that under the bonnet, Backbone
+        uses jQuery’s <code class="literal">.delegate()</code> to provide instant
+        support for event delegation but goes a little further,
+        extending it so that <code class="literal">this</code> always refers to
+        the current view object. The only thing to really keep in mind
+        is that any string callback supplied to the events attribute
+        must have a corresponding function with the same name within the
+        scope of your view.
+      </p></div></div></div>
+
+{% endraw %}
+

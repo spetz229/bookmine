@@ -1,0 +1,40 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch03s02.html
+next: OEBPS/ch03s04.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Adding ID Support"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect13_d1e2861" class="calibre1"></a>Adding ID Support</h1></div></div></div><p class="calibre3"><a id="I_indexterm3_d1e2865" class="calibre1"></a><a id="I_indexterm3_d1e2870" class="calibre1"></a>At the moment, every time we save a record we have to
+    specify an ID manually. This sucks, but fortunately, it’s something we can
+    automate. First, we need a way of generating IDs, which we can do with a
+    Globally Unique Identifier (GUID) generator.<a id="I_indexterm3_d1e2874" class="calibre1"></a> Well, technically, JavaScript can’t generate official, bona
+    fide 128-bit GUIDs for API <span class="calibre1">reasons—</span>it can only generate pseudorandom
+    numbers. Generating truly random GUIDs is a notoriously difficult problem,
+    and operating systems calculate them using the MAC address, mouse
+    position, and BIOS checksums, or by measuring electrical noise or <span class="calibre1">radioactive</span> decay—and even lava lamps!
+    However, JavaScript’s native <code class="literal">Math.random()</code><a id="I_indexterm3_d1e2886" class="calibre1"></a><a id="I_indexterm3_d1e2890" class="calibre1"></a>, although pseudorandom, will be enough for our
+    needs.</p><p class="calibre3">Robert Kieffer has written an easy and succinct GUID generator that
+    uses <code class="literal">Math.random()</code> to generate <a class="ulink" href="http://www.broofa.com/2008/09/javascript-uuid-function/">pseudorandom
+    GUIDs</a>. It’s so simple that we can put it inline:</p><pre class="screen">Math.guid = function(){
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random()*16|0, v = c == 'x' ? r : (r&amp;0x3|0x8);
+    return v.toString(16);
+  }).toUpperCase();      
+};</pre><p class="calibre3">Now that we have a function to generate GUIDs, integrating that into
+    our ORM is simple; all we need to change is the <code class="literal">create()</code> function:<a id="I_indexterm3_d1e2911" class="calibre1"></a><a id="I_indexterm3_d1e2916" class="calibre1"></a></p><pre class="screen">Model.extend({
+  create: function(){
+    if ( !this.id ) this.id = Math.guid();
+    this.newRecord = false;
+    this.parent.records[this.id] = this;
+  }
+});</pre><p class="calibre3">Now, any newly created records have random GUIDs as their ID:</p><pre class="screen">var asset = Asset.init();
+asset.save();
+
+asset.id //=&gt; "54E52592-313E-4F8B-869B-58D61F00DC74"</pre></div></div>
+
+{% endraw %}
+

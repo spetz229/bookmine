@@ -1,0 +1,159 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect115_d1e34892.html
+next: I_sect115_d1e35298.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect115_d1e34892.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect115_d1e35298.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect115_d1e35180" class="calibre27" id="I_sect115_d1e35180"></a><h3 id="title-IDAC12M" class="docSection1Title">15.6. The Reader Monad</h3><a name="x_wr" class="calibre27" id="x_wr"></a><p class="docText">The<a name="I_indexterm15_d1e35185" class="calibre27" id="I_indexterm15_d1e35185"></a> State monad lets us
+    plumb a piece of mutable state through our code. Sometimes, we would like
+    to be able to pass some <span class="docEmphasis">immutable</span> state around,
+    <a name="I_indexterm15_d1e35193" class="calibre27" id="I_indexterm15_d1e35193"></a>such as a program's configuration data. We could use the
+    State monad for this purpose, but we might then find
+    ourselves accidentally modifying data that should remain unchanged.</p><a name="x_xr" class="calibre27" id="x_xr"></a><p class="docText">Let's forget about monads for a moment and think about
+    what a <span class="docEmphasis">function</span> with our desired characteristics
+    ought to do. It should accept a value of some type <span class="docMonofont">e</span> (for <span class="docEmphasis">environment</span>) that represents the data that
+    we're passing in, and return a value of some other type <span class="docMonofont">a</span> as its result. The overall type we want is e
+    -&gt; a.</p><a name="x_yr" class="calibre27" id="x_yr"></a><p class="docText">To turn this type into a convenient Monad
+    instance, we'll wrap it in a <tt class="calibre34">newtype:</tt></p><pre class="calibre39">-- file: ch15/SupplyInstance.hs
+newtype Reader e a = R { runReader :: e -&gt; a }</pre><br class="calibre48"/>
+<a name="x_zr" class="calibre27" id="x_zr"></a><p class="docText">Making this into a Monad instance doesn't
+    take much work:</p><pre class="calibre39">-- file: ch15/SupplyInstance.hs
+instance Monad (Reader e) where
+    return a = R $ \_ -&gt; a
+    m &gt;&gt;= k = R $ \r -&gt; runReader (k (runReader m r)) r</pre><br class="calibre48"/>
+<a name="x_As" class="calibre27" id="x_As"></a><p class="docText">We can think of our value of type <span class="docMonofont">e</span> as an environment in which we're evaluating some
+    expression. The <tt class="calibre34">return</tt> action should
+    have the same effect no matter what the environment is, so our version
+    ignores its environment.</p><a name="x_Bs" class="calibre27" id="x_Bs"></a><p class="docText">Our definition of <i class="docEmphasis">(&gt;&gt;=)</i> is a little more complicated, but
+    only because we have to make the environment—here the variable
+    <span class="docMonofont">r</span>—available both in the current computation and in the
+    computation we're chaining into.</p><a name="x_Cs" class="calibre27" id="x_Cs"></a><p class="docText">How does a piece of code executing in this monad find out
+    what's in its environment? It simply has to <i class="docEmphasis">ask</i>:</p><pre class="calibre39">-- file: ch15/SupplyInstance.hs
+ask :: Reader e e
+ask = R id</pre><br class="calibre48"/>
+<a name="x_Ds" class="calibre27" id="x_Ds"></a><p class="docText">Within a given chain of actions, every invocation of
+    <i class="docEmphasis">ask</i> will return the same value, since
+    the value stored in the environment doesn't change. Our code is easy to
+    test in <i class="docEmphasis">ghci</i>:</p><pre class="calibre39">ghci&gt; <b class="calibre40">runReader (ask &gt;&gt;= \x -&gt; return (x * 3)) 2</b>
+Loading package old-locale-1.0.0.0 ... linking ... done.
+Loading package old-time-1.0.0.0 ... linking ... done.
+Loading package random-1.0.0.0 ... linking ... done.
+6
+</pre><a name="x_Es" class="calibre27" id="x_Es"></a><p class="docText">The Reader monad is included in the standard
+    <tt class="calibre34">mtl</tt> library, which is usually bundled with <span class="docMonofont">GHC</span>. You can find it in the
+    <tt class="calibre34">Control.Monad.Reader</tt> module. The motivation for this monad
+    may initially seem a little thin, because it is most often useful in
+    complicated code. We'll often need to access a piece of configuration
+    information deep in the bowels of a program; passing that information in
+    as a normal parameter would require a painful restructuring of our code.
+    By hiding this information in our monad's plumbing, intermediate functions
+    that don't care about the configuration information don't need to see
+    it.</p><a name="x_Fs" class="calibre27" id="x_Fs"></a><p class="docText">The clearest motivation for the Reader monad
+    will come in <a class="docLink" href="monadtrans_split_000.html#monadtrans">Chapter 18</a>, when we discuss combining
+    several monads to build a new monad. There, we'll see how to gain finer
+    control over state, so that our code can modify some values via the
+    State monad, while other values remain immutable, courtesy of
+    the Reader monad.</p>
+<a href="21061538.html" class="calibre2"><img src="pixel.gif" alt="" border="0" class="calibre31"/></a><ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect115_d1e34892.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect115_d1e35298.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

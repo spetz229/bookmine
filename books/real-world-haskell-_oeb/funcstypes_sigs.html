@@ -1,0 +1,139 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect12_d1e3762.html
+next: funcstypes_srcfile.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect12_d1e3762.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="funcstypes_srcfile.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="funcstypes_sigs" class="calibre27" id="funcstypes_sigs"></a><h3 id="643999-962" class="docSection1Title">2.8. Function Types and Purity</h3><a name="x_Z3" class="calibre27" id="x_Z3"></a><p class="docText">Let's take a look<a name="I_indexterm2_d1e3945" class="calibre27" id="I_indexterm2_d1e3945"></a><a name="I_indexterm2_d1e3950" class="calibre27" id="I_indexterm2_d1e3950"></a><a name="I_indexterm2_d1e3955" class="calibre27" id="I_indexterm2_d1e3955"></a> at a function's type:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type lines</b>
+lines :: String -&gt; [String]
+</pre><a name="x_a3" class="calibre27" id="x_a3"></a><p class="docText">We can read the <tt class="calibre34">-&gt;</tt>
+    as "to," which loosely translates to "returns."
+    The signature as a whole thus reads as "<i class="docEmphasis">lines</i> has the type String to
+    list-of-String". Let's try applying the
+    function:</p><pre class="calibre39">ghci&gt; <b class="calibre40">lines "the quick\nbrown fox\njumps"</b>
+["the quick","brown fox","jumps"]
+</pre><a name="x_b3" class="calibre27" id="x_b3"></a><p class="docText">The <i class="docEmphasis">lines</i> function
+    <a name="I_indexterm2_d1e3997" class="calibre27" id="I_indexterm2_d1e3997"></a>splits a string on line boundaries. Notice that its type
+    signature gives us a hint as to what the function might actually do: it
+    takes one String, and returns many. This is an incredibly
+    valuable property of types in a functional language.</p><a name="x_ce" class="calibre27" id="x_ce"></a><p class="docText">A <span class="docEmphasis">side effect</span> introduces<a name="I_indexterm2_d1e4009" class="calibre27" id="I_indexterm2_d1e4009"></a> a dependency between the global state of the system and the
+    behavior of a function. For example, let's step away from Haskell for a
+    moment and think about an imperative programming language. Consider a
+    function that reads and returns the value of a global variable. If some
+    other code can modify that global variable, then the result of a
+    particular application of our function depends on the current value of the
+    global variable. The function has a side effect, even though it never
+    modifies the variable itself.</p><a name="x_Rm" class="calibre27" id="x_Rm"></a><p class="docText">Side effects are essentially invisible inputs to, or
+    outputs from, functions. In Haskell, the default is for functions to
+    <span class="docEmphasis">not</span> have side effects: the result of a function
+    depends only on the inputs that we explicitly provide. We call these
+    functions <span class="docEmphasis">pure</span>; functions <a name="I_indexterm2_d1e4021" class="calibre27" id="I_indexterm2_d1e4021"></a><a name="I_indexterm2_d1e4024" class="calibre27" id="I_indexterm2_d1e4024"></a>with side effects are <span class="docEmphasis">impure</span>.</p><a name="x_Sm" class="calibre27" id="x_Sm"></a><p class="docText">If a function has side effects, we can tell by reading its
+    type signature—the type of the function's result will begin with
+    IO:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type readFile</b>
+readFile :: FilePath -&gt; IO String
+</pre><a name="x_Tm" class="calibre27" id="x_Tm"></a><p class="docText">Haskell's type system prevents us from accidentally mixing
+    <a name="I_indexterm2_d1e4041" class="calibre27" id="I_indexterm2_d1e4041"></a>pure
+    and impure code.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"><a href="21061538.html" class="calibre2"><img src="btn_next_.gif" alt="Next" border="0" class="calibre31"/></a> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect12_d1e3762.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="funcstypes_srcfile.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

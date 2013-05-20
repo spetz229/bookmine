@@ -1,0 +1,1097 @@
+---
+layout: page
+title: "Seven Databases in Seven Weeks (for Greg Kennedy)"
+prev: f_0031.html
+next: f_0033.html
+book_path: books/seven-databases-in-seven-weeks--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="N14BC0" class="calibre18">4.4 Day 3: Taking It to the Cloud</h2>
+<p id="N14BC4" class="calibre5">
+In Days 1 and 2, we got a lot of hands-on experience using HBase in stand-alone mode.  Our experimentation so far has focused on accessing a single local server.  In reality, if you choose to use HBase, you’ll want to have a good sized cluster in order to realize the performance benefits of its distributed architecture.
+    </p>
+<p id="N14BC7" class="calibre5">
+Here in Day 3, we’ll turn our attention toward operating and interacting with a remote HBase cluster.  First we’ll develop a client application in Ruby and connect to our local server using a binary protocol called Thrift.  Then we’ll bring up a multinode cluster with a cloud service provider—Amazon EC2—using a cluster management technology called Apache Whirr.
+    </p>
+<h3 class="calibre20">Developing a Thrifty HBase Application</h3>
+<p id="N14BCE" class="calibre5">
+So far, we’ve been using the HBase shell, but HBase supports a number of protocols for client connectivity. The following is a full list:
+      </p>
+<table class="simpletable1">
+<thead class="calibre29">
+<tr class="calibre8">
+<th class="hlines">
+<p class="last-para-in-cell">Name</p>
+</th>
+<th class="hlines">
+<p class="last-para-in-cell">Connection Method</p>
+</th>
+<th class="hlines">
+<p class="last-para-in-cell">Production Ready?</p>
+</th>
+</tr>
+</thead>
+<tbody class="calibre7">
+<tr class="calibre8">
+<td class="calibre30">
+<p class="last-para-in-cell">Shell</p>
+</td>
+<td class="calibre30">
+<p class="last-para-in-cell">Direct</p>
+</td>
+<td class="calibre30">
+<p class="last-para-in-cell">Yes</p>
+</td>
+</tr>
+<tr class="calibre8">
+<td class="calibre31">
+<p class="last-para-in-cell">Java API</p>
+</td>
+<td class="calibre31">
+<p class="last-para-in-cell">Direct</p>
+</td>
+<td class="calibre31">
+<p class="last-para-in-cell">Yes</p>
+</td>
+</tr>
+<tr class="calibre8">
+<td class="calibre31">
+<p class="last-para-in-cell">Thrift</p>
+</td>
+<td class="calibre31">
+<p class="last-para-in-cell">Binary protocol</p>
+</td>
+<td class="calibre31">
+<p class="last-para-in-cell">Yes</p>
+</td>
+</tr>
+<tr class="calibre8">
+<td class="calibre31">
+<p class="last-para-in-cell">REST</p>
+</td>
+<td class="calibre31">
+<p class="last-para-in-cell">HTTP</p>
+</td>
+<td class="calibre31">
+<p class="last-para-in-cell">Yes</p>
+</td>
+</tr>
+<tr class="calibre8">
+<td class="calibre31">
+<p class="last-para-in-cell">Avro</p>
+</td>
+<td class="calibre31">
+<p class="last-para-in-cell">Binary protocol</p>
+</td>
+<td class="calibre31">
+<p class="last-para-in-cell">No (still experimental)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N14C35" class="calibre5">
+In the previous table, the connection method describes whether the protocol makes Java calls directly, shuttles data over HTTP, or moves data using a compact binary format.  All of them are production-grade, except for Avro, which is relatively new and should be treated as experimental.
+      </p>
+<p id="N14C4C" class="calibre5">
+Of all these options, Thrift is probably the most popular for developing client applications.  A mature binary protocol with little overhead, Thrift was originally developed and open sourced by Facebook, later to become an Apache Incubator project.  Let’s get your machine ready to connect with Thrift.
+</p>
+<h4 class="calibre21">Installing Thrift</h4>
+<p id="N14C5C" class="calibre5">
+Like many things in the database realm, working with Thrift requires a little setup.  To connect to our HBase server via Thrift, we’ll need to do the following:
+        </p>
+<ol class="calibre33">
+<li class="calibre23">
+<p id="N14C68" class="calibre5">Have HBase run the Thrift service.</p>
+</li>
+<li class="calibre23">
+<p id="N14C6C" class="calibre5">Install the Thrift command-line tool. </p>
+</li>
+<li class="calibre23">
+<p id="N14C70" class="calibre5">Install libraries for your chosen client language.</p>
+</li>
+<li class="calibre23">
+<p id="N14C74" class="calibre5">Generate HBase model files for your language.</p>
+</li>
+<li class="calibre23">
+<p id="N14C78" class="calibre5">Create and run a client application. </p>
+</li>
+</ol>
+<p id="N14C7B" class="calibre5">
+We’ll start by running the Thrift service, which is pretty easy. Start the daemon from the command line like this:
+
+        </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​${HBASE_HOME}/bin/hbase-daemon.sh start thrift -b 127.0.0.1​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14C8A" class="calibre5">
+Next, you’ll need to install the <code class="cf">thrift</code> command-line tool.  The steps for this depend greatly on your particular environment and generally require compiling binaries.  To test whether you have this installed correctly, call it on the command line with the <code class="cf">-version</code> flag.  You should see something like this:
+        </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">thrift -version</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​Thrift version 0.6.0​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14CA5" class="calibre5">
+For the client language, we’ll use Ruby, although the steps are similar for other languages.  Install the Thrift Ruby gem on the command line like so:
+        </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">gem install thrift</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14CB7" class="calibre5">
+To check whether the gem is installed correctly, we can run this Ruby one-liner:
+        </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">ruby -e "require 'thrift'"</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14CC9" class="calibre5">
+If you see no output on the command line, that’s good! An error message stating “<code class="cf">no such file to load</code>” means you should stop here and troubleshoot before moving on.
+</p>
+<h4 id="sec.hbase.generate.models" class="calibre21">Generate the Models</h4>
+<p id="N14CD7" class="calibre5">
+Next, we’ll generate the language-specific HBase model files.  
+These model files will be the glue that connects our specific HBase version with the particular Thrift version you have installed, 
+so they have to be generated (rather than coming premade). 
+        </p>
+<p id="N14CDF" class="calibre5">
+First, locate the <code class="cf">Hbase.thrift</code> file under the 
+          <code class="cf">${HBASE_HOME}/src</code> directory.  The path should be something like this:
+        </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​${HBASE_HOME}/src/main/resources/org/apache/hadoop/hbase/thrift/Hbase.thrift​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14CF4" class="calibre5">
+With the path identified, generate the model files with the following command, replacing your path as indicated:
+        </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">thrift --gen rb &lt;path_to_Hbase.thrift&gt;</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14D0C" class="calibre5">
+This will create a new folder called <code class="cf">gen-rb</code>, which contains the following model files:
+        </p>
+<ul class="calibre22">
+<li class="calibre23">
+<p id="N14D15" class="calibre5">
+<code class="cf">hbase_constants.rb</code>
+</p>
+</li>
+<li class="calibre23">
+<p id="N14D1A" class="calibre5">
+<code class="cf">hbase.rb</code>
+</p>
+</li>
+<li class="calibre23">
+<p id="N14D1F" class="calibre5">
+<code class="cf">hbase_types.rb</code>
+</p>
+</li>
+</ul>
+<p id="N14D23" class="calibre5">
+We’ll be using these files next as we build a simple client application.
+        </p>
+<h4 class="calibre21">Building a Client Application</h4>
+<p id="N14D2A" class="calibre5">
+Our program will connect to HBase over Thrift and then list any tables it finds along with their column families.  These would be the first steps toward building an administrative interface for HBase.  Unlike our previous examples, this script is meant to be run by good old normal Ruby, not JRuby.  It could be suitable for inclusion in a Ruby-based web application, for example.
+        </p>
+<p id="N14D33" class="calibre5">
+Key this into a new text file (we called ours <code class="cf">thrift_example.rb</code>):
+        </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td colspan="2" class="calibre34">
+<a href="http://media.pragprog.com/titles/rwdata/code/hbase/thrift_example.rb">hbase/thrift_example.rb</a>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$:.push(<em class="string">'./gen-rb'</em>)​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​require <em class="string">'thrift'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​require <em class="string">'hbase'</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​socket = Thrift::Socket.new( <em class="string">'localhost'</em>, 9090 )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​transport = Thrift::BufferedTransport.new( socket )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​protocol = Thrift::BinaryProtocol.new( transport )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​client = Apache::Hadoop::Hbase::Thrift::Hbase::Client.new( protocol )​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​transport.open()​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​client.getTableNames().sort.each <strong class="prompt">do</strong> |table|​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  puts <em class="string">"</em>#{table}<em class="string">"</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  client.getColumnDescriptors( table ).each <strong class="prompt">do</strong> |col, desc|​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    puts <em class="string">"  </em>#{desc.name}<em class="string">"</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    puts <em class="string">"    maxVersions: </em>#{desc.maxVersions}<em class="string">"</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    puts <em class="string">"    compression: </em>#{desc.compression}<em class="string">"</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    puts <em class="string">"    bloomFilterType: </em>#{desc.bloomFilterType}<em class="string">"</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  <strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​<strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​transport.close()​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14DAD" class="calibre5">
+In the previous code, the first thing we do is make sure Ruby can find the model files by adding <code class="cf">gen-rb</code> to the path and including <code class="cf">thrift</code> and <code class="cf">hbase</code>.  After that, we create a connection to the Thrift server and wire it up to an HBase client instance.  The <code class="cf">client</code> object will be our means for communicating with HBase.
+        </p>
+<p id="N14DBC" class="calibre5">
+After opening the <code class="cf">transport</code>, we iterate over the tables brought back by <code class="cf">getTableNames</code>.  For each table, we iterate over the list of column families returned by <code class="cf">getColumnDescriptors</code> and output some properties to standard output.
+        </p>
+<p id="N14DC8" class="calibre5">
+Now, let’s run the program on the command line.  Your output should look similar since we’re connecting to the local HBase server we started with earlier.</p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$&gt; ruby thrift_example.rb​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​links​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  from:​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    maxVersions: 1​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    compression: NONE​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    bloomFilterType: ROWCOL​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  to:​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    maxVersions: 1​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    compression: NONE​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    bloomFilterType: ROWCOL​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​wiki​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  revision:​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    maxVersions: 2147483647​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    compression: NONE​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    bloomFilterType: NONE​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  text:​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    maxVersions: 2147483647​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    compression: GZ​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​    bloomFilterType: ROW​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14E0F" class="calibre5">
+You’ll find that the Thrift API for HBase has most of the same functionality as the Java API we used previously, but many of the concepts are expressed differently.  For example, instead of creating a <code class="cf">Put</code> instance, in Thrift you create a <code class="cf">Mutation</code> to update a single column or a <code class="cf">BatchMutation</code> to update several columns in one transaction.
+        </p>
+<p id="N14E1B" class="calibre5">
+The <code class="cf">Hbase.thrift</code> file we used earlier to generate the model files—see <a href="#sec.hbase.generate.models">​<em class="calibre6">Generate the Models</em>​</a>—has a lot of good inline documentation to describe the structures and methods available to you.  Check it out!
+</p>
+<h3 class="calibre20">Introducing Whirr</h3>
+<p id="N14E2E" class="calibre5">
+Setting up a functioning cluster using a cloud service used to be <span class="calibre6">a lot</span> of work.  Fortunately, Whirr is changing all that.  Currently in the Apache Incubator program, Whirr provides tools for launching, connecting to, and destroying clusters of virtual machines.  It supports popular services like Amazon’s Elastic Compute Cloud (EC2) and RackSpace’s Cloud Servers.  Whirr currently supports setting up Hadoop, HBase, Cassandra, Voldemort, and ZooKeeper clusters, with support for more technologies like MongoDB and ElasticSearch on the way.
+      </p>
+<p id="N14E5F" class="calibre5">
+Though service providers like Amazon often supply some means of persisting data after virtual machines have been terminated, we won’t be using them.  For our purposes, it will suffice to have temporary clusters that lose all data upon termination.  If you decide to use HBase in a production capacity later, you may want to set up persistent storage.  If so, it’s worth considering whether dedicated hardware would better suit your needs.  Dynamic services like EC2 are great for horsepower on-the-fly, but you’ll generally get more bang for the buck out of a cluster of dedicated physical or virtual machines.
+      </p>
+<h3 class="calibre20">Getting Set Up with EC2</h3>
+<p id="N14E66" class="calibre5">
+Before you use Whirr to power up a cluster, you’ll need to have an account with a supported cloud service provider.  In this chapter, we’ll describe how to use Amazon’s EC2, but you’re welcome to use another provider of your choice.
+      </p>
+<p id="N14E89" class="calibre5">
+If you don’t have an Amazon account already, head over to Amazon’s Web Services (AWS) portal and make one.<a id="FNPTR-31" href="f_0033.html#FOOTNOTE-31">[31]</a>  Log in, and then enable EC2 for your account if it isn’t activated already.<a id="FNPTR-32" href="f_0033.html#FOOTNOTE-32">[32]</a>  Finally, open the EC2 AWS console page under Accounts  Amazon EC2.<a id="FNPTR-33" href="f_0033.html#FOOTNOTE-33">[33]</a>  It should look something like Figure 17, <a href="#fig.hbase.ec2.console.empty">​<em class="calibre6">Amazon EC2 console showing no instances</em>​</a>.
+      </p>
+<div class="figure" id="fig.hbase.ec2.console.empty">
+<div class="calibre2">
+<img xmlns:str="http://exslt.org/strings" src="images/hbase-ec2-console-empty.png" alt="images/hbase-ec2-console-empty.png" class="calibre27"/>
+</div>
+<div class="figurecaption">
+<hr class="calibre28"/>Figure 17. Amazon EC2 console showing no instances</div>
+</div>
+<p id="N14EAC" class="calibre5">
+You’ll need your AWS credentials in order to start up EC2 nodes.  Head back to the AWS main page and then choose Account<span>→</span>Security Credentials.  Scroll down to the section called Access Credentials, and make a note of your Access Key ID.  Under Secret Access Key, click Show, and make a note of this value as well.  Respectively, we’ll refer to these keys as <code class="cf">AWS_ACCESS_KEY_ID</code> and <code class="cf">AWS_SECRET_ACCESS_KEY</code> later when we configure Whirr.
+</p>
+<h3 class="calibre20">Preparing Whirr</h3>
+<p id="N14ED0" class="calibre5">
+With your EC2 credentials in hand, let’s get Whirr.  Go to the Apache Whirr site<a id="FNPTR-34" href="f_0033.html#FOOTNOTE-34">[34]</a> and download the latest version.  Unzip the downloaded file, and then open a command prompt in this directory.  We can test that Whirr is ready to roll by executing the <code class="cf">version</code> command.
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">bin/whirr version</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​Apache Whirr 0.6.0-incubating​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14EF3" class="calibre5">
+Next, we’ll create some passwordless SSH keys for Whirr to use when launching instances (virtual machines).
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">mkdir keys</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">ssh-keygen -t rsa -P '' -f keys/id_rsa</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14F0B" class="calibre5">
+This will create a directory called <code class="cf">keys</code> and add to it an <code class="cf">id_rsa</code> file and an <code class="cf">id_rsa.pub</code> file.  With these details out of the way, it’s time to start configuring our cluster.
+      </p>
+<h3 class="calibre20">Configuring the Cluster</h3>
+<p id="N14F1B" class="calibre5">
+To specify details about a cluster, we’ll supply Whirr with a <code class="cf">properties</code> file containing the relevant settings.  Create a file in the Whirr directory called <code class="cf">hbase.properties</code> with the following contents (inserting your <code class="cf">AWS_ACCESS_KEY_ID</code> and <code class="cf">AWS_SECRET_ACCESS_KEY</code> as indicated):
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td colspan="2" class="calibre34">
+<a href="http://media.pragprog.com/titles/rwdata/code/hbase/hbase.properties">hbase/hbase.properties</a>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​# service provider​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​whirr.provider=aws-ec2​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​whirr.identity=your AWS_ACCESS_KEY_ID here​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​whirr.credential=your AWS_SECRET_ACCESS_KEY here​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​# ssh credentials​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​whirr.private-key-file=keys/id_rsa​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​whirr.public-key-file=keys/id_rsa.pub​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​# cluster configuration​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​whirr.cluster-name=myhbasecluster​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​whirr.instance-templates=\​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  1 zookeeper+hadoop-namenode+hadoop-jobtracker+hbase-master,\​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  5 hadoop-datanode+hadoop-tasktracker+hbase-regionserver​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​# HBase and Hadoop version configuration​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​whirr.hbase.tarball.url=\​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  http://apache.cu.be/hbase/hbase-0.90.3/hbase-0.90.3.tar.gz​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​whirr.hadoop.tarball.url=\​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​  http://archive.cloudera.com/cdh/3/hadoop-0.20.2-cdh3u1.tar.gz​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14F79" class="calibre5">
+The first two sections identify the service provider and all relevant credentials—largely boilerplate—while the latter two sections are specific to the HBase cluster that we’re going to create.  The <code class="cf">whirr.cluster-name</code> is unimportant unless you plan on running more than one cluster simultaneously, in which case they should each have different names.  The <code class="cf">whirr.instance-templates</code> property contains a comma-separated list describing which roles the nodes will play and how many of each there should be.  In our case, we want one master and five region servers.  Finally, the <code class="cf">whirr.hbase.tarball.url</code> forces Whirr to use the same version of HBase we’ve been using so far.
+</p>
+<h3 class="calibre20">Launching the Cluster</h3>
+<p id="N14F8F" class="calibre5">
+With all the configuration details saved to <code class="cf">hbase.properties</code>, it’s time to launch the cluster.  On the command line, in the Whirr directory, execute the <code class="cf">launch-cluster</code> command, providing it with the properties file we just made.
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">bin/whirr launch-cluster --config hbase.properties</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14FAD" class="calibre5">
+This will produce a lot of output and may take a while.  You can monitor the progress of the launch by returning to the AWS EC2 console.  It should look something like Figure 18, <a href="#fig.hbase.ec2.console.starting">​<em class="calibre6">Amazon EC2 console showing HBase instances starting up</em>​</a>.
+      </p>
+<div class="figure" id="fig.hbase.ec2.console.starting">
+<div class="calibre2">
+<img xmlns:str="http://exslt.org/strings" src="images/hbase-ec2-console-starting.png" alt="images/hbase-ec2-console-starting.png" class="calibre27"/>
+</div>
+<div class="figurecaption">
+<hr class="calibre28"/>Figure 18. Amazon EC2 console showing HBase instances starting up</div>
+</div>
+<p id="N14FCE" class="calibre5">
+More information about the launch status is available in the <code class="cf">whirr.log</code> file in the Whirr directory.
+</p>
+<h3 class="calibre20">Connecting to the Cluster</h3>
+<p id="N14FDB" class="calibre5">
+Only secure traffic is allowed to the cluster by default, so to connect to HBase, we’ll need to open an SSH session.  First, we’ll need to know the name of a server in the cluster to connect to.  In your user’s home directory, Whirr created a directory called <code class="cf">.whirr/myhbasecluster</code>.  In here, you’ll find a tab-delimited file called <code class="cf">instances</code> that lists all of the cluster’s running Amazon instances.  The third column contains the publicly addressable domain names of the servers.  Take the first one and plug it into this command:
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">ssh -i keys/id_rsa ${USER}@&lt;SERVER_NAME&gt;</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14FF8" class="calibre5">
+Once connected, start up the HBase shell:
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">/usr/local/hbase-0.90.3/bin/hbase shell</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1500A" class="calibre5">
+Once the shell has started up, you can check on the health of the cluster with the <code class="cf">status</code> command.
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​hbase&gt;<strong class="prompt"> status</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​6 servers, 0 dead, 2.0000 average load​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N15027" class="calibre5">
+From here, you can perform all the same operations we did on Days 1 and 2 such as creating tables and inserting data.  Connecting the sample Thrift-based client application to the cluster is left as an exercise in the homework.
+      </p>
+<p id="N1502A" class="calibre5">
+Of course, one more thing is worth talking about before we finish out the day: destroying a cluster.
+      </p>
+<h3 class="calibre20">Destroying the Cluster</h3>
+<p id="N15031" class="calibre5">
+When you’re done with your remote HBase EC2 cluster, use Whirr’s <code class="cf">destroy-cluster</code> command to shut it down.  Note that you will lose any and all data that had been inserted into the cluster when you do so, since we have not configured the instances to use persistent storage.
+      </p>
+<p id="N1503D" class="calibre5">
+At the command prompt, in the Whirr directory, run the following:
+      </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">bin/whirr destroy-cluster --config hbase.properties</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​Destroying myhbasecluster cluster​</code>​</div>
+</td>
+</tr>
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​Cluster myhbasecluster destroyed​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N15055" class="calibre5">
+This should  take only a little while.  Confirm that the instances are shutting down in the AWS console, which should resemble Figure 19, <a href="#fig.hbase.ec2.console.stopping">​<em class="calibre6">Amazon EC2 console showing HBase instances shutting down</em>​</a>.
+      </p>
+<div class="figure" id="fig.hbase.ec2.console.stopping">
+<div class="calibre2">
+<img xmlns:str="http://exslt.org/strings" src="images/hbase-ec2-console-stopping.png" alt="images/hbase-ec2-console-stopping.png" class="calibre27"/>
+</div>
+<div class="figurecaption">
+<hr class="calibre28"/>Figure 19. Amazon EC2 console showing HBase instances shutting down</div>
+</div>
+<p id="N15066" class="calibre5">
+If anything goes wrong when shutting these things down, remember that you can still terminate them directly using the AWS console.
+</p>
+<h3 class="calibre20">Day 3 Wrap-Up</h3>
+<p id="N15073" class="calibre5">
+Today we stepped outside the HBase shell to look at other connection options, including a binary protocol called Thrift.  We developed a Thrifty client application, and then we created and administrated a remote cluster in Amazon EC2 using Apache Whirr.  Coming up in the homework, you’ll string these two things together, querying your remote EC2 cluster from your locally running Thrift app.
+      </p>
+<h3 class="calibre20">Day 3 Homework</h3>
+<p id="N1507A" class="calibre5">
+In today’s homework, you’ll connect your local Thrift application to a remotely running HBase cluster.  To do this, you’ll need to open your cluster to insecure incoming TCP connections.  If this were a production environment, a better first step would be to create a secure channel for Thrift—for example by setting up a virtual private network (VPN) with endpoints inside EC2 and our principal network.  Such a setup is outside the scope of this book; suffice it to say that we strongly recommend securing your traffic when it matters to do so.
+      </p>
+<h4 class="calibre21">Do</h4>
+<ol class="calibre33">
+<li class="calibre23">
+<p id="N15084" class="calibre5">
+              With your EC2 cluster running, open an SSH session to a node, start the <code class="cf">hbase</code> shell, and then create a table with at least one column family.
+            </p>
+</li>
+<li class="calibre23">
+<p id="N1508B" class="calibre5">
+              In the same SSH session, start the Thrift service.
+            </p>
+<table class="processedcode">
+<tr class="calibre24">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre25">
+​<code class="calibre26">​$ <strong class="prompt">sudo /usr/local/hbase-0.90.3/bin/hbase-daemon.sh start thrift -b 0.0.0.0</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+</li>
+<li class="calibre23">
+<p id="N1509E" class="calibre5">
+              Use the Amazon EC2 web interface console to open TCP port 9090 in the security group for your cluster (Network &amp; Security &gt; Security Groups &gt; Inbound &gt; Create a new rule).
+            </p>
+</li>
+<li class="calibre23">
+<p id="N150A2" class="calibre5">
+              Modify the simple Thrift-based Ruby client app you developed to hit the EC2 node running Thrift instead of localhost. Run the program and confirm that it displays the correct information about your newly created table.
+            </p>
+</li>
+</ol>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre3"/>
+</div>
+
+{% endraw %}
+

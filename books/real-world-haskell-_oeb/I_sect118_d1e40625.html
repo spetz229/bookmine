@@ -1,0 +1,217 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect118_d1e40515.html
+next: errors_split_000.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect118_d1e40515.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="errors_split_000.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect118_d1e40625" class="calibre27" id="I_sect118_d1e40625"></a><h3 id="643999-825" class="docSection1Title">18.8. Putting Monads and Monad Transformers into Perspective</h3><a name="x_qu" class="calibre27" id="x_qu"></a><p class="docText">It's useful to step back from details for a few moments
+    and look at the weaknesses and strengths of programming with monads and
+    monad transformers.</p><a name="I_sect118_d1e40625d1e40958" class="calibre27" id="I_sect118_d1e40625d1e40958"></a><h4 id="title-IDARL2CF" class="docSection1Title">18.8.1. Interference with Pure Code</h4><a name="x_ru" class="calibre27" id="x_ru"></a><p class="docText">Probably the biggest<a name="I_indexterm18_d1e40635" class="calibre27" id="I_indexterm18_d1e40635"></a><a name="I_indexterm18_d1e40640" class="calibre27" id="I_indexterm18_d1e40640"></a> practical irritation of working with monads is that a
+      monad's type constructor often gets in our way when we'd like to use
+      pure code. Many useful pure functions need monadic counterparts, simply
+      to tack on a placeholder parameter <span class="docMonofont">m</span> for some monadic
+      type constructor:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:t filter</b>
+filter :: (a -&gt; Bool) -&gt; [a] -&gt; [a]
+ghci&gt; <b class="calibre40">:i filterM</b>
+filterM :: (Monad m) =&gt; (a -&gt; m Bool) -&gt; [a] -&gt; m [a]
+  	-- Defined in Control.Monad</pre><a name="x_su" class="calibre27" id="x_su"></a><p class="docText">However, the coverage is incomplete: the standard
+      libraries don't always provide monadic versions of pure
+      functions.</p><a name="x_tu" class="calibre27" id="x_tu"></a><p class="docText">The reason for this lies in history. Eugenio Moggi
+      introduced<a name="I_indexterm18_d1e40662" class="calibre27" id="I_indexterm18_d1e40662"></a> the idea of using monads for programming in 1988, around
+      the time the Haskell 1.0 standard was being developed. Many of the
+      functions in today's <tt class="calibre34">Prelude</tt> date back to Haskell 1.0,
+      which was released in 1990. In 1991, Philip Wadler started writing for a
+      wider functional programming audience about the potential of monads, at
+      which point, they began to be put in use.</p><a name="x_uu" class="calibre27" id="x_uu"></a><p class="docText">Not until 1996 and the release of Haskell 1.3 did the
+      standard acquire support for monads. By this time, the language
+      designers were already constrained by backwards compatibility: they
+      couldn't change the signatures of functions in the <tt class="calibre34">Prelude</tt>,
+      because it would have broken existing code.</p><a name="x_vu" class="calibre27" id="x_vu"></a><p class="docText">Since then, the Haskell community has learned a lot
+      about creating suitable abstractions, so that we can write code that is
+      less affected by the pure/monadic divide. You can find modern
+      distillations of these ideas in the <tt class="calibre34">Data.Traversable</tt> and
+      <tt class="calibre34">Data.Foldable</tt> modules.<a name="I_indexterm18_d1e40682" class="calibre27" id="I_indexterm18_d1e40682"></a><a name="I_indexterm18_d1e40685" class="calibre27" id="I_indexterm18_d1e40685"></a> As appealing as those modules are, we do not cover them
+      in this book. This is in part for want of space, but also because if
+      you're still following us at this point, you won't have trouble figuring
+      them out for yourself.</p><a name="x_wu" class="calibre27" id="x_wu"></a><p class="docText">In an ideal world, would we make a break from the past
+      and switch over <tt class="calibre34">Prelude</tt> to use Traversable and
+      Foldable types? Probably not. Learning Haskell is already a
+      stimulating enough adventure for newcomers. The Foldable
+      and Traversable abstractions are easy to pick up when we
+      already understand functors and monads, but they would put early
+      learners on too pure a diet of abstraction. For teaching the language,
+      it's <span class="docEmphasis">good</span> that <i class="docEmphasis">map</i> operates on lists, not on
+      functors.</p><a name="I_sect118_d1e40625d1e41041" class="calibre27" id="I_sect118_d1e40625d1e41041"></a><h4 id="title-IDAHO2CF" class="docSection1Title">18.8.2. Overdetermined Ordering</h4><a name="x_xu" class="calibre27" id="x_xu"></a><p class="docText">One of the principal reasons that we use monads is that
+      they let us specify an ordering for effects. Look again at a small
+      snippet of code we wrote earlier:</p><pre class="calibre39">-- file: ch18/MTComposition.hs
+{-# LANGUAGE FlexibleContexts #-}
+import Control.Monad.Writer
+import MaybeT
+
+problem :: MonadWriter [String] m =&gt; m ()
+problem = do
+  tell ["this is where i fail"]
+  fail "oops"</pre><br class="calibre48"/>
+<a name="x_yu" class="calibre27" id="x_yu"></a><p class="docText">Because we are executing in a monad, we are guaranteed
+      that the effect of the <i class="docEmphasis">tell</i> will
+      occur before the effect of <i class="docEmphasis">fail</i>.
+      The problem is that we get this guarantee of ordering even when we don't
+      necessarily want it: the compiler is not free to rearrange monadic code,
+      even if doing so would make it more efficient.</p><a name="I_sect118_d1e40625d1e41056" class="calibre27" id="I_sect118_d1e40625d1e41056"></a><h4 id="title-IDA3O2CF" class="docSection1Title">18.8.3. Runtime Overhead</h4><a name="x_zu" class="calibre27" id="x_zu"></a><p class="docText">Finally, when we use monads and monad transformers, we
+      can pay an efficiency tax. For instance, the State monad
+      carries its state around in a closure. Closures might be cheap in a
+      Haskell implementation, but they're not free.</p><a name="x_Av" class="calibre27" id="x_Av"></a><p class="docText">A monad transformer adds its own overhead to that of
+      whatever is underneath. Our MaybeT transformer has to wrap
+      and unwrap Maybe values every time we use <i class="docEmphasis">(&gt;&gt;=)</i>. A stack of MaybeT
+      on top of StateT over ReaderT thus has a lot
+      of bookkeeping to do for each <i class="docEmphasis">(&gt;&gt;=)</i>.</p><a name="x_Bv" class="calibre27" id="x_Bv"></a><p class="docText">A sufficiently smart compiler might make some or all of
+      these costs vanish, but that degree of sophistication is not yet widely
+      available.</p><a name="x_WJ1" class="calibre27" id="x_WJ1"></a><p class="docText">There are relatively simple techniques to avoid some of
+      these costs, though we lack space to do more than mention them by name.
+      For instance, using a continuation monad, we can avoid the constant
+      wrapping and unwrapping in <i class="docEmphasis">(&gt;&gt;=)</i>, paying only for effects when we
+      use them. Much of the complexity of this approach has already been
+      packaged up in libraries. This area of work is still under lively
+      development as of this writing. If you want to make your use of monad
+      transformers more efficient, we recommend looking on Hackage or asking
+      for directions on a mailing list or IRC.</p><a name="I_sect118_d1e40625d1e41095" class="calibre27" id="I_sect118_d1e40625d1e41095"></a><h4 id="title-IDAIQ2CF" class="docSection1Title">18.8.4. Unwieldy Interfaces</h4><a name="x_Cv" class="calibre27" id="x_Cv"></a><p class="docText">If we use the <tt class="calibre34">mtl</tt> library as a black
+      box,<a name="I_indexterm18_d1e40775" class="calibre27" id="I_indexterm18_d1e40775"></a> all of its components mesh quite nicely. However, once we
+      start developing our own monads and monad transformers, and also using
+      them with those provided by <tt class="calibre34">mtl</tt>, some deficiencies start to
+      show.</p><a name="x_Dv" class="calibre27" id="x_Dv"></a><p class="docText">For example, if we create a new monad transformer
+      FooT and want to follow the same pattern as
+      <tt class="calibre34">mtl</tt>, we'll have it implement a typeclass
+      MonadFoo. If we really want to integrate it cleanly into
+      the <tt class="calibre34">mtl</tt>, we'll have to provide instances for each of the
+      dozen or so <tt class="calibre34">mtl</tt> typeclasses.</p><a name="x_Ev" class="calibre27" id="x_Ev"></a><p class="docText">On top of that, we'll have to declare instances of
+      MonadFoo for each of the <tt class="calibre34">mtl</tt> transformers.
+      Most of those instances will be almost identical, and quite dull to
+      write. If we want to keep integrating new monad transformers into the
+      <tt class="calibre34">mtl</tt> framework, the number of moving parts we must deal with
+      increases with the <span class="docEmphasis">square</span> of the number of new
+      transformers!</p><a name="x_Fv" class="calibre27" id="x_Fv"></a><p class="docText">In fairness, this problem matters to a tiny number of
+      people only. Most users of <tt class="calibre34">mtl</tt> don't need to develop new
+      transformers at all, so they are not affected.</p><a name="x_Gv" class="calibre27" id="x_Gv"></a><p class="docText">This weakness of <tt class="calibre34">mtl</tt>'s design lies with the
+      fact that it was the first library of monad transformers that was
+      developed. Given that its designers were plunging into the unknown, they
+      did a remarkable job of producing a powerful library that is easy for
+      most users to understand and work with.</p><a name="x_Hv" class="calibre27" id="x_Hv"></a><p class="docText">A newer library of monads and transformers,
+      <tt class="calibre34">monadLib</tt>, corrects many of the design flaws in
+      <tt class="calibre34">mtl</tt>. If at some point you turn into a hardcore hacker of
+      monad transformers, it is well worth looking at.</p><a name="x_XJ1" class="calibre27" id="x_XJ1"></a><p class="docText">The quadratic instances definition is actually a
+      problem with the approach of using monad transformers. There have been
+      many other approaches put forward for composing monads that don't have
+      this problem, but none of them seem as convenient to the end user as
+      monad transformers. Fortunately, there simply aren't that many
+      foundational, generically useful monad transformers.</p><a name="I_sect118_d1e40625d1e41161" class="calibre27" id="I_sect118_d1e40625d1e41161"></a><h4 id="title-IDAES2CF" class="docSection1Title">18.8.5. Pulling It All Together</h4><a name="x_Iv" class="calibre27" id="x_Iv"></a><p class="docText">Monads are not by any means the end of the road when it
+      comes to working with effects and types. What they are is the most
+      practical resting point we have reached so far. Language researchers are
+      always working on systems that try to provide similar <span class="docEmphasis">advantages</span>, without the same
+      compromises.</p><a name="x_Jv" class="calibre27" id="x_Jv"></a><p class="docText">Although we must make compromises when we use them,
+      monads and monad transformers still offer a degree of flexibility and
+      control that has no precedent in an imperative language. With just a few
+      declarations, we can rewire something as fundamental as the semicolon to
+      give it a new<a name="I_indexterm18_d1e40843" class="calibre27" id="I_indexterm18_d1e40843"></a> meaning.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"><a href="21061538.html" class="calibre2"><img src="btn_next_.gif" alt="Next" border="0" class="calibre31"/></a> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect118_d1e40515.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="errors_split_000.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

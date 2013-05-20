@@ -1,0 +1,145 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0125.html
+next: f_0127.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="N1996B">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 91</td>
+<td class="arr-recipe-name">Replace with the Contents of a Register</td>
+</tr>
+</table>
+<p id="N19972" class="calibre4">
+<span class="calibre5">
+        We don’t have to type out the replacement string by hand. If the text already exists in the document, we can yank it into a register and use it in the replacement field. Then we can pass the contents of a register either by value or by reference.
+    </span>
+</p>
+<p id="N1998A" class="calibre4">
+        In <a xmlns:str="http://exslt.org/strings" href="f_0125.html#sec.substitute.lastpat">Tip 90</a>, we saw that Vim makes an intelligent assumption when we leave the search field of the substitute command blank. It’s tempting to think that leaving the replacement field blank would also reuse the string from the previous substitute command, but this isn’t the case. Instead, a blank replacement field instructs the substitute command to replace each match with an empty string. In other words, it deletes each match.
+    </p>
+<h3 class="calibre22">Pass by Value</h3>
+<p id="N19995" class="calibre4">
+        We can insert the contents of a register by typing <span class="calibre17">&lt;C-r&gt;{register}</span>. Suppose that we have yanked some text and want to paste it into the replacement field of the substitute command. We could do so by typing this:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:%s//&lt;C-r&gt;0/g</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N199AD" class="calibre4">
+        When we type <span class="calibre17">&lt;C-r&gt;0</span>, Vim pastes the contents of register <code class="cf">0</code> in place, which means we can examine it before we execute the substitute command. In many cases, this works just fine, but complications could ensue.
+      </p>
+<p id="N199B6" class="calibre4">
+        If the text in register <code class="cf">0</code> contains any characters that have special meaning within the replacement field (such as <code class="cf">&amp;</code> or <code class="cf">~</code>, for example), we would have to edit the string by hand to escape those characters. Also, if register <code class="cf">0</code> contained a multiline excerpt of text, it might not fit on the command line.
+      </p>
+<p id="N199C5" class="calibre4">
+        To avoid these problems, we could simply pass a reference to the register containing the text we want to use in the substitution field.
+      </p>
+<h3 class="calibre22">Pass by Reference</h3>
+<p id="N199CC" class="calibre4">
+        Suppose that we’ve yanked a multiline selection of text, and it’s stored in register <code class="cf">0</code>. Now we want to use that text as the replacement field of the substitute command. We could do so by running this:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:%s//\=@0/g</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N199E4" class="calibre4">
+        In the replacement field, the <code class="cf">\=</code> item tells Vim to evaluate a Vim script expression. In Vim script, we can reference the contents of a register as <code class="cf">@{register}</code>. <code class="cf">@0</code> returns the contents of the yank register, while <code class="cf">@"</code> returns the contents of the default register. So the expression <code class="cf">:%s//\=@0/g</code> tells Vim to substitute the last pattern with the contents of the yank register.
+      </p>
+<h3 class="calibre22">Comparison</h3>
+<p id="N199FA" class="calibre4">
+        Look at this command:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:%s/Pragmatic Vim/Practical Vim/g</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N19A0A" class="calibre4">
+        Compare it with this sequence of commands:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:let @/='Pragmatic Vim'</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:let @a='Practical Vim'</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:%s//\=@a/g</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N19A24" class="calibre4">
+<code class="cf">:let @/=’Pragmatic Vim’</code> is a programmatic way of setting the search pattern. It has the same effect as executing the search <code class="cf">/Pragmatic Vim</code>
+<span class="calibre17">&lt;CR&gt;</span> (except that running <code class="cf">:let @/=’Pragmatic Vim’</code> does not create a record in the search history).
+      </p>
+<p id="N19A31" class="calibre4">
+        Likewise, <code class="cf">:let @a=’Practical Vim’</code> sets the contents of the <code class="cf">a</code> register. The end result is the same as if we had visually selected the text “Practical Vim” and then typed <span class="calibre17">"ay</span> to yank the selection into register <code class="cf">a</code>.
+      </p>
+<p id="N19A4E" class="calibre4">
+        Both substitute commands do the same thing—they replace all occurrences of “Pragmatic Vim” with “Practical Vim.” But think about the consequences of each approach.
+      </p>
+<p id="N19A51" class="calibre4">
+        In the first case, we create a record in our command history that reads <code class="cf">:%s/Pragmatic Vim/Practical Vim/g</code>. That’s unambiguous. Later in our editing session, if we realize that we need to repeat this substitute command, we can dial it up from the command history and play it back as is. No surprises.
+      </p>
+<p id="N19A57" class="calibre4">
+        In the second case, we create a record in our command history that reads <code class="cf">:%s//\=@a/g</code>. That looks pretty cryptic, don’t you think?
+      </p>
+<p id="N19A5D" class="calibre4">
+        When we ran this substitute command for the first time, the search pattern was “Pragmatic Vim,” while the <code class="cf">a</code> register contained the text “Practical Vim.” But half an hour later, our current search pattern could have changed dozens of times, and we might have overwritten the <code class="cf">a</code> register to contain something else. So if we repeated the <code class="cf">:%s//\=@a/g</code> command, it could have a completely different effect!
+      </p>
+<p id="N19A69" class="calibre4">
+        We could exploit this. We could search for the text we want to act upon and yank its replacement into register <code class="cf">a</code>. Then we could replay the <code class="cf">:%s//\=@a/g</code> command, and it would use the values of <code class="cf">@/</code> and <code class="cf">@a</code> that we had just prepared. Next we could search for something else and yank another replacement string into register <code class="cf">a</code>, and when we replayed the <code class="cf">:%s//\=@a/g</code> command, it would do something else entirely.
+      </p>
+<p id="N19A7E" class="calibre4">
+        Try it out. You might love it or you might hate it. But either way, it’s a pretty neat trick!
+		</p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

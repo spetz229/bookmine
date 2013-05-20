@@ -1,0 +1,52 @@
+---
+layout: page
+title: "CoffeeScript (for jay muratore)"
+prev: f_0070.html
+next: f_0072.html
+book_path: books/coffeescript-accelerated-javascript-development-pragmatic--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 class="calibre13">A2.5 CoffeeScript on Node.js</h2>
+<p id="N14984" class="calibre5">
+      Recall that <code class="cf">coffee</code> files can be run directly on Node.js using the <code class="cf">coffee</code> command. So on the back end, no compilation is needed. The real trick is serving compiled JavaScript for the front end.
+    </p>
+<p id="N14993" class="calibre5">
+      Fortunately, Connect (the standard core for Node.js web frameworks) comes with middleware that does this automatically. It just takes a little bit of configuration. You need to hook in Connect’s <code class="cf">compiler</code> and <code class="cf">static</code> middlewares, in that order, like so. (We used this technique in Chapter 6, <a href="f_0053.html#chp.nodejs">​<em class="emph">Server-Side Apps with Node.js</em>​</a>.) 
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">compiler = connect.compiler src: coffeeDir, enable: [<em class="string">'coffeescript'</em>]</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">static = connect.static coffeeDir</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">connect.createServer compiler, static</code>
+</td>
+</tr>
+</table>
+<p id="N149BB" class="calibre5">
+      In this example, <code class="cf">coffee</code> files in <code class="cf">coffeeDir</code> will automatically be compiled and served as <code class="cf">js</code> files.
+    </p>
+<p id="N149C7" class="calibre5">
+      Some Node frameworks include preconfigured CoffeeScript-serving power. See, for instance, brunch and Zappa.
+      </p>
+<p id="N149D0" class="calibre5">
+    While it seems like everyone and their dog is developing web apps with Rails or Django these days, there are still plenty of sites that just don’t need a back end at all. Wouldn’t it be nice to be able to leverage CoffeeScript—along with Haml and Sass, perhaps—to develop ordinary websites, all while generating standards-compliant HTML/CSS and minified JavaScript for deployment?
+  </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

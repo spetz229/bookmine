@@ -1,0 +1,364 @@
+---
+layout: page
+title: "Эффективное использование C++. 55 верных способов улучшить структуру и код ваших программ"
+prev: OEBPS/section79.xhtml
+next: OEBPS/section81.xhtml
+book_path: books/effektivnoe-ispoljzovanie-c--vernih-sposobov-uluchshitj-strukturu-i-kod-vashih-programm_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <div class="calibre">
+      <div class="title1">
+        <h2 class="calibre3">Правило 47: Используйте классы-характеристики для предоставления информации о типах</h2>
+      </div>
+      <p class="calibre2">В основном библиотека STL содержит шаблоны контейнеров, итераторов и алгоритмов, но есть в ней и некоторые служебные шаблоны. Один из них называется advance. Шаблон advance перемещает указанный итератор на заданное расстояние:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;typename T, typename DistT&gt; // перемещает итератор iter</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void advance(Iter T&amp; iter, DistT d); // на d элементов вперед</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// если d &lt; 0, то перемещает iter</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// назад</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Концептуально advance делает то же самое, что предложение iter+=d, но таким способом advance не может быть реализован, потому что только итераторы с произвольным доступом поддерживают операцию +=. Для менее мощных итераторов advance реализуется путем повторения операции ++ или – ровно d раз.</p>
+      <p class="calibre2">А вы не помните, какие есть категории итераторов в STL? Не страшно, дадим краткий обзор. Существует пять категорий итераторов, соответствующих операциям, которые они поддерживают. <em class="calibre5">Итераторы ввода</em> ( <em class="calibre5">input iterators)</em> могут перемещаться только вперед, по одному шагу за раз, и позволяют читать только то, на что они указывают в данный момент, причем прочитать значение можно лишь один раз. Они моделируют указатель чтения из входного файла. К этой категории относится библиотечный итератор C++ iostream_iterator. <em class="calibre5">Итераторы вывода (output iterators)</em> устроены аналогично, но служат для вывода: перемещаются только вперед, по одному шагу за раз, позволяют записывать лишь в то место, на которое указывают, причем записать можно только один раз. Они моделируют указатель записи в выходной файл. К этой категории относится итератор ostream_iterator. Это самые «слабые» категории итераторов. Поскольку итераторы ввода и вывода могут перемещаться только в прямом направлении и позволяют лишь читать или писать туда, куда указывают, причем лишь единожды, они подходят только для однопроходных алгоритмов.</p>
+      <p class="calibre2">Более мощная категория итераторов состоит из <em class="calibre5">однонаправленных итераторов</em> (forward iterators). Такие итераторы могут делать все, что делают итераторы ввода и вывода, плюс разрешают читать и писать в то место, на которое указывают, более одного раза. Это делает их удобными для многопроходных алгоритмов. STL не предоставляет реализацию однонаправленных связных списков, но в некоторых библиотеках они есть (и обычно называются slist); итераторы таких контейнеров являются однонаправленными. Итераторы кэшированных контейнеров в библиотеке TR1 (см. правило 54) также могут быть однонаправленными.</p>
+      <p class="calibre2">
+        <em class="calibre5">Двунаправленные итераторы</em> (bidirectional iterators) добавляют к функциональности однонаправленных итераторов возможность перемещения назад. Итераторы для STL-контейнера list относятся к этой категории, равно как и итераторы для set, multiset, map и multimap.</p>
+      <p class="calibre2">Наиболее мощная категория итераторов – это <em class="calibre5">итераторы с произвольным доступом</em> (random access iterators). Итераторы этого типа добавляют к функциям двунаправленных итераторов «итераторную арифметику», то есть возможность перемещения вперед и назад на заданное расстояние, затрачивая на это постоянное время. Такая арифметика аналогична арифметике указателей, что неудивительно, поскольку итераторы с произвольным доступом моделируют встроенные указатели, а встроенные указатели могут вести себя как итераторы с произвольным доступом. Итераторы для vector, deque и string являются итераторами с произвольным доступом.</p>
+      <p class="calibre2">Для каждой из пяти категорий итераторов C++ в стандартной библиотеке имеется соответствующая «структура-тэг» (tag struct):</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">struct input_iterator_tag {};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">struct output_iterator_tag {};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">struct forward_iterator_tag: public input_iterator_tag {};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">struct bidirectional_iterator_tag: public forward_iterator_tag {};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">struct random_access_iterator_teg: public bidirectional_iterator_tag {};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Отношения наследования между этими структурами корректно выражают взаимосвязь типа «является» (см. правило 32): верно, что все однонаправленные итераторы являются также итераторами ввода и т. д. Вскоре мы увидим примеры использования такого наследования.</p>
+      <p class="calibre2">Но вернемся к операции advance. Поскольку у разных итераторов возможности различны, то можно было при реализации advance воспользоваться «наименьшим общим знаменателем», то есть организовать цикл, в котором итератор увеличивается или уменьшается на единицу. Но такой подход требует линейных затрат времени. Итераторы с произвольным доступом обеспечивают доступ к любому элементу контейнера за постоянное время, и, конечно, мы бы хотели воспользоваться этим преимуществом, коль скоро оно имеется.</p>
+      <p class="calibre2">В действительности хотелось бы реализовать advance как-то так:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">template&lt;typename IterT, typename DistT&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void advance(IterT&amp; iter, DistT d)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">if (<em class="calibre5">iter является итератором с произвольным доступом</em>) {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">iter += d; // использовать итераторную арифметику</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">} // для итераторов с произвольным доступом</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">else {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">if(d&gt;=0) {while (d–) ++iter;} // вызывать ++ или – в цикле</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">else {while(d++) –iter;} // для итераторов других категорий</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Но для этого нужно уметь определять, является ли iter итератором с произвольным доступом, что, в свою очередь, требует знания о том, что его тип – IterT – относится к категории итераторов с произвольным доступом. Другими словами, нам нужно получить некоторую информацию о типе. Именно для этого и служат характеристики (traits): получить информацию о типе во время компиляции.</p>
+      <p class="calibre2">Traits – это не ключевое слово и не предопределенная конструкция в C++; это техника и соглашение, которому следуют программисты. Одним из требований, предъявляемых к ней, является то, что она должна одинаково хорошо работать и для встроенных типов, и для типов, определяемых пользователем. Например, при вызове для обычного указателя (типа const char*) или значения типа int операция advance должна работать, а это значит, что техника характеристик должна быть применима и к встроенным типам.</p>
+      <p class="calibre2">Тот факт, что характеристики должны работать со встроенными типами, означает, что нельзя рассчитывать на размещение специальной информации внутри типа, потому что в указателях никакую информацию не разместишь. Поэтому характеристическая информация о типе должна быть внешней по отношению к типу. Стандартная техника заключается в помещении ее в шаблон, для которого существует одна или несколько специализаций. Для итераторов в стандартной библиотеке существует шаблон iterator_traits:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">template&lt;typename IterT&gt; // шаблон для информации</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">struct iterator_traits; // о типах итераторов</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Как видите, iterator_traits – это структура. По соглашению характеристики всегда реализуются в виде структур. Другое соглашение заключается в том, что структуры, используемые для их реализации, почему-то называются <em class="calibre5">классами-</em> характеристиками.</p>
+      <p class="calibre2">Смысл iterator_traits состоит в том, что для каждого типа IterT определяется псевдоним typedef iterator_category для структуры iterator_traits&lt;IterT&gt;. Этот typedef идентифицирует категорию, к которой относится итератор IterT.</p>
+      <p class="calibre2">Реализация этой идеи в iterator_traits состоит из двух частей. Первая – вводится требование, чтобы все определяемые пользователем типы итераторов имели внутри себя вложенный typedef с именем iterator_category, который задает соответствующую структуру-тэг. Например, итераторы deque являются итераторами с произвольным доступом, поэтому класс итераторов deque должен выглядеть примерно так:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;…&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class deque {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class iterator {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">typedef random_access_iterator_tag iterator_category;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Итераторы для контейнеров list являются двунаправленными, поэтому для них объявление выглядит так:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;…&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class list {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class iterator {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">typedef bidirectional_iterator_tag iterator_category;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">В шаблоне iterator_traits просто повторен находящийся внутри класса итератора typedef:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">// iterator_category для типа IterT – это то, что сообщает о нем сам IterT</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// см. в правиле 42 информацию об использовании “typedef typename”</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;typename IterT&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">struct iterator_traits {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">typedef typename IterT::iterator_category iterator_category;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Это работает с пользовательскими типами, но не подходит для итераторов, которые являются указателями, потому что не существует указателей с вложенными typedef. Поэтому во второй части шаблона iterator_traits реализована поддержка итераторов, являющихся указателями.</p>
+      <p class="calibre2">С этой целью iterator_traits представляет <em class="calibre5">частичную специализацию шаблонов</em> для типов указателей. Указатели ведут себя как итераторы с произвольным доступом, поэтому в iterator_traits для них указана именно эта категория:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;typename IterT&gt; // частичная специализация шаблона</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">struct iterator_traits&lt;IterT*&gt; // для встроенных типов указателей</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">typedef random_access_iterator_tar iterator_category;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Теперь вы должны понимать, как проектируется и реализуется класс-характеристика:</p>
+      <p class="calibre2">• Идентифицировать информацию о типе, которую вы хотели бы сделать доступной (например, для итераторов – это их категория).</p>
+      <p class="calibre2">• Выбрать имя для обозначения этой информации (например, iterator_category).</p>
+      <p class="calibre2">• Предоставить шаблон и набор его специализаций (например, iterator_traits), которые содержат информацию о типах, которые вы хотите поддерживать.</p>
+      <p class="calibre2">Имея шаблон iterator_traits, – на самом деле std::iterator_traits, потому что он является частью стандартной библиотеки C++, – мы можем уточнить наш псевдокод для advance:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">template&lt;typename IterT, typename DistT&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void advance(IterT&amp; iter, DistT d)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">if (typeid(typename std::iterator_traits&lt;IterT&gt;::iterator_category)==</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">typeid(std::random_access_iterator_tag))</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Выглядит многообещающе, но это не совсем то, что нужно. Во-первых, возникнет проблема при компиляции, но ее мы рассмотрим в правиле 48; а пока остановимся на более фундаментальном обстоятельстве. Тип IterT известен на этапе компиляции, поэтому iterator_traits&lt;IterT&gt;::iterator_category также может быть определен во время компиляции. Но предложение if вычисляется во время исполнения. Зачем делать во время исполнения нечто такое, что можно сделать во время компиляции? Это пустая трата времени и раздувание исполняемого кода.</p>
+      <p class="calibre2">Что нам нужно – так это условная конструкция (например, предложение if..else) для типов, которая вычислялась бы во время компиляции. К счастью, в C++ есть необходимые нам средства. Это не что иное, как перегрузка.</p>
+      <p class="calibre2">Когда вы перегружаете некоторую функцию f, вы указываете параметры разных типов для различных версий. Когда вызывается f, компилятор выбирает наиболее подходящую из перегруженных версий, основываясь на переданных аргументах. Компилятор, по сути, говорит: «Если эта версия лучше всего соответствует переданным параметрам, вызову ее; если лучше подходит другая версия – остановлюсь на ней, и так далее». Видите? Условная конструкция для типов во время компиляции. Чтобы заставить advance работать нужным нам образом, следует всего лишь создать две версии перегруженной функции, объявив в качестве параметра для каждой из них объекты iterator_category разных типов. Я назову эти функции doAdvance:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">template&lt;typename IterT, typename DistT&gt; // использовать эту</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void doAdvance(IterT&amp; iter, DistT d, // реализацию для</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::random_access_iterator_tag) // итераторов</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{ // с произвольным доступом</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">iter += d;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">template&lt;typename IterT, typename DistT&gt; // использовать эту</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void doAdvance(IterT&amp; iter, DistT d, // реализацию для</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::bidirectional_iterator_tag) // двунаправленных</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{ // итераторов</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">if(d &gt;= 0) {while(d–) ++iter;}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">else {while (d++) –iter;}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">template&lt;typename IterT, typename DistT&gt; // использовать</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void doAdvance(IterT&amp; iter, DistT d, // эту реализацию</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::input_iterator_tag) // для итераторов</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{ // ввода</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">if(d &lt; 0) {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">throw std::out_of_range(“Отрицательное направление”); // см. ниже</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">while (d–) ++iter;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Поскольку forward_iterator_tag наследует input_iterator_tag, то версия do-Advance для input_iterator_tag будет работать и с однонаправленными итераторами. Это дополнительный аргумент в пользу наследования между разными структурами iterator_tag. Фактически это аргумент в пользу <em class="calibre5">любого</em> открытого наследования: иметь возможность писать код для базового класса, который будет работать также и для производных от него классов.</p>
+      <p class="calibre2">Спецификация advance допускает как положительные, так и отрицательные значения сдвига для итераторов с произвольным доступом и двунаправленных итераторов, но поведение не определено, если вы попытаетесь сдвинуть на отрицательное расстояние итератор ввода или однонаправленный итератор. Реализации, которые я проверял, просто предполагают, что d – не отрицательно, поэтому входят в <em class="calibre5">очень</em> длинный цикл, пытаясь отсчитать «вниз» до нуля, если им передается отрицательное значение. В коде, приведенном выше, я показал вариант, в котором вместо этого возбуждается исключение. Обе реализации корректны. Это проклятие неопределенного поведения: вы <em class="calibre5">не можете предсказать,</em> что произойдет.</p>
+      <p class="calibre2">Имея разные перегруженные версии doAdvance, функции advance остается только вызвать их, передав в качестве дополнительного параметра объект, соответствующий типу категории итератора, чтобы компилятор мог применить механизм разрешения перегрузки для вызова правильной реализации:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">template &lt;typename IterT, typename DistT&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void advance(IterT&amp; iter, DistT d)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">doAdvance( // вызвать версию</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">iter, d, // doAdvance</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">typename // соответствующую</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::iterator_traits&lt;IterT&gt;::iterator_category() // категории</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">); // итератора iter</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Подведем итоги – как нужно использовать класс-характеристику:</p>
+      <p class="calibre2">• Создать набор перегруженных «рабочих» функций либо шаблонов функций (например, doAdvance), которые отличаются параметром-характеристикой. Реализовать каждую функцию в соответствии с переданной характеристикой.</p>
+      <p class="calibre2">• Создать «ведущую» функцию либо шаблон функции (например, advance), которая вызывает рабочие функции, передавая информацию, предоставленную классом-характеристикой.</p>
+      <p class="calibre2">Классы-характеристики широко используются в стандартной библиотеке. Так, класс iterator_traits, помимо iterator_category, представляет еще четыре вида информации об итераторах (наиболее часто используется value_type; в правиле 42 показан пример его применения). Есть еще char_traits, который содержит информацию о символьных типах, и numeric_limits, который хранит информацию о числовых типах, например минимальных и максимальных значениях и т. п. Имя numeric_limits немного сбивает с толку, поскольку нарушает соглашение, в соответствии с которыми имена классов-характеристик должны оканчиваться на «traits», но тут уж ничего не поделаешь, придется смириться.</p>
+      <p class="calibre2">В библиотеке TR1 (см. правило 54) есть целый ряд новых классов-характеристик, которые предоставляют информацию о типах, включая is_fundamental&lt;T&gt; (где T – встроенный тип), is_array&lt;T&gt; (где T – тип массива) и is_base_of&lt;T1,T2&gt; (то есть является ли T1 тем же, что и T2, либо его базовым классом). Всего TR1 добавляет к стандартному C++ более 50 классов-характеристик.</p>
+      <div class="subtitle">
+        <p class="subtitle1">
+          <strong class="calibre4">
+            <em class="calibre5">Что следует помнить</em>
+          </strong>
+        </p>
+      </div>
+      <p class="calibre2">• Классы-характеристики делают доступной информацию о типах во время компиляции. Они реализованы с применением шаблонов и их специализаций.</p>
+      <p class="calibre2">• В сочетании с перегрузкой классы-характеристики позволяют проверять типы во время компиляции.</p>
+    </div>
+  </div>
+
+{% endraw %}
+

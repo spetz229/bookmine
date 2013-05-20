@@ -1,0 +1,268 @@
+---
+layout: page
+title: "Java Concurrency in Practice"
+prev: ch04lev1sec2.html
+next: ch04lev1sec4.html
+book_path: books/brian-goetz-tim-peierls-joshua-bloch-joseph-bowbeer-david-holmes-doug-lea-java-concurrency-in-practice--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a href="21021536.html" class="calibre2"><img src="pixel.jpg" alt="" border="0" class="calibre26"/></a><a name="ch04lev1sec3" class="calibre18" id="ch04lev1sec3"></a>
+<h3 id="title-IDA1IQVP" class="docSection1Title">4.3. Delegating Thread Safety</h3>
+<p class="docText1">All but the most trivial objects are composite objects. The Java monitor pattern is useful when building classes from scratch or composing classes out of objects that are not thread-safe. But what if the components of our class are already thread-safe? Do we need to add an additional layer of thread safety? The answer is . . . "it depends". In some cases a composite made of thread-safe components is thread-safe (<a class="calibre2" href="#ch04list07">Listings 4.7</a> and <a class="calibre2" href="#ch04list09">4.9</a>), and in others it is merely a good start (<a class="calibre2" href="#ch04list10">4.10</a>).</p>
+<p class="docText1">In <tt class="calibre25">CountingFactorizer</tt> on page 23, we added an <tt class="calibre25">AtomicLong</tt> to an otherwise stateless object, and the resulting composite object was still thread-safe. Since the state of <tt class="calibre25">CountingFactorizer</tt> <span class="docEmphasis">is</span> the state of the thread-safe <tt class="calibre25">AtomicLong</tt>, and since <tt class="calibre25">CountingFactorizer</tt> imposes no additional validity constraints on the state of the <a name="iddle2139" class="calibre18" id="iddle2139"></a><a name="iddle2141" class="calibre18" id="iddle2141"></a><a name="iddle2154" class="calibre18" id="iddle2154"></a><a name="iddle4461" class="calibre18" id="iddle4461"></a><a name="iddle4462" class="calibre18" id="iddle4462"></a><a name="iddle5078" class="calibre18" id="iddle5078"></a><a name="iddle5079" class="calibre18" id="iddle5079"></a>counter, it is easy to see that <tt class="calibre25">CountingFactorizer</tt> is thread-safe. We could say that <tt class="calibre25">CountingFactorizer</tt> <span class="docEmphasis">delegates</span> its thread safety responsibilities to the <tt class="calibre25">AtomicLong</tt>: <tt class="calibre25">CountingFactorizer</tt> is thread-safe because <tt class="calibre25">AtomicLong</tt> is.<sup class="docFootnote"><a class="calibre2" href="#ch04fn05">[5]</a></sup></p><blockquote class="calibre19"><p class="docFootnote1"><sup class="calibre27"><a name="ch04fn05" class="calibre18" id="ch04fn05">[5]</a></sup> If <tt class="calibre35">count</tt> were not <tt class="calibre35">final</tt>, the thread safety analysis of <tt class="calibre35">CountingFactorizer</tt> would be more complicated. If <tt class="calibre35">CountingFactorizer</tt> could modify <tt class="calibre35">count</tt> to reference a different <tt class="calibre35">AtomicLong</tt>, we would then have to ensure that this update was visible to all threads that might access the count, and that there were no race conditions regarding the value of the <tt class="calibre35">count</tt> reference. This is another good reason to use <tt class="calibre35">final</tt> fields wherever practical.</p></blockquote>
+<a name="ch04list04" class="calibre18" id="ch04list04"></a><h5 id="title-IDAYNQVP" class="docExampleTitle">Listing 4.4. Monitor-based Vehicle Tracker Implementation.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">@ThreadSafe
+public class MonitorVehicleTracker {
+    @GuardedBy("this")
+    private final Map&lt;String, MutablePoint&gt; locations;
+
+    public MonitorVehicleTracker(
+            Map&lt;String, MutablePoint&gt; locations) {
+        this.locations = deepCopy(locations);
+    }
+
+    public <span class="docEmphStrong">synchronized</span> Map&lt;String, MutablePoint&gt; getLocations() {
+        return deepCopy(locations);
+    }
+
+    public <span class="docEmphStrong">synchronized</span>  MutablePoint getLocation(String id) {
+        MutablePoint loc = locations.get(id);
+        return loc == null ? null : new MutablePoint(loc);
+    }
+
+    public <span class="docEmphStrong">synchronized</span>  void setLocation(String id, int x, int y) {
+        MutablePoint loc = locations.get(id);
+        if (loc == null)
+            throw new IllegalArgumentException("No such ID: " + id);
+        loc.x = x;
+        loc.y = y;
+    }
+
+    private static Map&lt;String, MutablePoint&gt; deepCopy(
+            Map&lt;String, MutablePoint&gt; m) {
+        Map&lt;String, MutablePoint&gt; result =
+                new HashMap&lt;String, MutablePoint&gt;();
+        for (String id : m.keySet())
+            result.put(id, new MutablePoint(m.get(id)));
+        return Collections.unmodifiableMap(result);
+    }
+}
+
+public class MutablePoint { <span class="docEmphasis">/*  Listing 4.5  */</span> }
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<a name="ch04list05" class="calibre18" id="ch04list05"></a><h5 id="title-IDAXOQVP" class="docExampleTitle">Listing 4.5. Mutable Point Class Similar to <tt class="calibre33">Java.awt.Point</tt>.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<img border="0" alt="" src="face1.jpg" class="calibre31"/>
+<pre class="calibre30">@NotThreadSafe
+public class MutablePoint {
+    public int x, y;
+
+    public MutablePoint() { x = 0; y = 0; }
+    public MutablePoint(MutablePoint p) {
+        this.x = p.x;
+        this.y = p.y;
+    }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<a name="ch04lev2sec6" class="calibre18" id="ch04lev2sec6"></a>
+<h4 id="title-IDASPQVP" class="docSection2Title">4.3.1. Example: Vehicle Tracker Using Delegation</h4>
+<p class="docText1">As a more substantial example of delegation, let's construct a version of the vehicle tracker that delegates to a thread-safe class. We store the locations in a <tt class="calibre25">Map</tt>, so we start with a thread-safe <tt class="calibre25">Map</tt> implementation, <tt class="calibre25">ConcurrentHashMap</tt>. We also store the location using an immutable <tt class="calibre25">Point</tt> class instead of <tt class="calibre25">MutablePoint</tt>, shown in <a class="calibre2" href="#ch04list06">Listing 4.6</a>.</p>
+<a name="ch04list06" class="calibre18" id="ch04list06"></a><h5 id="title-IDATQQVP" class="docExampleTitle">Listing 4.6. Immutable <tt class="calibre33">Point</tt> class used by <tt class="calibre33">DelegatingVehicleTracker</tt>.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">@Immutable
+public class Point {
+    public final int x, y;
+
+    public Point(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1"><tt class="calibre25">Point</tt> is thread-safe because it is immutable. Immutable values can be freely shared and published, so we no longer need to copy the locations when returning them.</p>
+<p class="docText1"><a name="iddle2107" class="calibre18" id="iddle2107"></a><tt class="calibre25">DelegatingVehicleTracker</tt> in <a class="calibre2" href="#ch04list07">Listing 4.7</a> does not use any explicit synchronization; all access to state is managed by <tt class="calibre25">ConcurrentHashMap</tt>, and all the keys and values of the <tt class="calibre25">Map</tt> are immutable.</p>
+<a name="ch04list07" class="calibre18" id="ch04list07"></a><h5 id="title-IDAGSQVP" class="docExampleTitle">Listing 4.7. Delegating Thread Safety to a <tt class="calibre33">ConcurrentHashMap</tt>.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">@ThreadSafe
+public class DelegatingVehicleTracker {
+    private <span class="docEmphStrong">final</span> ConcurrentMap&lt;String, Point&gt; locations;
+    private <span class="docEmphStrong">final</span> Map&lt;String, Point&gt; unmodifiableMap;
+
+    public DelegatingVehicleTracker(Map&lt;String, Point&gt; points) {
+        locations = new <span class="docEmphStrong">ConcurrentHashMap</span>&lt;String, Point&gt;(points);
+        unmodifiableMap = <span class="docEmphStrong">Collections.unmodifiableMap</span>(locations);
+    }
+
+    public Map&lt;String, Point&gt; getLocations() {
+        return unmodifiableMap;
+    }
+
+    public Point getLocation(String id) {
+        return locations.get(id);
+    }
+
+    public void setLocation(String id, int x, int y) {
+        if (locations.replace(id, new Point(x, y)) == null)
+            throw new IllegalArgumentException(
+                "invalid vehicle name: " + id);
+    }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1">If we had used the original <tt class="calibre25">MutablePoint</tt> class instead of <tt class="calibre25">Point</tt>, we would be breaking encapsulation by letting <tt class="calibre25">getLocations</tt> publish a reference to mutable state that is not thread-safe. Notice that we've changed the behavior of the vehicle tracker class slightly; while the monitor version returned a snapshot of the locations, the delegating version returns an unmodifiable but "live" view of the vehicle locations. This means that if thread <span class="docEmphasis">A</span> calls <tt class="calibre25">getLocations</tt> and thread <span class="docEmphasis">B</span> later modifies the location of some of the points, those changes are reflected in the <tt class="calibre25">Map</tt> returned to thread <span class="docEmphasis">A</span>. As we remarked earlier, this can be a benefit (more up-to-date data) or a liability (potentially inconsistent view of the fleet), depending on your requirements.</p>
+<p class="docText1">If an unchanging view of the fleet is required, <tt class="calibre25">getLocations</tt> could instead return a shallow copy of the <tt class="calibre25">locations</tt> map. Since the contents of the <tt class="calibre25">Map</tt> are immutable, only the structure of the <tt class="calibre25">Map</tt>, not the contents, must be copied, as shown in <a class="calibre2" href="#ch04list08">Listing 4.8</a> (which returns a plain <tt class="calibre25">HashMap</tt>, since <tt class="calibre25">getLocations</tt> did not promise to return a thread-safe <tt class="calibre25">Map</tt>).</p>
+<p class="docText1"></p><a name="ch04list08" class="calibre18" id="ch04list08"></a><h5 id="title-IDAVUQVP" class="docExampleTitle">Listing 4.8. Returning a Static Copy of the Location Set Instead of a "Live" One.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">public Map&lt;String, Point&gt; getLocations() {
+    return Collections.unmodifiableMap(
+            new HashMap&lt;String, Point&gt;(locations));
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<a name="ch04lev2sec7" class="calibre18" id="ch04lev2sec7"></a>
+<h4 id="title-IDAFVQVP" class="docSection2Title">4.3.2. Independent State Variables</h4>
+<p class="docText1"><a name="iddle1553" class="calibre18" id="iddle1553"></a><a name="iddle1554" class="calibre18" id="iddle1554"></a><a name="iddle1941" class="calibre18" id="iddle1941"></a><a name="iddle2215" class="calibre18" id="iddle2215"></a><a name="iddle2728" class="calibre18" id="iddle2728"></a><a name="iddle2729" class="calibre18" id="iddle2729"></a><a name="iddle2852" class="calibre18" id="iddle2852"></a><a name="iddle3886" class="calibre18" id="iddle3886"></a><a name="iddle4432" class="calibre18" id="iddle4432"></a><a name="iddle4433" class="calibre18" id="iddle4433"></a><a name="iddle5057" class="calibre18" id="iddle5057"></a><a name="iddle5058" class="calibre18" id="iddle5058"></a><a name="iddle5092" class="calibre18" id="iddle5092"></a>The delegation examples so far delegate to a single, thread-safe state variable. We can also delegate thread safety to more than one underlying state variable as long as those underlying state variables are <span class="docEmphasis">independent</span>, meaning that the composite class does not impose any invariants involving the multiple state variables.</p>
+<p class="docText1"><tt class="calibre25">VisualComponent</tt> in <a class="calibre2" href="#ch04list09">Listing 4.9</a> is a graphical component that allows clients to register listeners for mouse and keystroke events. It maintains a list of registered listeners of each type, so that when an event occurs the appropriate listeners can be invoked. But there is no relationship between the set of mouse listeners and key listeners; the two are independent, and therefore <tt class="calibre25">VisualComponent</tt> can delegate its thread safety obligations to two underlying thread-safe lists.</p>
+<a name="ch04list09" class="calibre18" id="ch04list09"></a><h5 id="title-IDAT0QVP" class="docExampleTitle">Listing 4.9. Delegating Thread Safety to Multiple Underlying State Variables.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">public class VisualComponent {
+    private final List&lt;KeyListener&gt; keyListeners
+        = new CopyOnWriteArrayList&lt;KeyListener&gt;();
+    private final List&lt;MouseListener&gt; mouseListeners
+        = new CopyOnWriteArrayList&lt;MouseListener&gt;();
+
+    public void addKeyListener(KeyListener listener) {
+        keyListeners.add(listener);
+    }
+
+    public void addMouseListener(MouseListener listener) {
+        mouseListeners.add(listener);
+    }
+
+    public void removeKeyListener(KeyListener listener) {
+        keyListeners.remove(listener);
+    }
+
+    public void removeMouseListener(MouseListener listener) {
+        mouseListeners.remove(listener);
+    }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1"><tt class="calibre25">VisualComponent</tt> uses a <tt class="calibre25">CopyOnWriteArrayList</tt> to store each listener list; this <a name="iddle1151" class="calibre18" id="iddle1151"></a><a name="iddle1335" class="calibre18" id="iddle1335"></a><a name="iddle1862" class="calibre18" id="iddle1862"></a><a name="iddle2147" class="calibre18" id="iddle2147"></a><a name="iddle2856" class="calibre18" id="iddle2856"></a><a name="iddle3274" class="calibre18" id="iddle3274"></a>is a thread-safe <tt class="calibre25">List</tt> implementation particularly suited for managing listener lists (see <a class="calibre2" href="ch05lev1sec2.html#ch05lev2sec6">Section 5.2.3</a>). Each <tt class="calibre25">List</tt> is thread-safe, and because there are no constraints coupling the state of one to the state of the other, <tt class="calibre25">VisualComponent</tt> can delegate its thread safety responsibilities to the underlying <tt class="calibre25">mouseListeners</tt> and <tt class="calibre25">keyListeners</tt> objects.</p>
+<a name="ch04lev2sec8" class="calibre18" id="ch04lev2sec8"></a>
+<h4 id="title-IDA33QVP" class="docSection2Title">4.3.3. When Delegation Fails</h4>
+<p class="docText1">Most composite classes are not as simple as <tt class="calibre25">VisualComponent</tt>: they have invariants that relate their component state variables. <tt class="calibre25">NumberRange</tt> in <a class="calibre2" href="#ch04list10">Listing 4.10</a> uses two <tt class="calibre25">AtomicInteger</tt>s to manage its state, but imposes an additional constraintthat the first number be less than or equal to the second.</p>
+<a name="ch04list10" class="calibre18" id="ch04list10"></a><h5 id="title-IDAX4QVP" class="docExampleTitle">Listing 4.10. Number Range Class that does Not Sufficiently Protect Its Invariants. <span class="docEmphasis">Don't Do this.</span></h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<img border="0" alt="" src="face.jpg" class="calibre29"/>
+<pre class="calibre30">public class NumberRange {
+    // <span class="docEmphasis">INVARIANT: lower &lt;= upper</span>
+    private final AtomicInteger lower = new AtomicInteger(0);
+    private final AtomicInteger upper = new AtomicInteger(0);
+
+    public void setLower(int i) {
+        // <span class="docEmphasis">Warning -- unsafe check-then-act</span>
+        if (i &gt; upper.get())
+            throw new IllegalArgumentException(
+                    "can't set lower to " + i + " &gt; upper");
+        lower.set(i);
+    }
+
+    public void setUpper(int i) {
+        // <span class="docEmphasis">Warning -- unsafe check-then-act</span>
+        if (i &lt; lower.get())
+            throw new IllegalArgumentException(
+                    "can't set upper to " + i + " &lt; lower");
+        upper.set(i);
+    }
+
+    public boolean isInRange(int i) {
+        return (i &gt;= lower.get() &amp;&amp; i &lt;= upper.get());
+    }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1"><tt class="calibre25">NumberRange</tt> is not thread-safe; it does not preserve the invariant that constrains <tt class="calibre25">lower</tt> and <tt class="calibre25">upper</tt>. The <tt class="calibre25">setLower</tt> and <tt class="calibre25">setUpper</tt> methods <span class="docEmphasis">attempt</span> to respect this invariant, but do so poorly. Both <tt class="calibre25">setLower</tt> and <tt class="calibre25">setUpper</tt> are check-then-act sequences, but they do not use sufficient locking to make them atomic. If the number range holds (0, 10), and one thread calls <tt class="calibre25">setLower(5)</tt> while another thread <a name="iddle2590" class="calibre18" id="iddle2590"></a><a name="iddle2844" class="calibre18" id="iddle2844"></a><a name="iddle3733" class="calibre18" id="iddle3733"></a><a name="iddle3734" class="calibre18" id="iddle3734"></a><a name="iddle4435" class="calibre18" id="iddle4435"></a><a name="iddle5061" class="calibre18" id="iddle5061"></a><a name="iddle5068" class="calibre18" id="iddle5068"></a><a name="iddle5127" class="calibre18" id="iddle5127"></a>calls <tt class="calibre25">setUpper(4)</tt>, with some unlucky timing both will pass the checks in the setters and both modifications will be applied. The result is that the range now holds (5, 4)an invalid state. So while the underlying <tt class="calibre25">AtomicInteger</tt>s are thread-safe, the composite class is not. Because the underlying state variables <tt class="calibre25">lower</tt> and <tt class="calibre25">upper</tt> are not independent, <tt class="calibre25">NumberRange</tt> cannot simply delegate thread safety to its thread-safe state varaibles.</p>
+<p class="docText1"><tt class="calibre25">NumberRange</tt> could be made thread-safe by using locking to maintain its invariants, such as guarding <tt class="calibre25">lower</tt> and <tt class="calibre25">upper</tt> with a common lock. It must also avoid publishing <tt class="calibre25">lower</tt> and <tt class="calibre25">upper</tt> to prevent clients from subverting its invariants.</p>
+<p class="docText1">If a class has compound actions, as <tt class="calibre25">NumberRange</tt> does, delegation alone is again not a suitable approach for thread safety. In these cases, the class must provide its own locking to ensure that compound actions are atomic, unless the entire compound action can also be delegated to the underlying state variables.</p>
+<a name="ch04sb05" class="calibre18" id="ch04sb05"></a><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<p class="docText1">If a class is composed of multiple <span class="docEmphasis">independent</span> thread-safe state variables and has no operations that have any invalid state transitions, then it can delegate thread safety to the underlying state variables.</p>
+</td></tr></table></p><p class="calibre1"> </p>
+<p class="docText1">The problem that prevented <tt class="calibre25">NumberRange</tt> from being thread-safe even though its state components were thread-safe is very similar to one of the rules about volatile variables described in <a class="calibre2" href="ch03lev1sec1.html#ch03lev2sec4">Section 3.1.4</a>: a variable is suitable for being declared <tt class="calibre25">volatile</tt> only if it does not participate in invariants involving other state variables.</p>
+<a name="ch04lev2sec9" class="calibre18" id="ch04lev2sec9"></a>
+<h4 id="title-IDACFRVP" class="docSection2Title">4.3.4. Publishing Underlying State Variables</h4>
+<p class="docText1">When you delegate thread safety to an object's underlying state variables, under what conditions can you publish those variables so that other classes can modify them as well? Again, the answer depends on what invariants your class imposes on those variables. While the underlying <tt class="calibre25">value</tt> field in <tt class="calibre25">Counter</tt> could take on any integer value, <tt class="calibre25">Counter</tt> constrains it to take on only positive values, and the increment operation constrains the set of valid next states given any current state. If you were to make the <tt class="calibre25">value</tt> field public, clients could change it to an invalid value, so publishing it would render the class incorrect. On the other hand, if a variable represents the current temperature or the ID of the last user to log on, then having another class modify this value at any time probably would not violate any invariants, so publishing this variable might be acceptable. (It still may not be a good idea, since publishing mutable variables constrains future development and opportunities for subclassing, but it would not <span class="docEmphasis">necessarily</span> render the class not thread-safe.)</p>
+<a name="ch04sb06" class="calibre18" id="ch04sb06"></a><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<p class="docText1">If a state variable is thread-safe, does not participate in any invariants that constrain its value, and has no prohibited state transitions for any of its operations, then it can safely be published.</p>
+</td></tr></table></p><p class="calibre1"> </p>
+<p class="docText1">For example, it would be safe to publish <tt class="calibre25">mouseListeners</tt> or <tt class="calibre25">keyListeners</tt> in <tt class="calibre25">VisualComponent</tt>. Because <tt class="calibre25">VisualComponent</tt> does not impose any constraints on the valid states of its listener lists, these fields could be made public or otherwise published without compromising thread safety.</p>
+<a name="ch04lev2sec10" class="calibre18" id="ch04lev2sec10"></a>
+<h4 id="title-IDAPGRVP" class="docSection2Title">4.3.5. Example: Vehicle Tracker that Publishes Its State</h4>
+<p class="docText1">Let's construct another version of the vehicle tracker that publishes its underlying mutable state. Again, we need to modify the interface a little bit to accommodate this change, this time using mutable but thread-safe points.</p>
+<a name="ch04list11" class="calibre18" id="ch04list11"></a><h5 id="title-IDA2GRVP" class="docExampleTitle">Listing 4.11. Thread-safe Mutable Point Class.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">@ThreadSafe
+public class SafePoint {
+    @GuardedBy("this") private int x, y;
+
+    private SafePoint(int[] a) { this(a[0], a[1]); }
+
+    public SafePoint(SafePoint p) { this(p.get()); }
+
+    public SafePoint(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public synchronized int[] get() {
+        return new int[] { x, y };
+    }
+
+    public synchronized void set(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1"><tt class="calibre25">SafePoint</tt> in <a class="calibre2" href="#ch04list11">Listing 4.11</a> provides a getter that retrieves both the <span class="docEmphasis">x</span> and <span class="docEmphasis">y</span> values at once by returning a two-element array.<sup class="docFootnote"><a class="calibre2" href="#ch04fn06">[6]</a></sup> If we provided separate getters <a name="iddle1206" class="calibre18" id="iddle1206"></a><a name="iddle1207" class="calibre18" id="iddle1207"></a><a name="iddle1571" class="calibre18" id="iddle1571"></a><a name="iddle2171" class="calibre18" id="iddle2171"></a><a name="iddle2698" class="calibre18" id="iddle2698"></a><a name="iddle3666" class="calibre18" id="iddle3666"></a><a name="iddle3667" class="calibre18" id="iddle3667"></a><a name="iddle4961" class="calibre18" id="iddle4961"></a><a name="iddle5081" class="calibre18" id="iddle5081"></a><a name="iddle1555" class="calibre18" id="iddle1555"></a><a name="iddle1942" class="calibre18" id="iddle1942"></a><a name="iddle5093" class="calibre18" id="iddle5093"></a>for <span class="docEmphasis">x</span> and <span class="docEmphasis">y</span>, then the values could change between the time one coordinate is retrieved and the other, resulting in a caller seeing an inconsistent value: an (<span class="docEmphasis">x</span>, <span class="docEmphasis">y</span>) location where the vehicle never was. Using <tt class="calibre25">SafePoint</tt>, we can construct a vehicle tracker that publishes the underlying mutable state without undermining thread safety, as shown in the <tt class="calibre25">PublishingVehicleTracker</tt> class in <a class="calibre2" href="#ch04list12">Listing 4.12</a>.</p><blockquote class="calibre19"><p class="docFootnote1"><sup class="calibre27"><a name="ch04fn06" class="calibre18" id="ch04fn06">[6]</a></sup> The private constructor exists to avoid the race condition that would occur if the copy constructor were implemented as <tt class="calibre35">this(p.x, p.y)</tt>; this is an example of the <span class="docEmphasis">private constructor capture idiom</span> (<a class="calibre2" href="bib01.html#biblio01_004">Bloch and Gafter, 2005</a>).</p></blockquote>
+<a name="ch04list12" class="calibre18" id="ch04list12"></a><h5 id="title-IDA4MRVP" class="docExampleTitle">Listing 4.12. Vehicle Tracker that Safely Publishes Underlying State.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">@ThreadSafe
+public class PublishingVehicleTracker {
+    private final Map&lt;String, SafePoint&gt; locations;
+    private final Map&lt;String, SafePoint&gt; unmodifiableMap;
+
+    public PublishingVehicleTracker(
+                            Map&lt;String, SafePoint&gt; locations) {
+        this.locations
+            = new ConcurrentHashMap&lt;String, SafePoint&gt;(locations);
+        this.unmodifiableMap
+            = Collections.unmodifiableMap(this.locations);
+    }
+
+    public Map&lt;String, SafePoint&gt; getLocations() {
+        return unmodifiableMap;
+    }
+
+    public SafePoint getLocation(String id) {
+        return locations.get(id);
+    }
+
+    public void setLocation(String id, int x, int y) {
+        if (!locations.containsKey(id))
+            throw new IllegalArgumentException(
+                "invalid vehicle name: " + id);
+        locations.get(id).set(x, y);
+      }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1"><tt class="calibre25">PublishingVehicleTracker</tt> derives its thread safety from delegation to an underlying <tt class="calibre25">ConcurrentHashMap</tt>, but this time the contents of the <tt class="calibre25">Map</tt> are thread-safe mutable points rather than immutable ones. The <tt class="calibre25">getLocation</tt> method returns an unmodifiable copy of the underlying <tt class="calibre25">Map</tt>. Callers cannot add or remove vehicles, but could change the location of one of the vehicles by mutating the <tt class="calibre25">SafePoint</tt> values in the returned <tt class="calibre25">Map</tt>. Again, the "live" nature of the <tt class="calibre25">Map</tt> may be a benefit or a drawback, depending on the requirements. <tt class="calibre25">PublishingVehicleTracker</tt> is thread-safe, but would not be so if it imposed any additional constraints on the valid values for vehicle locations. If it needed to be able to "veto" changes to <a name="iddle1164" class="calibre18" id="iddle1164"></a><a name="iddle1344" class="calibre18" id="iddle1344"></a><a name="iddle1345" class="calibre18" id="iddle1345"></a><a name="iddle1722" class="calibre18" id="iddle1722"></a><a name="iddle1723" class="calibre18" id="iddle1723"></a><a name="iddle2010" class="calibre18" id="iddle2010"></a><a name="iddle2011" class="calibre18" id="iddle2011"></a><a name="iddle2028" class="calibre18" id="iddle2028"></a><a name="iddle2029" class="calibre18" id="iddle2029"></a><a name="iddle2288" class="calibre18" id="iddle2288"></a><a name="iddle2391" class="calibre18" id="iddle2391"></a><a name="iddle2392" class="calibre18" id="iddle2392"></a><a name="iddle2414" class="calibre18" id="iddle2414"></a><a name="iddle2415" class="calibre18" id="iddle2415"></a><a name="iddle2416" class="calibre18" id="iddle2416"></a><a name="iddle3593" class="calibre18" id="iddle3593"></a><a name="iddle3594" class="calibre18" id="iddle3594"></a><a name="iddle3737" class="calibre18" id="iddle3737"></a><a name="iddle3738" class="calibre18" id="iddle3738"></a><a name="iddle3997" class="calibre18" id="iddle3997"></a><a name="iddle3998" class="calibre18" id="iddle3998"></a><a name="iddle3999" class="calibre18" id="iddle3999"></a><a name="iddle4492" class="calibre18" id="iddle4492"></a><a name="iddle4565" class="calibre18" id="iddle4565"></a><a name="iddle4567" class="calibre18" id="iddle4567"></a><a name="iddle4568" class="calibre18" id="iddle4568"></a>vehicle locations or to take action when a location changes, the approach taken by <tt class="calibre25">PublishingVehicleTracker</tt> would not be appropriate.</p>
+<a href="21021536.html" class="calibre2"><img src="pixel.jpg" alt="" border="0" class="calibre26"/></a>
+<p class="calibre3"> </p>
+
+</div>
+
+{% endraw %}
+

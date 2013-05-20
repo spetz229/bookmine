@@ -1,0 +1,249 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0092.html
+next: f_0094.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.paste.option">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 63</td>
+<td class="arr-recipe-name">Interact with the System Clipboard</td>
+</tr>
+</table>
+<p id="N16E15" class="calibre4">
+<span class="calibre5">
+        Besides Vim’s built-in put commands, we can sometimes use the system paste command. However, using this can occasionally produce unexpected results when running Vim inside a terminal. We can avoid these issues by enabling the <code class="cf">‘paste’</code> option before using the system paste command.
+    </span>
+</p>
+<h3 class="calibre22">Preparation</h3>
+<p id="N16E2A" class="calibre4">
+        This tip is only applicable when running Vim inside the terminal, so you can safely skip it if you always use GVim. We’ll start by launching Vim in the terminal:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ vim -u NONE -N</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N16E44" class="calibre4">
+        Enabling the <code class="cf">‘autoindent’</code> setting is a sure way to induce strange effects when pasting from the system clipboard:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:set autoindent</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N16E57" class="calibre4">
+        Finally, we’ll need to copy the following code into the system clipboard. Copying code listings from a PDF can produce strange results, so I recommend downloading the sample code and then opening it in another text editor (or a web browser) and using the system copy command:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/copy_and_paste/fizz.rb">copy_and_paste/fizz.rb</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​[1,2,3,4,5,6,7,8,9,10].each <strong class="prompt">do</strong> |n|​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​  <strong class="prompt">if</strong> n%5==0​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​    puts <em class="string">"fizz"</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​  <strong class="prompt">else</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​    puts n​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​  <strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<h3 class="calibre22">Locating the System Paste Command</h3>
+<p id="N16E8A" class="calibre4">
+        Throughout this tip, we’ll refer to the <span class="calibre5">system paste command</span>, and you can substitute the appropriate mapping for your system. On OS X, the system paste command is triggered by the <span class="calibre17">Cmd</span>-<span class="calibre17">v</span> mapping. We can use this inside the Terminal or in MacVim, and it inserts the contents of the system clipboard.
+      </p>
+<p id="N16EA8" class="calibre4">
+        Things aren’t quite so tidy on Linux and Windows. The standard mapping for the system paste command is normally <span class="calibre17">Ctrl</span>-<span class="calibre17">v</span>. In Normal mode, this mapping enables Visual-Block mode (<a xmlns:str="http://exslt.org/strings" href="f_0042.html#sec.visual.define">Tip 21</a>), and in Insert mode it enables us to insert characters literally or by a numeric code (<a xmlns:str="http://exslt.org/strings" href="f_0037.html#sec.character.code">Tip 17​<em class="calibre5">Insert Unusual Characters by Character Code</em>​</a>).
+      </p>
+<p id="N16EC3" class="calibre4">
+        Some terminal emulators on Linux provide a modified version of <span class="calibre17">Ctrl</span>-<span class="calibre17">v</span> for pasting from the system clipboard. It might be <span class="calibre17">Ctrl</span>-<span class="calibre17">Shift</span>-<span class="calibre17">v</span> or perhaps <span class="calibre17">Ctrl</span>-<span class="calibre17">Alt</span>-<span class="calibre17">v</span>, depending on the system. Don’t worry if you can’t figure out what the system paste command is for your setup. An alternative using the <code class="cf">"*</code> register is presented at the end of this tip.
+      </p>
+<h3 class="calibre22">Using the System Paste Command in Insert Mode</h3>
+<p id="N16EE5" class="calibre4">
+        If we switch to Insert mode and then use the system paste command, we get this strange result:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​[1,2,3,4,5,6,7,8,9,10].each <strong class="prompt">do</strong> |n|​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​  <strong class="prompt">if</strong> n%5==0​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​      puts <em class="string">"fizz"</em>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​        <strong class="prompt">else</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​      puts n​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​        <strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​        <strong class="prompt">end</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N16F19" class="calibre4">
+        Something is wrong with the indentation. When we use the system paste command in Insert mode, Vim acts as though each character has been typed by hand. When the <code class="cf">‘autoindent’</code> option is enabled, Vim preserves the same level of indentation each time we create a new line. The leading whitespace at the start of each line in the clipboard is added on top of the automatic indent, and the result is that each line wanders further and further to the right.
+      </p>
+<p id="N16F2C" class="calibre4">
+        GVim is able to discern when text is pasted from the clipboard and adjust its behavior accordingly, but when Vim runs inside a terminal this information is not available. The <code class="cf">‘paste’</code> option allows us to manually warn Vim that we’re about to use the system paste command. When the <code class="cf">‘paste’</code> option is enabled, Vim turns off all Insert mode mappings and abbreviations and resets a host of options, including <code class="cf">‘autoindent’</code> (look up <strong xmlns:str="http://exslt.org/strings" class="calibre10">'paste'</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/options.html#'paste'">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a> for the full list). That allows us to safely paste from the system clipboard with no surprises.
+      </p>
+<p id="N16F42" class="calibre4">
+        When we’re finished using the system paste command, we should disable the <code class="cf">‘paste’</code> option again. That means switching back to Normal mode and then running the Ex command <code class="cf">:set paste!</code>. Don’t you think it would be handy if there were a way of toggling this option without leaving Insert mode?
+      </p>
+<p id="N16F50" class="calibre4">
+        The way that Vim behaves when <code class="cf">‘paste’</code> is enabled means that the usual methods for creating custom mappings won’t work in Insert mode. Instead, we can assign a key to the <code class="cf">‘pastetoggle’</code> option (<strong xmlns:str="http://exslt.org/strings" class="calibre10">'pastetoggle'</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/options.html#'pastetoggle'">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>):
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:set pastetoggle=&lt;f5&gt;</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N16F7A" class="calibre4">
+        Try executing that command line: it sets up the <span class="calibre17">&lt;f5&gt;</span> to toggle the paste option on and off. It should work both in Insert and Normal modes. If you find the mapping useful, add that line (or a variation of it) to your <code class="cf">vimrc</code>.
+      </p>
+<h3 class="calibre22">Avoid Toggling <code class="cf2">‘paste’</code> by Putting from the Plus Register</h3>
+<p id="N16F94" class="calibre4">
+        If you’re running a version of Vim with system clipboard integration, then you can avoid fiddling with the <code class="cf">‘paste’</code> option entirely. The Normal mode <span class="calibre17">"+p</span> command pastes the contents of the plus register, which mirrors the system clipboard (see <a xmlns:str="http://exslt.org/strings" href="f_0090.html#sec.clipboard.register">​<em class="calibre5">The System Clipboard (<code class="cf">"+</code>) and Selection (<code class="cf">"*</code>) Registers</em>​</a>, for more details). This command preserves the indentation of the text in the clipboard so you can expect no surprises, regardless of how the <code class="cf">‘paste’</code> and <code class="cf">‘autocommand’</code> options are set.
+	</p>
+
+<div class="copyright">Copyright © 2012, The Pragmatic Bookshelf.</div>
+
+
+
+
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

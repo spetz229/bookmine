@@ -1,0 +1,159 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: find_fold_split_001.html
+next: I_sect19_d1e24785_split_001.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="find_fold_split_000.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="binary_split_000.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect19_d1e24785" class="calibre27" id="I_sect19_d1e24785"></a><h3 id="title-IDA3GMTH" class="docSection1Title">9.10. Useful Coding Guidelines</h3><a name="x_BQ" class="calibre27" id="x_BQ"></a><p class="docText">While many good Haskell programming<a name="ch09-codeguide" class="calibre27" id="ch09-codeguide"></a> habits come with experience, we have a few general
+    guidelines to offer so that you can write readable code more
+    quickly.</p><a name="x_CQ" class="calibre27" id="x_CQ"></a><p class="docText">As we already mentioned in <a class="docLink" href="deftypes_offside.html#deftypes_tabs">Section 3.10.1</a>, never use tab characters in Haskell source
+    files. Use spaces.</p><a name="x_DQ" class="calibre27" id="x_DQ"></a><p class="docText">If you find yourself proudly thinking that a particular
+    piece of code is fiendishly clever, stop and consider whether you'll be
+    able to understand it again after you've stepped away from it for a
+    month.</p><a name="x_EQ" class="calibre27" id="x_EQ"></a><p class="docText">The conventional way of naming types and variables with
+    compound names is to use<a name="I_indexterm9_d1e24804" class="calibre27" id="I_indexterm9_d1e24804"></a> <span class="docEmphasis">camel case</span>, i.e.,
+    <span class="docMonofont">myVariableName</span>. This style is almost universal in
+    Haskell code. Regardless of your opinion of other naming practices, if you
+    follow a nonstandard convention, your Haskell code will be somewhat
+    jarring to the eyes of other readers.</p><a name="x_FQ" class="calibre27" id="x_FQ"></a><p class="docText">Until you've been working with Haskell for a substantial
+    amount of time, spend a few minutes searching for library functions before
+    you write small functions. This applies particularly to ubiquitous types
+    such as lists, Maybe, and Either. If the
+    standard libraries don't already provide exactly what you need, you might
+    be able to combine a few functions to obtain the result you desire.</p><a name="x_GQ" class="calibre27" id="x_GQ"></a><p class="docText">Long pipelines of composed functions are hard to read,
+    where <span class="docEmphasis">long</span> means a series of more than three or four
+    elements. If you have such a pipeline, use a <tt class="calibre34">let</tt> or <tt class="calibre34">where</tt>
+    block to break it into smaller parts. Give each one of these pipeline
+    elements a meaningful name, and then glue them back together. If you can't
+    think of a meaningful name for an element, ask yourself if you can even
+    describe what it does. If the answer is "no," simplify your code.</p><a name="x_HQ" class="calibre27" id="x_HQ"></a><p class="docText">Even though it's easy to resize a text editor window far
+    beyond 80 columns, this width is still very common. Wider lines are
+    wrapped or truncated in 80-column text editor windows, which severely
+    hurts readability. Treating lines as no more than 80 characters long
+    limits the amount of code you can cram onto a single line. This helps to
+    keep individual lines less complicated, and therefore easier to
+    understand.</p><a name="I_sect19_d1e24785d1e25191" class="calibre27" id="I_sect19_d1e24785d1e25191"></a><h4 id="title-IDA5IMTH" class="docSection1Title">9.10.1. Common Layout Styles</h4><a name="x_IQ" class="calibre27" id="x_IQ"></a><p class="docText">A Haskell implementation won't make a fuss about
+      indentation as long as your code follows the layout rules and can hence
+      be parsed unambiguously. That said, some layout patterns are widely
+      used.</p><a name="x_JQ" class="calibre27" id="x_JQ"></a><p class="docText">The <tt class="calibre34">in</tt> keyword
+      <a name="I_indexterm9_d1e24845" class="calibre27" id="I_indexterm9_d1e24845"></a><a name="I_indexterm9_d1e24848" class="calibre27" id="I_indexterm9_d1e24848"></a>is usually aligned directly under the <tt class="calibre34">let</tt> keyword, with the expression immediately
+      following it:</p><pre class="calibre39">-- file: ch09/Style.hs
+tidyLet = let foo = undefined
+              bar = foo * 2
+          in undefined</pre><br class="calibre48"/>
+<a name="x_KQ" class="calibre27" id="x_KQ"></a><p class="docText">While it's <span class="docEmphasis">legal</span> to indent the
+      <tt class="calibre34">in</tt> differently, or to let it
+      "dangle" at the end of a series of equations, the following
+      would generally be considered odd:</p><pre class="calibre39">-- file: ch09/Style.hs
+weirdLet = let foo = undefined
+               bar = foo * 2
+    in undefined
+
+strangeLet = let foo = undefined
+                 bar = foo * 2 in
+    undefined</pre><br class="calibre48"/>
+<a name="x_LQ" class="calibre27" id="x_LQ"></a><p class="docText">In contrast, it's usual to let a <tt class="calibre34">do</tt> dangle at the end of a line, rather than
+      sit at the beginning of one:</p><pre class="calibre39">-- file: ch09/Style.hs
+commonDo = do
+  something &lt;- undefined
+  return ()
+
+-- not seen very often
+rareDo =
+  do something &lt;- undefined
+     return ()</pre><br class="calibre48"/>
+<a name="x_MQ" class="calibre27" id="x_MQ"></a><p class="docText">Curly braces and semicolons, though legal, are almost
+      never used. There's nothing wrong with them; they just make code look
+      strange due to their rarity. They're really intended to let programs
+      generate Haskell code without having to implement the layout rules and
+      are not meant for human use.</p><pre class="calibre39">-- file: ch09/Style.hs
+unusualPunctuation =
+    [ (x,y) | x &lt;- [1..a], y &lt;- [1..b] ] where {
+                                           b = 7;
+ a = 6 }
+
+preferredLayout = [ (x,y) | x &lt;- [1..a], y &lt;- [1..b] ]
+    where b = 7
+          a = 6</pre><br class="calibre48"/>
+<a name="x_NQ" class="calibre27" id="x_NQ"></a><p class="docText">If the righthand side of an equation starts on a new
+      line, it's usually indented a small number of spaces relative to the
+      name of the variable or function that it's defining:</p><pre class="calibre39">-- file: ch09/Style.hs
+normalIndent =
+    undefined
+
+strangeIndent =
+                           undefined</pre><br class="calibre48"/>
+<a name="x_OQ" class="calibre27" id="x_OQ"></a><p class="docText">The actual number of spaces used to indent varies,
+      sometimes within a single file. Depths of two, three, and four spaces
+      are about equally common. A single space is legal but not very visually
+      distinctive, so it's easy to misread.</p><a name="x_PQ" class="calibre27" id="x_PQ"></a><p class="docText">When indenting a <tt class="calibre34">where</tt> clause, it's best to make it <a name="I_indexterm9_d1e24894" class="calibre27" id="I_indexterm9_d1e24894"></a><a name="I_indexterm9_d1e24895" class="calibre27" id="I_indexterm9_d1e24895"></a><a name="I_indexterm9_d1e24896" class="calibre27" id="I_indexterm9_d1e24896"></a>eye-catching:</p><pre class="calibre39">-- file: ch09/Style.hs
+goodWhere = take 5 lambdas
+    where lambdas = []
+
+alsoGood =
+    take 5 lambdas
+  where
+    lambdas = []
+
+badWhere =           -- legal, but ugly and hard to read
+    take 5 lambdas
+    where
+    lambdas = []</pre><br class="calibre48"/>
+<a name="I_sidebar9_d1e24900" class="calibre27" id="I_sidebar9_d1e24900"></a></td>
+                    </tr>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

@@ -1,0 +1,225 @@
+---
+layout: page
+title: "CoffeeScript (for jay muratore)"
+prev: f_0021.html
+next: f_0023.html
+book_path: books/coffeescript-accelerated-javascript-development-pragmatic--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="sec.defaultArguments" class="calibre13">2.5 Default Arguments (arg =)</h2>
+<p id="N11253" class="calibre5">
+      Let’s say that you have a function where one of its arguments is going to have one particular value most of the time, like this:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">ringFireAlarm = (isDrill) <strong class="prompt">-&gt;</strong>
+<em class="comment"></em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<em class="comment">  # it's pretty much always a drill</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  ...</code>
+</td>
+</tr>
+</table>
+<p id="N1127B" class="calibre5">
+      Wouldn’t it be nice if <code class="cf">ringFireAlarm()</code> were shorthand for the much more common <code class="cf">ringFireAlarm true</code>? Well, we could do that by writing this:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">ringFireAlarm = (isDrill) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  isDrill = <strong class="prompt">true</strong> <strong class="prompt">unless</strong> isDrill?</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  ...</code>
+</td>
+</tr>
+</table>
+<p id="N1129D" class="calibre5">
+      Here <code class="cf">unless (expression)</code> is a shorthand for <code class="cf">if not (expression)</code>. The <code class="cf">?</code> in <code class="cf">isDrill?</code> is the existential operator, and it’s shorthand for checking that the given value (1) exists in this scope and (2) isn’t <code class="cf">undefined</code> or <code class="cf">null</code>. In your head, <code class="cf">x?</code> should read as “<code class="cf">x</code> exists.”
+    </p>
+<p id="N112C4" class="calibre5">
+      The existential operator can also be placed between two variables: <code class="cf">a ? b</code>returns<code class="cf">a</code> if <code class="cf">a?</code>, and <code class="cf">b</code> otherwise. And it can be combined with <code class="cf">=</code> to form a compound assignment operator: <code class="cf">c ?= d</code> is shorthand for <code class="cf">c = d unless c?</code>. You can read that as, “Let <code class="cf">d</code> be the default value for <code class="cf">c</code>.”
+    </p>
+<div class="sidebar" id="sb.orEqual">
+<div class="sidebar-title">Getting Truthy with 'or='</div>
+<div class="calibre1">
+<p id="N112EF" class="calibre5">
+       You’re likely to see someone write the following:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">a or= b</code>
+</td>
+</tr>
+</table>
+<p id="N11304" class="calibre5">
+        This (or it’s equivalent, <code class="cf1">a ||= b</code>) is a way of making <code class="cf1">b</code> the default value for <code class="cf1">a</code>. How, exactly, does this differ from <code class="cf1">a ?= b</code>?
+      </p>
+<p id="N11313" class="calibre5">
+        The answer has to do with “truthiness.” In CoffeeScript (as in JavaScript), all values are implicitly coerced to booleans by the boolean logic operators, <code class="cf1">&amp;&amp;</code> and <code class="cf1">||</code> (known as <code class="cf1">and</code> and <code class="cf1">or</code> under CoffeeScript style), as well as <code class="cf1">if</code>. Most values become <code class="cf1">true</code>, while a handful—notably <code class="cf1">null</code>, <code class="cf1">undefined</code>, <code class="cf1">0</code>, and the empty string—become <code class="cf1">false</code>.
+      </p>
+<p id="N11337" class="calibre5">
+        This loose, flexible approach to boolean logic carries over to the results of boolean operators. While some languages would just return <code class="cf1">true</code> or <code class="cf1">false</code> from the statement <code class="cf1">a or b</code>, CoffeeScript (like JavaScript) returns <code class="cf1">a</code> if <code class="cf1">a</code> is truthy and returns <code class="cf1">b</code> otherwise. (<code class="cf1">x and y</code> returns <code class="cf1">y</code> if both are truthy, <code class="cf1">x</code> if both are falsy, and the falsy one if only one is falsy.)
+      </p>
+<p id="N11355" class="calibre5">
+        This gives us lots of useful shortcuts—including <code class="cf1">a = a or b</code> (typically shortened to <code class="cf1">a or= b</code>) as a way of saying “set <code class="cf1">a</code> to <code class="cf1">b</code> if the value of <code class="cf1">a</code> is falsy.” While not quite as handy as <code class="cf1">?=</code>, <code class="cf1">or=</code> is a good friend to have.
+      </p>
+</div>
+</div>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">ringFireAlarm = (isDrill) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  isDrill ?= <strong class="prompt">true</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  ...</code>
+</td>
+</tr>
+</table>
+<p id="N11382" class="calibre5">
+      Of course, as you probably inferred from the section heading, there’s an even more succinct way of doing this:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">ringFireAlarm = (isDrill = <strong class="prompt">true</strong>) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  ...</code>
+</td>
+</tr>
+</table>
+<p id="N11398" class="calibre5">
+      “So why,” you might ask, “did you spend all that time talking about the existential operator?” There are two reasons. First, the existential operator is <span class="emph">sweet</span>. Second, the behavior of default arguments in CoffeeScript is somewhat different from that of other programming languages like Ruby, Python, and PHP. In those languages, the number of arguments passed to the function is what matters—the <code class="cf">isDrill = true</code> assignment would only be carried out if <code class="cf">ringFireAlarm</code> was called with no arguments. By contrast, CoffeeScript uses the existence operator behind the scenes. This means that explicitly passing <code class="cf">null</code> or <code class="cf">undefined</code> is the same as omitting the argument altogether.
+    </p>
+<p id="N113AA" class="calibre5">
+      This can lead to unpleasant surprises if you’re not careful, but it’s also more flexible. You can have an argument with several default values, and callers can choose to use the defaults for any subset of them, like so:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">chooseMeals = (breakfast = <em class="string">'waffles'</em>, lunch = <em class="string">'gyros'</em>, dinner = <em class="string">'pizza'</em>) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  ...</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">chooseMeals <strong class="prompt">null</strong>, <em class="string">'burrito'</em>, <strong class="prompt">null</strong>
+<em class="comment">   # not a gyro fan</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N113D6" class="calibre5">
+      You can, of course, implement the more conventional default argument behavior by making the assignments conditional on <code class="cf">arguments.length</code>. But if you find yourself doing so, ask yourself whether you really need to accept <code class="cf">null</code> as a value. How about <code class="cf">false</code> or <code class="cf">NaN</code> or even a custom type instead?
+    </p>
+<p id="N113E5" class="calibre5">
+      There is one more detail worth mentioning—you can use arbitrary expressions as default arguments, though this generally isn’t recommended. If you do so, the expression will be executed from whatever context the function is being called in, before any expression in the function body and only if the assignment is made. In other words, the following two expressions are <span class="emph">exactly</span> equivalent. Here’s the first way:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">dontTryThisAtHome = (noArgNoProblem = @iHopeThisWorks()) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  ...</code>
+</td>
+</tr>
+</table>
+<p id="N113FC" class="calibre5">
+   Here’s the other way:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">dontTryThisAtHome = (noArgNoProblem) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  noArgNoProblem ?= @iHopeThisWorks()</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  ...</code>
+</td>
+</tr>
+</table>
+<p id="N11412" class="calibre5">
+      There’s just one last feature to talk about before we get to our first project, and it’s a humdinger. Never before has a single ellipse done so much…
+    </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

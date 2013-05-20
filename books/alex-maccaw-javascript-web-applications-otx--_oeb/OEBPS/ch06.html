@@ -1,0 +1,120 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch05s03.html
+next: OEBPS/ch06s02.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="calibre7"></div><div class="book" title="Chapter 6. Dependency Management"><div class="book"><div class="book"><div class="book"><div class="calibre7"></div><h1 class="title1"><a id="dependency-management" class="calibre1"></a>Chapter 6. Dependency Management</h1></div></div></div><p class="calibre3"><a id="index-180P720NL4K" class="calibre1"></a>One of the things that’s held JavaScript back as a language
+  has been the lack of dependency management and a module system. Unlike other
+  languages, namespacing <a id="I_indexterm6_d1e5494" class="calibre1"></a>and modules aren’t something traditionally emphasized when
+  people are learning JavaScript. Indeed, popular libraries like jQuery don’t
+  enforce any application structure; there’s definitely an onus on the
+  developer to resolve this himself. Too often, I see spaghetti-styled
+  JavaScript, with a crazy amount of indentation and anonymous functions. Does
+  this look familiar?</p><pre class="screen">function() {
+  function() {
+    function() {
+      function() {
+
+      }
+    }
+  }
+}</pre><p class="calibre3">The usage of modules and namespacing is one thing, but the lack of
+  native dependency systems is becoming an increasing concern when building
+  larger applications. For a long time, a <code class="literal">script</code> tag <a id="I_indexterm6_d1e5507" class="calibre1"></a>was deemed sufficient, as the amount of JavaScript present on
+  the page didn’t justify anything further. However, when you start writing
+  complex JavaScript applications, a dependency system is absolutely critical.
+  It’s completely <span class="calibre1">impractical</span> to keep
+  track of dependencies yourself by adding script tags to the page manually.
+  You’ll often end up with a mess like this:</p><pre class="screen">&lt;script src="jquery.js" type="text/javascript" charset="utf-8"&gt;&lt;/script&gt;
+&lt;script src="jquery.ui.js" type="text/javascript" charset="utf-8"&gt;&lt;/script&gt;
+&lt;script src="application.utils.js" type="text/javascript" charset="utf-8"&gt;&lt;/script&gt;
+&lt;script src="application.js" type="text/javascript" charset="utf-8"&gt;&lt;/script&gt;
+&lt;script src="models/asset.js" type="text/javascript" charset="utf-8"&gt;&lt;/script&gt;
+&lt;script src="models/activity.js" type="text/javascript" charset="utf-8"&gt;&lt;/script&gt;
+&lt;script src="states/loading.js" type="text/javascript" charset="utf-8"&gt;&lt;/script&gt;
+&lt;script src="states/search.js" type="text/javascript" charset="utf-8"&gt;&lt;/script&gt;
+&lt;!-- ... --&gt;</pre><p class="calibre3">It’s not just the practicalities of the situation that warrant a
+  specific dependency management system—there are performance aspects as well.
+  Your browser needs to make an HTTP request for each of these JavaScript
+  files, and—although it can do this asynchronously—there’s a huge cost to
+  making so many connections. Each connection has the overhead of HTTP
+  headers, like cookies, and has to initiate another TCP handshake. The
+  situation is exacerbated if your application is served using SSL.</p><div class="book" title="CommonJS"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect16_d1e5520" class="calibre1"></a>CommonJS</h1></div></div></div><p class="calibre3"><a id="I_indexterm6_d1e5524" class="calibre1"></a><a id="I_indexterm6_d1e5529" class="calibre1"></a>As JavaScript has moved to the server side, several
+    proposals have been put forward for dependency management. <a class="ulink" href="http://www.mozilla.org/js/spidermonkey/">SpiderMonkey</a><a id="I_indexterm6_d1e5537" class="calibre1"></a> and <a class="ulink" href="http://www.mozilla.org/rhino/">Rhino</a><a id="I_indexterm6_d1e5543" class="calibre1"></a> offer a <code class="literal">load()</code>
+    function,<a id="I_indexterm6_d1e5551" class="calibre1"></a><a id="I_indexterm6_d1e5554" class="calibre1"></a> but they do not have any specific patterns for namespacing.
+    <a class="ulink" href="http://nodejs.org/">Node.js</a> has the <code class="literal">require()</code> function <a id="index-183L488SB2E" class="calibre1"></a><a id="index-613C866FM0I" class="calibre1"></a>for loading in extra source files, as well as its own module
+    system. The code wasn’t interchangeable, though, so what happens when you
+    want to run your Rhino code on Node.js?</p><p class="calibre3">It became obvious that a standard was needed to ensure code
+    interoperability, which all JavaScript implementations could abide by,
+    allowing us to use libraries across all the environments. Kevin Dangoor
+    started the CommonJS initiative <a id="I_indexterm6_d1e5577" class="calibre1"></a>to do just that. It began with a <a class="ulink" href="http://www.blueskyonmars.com/2009/01/29/what-server-side-javascript-needs">blog
+    post</a> in which Kevin advocated a shared standard for JavaScript
+    interpreters and for developers to band together and write some
+    specs:</p><div class="blockquote"><blockquote class="blockquote1"><p class="calibre17">JavaScript needs a standard way to include other modules and for
+      those modules to live in discreet namespaces. There are easy ways to do
+      namespaces, but there’s no standard programmatic way to load a module
+      (once!).</p></blockquote></div><div class="blockquote"><blockquote class="blockquote1"><p class="calibre17">[This] is not a technical problem. It’s a matter of people getting
+      together and making a decision to step forward and start building up
+      something bigger and cooler together.</p></blockquote></div><p class="calibre3">A <a class="ulink" href="http://groups.google.com/group/commonjs">mailing
+    list</a> was set up, and <a class="ulink" href="http://www.commonjs.org">CommonJS</a> was born. It quickly
+    gathered momentum with support from the major players. It is now the de
+    facto module format for JavaScript with a growing set of standards,
+    including IO interfaces, Socket streams, and Unit tests.</p><div class="book" title="Declaring a Module"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2922331" class="calibre12"></a>Declaring a Module</h2></div></div></div><p class="calibre3"><a id="I_indexterm6_d1e5602" class="calibre1"></a><a id="I_indexterm6_d1e5607" class="calibre1"></a>Declaring a CommonJS module is fairly straightforward.
+      Namespacing <a id="I_indexterm6_d1e5611" class="calibre1"></a>is baked directly in; modules are separated into different
+      files, and they expose variables publicly by adding them to an
+      interpreter-defined <code class="literal">exports</code>
+      object:</p><pre class="screen">// maths.js
+exports.per = function(value, total) {
+  return( (value / total) * 100 );
+};
+
+// application.js
+var Maths = require("./maths");
+assertEqual( Maths.per(50, 100), 50 );</pre><p class="calibre3">To use any functions defined in a module, simply <code class="literal">require()</code> the file, saving the result in a
+      local variable. In the example above, any functions exported by
+      <span class="calibre1"><em class="calibre4">maths.js</em></span> are available on the <code class="literal">Maths</code> variable. The key is that modules are
+      namespaced and will run on all CommonJS-compliant JavaScript
+      interpreters, such as <a class="ulink" href="http://narwhaljs.org">Narwhal</a>
+      and Node.js.</p></div><div class="book" title="Modules and the Browser"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2922415" class="calibre12"></a>Modules and the Browser</h2></div></div></div><p class="calibre3"><a id="I_indexterm6_d1e5640" class="calibre1"></a><a id="I_indexterm6_d1e5645" class="calibre1"></a>So, how does this relate to client-side JS development?
+      Well, lots of developers saw the implications of using modules on the
+      client side—namely, that the standard, as it currently stood, required
+      CommonJS modules to be loaded in synchronously. This is fine for
+      server-side JavaScript, but it can be very problematic in the browser
+      because it locks up the UI and requires eval-based compilation of
+      scripts (always something to be avoided). The CommonJS team developed a
+      specification, the <a class="ulink" href="http://wiki.commonjs.org/wiki/Modules/Transport">module transport
+      format</a><a id="I_indexterm6_d1e5653" class="calibre1"></a>, to address this issue. This transport format wraps
+      CommonJS modules with a callback to allow for asynchronous loading on
+      clients.</p><p class="calibre3">Let’s take our module example above. We can wrap it in the
+      transport format to allow asynchronous loading, making it palatable for
+      the browser:</p><pre class="screen">// maths.js
+require.define("maths", function(require, exports){
+
+  exports.per = function(value, total) {
+    return( (value / total) * 100 );
+  };
+
+});
+
+// application.js
+require.define("application", function(require, exports){
+
+  var per = require("./maths").per;
+  assertEqual( per(50, 100), 50 );
+
+}), ["./maths"]); // List dependencies (maths.js)</pre><p class="calibre3">Our modules can then be required by a module loader library and
+      executed in the browser. This is a really big deal. Not only have we
+      split up our code into separate module components, which is the secret
+      to good application design, but we’ve also <span class="calibre1">got dependency</span> management, scope
+      isolation, and namespacing. Indeed, the same modules can be run on
+      browsers, servers, in desktop apps, and in any other CommonJS-compliant
+      environment. In other words, it’s now possible to share the same code
+      between server and client!</p></div></div></div></div>
+
+{% endraw %}
+

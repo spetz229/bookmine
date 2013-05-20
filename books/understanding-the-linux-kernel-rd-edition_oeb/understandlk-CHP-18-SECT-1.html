@@ -1,0 +1,48 @@
+---
+layout: page
+title: "Understanding the Linux Kernel, 3rd Edition"
+prev: understandlk-CHP-18.html
+next: understandlk-CHP-18-SECT-2.html
+book_path: books/understanding-the-linux-kernel-rd-edition_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a name="understandlk-CHP-18-SECT-1"></a>
+<h3 class="docSection1Title" id="534871-889">18.1. General Characteristics of Ext2</h3><a name="IDX-CHP-18-4310"></a>
+<a name="IDX-CHP-18-4311"></a>
+<a name="IDX-CHP-18-4312"></a>
+<a name="IDX-CHP-18-4313"></a>
+<a name="IDX-CHP-18-4314"></a>
+<a name="IDX-CHP-18-4315"></a>
+<a name="IDX-CHP-18-4316"></a>
+<a name="IDX-CHP-18-4317"></a>
+<p class="docText1">Unix-like operating systems use several types of filesystems. Although the files of all such filesystems have a common subset of attributes required by a few POSIX APIs such as <tt class="calibre25">stat( )</tt>, each filesystem is implemented in a different way.</p>
+<p class="docText1">The first versions of Linux were based on the MINIX<a name="IDX-CHP-18-4318"></a>
+<a name="IDX-CHP-18-4319"></a> 
+ filesystem. As Linux matured, the <span class="docEmphasis">Extended Filesystem (Ext FS)</span> was introduced; it included several significant extensions, but offered unsatisfactory performance. The <span class="docEmphasis">Second Extended Filesystem (Ext2)</span> was introduced in 1994; besides including several new features<a name="IDX-CHP-18-4320"></a> 
+, it is quite efficient and robust and is, together with its offspring Ext3, the most widely used Linux filesystem.</p>
+<p class="docText1">The following features contribute to the efficiency of Ext2:</p>
+<ul class="calibre11"><li class="calibre12"><p class="docText1">When creating an Ext2 filesystem, the system administrator may choose the optimal block size (from 1,024 to 4,096 bytes), depending on the expected average file length. For instance, a 1,024-block size is preferable when the average file length is smaller than a few thousand bytes because this leads to less internal fragmentationthat is, less of a mismatch between the file length and the portion of the disk that stores it (see the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-8-SECT-2.html#understandlk-CHP-8-SECT-2">Memory Area Management</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-8.html#understandlk-CHP-8">Chapter 8</a>, where internal fragmentation for dynamic memory was discussed). On the other hand, larger block sizes are usually preferable for files greater than a few thousand bytes because this leads to fewer disk transfers, thus reducing system overhead.</p></li><li class="calibre12"><p class="docText1">When creating an Ext2 filesystem, the system administrator may choose how many inodes to allow for a partition of a given size, depending on the expected number of files to be stored on it. This maximizes the effectively usable disk space.</p></li><li class="calibre12"><p class="docText1">The filesystem partitions disk blocks into groups. Each group includes data blocks and inodes stored in adjacent tracks. Thanks to this structure, files stored in a single block group can be accessed with a lower average disk seek time.</p></li><li class="calibre12"><p class="docText1">The filesystem <span class="docEmphasis">preallocates</span> disk data blocks to regular files before they are actually used. Thus, when the file increases in size, several blocks are already reserved at physically adjacent positions, reducing file fragmentation.</p></li><li class="calibre12"><p class="docText1">Fast symbolic links (see the section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-1-SECT-5.html#understandlk-CHP-1-SECT-5.2">Hard and Soft Links</a>" in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-1.html#understandlk-CHP-1">Chapter 1</a>) are supported. If the symbolic link represents a short pathname (at most 60 characters), it can be stored in the inode and can thus be translated without reading a data block.</p></li></ul>
+<p class="docText1">Moreover, the Second Extended Filesystem includes other features that make it both robust and flexible:</p>
+<ul class="calibre11"><li class="calibre12"><p class="docText1">A careful implementation of file-updating that minimizes the impact of system crashes. For instance, when creating a new hard link for a file, the counter of hard links in the disk inode is increased first, and the new name is added into the proper directory next. In this way, if a hardware failure occurs after the inode update but before the directory can be changed, the directory is consistent, even if the inode's hard link counter is wrong. Deleting the file does not lead to catastrophic results, although the file's data blocks cannot be automatically reclaimed. If the reverse were done (changing the directory before updating the inode), the same hardware failure would produce a dangerous inconsistency: deleting the original hard link would remove its data blocks from disk, yet the new directory entry would refer to an inode that no longer exists. If that inode number were used later for another file, writing into the stale directory entry would corrupt the new file.</p></li><li class="calibre12"><p class="docText1">Support for automatic consistency checks on the filesystem status at boot time. The checks are performed by the <i class="docEmphasis">e2fsck</i> external program, which may be activated not only after a system crash, but also after a predefined number of filesystem mounts (a counter is increased after each mount operation) or after a predefined amount of time has elapsed since the most recent check.</p></li><li class="calibre12"><p class="docText1">Support for <span class="docEmphasis">immutable</span> files (they cannot be modified, deleted, or renamed) and for <span class="docEmphasis">append-only</span> files (data can be added only to the end of them).</p></li><li class="calibre12"><p class="docText1">Compatibility with both the Unix System V<a name="IDX-CHP-18-4321"></a> 
+ Release 4 and the BSD<a name="IDX-CHP-18-4322"></a> 
+ semantics of the user group ID<a name="IDX-CHP-18-4323"></a> 
+ for a new file. In SVR4, the new file assumes the user group ID of the process that creates it; in BSD, the new file inherits the user group ID of the directory containing it. Ext2 includes a mount option that specifies which semantic to use.</p></li></ul>
+<p class="docText1">Even if the Ext2 filesystem is a mature, stable program, several additional features have been considered for inclusion. Some of them have already been coded and are available as external patches. Others are just planned, but in some cases, fields have already been introduced in the Ext2 inode for them. The most significant features being considered are:</p>
+<dl class="docText1"><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">Block fragmentation</span></span></p></dt>
+<dd class="calibre20"><p class="docList">System administrators usually choose large block sizes for accessing disks, because computer applications often deal with large files. As a result, small files stored in large blocks waste a lot of disk space. This problem can be solved by allowing several files to be stored in different fragments of the same block.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">Handling of transparently compressed and encrypted files</span></span></p></dt>
+<dd class="calibre20"><p class="docList">These new options, which must be specified when creating a file, allow users to transparently store compressed and/or encrypted versions of their files on disk.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">Logical deletion</span></span></p></dt>
+<dd class="calibre20"><p class="docList">An <span class="docEmphasis">undelete</span> option allows users to easily recover, if needed, the contents of a previously removed file.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">Journaling</span></span></p></dt>
+<dd class="calibre20"><p class="docList">Journaling avoids the time-consuming check that is automatically performed on a filesystem when it is abruptly unmounted  for instance, as a consequence of a system crash.</p></dd></dl>
+<p class="docText1">In practice, none of these features has been officially included in the Ext2 filesystem. One might say that Ext2 is victim of its success; it has been the preferred filesystem adopted by most Linux distribution companies until a few years ago, and the millions of users who relied on it every day would have looked suspiciously at any attempt to replace Ext2 with some other filesystem.</p>
+<p class="docText1">The most compelling feature missing from Ext2 is journaling, which is required by high-availability servers. To provide for a smooth transition, journaling has not been introduced in the Ext2 filesystem; rather, as we'll discuss in the later section "<a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-18-SECT-7.html#understandlk-CHP-18-SECT-7">The Ext3 Filesystem</a>," a more recent filesystem that is fully compatible with Ext2 has been created, which also offers journaling. Users who do not really require journaling may continue to use the good old Ext2 filesystem, while the others will likely adopt the new filesystem. Nowadays, most distributions adopt Ext3 as the standard filesystem.</p>
+
+<br class="calibre7"/>
+
+</div>
+
+{% endraw %}
+

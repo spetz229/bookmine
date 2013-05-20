@@ -1,0 +1,231 @@
+---
+layout: page
+title: "Java Concurrency in Practice"
+prev: ch06lev1sec2.html
+next: ch06lev1sec4.html
+book_path: books/brian-goetz-tim-peierls-joshua-bloch-joseph-bowbeer-david-holmes-doug-lea-java-concurrency-in-practice--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a href="21021536.html" class="calibre2"><img src="pixel.jpg" alt="" border="0" class="calibre26"/></a><a name="ch06lev1sec3" class="calibre18" id="ch06lev1sec3"></a>
+<h3 id="title-IDAS50IU" class="docSection1Title">6.3. Finding Exploitable Parallelism</h3>
+<p class="docText1">The <tt class="calibre25">Executor</tt> framework makes it easy to specify an execution policy, but in order to use an <tt class="calibre25">Executor</tt>, you have to be able to describe your task as a <tt class="calibre25">Runnable</tt>. In most server applications, there is an obvious task boundary: a single client request. But sometimes good task boundaries are not quite so obvious, as <a name="iddle1445" class="calibre18" id="iddle1445"></a><a name="iddle1710" class="calibre18" id="iddle1710"></a><a name="iddle2151" class="calibre18" id="iddle2151"></a><a name="iddle2678" class="calibre18" id="iddle2678"></a><a name="iddle3446" class="calibre18" id="iddle3446"></a><a name="iddle3447" class="calibre18" id="iddle3447"></a><a name="iddle3966" class="calibre18" id="iddle3966"></a><a name="iddle4167" class="calibre18" id="iddle4167"></a><a name="iddle5036" class="calibre18" id="iddle5036"></a>in many desktop applications. There may also be exploitable parallelism within a single client request in server applications, as is sometimes the case in database servers. (For a further discussion of the competing design forces in choosing task boundaries, see [CPJ 4.4.1.1].)</p>
+<a name="ch06list09" class="calibre18" id="ch06list09"></a><h5 id="title-IDAG13IU" class="docExampleTitle">Listing 6.9. Class Illustrating Confusing <tt class="calibre33">Timer</tt> Behavior.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<img border="0" alt="" src="face1.jpg" class="calibre31"/>
+<pre class="calibre30">public class OutOfTime {
+    public static void main(String[] args) throws Exception {
+        Timer timer = new Timer();
+        timer.schedule(new ThrowTask(), 1);
+        SECONDS.sleep(1);
+        timer.schedule(new ThrowTask(), 1);
+        SECONDS.sleep(5);
+    }
+
+    static class ThrowTask extends TimerTask {
+        public void run() { throw new RuntimeException(); }
+    }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1">In this section we develop several versions of a component that admit varying degrees of concurrency. Our sample component is the page-rendering portion of a browser application, which takes a page of HTML and renders it into an image buffer. To keep it simple, we assume that the HTML consists only of marked up text interspersed with image elements with pre-specified dimensions and URLs.</p>
+<a name="ch06lev2sec9" class="calibre18" id="ch06lev2sec9"></a>
+<h4 id="title-IDAD23IU" class="docSection2Title">6.3.1. Example: Sequential Page Renderer</h4>
+<p class="docText1">The simplest approach is to process the HTML document sequentially. As text markup is encountered, render it into the image buffer; as image references are encountered, fetch the image over the network and draw it into the image buffer as well. This is easy to implement and requires touching each element of the input only once (it doesn't even require buffering the document), but is likely to annoy the user, who may have to wait a long time before all the text is rendered.</p>
+<p class="docText1">A less annoying but still sequential approach involves rendering the text elements first, leaving rectangular placeholders for the images, and after completing the initial pass on the document, going back and downloading the images and drawing them into the associated placeholder. This approach is shown in <tt class="calibre25">SingleThreadRenderer</tt> in <a class="calibre2" href="#ch06list10">Listing 6.10</a>.</p>
+<p class="docText1">Downloading an image mostly involves waiting for I/O to complete, and during this time the CPU does little work. So the sequential approach may underutilize the CPU, and also makes the user wait longer than necessary to see the finished page. We can achieve better utilization and responsiveness by breaking the problem into independent tasks that can execute concurrently.</p>
+<p class="docText1"></p><a name="ch06list10" class="calibre18" id="ch06list10"></a><h5 id="title-IDA523IU" class="docExampleTitle">Listing 6.10. Rendering Page Elements Sequentially.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<img border="0" alt="" src="face1.jpg" class="calibre31"/>
+<pre class="calibre30">public class SingleThreadRenderer {
+    void renderPage(CharSequence source) {
+        renderText(source);
+        List&lt;ImageData&gt; imageData = new ArrayList&lt;ImageData&gt;();
+        for (ImageInfo imageInfo : scanForImageInfo(source))
+            imageData.add(imageInfo.downloadImage());
+        for (ImageData data : imageData)
+            renderImage(data);
+    }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<a name="ch06lev2sec10" class="calibre18" id="ch06lev2sec10"></a>
+<h4 id="title-IDAZ33IU" class="docSection2Title">6.3.2. Result-bearing Tasks: <tt class="calibre33">Callable</tt> and <tt class="calibre33">Future</tt></h4>
+<p class="docText1"><a name="iddle1292" class="calibre18" id="iddle1292"></a><a name="iddle1315" class="calibre18" id="iddle1315"></a><a name="iddle1316" class="calibre18" id="iddle1316"></a><a name="iddle1432" class="calibre18" id="iddle1432"></a><a name="iddle1433" class="calibre18" id="iddle1433"></a><a name="iddle1927" class="calibre18" id="iddle1927"></a><a name="iddle1928" class="calibre18" id="iddle1928"></a><a name="iddle2179" class="calibre18" id="iddle2179"></a><a name="iddle2229" class="calibre18" id="iddle2229"></a><a name="iddle2230" class="calibre18" id="iddle2230"></a><a name="iddle2425" class="calibre18" id="iddle2425"></a><a name="iddle2427" class="calibre18" id="iddle2427"></a><a name="iddle2978" class="calibre18" id="iddle2978"></a><a name="iddle2979" class="calibre18" id="iddle2979"></a><a name="iddle2980" class="calibre18" id="iddle2980"></a><a name="iddle3867" class="calibre18" id="iddle3867"></a><a name="iddle3868" class="calibre18" id="iddle3868"></a><a name="iddle3869" class="calibre18" id="iddle3869"></a><a name="iddle3870" class="calibre18" id="iddle3870"></a><a name="iddle3981" class="calibre18" id="iddle3981"></a><a name="iddle3985" class="calibre18" id="iddle3985"></a><a name="iddle3991" class="calibre18" id="iddle3991"></a><a name="iddle3992" class="calibre18" id="iddle3992"></a><a name="iddle3995" class="calibre18" id="iddle3995"></a><a name="iddle3996" class="calibre18" id="iddle3996"></a><a name="iddle4016" class="calibre18" id="iddle4016"></a><a name="iddle4633" class="calibre18" id="iddle4633"></a><a name="iddle4634" class="calibre18" id="iddle4634"></a><a name="iddle4636" class="calibre18" id="iddle4636"></a><a name="iddle4645" class="calibre18" id="iddle4645"></a><a name="iddle4646" class="calibre18" id="iddle4646"></a><a name="iddle4897" class="calibre18" id="iddle4897"></a><a name="iddle4898" class="calibre18" id="iddle4898"></a><a name="iddle5114" class="calibre18" id="iddle5114"></a><a name="iddle5115" class="calibre18" id="iddle5115"></a>The <tt class="calibre25">Executor</tt> framework uses <tt class="calibre25">Runnable</tt> as its basic task representation. <tt class="calibre25">Runnable</tt> is a fairly limiting abstraction; <tt class="calibre25">run</tt> cannot return a value or throw checked exceptions, although it can have side effects such as writing to a log file or placing a result in a shared data structure.</p>
+<p class="docText1">Many tasks are effectively deferred computationsexecuting a database query, fetching a resource over the network, or computing a complicated function. For these types of tasks, <tt class="calibre25">Callable</tt> is a better abstraction: it expects that the main entry point, <tt class="calibre25">call</tt>, will return a value and anticipates that it might throw an exception.<sup class="docFootnote"><a class="calibre2" href="#ch06fn07">[7]</a></sup> <tt class="calibre25">Executors</tt> includes several utility methods for wrapping other types of tasks, including <tt class="calibre25">Runnable</tt> and <tt class="calibre25">java.security.PrivilegedAction</tt>, with a <tt class="calibre25">Callable</tt>.</p><blockquote class="calibre19"><p class="docFootnote1"><sup class="calibre27"><a name="ch06fn07" class="calibre18" id="ch06fn07">[7]</a></sup> To express a non-value-returning task with <tt class="calibre35">Callable</tt>, use <tt class="calibre35">Callable&lt;Void&gt;</tt>.</p></blockquote>
+<p class="docText1"><tt class="calibre25">Runnable</tt> and <tt class="calibre25">Callable</tt> describe abstract computational tasks. Tasks are usually finite: they have a clear starting point and they eventually terminate. The lifecycle of a task executed by an <tt class="calibre25">Executor</tt> has four phases: <span class="docEmphasis">created</span>, <span class="docEmphasis">submitted</span>, <span class="docEmphasis">started</span>, and <span class="docEmphasis">completed</span>. Since tasks can take a long time to run, we also want to be able to cancel a task. In the <tt class="calibre25">Executor</tt> framework, tasks that have been submitted but not yet started can always be cancelled, and tasks that have started can sometimes be cancelled if they are responsive to interruption. Cancelling a task that has already completed has no effect. (Cancellation is covered in greater detail in <a class="calibre2" href="ch07.html#ch07">Chapter 7</a>.)</p>
+<p class="docText1"><tt class="calibre25">Future</tt> represents the lifecycle of a task and provides methods to test whether the task has completed or been cancelled, retrieve its result, and cancel the task. <tt class="calibre25">Callable</tt> and <tt class="calibre25">Future</tt> are shown in <a class="calibre2" href="#ch06list11">Listing 6.11</a>. Implicit in the specification of <tt class="calibre25">Future</tt> is that task lifecycle can only move forwards, not backwardsjust like the <tt class="calibre25">ExecutorService</tt> lifecycle. Once a task is completed, it stays in that state forever.</p>
+<p class="docText1">The behavior of <tt class="calibre25">get</tt> varies depending on the task state (not yet started, running, completed). It returns immediately or throws an <tt class="calibre25">Exception</tt> if the task has already completed, but if not it blocks until the task completes. If the task completes by throwing an exception, <tt class="calibre25">get</tt> rethrows it wrapped in an <tt class="calibre25">ExecutionException</tt>; <a name="iddle1012" class="calibre18" id="iddle1012"></a><a name="iddle1013" class="calibre18" id="iddle1013"></a><a name="iddle1290" class="calibre18" id="iddle1290"></a><a name="iddle2419" class="calibre18" id="iddle2419"></a><a name="iddle2428" class="calibre18" id="iddle2428"></a><a name="iddle2429" class="calibre18" id="iddle2429"></a><a name="iddle2440" class="calibre18" id="iddle2440"></a><a name="iddle3298" class="calibre18" id="iddle3298"></a><a name="iddle3729" class="calibre18" id="iddle3729"></a><a name="iddle3871" class="calibre18" id="iddle3871"></a><a name="iddle4040" class="calibre18" id="iddle4040"></a><a name="iddle4647" class="calibre18" id="iddle4647"></a><a name="iddle4858" class="calibre18" id="iddle4858"></a>if it was cancelled, <tt class="calibre25">get</tt> throws <tt class="calibre25">CancellationException</tt>. If <tt class="calibre25">get</tt> throws <tt class="calibre25">ExecutionException</tt>, the underlying exception can be retrieved with <tt class="calibre25">getCause</tt>.</p>
+<a name="ch06list11" class="calibre18" id="ch06list11"></a><h5 id="title-IDALKJJU" class="docExampleTitle">Listing 6.11. <tt class="calibre33">Callable</tt> and <tt class="calibre33">Future</tt> Interfaces.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">public interface Callable&lt;V&gt; {
+    V call() throws Exception;
+}
+
+public interface Future&lt;V&gt; {
+    boolean cancel(boolean mayInterruptIfRunning);
+    boolean isCancelled();
+    boolean isDone();
+    V get() throws InterruptedException, ExecutionException,
+                   CancellationException;
+    V get(long timeout, TimeUnit unit)
+        throws InterruptedException, ExecutionException,
+               CancellationException, TimeoutException;
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1">There are several ways to create a <tt class="calibre25">Future</tt> to describe a task. The <tt class="calibre25">submit</tt> methods in <tt class="calibre25">ExecutorService</tt> all return a <tt class="calibre25">Future</tt>, so that you can submit a <tt class="calibre25">Runnable</tt> or a <tt class="calibre25">Callable</tt> to an executor and get back a <tt class="calibre25">Future</tt> that can be used to retrieve the result or cancel the task. You can also explicitly instantiate a <tt class="calibre25">FutureTask</tt> for a given <tt class="calibre25">Runnable</tt> or <tt class="calibre25">Callable</tt>. (Because <tt class="calibre25">FutureTask</tt> implements <tt class="calibre25">Runnable</tt>, it can be submitted to an <tt class="calibre25">Executor</tt> for execution or executed directly by calling its <tt class="calibre25">run</tt> method.)</p>
+<p class="docText1">As of Java 6, <tt class="calibre25">ExecutorService</tt> implementations can override <tt class="calibre25">newTaskFor</tt> in <tt class="calibre25">AbstractExecutorService</tt> to control instantiation of the <tt class="calibre25">Future</tt> corresponding to a submitted <tt class="calibre25">Callable</tt> or <tt class="calibre25">Runnable</tt>. The default implementation just creates a new <tt class="calibre25">FutureTask</tt>, as shown in <a class="calibre2" href="#ch06list12">Listing 6.12</a>.</p>
+<a name="ch06list12" class="calibre18" id="ch06list12"></a><h5 id="title-IDAVMJJU" class="docExampleTitle">Listing 6.12. Default Implementation of <tt class="calibre33">newTaskFor</tt> in <tt class="calibre33">ThreadPoolExecutor</tt>.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">protected &lt;T&gt; RunnableFuture&lt;T&gt; newTaskFor(Callable&lt;T&gt; task) {
+    return new FutureTask&lt;T&gt;(task);
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1">Submitting a <tt class="calibre25">Runnable</tt> or <tt class="calibre25">Callable</tt> to an <tt class="calibre25">Executor</tt> constitutes a safe publication (see <a class="calibre2" href="ch03lev1sec5.html#ch03lev1sec5">Section 3.5</a>) of the <tt class="calibre25">Runnable</tt> or <tt class="calibre25">Callable</tt> from the submitting thread to the thread that will eventually execute the task. Similarly, setting the result value for a <tt class="calibre25">Future</tt> constitutes a safe publication of the result from the thread in which it was computed to any thread that retrieves it via <tt class="calibre25">get</tt>.</p>
+<a name="ch06lev2sec11" class="calibre18" id="ch06lev2sec11"></a>
+<h4 id="title-IDAEOJJU" class="docSection2Title">6.3.3. Example: Page Renderer with Future</h4>
+<p class="docText1"><a name="iddle2635" class="calibre18" id="iddle2635"></a><a name="iddle2636" class="calibre18" id="iddle2636"></a><a name="iddle3445" class="calibre18" id="iddle3445"></a><a name="iddle3451" class="calibre18" id="iddle3451"></a><a name="iddle3484" class="calibre18" id="iddle3484"></a><a name="iddle4067" class="calibre18" id="iddle4067"></a><a name="iddle4312" class="calibre18" id="iddle4312"></a><a name="iddle4628" class="calibre18" id="iddle4628"></a><a name="iddle4629" class="calibre18" id="iddle4629"></a>As a first step towards making the page renderer more concurrent, let's divide it into two tasks, one that renders the text and one that downloads all the images. (Because one task is largely CPU-bound and the other is largely I/O-bound, this approach may yield improvements even on single-CPU systems.)</p>
+<p class="docText1"><tt class="calibre25">Callable</tt> and <tt class="calibre25">Future</tt> can help us express the interaction between these cooperating tasks. In <tt class="calibre25">FutureRenderer</tt> in <a class="calibre2" href="#ch06list13">Listing 6.13</a>, we create a <tt class="calibre25">Callable</tt> to download all the images, and submit it to an <tt class="calibre25">ExecutorService</tt>. This returns a <tt class="calibre25">Future</tt> describing the task's execution; when the main task gets to the point where it needs the images, it waits for the result by calling <tt class="calibre25">Future.get</tt>. Ifwe're lucky, the results will already be ready by the time we ask; otherwise, at least we got a head start on downloading the images.</p>
+<p class="docText1">The state-dependent nature of <tt class="calibre25">get</tt> means that the caller need not be aware of the state of the task, and the safe publication properties of task submission and result retrieval make this approach thread-safe. The exception handling code surrounding <tt class="calibre25">Future.get</tt> deals with two possible problems: that the task encountered an <tt class="calibre25">Exception</tt>, or the thread calling <tt class="calibre25">get</tt> was interrupted before the results were available. (See <a class="calibre2" href="ch05lev1sec5.html#ch05lev2sec11">Sections 5.5.2</a> and <a class="calibre2" href="ch05lev1sec4.html#ch05lev1sec4">5.4</a>.)</p>
+<p class="docText1"><tt class="calibre25">FutureRenderer</tt> allows the text to be rendered concurrently with downloading the image data. When all the images are downloaded, they are rendered onto the page. This is an improvement in that the user sees a result quickly and it exploits some parallelism, but we can do considerably better. There is no need for users to wait for <span class="docEmphasis">all</span> the images to be downloaded; they would probably prefer to see individual images drawn as they become available.</p>
+<a name="ch06lev2sec12" class="calibre18" id="ch06lev2sec12"></a>
+<h4 id="title-IDADTJJU" class="docSection2Title">6.3.4. Limitations of Parallelizing Heterogeneous Tasks</h4>
+<p class="docText1">In the last example, we tried to execute two different types of tasks in paralleldownloading the images and rendering the page. But obtaining significant performance improvements by trying to parallelize sequential heterogeneous tasks can be tricky.</p>
+<p class="docText1">Two people can divide the work of cleaning the dinner dishes fairly effectively: one person washes while the other dries. However, assigning a different type of task to each worker does not scale well; if several more people show up, it is not obvious how they can help without getting in the way or significantly restructuring the division of labor. Without finding finer-grained parallelism among similar tasks, this approach will yield diminishing returns.</p>
+<p class="docText1">A further problem with dividing heterogeneous tasks among multiple workers is that the tasks may have disparate sizes. If you divide tasks <span class="docEmphasis">A</span> and <span class="docEmphasis">B</span> between two workers but <span class="docEmphasis">A</span> takes ten times as long as <span class="docEmphasis">B</span>, you've only speeded up the total process by 9%. Finally, dividing a task among multiple workers always involves some amount of coordination overhead; for the division to be worthwhile, this overhead must be more than compensated by productivity improvements due to parallelism.</p>
+<p class="docText1"><tt class="calibre25">FutureRenderer</tt> uses two tasks: one for rendering text and one for downloading the images. If rendering the text is much faster than downloading the images, <a name="iddle1225" class="calibre18" id="iddle1225"></a><a name="iddle1400" class="calibre18" id="iddle1400"></a><a name="iddle1401" class="calibre18" id="iddle1401"></a><a name="iddle1405" class="calibre18" id="iddle1405"></a><a name="iddle1406" class="calibre18" id="iddle1406"></a><a name="iddle2165" class="calibre18" id="iddle2165"></a><a name="iddle2238" class="calibre18" id="iddle2238"></a><a name="iddle2265" class="calibre18" id="iddle2265"></a><a name="iddle2266" class="calibre18" id="iddle2266"></a><a name="iddle2643" class="calibre18" id="iddle2643"></a><a name="iddle2644" class="calibre18" id="iddle2644"></a><a name="iddle3678" class="calibre18" id="iddle3678"></a><a name="iddle3679" class="calibre18" id="iddle3679"></a><a name="iddle3680" class="calibre18" id="iddle3680"></a><a name="iddle3753" class="calibre18" id="iddle3753"></a><a name="iddle4630" class="calibre18" id="iddle4630"></a><a name="iddle4631" class="calibre18" id="iddle4631"></a><a name="iddle4632" class="calibre18" id="iddle4632"></a><a name="iddle4639" class="calibre18" id="iddle4639"></a><a name="iddle4640" class="calibre18" id="iddle4640"></a>as is entirely possible, the resulting performance is not much different from the sequential version, but the code is a lot more complicated. And the best we can do with two threads is speed things up by a factor of two. Thus, trying to increase concurrency by parallelizing heterogeneous activities can be a lot of work, and there is a limit to how much additional concurrency you can get out of it. (See <a class="calibre2" href="ch11lev1sec4.html#ch11lev2sec9">Sections 11.4.2</a> and <a class="calibre2" href="ch11lev1sec4.html#ch11lev2sec10">11.4.3</a> for another example of the same phenomenon.)</p>
+<a name="ch06list13" class="calibre18" id="ch06list13"></a><h5 id="title-IDA1D5IU" class="docExampleTitle">Listing 6.13. Waiting for Image Download with <tt class="calibre33">Future</tt>.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<img border="0" alt="" src="face1.jpg" class="calibre31"/>
+<pre class="calibre30">public class FutureRenderer {
+    private final ExecutorService executor = ...;
+
+    void renderPage(CharSequence source) {
+        final List&lt;ImageInfo&gt; imageInfos = scanForImageInfo(source);
+        Callable&lt;List&lt;ImageData&gt;&gt; task =
+                new Callable&lt;List&lt;ImageData&gt;&gt;() {
+                    public List&lt;ImageData&gt; call() {
+                        List&lt;ImageData&gt; result
+                                = new ArrayList&lt;ImageData&gt;();
+                        for (ImageInfo imageInfo : imageInfos)
+                            result.add(imageInfo.downloadImage());
+                        return result;
+                    }
+                };
+
+        Future&lt;List&lt;ImageData&gt;&gt; future =  <span class="docEmphStrong">executor.submit(task);</span>
+        renderText(source);
+
+        try {
+            List&lt;ImageData&gt; imageData =  <span class="docEmphStrong">future.get();</span>
+            for (ImageData data : imageData)
+                renderImage(data);
+        } catch (InterruptedException e) {
+            // <span class="docEmphasis">Re-assert the thread's interrupted status</span>
+            Thread.currentThread().interrupt();
+            // <span class="docEmphasis">We don't need the result, so cancel the task too</span>
+            future.cancel(true);
+        } catch (ExecutionException e) {
+            throw launderThrowable(e.getCause());
+        }
+    }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<a name="ch06sb02" class="calibre18" id="ch06sb02"></a><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<p class="docText1"><a name="iddle2116" class="calibre18" id="iddle2116"></a>The real performance payoff of dividing a program's workload into tasks comes when there are a large number of independent, <span class="docEmphasis">homogeneous</span> tasks that can be processed concurrently.</p>
+</td></tr></table></p><p class="calibre1"> </p>
+<a name="ch06lev2sec13" class="calibre18" id="ch06lev2sec13"></a>
+<h4 id="title-IDA0F5IU" class="docSection2Title">6.3.5. <tt class="calibre33">CompletionService</tt>: Executor Meets <tt class="calibre33">BlockingQueue</tt></h4>
+<p class="docText1">If you have a batch of computations to submit to an <tt class="calibre25">Executor</tt> and you want to retrieve their results as they become available, you could retain the <tt class="calibre25">Future</tt> associated with each task and repeatedly poll for completion by calling <tt class="calibre25">get</tt> with a timeout of zero. This is possible, but tedious. Fortunately there is a better way: a <span class="docEmphasis">completion service</span>.</p>
+<p class="docText1"><tt class="calibre25">CompletionService</tt> combines the functionality of an <tt class="calibre25">Executor</tt> and a <tt class="calibre25">BlockingQueue</tt>. You can submit <tt class="calibre25">Callable</tt> tasks to it for execution and use the queuelike methods <tt class="calibre25">take</tt> and <tt class="calibre25">poll</tt> to retrieve completed results, packaged as <tt class="calibre25">Future</tt>s, as they become available. <tt class="calibre25">ExecutorCompletionService</tt> implements <tt class="calibre25">CompletionService</tt>, delegating the computation to an <tt class="calibre25">Executor</tt>.</p>
+<p class="docText1">The implementation of <tt class="calibre25">ExecutorCompletionService</tt> is quite straightforward. The constructor creates a <tt class="calibre25">BlockingQueue</tt> to hold the completed results. <tt class="calibre25">Future-Task</tt> has a <tt class="calibre25">done</tt> method that is called when the computation completes. When a task is submitted, it is wrapped with a <tt class="calibre25">QueueingFuture</tt>, a subclass of <tt class="calibre25">FutureTask</tt> that overrides <tt class="calibre25">done</tt> to place the result on the <tt class="calibre25">BlockingQueue</tt>, as shown in <a class="calibre2" href="#ch06list14">Listing 6.14</a>. The <tt class="calibre25">take</tt> and <tt class="calibre25">poll</tt> methods delegate to the <tt class="calibre25">BlockingQueue</tt>, blocking if results are not yet available.</p>
+<a name="ch06list14" class="calibre18" id="ch06list14"></a><h5 id="title-IDAKASIU" class="docExampleTitle">Listing 6.14. <tt class="calibre33">QueueingFuture</tt> Class Used By <tt class="calibre33">ExecutorCompletionService</tt>.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">private class QueueingFuture&lt;V&gt; extends FutureTask&lt;V&gt; {
+    QueueingFuture(Callable&lt;V&gt; c) { super(c); }
+    QueueingFuture(Runnable t, V r) { super(t, r); }
+
+    protected void done() {
+        completionQueue.add(this);
+    }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<a name="ch06lev2sec14" class="calibre18" id="ch06lev2sec14"></a>
+<h4 id="title-IDAABSIU" class="docSection2Title">6.3.6. Example: Page Renderer with <tt class="calibre33">CompletionService</tt></h4>
+<p class="docText1"><a name="iddle2169" class="calibre18" id="iddle2169"></a><a name="iddle3517" class="calibre18" id="iddle3517"></a><a name="iddle3518" class="calibre18" id="iddle3518"></a><a name="iddle3958" class="calibre18" id="iddle3958"></a><a name="iddle3959" class="calibre18" id="iddle3959"></a><a name="iddle4241" class="calibre18" id="iddle4241"></a><a name="iddle4242" class="calibre18" id="iddle4242"></a>We can use a <tt class="calibre25">CompletionService</tt> to improve the performance of the page renderer in two ways: shorter total runtime and improved responsiveness. We can create a separate task for downloading <span class="docEmphasis">each</span> image and execute them in a thread pool, turning the sequential download into a parallel one: this reduces the amount of time to download all the images. And by fetching results from the <tt class="calibre25">CompletionService</tt> and rendering each image as soon as it is available, we can give the user a more dynamic and responsive user interface. This implementation is shown in <tt class="calibre25">Renderer</tt> in <a class="calibre2" href="#ch06list15">Listing 6.15</a>.</p>
+<a name="ch06list15" class="calibre18" id="ch06list15"></a><h5 id="title-IDAUESIU" class="docExampleTitle">Listing 6.15. Using <tt class="calibre33">CompletionService</tt> to Render Page Elements as they Become Available.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">public class Renderer {
+    private final ExecutorService executor;
+
+    Renderer(ExecutorService executor) { this.executor = executor; }
+
+    void renderPage(CharSequence source) {
+        final List&lt;ImageInfo&gt; info = scanForImageInfo(source);
+        CompletionService&lt;ImageData&gt; completionService =
+            new ExecutorCompletionService&lt;ImageData&gt;(executor);
+        for (final ImageInfo imageInfo : info)
+            <span class="docEmphStrong">completionService.submit</span>(new Callable&lt;ImageData&gt;() {
+                 public ImageData call() {
+                     return imageInfo.downloadImage();
+                 }
+            });
+
+        renderText(source);
+
+        try {
+            for (int t = 0, n =  info.size(); t &lt; n;  t++) {
+                Future&lt;ImageData&gt; f = <span class="docEmphStrong">completionService.take();</span>
+                ImageData imageData = f.get();
+                renderImage(imageData);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            throw launderThrowable(e.getCause());
+        }
+    }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1">Multiple <tt class="calibre25">ExecutorCompletionService</tt>s can share a single <tt class="calibre25">Executor</tt>, so it is <a name="iddle1317" class="calibre18" id="iddle1317"></a><a name="iddle1934" class="calibre18" id="iddle1934"></a><a name="iddle3633" class="calibre18" id="iddle3633"></a><a name="iddle3634" class="calibre18" id="iddle3634"></a><a name="iddle3933" class="calibre18" id="iddle3933"></a><a name="iddle4888" class="calibre18" id="iddle4888"></a><a name="iddle4929" class="calibre18" id="iddle4929"></a><a name="iddle4930" class="calibre18" id="iddle4930"></a><a name="iddle4962" class="calibre18" id="iddle4962"></a><a name="iddle4963" class="calibre18" id="iddle4963"></a>perfectly sensible to create an <tt class="calibre25">ExecutorCompletionService</tt> that is private to a particular computation while sharing a common <tt class="calibre25">Executor</tt>. When used in this way, a <tt class="calibre25">CompletionService</tt> acts as a handle for a batch of computations in much the same way that a <tt class="calibre25">Future</tt> acts as a handle for a single computation. By remembering how many tasks were submitted to the <tt class="calibre25">CompletionService</tt> and counting how many completed results are retrieved, you can know when all the results for a given batch have been retrieved, even if you use a shared <tt class="calibre25">Executor</tt>.</p>
+<a name="ch06lev2sec15" class="calibre18" id="ch06lev2sec15"></a>
+<h4 id="title-IDAKJKIU" class="docSection2Title">6.3.7. Placing Time Limits on Tasks</h4>
+<p class="docText1">Sometimes, if an activity does not complete within a certain amount of time, the result is no longer needed and the activity can be abandoned. For example, a web application may fetch its advertisements from an external ad server, but if the ad is not available within two seconds, it instead displays a default advertisement so that ad unavailability does not undermine the site's responsiveness requirements. Similarly, a portal site may fetch data in parallel from multiple data sources, but may be willing to wait only a certain amount of time for data to be available before rendering the page without it.</p>
+<p class="docText1">The primary challenge in executing tasks within a time budget is making sure that you don't wait longer than the time budget to get an answer or find out that one is not forthcoming. The timed version of <tt class="calibre25">Future.get</tt> supports this requirement: it returns as soon as the result is ready, but throws <tt class="calibre25">TimeoutException</tt> if the result is not ready within the timeout period.</p>
+<p class="docText1">A secondary problem when using timed tasks is to stop them when they run out of time, so they do not waste computing resources by continuing to compute a result that will not be used. This can be accomplished by having the task strictly manage its own time budget and abort if it runs out of time, or by cancelling the task if the timeout expires. Again, <tt class="calibre25">Future</tt> can help; if a timed <tt class="calibre25">get</tt> completes with a <tt class="calibre25">TimeoutException</tt>, you can cancel the task through the <tt class="calibre25">Future</tt>. If the task is written to be cancellable (see <a class="calibre2" href="ch07.html#ch07">Chapter 7</a>), it can be terminated early so as not to consume excessive resources. This technique is used in <a class="calibre2" href="#ch06list13">Listings 6.13</a> and <a class="calibre2" href="#ch06list16">6.16</a>.</p>
+<p class="docText1"><a class="calibre2" href="#ch06list16">Listing 6.16</a> shows a typical application of a timed <tt class="calibre25">Future.get</tt>. It generates a composite web page that contains the requested content plus an advertisement fetched from an ad server. It submits the ad-fetching task to an executor, computes the rest of the page content, and then waits for the ad until its time budget runs out.<sup class="docFootnote"><a class="calibre2" href="#ch06fn08">[8]</a></sup> If the <tt class="calibre25">get</tt> times out, it cancels<sup class="docFootnote"><a class="calibre2" href="#ch06fn09">[9]</a></sup> the ad-fetching task and uses a default advertisement instead.</p><blockquote class="calibre19"><p class="docFootnote1"><sup class="calibre27"><a name="ch06fn08" class="calibre18" id="ch06fn08">[8]</a></sup> The timeout passed to <tt class="calibre35">get</tt> is computed by subtracting the current time from the deadline; this may in fact yield a negative number, but all the timed methods in <tt class="calibre35">java.util.concurrent</tt> TReat negative timeouts as zero, so no extra code is needed to deal with this case.</p></blockquote><blockquote class="calibre19"><p class="docFootnote1"><sup class="calibre27"><a name="ch06fn09" class="calibre18" id="ch06fn09">[9]</a></sup> The <tt class="calibre35">TRue</tt> parameter to <tt class="calibre35">Future.cancel</tt> means that the task thread can be interrupted if the task is currently running; see <a class="calibre2" href="ch07.html#ch07">Chapter 7</a>.</p></blockquote>
+<a name="ch06lev2sec16" class="calibre18" id="ch06lev2sec16"></a>
+<h4 id="title-IDACMKIU" class="docSection2Title">6.3.8. Example: A Travel Reservations Portal</h4>
+<p class="docText1">The time-budgeting approach in the previous section can be easily generalized to an arbitrary number of tasks. Consider a travel reservation portal: the user enters travel dates and requirements and the portal fetches and displays bids from a number of airlines, hotels or car rental companies. Depending on the company, fetching a bid might involve invoking a web service, consulting a database, performing an EDI transaction, or some other mechanism. Rather than have the response time for the page be driven by the slowest response, it may be preferable to present only the information available within a given time budget. For providers that do not respond in time, the page could either omit them completely or display a placeholder such as "Did not hear from Air Java in time."</p>
+<a name="ch06list16" class="calibre18" id="ch06list16"></a><h5 id="title-IDASMKIU" class="docExampleTitle">Listing 6.16. Fetching an Advertisement with a Time Budget.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">Page renderPageWithAd() throws InterruptedException {
+    long endNanos = System.nanoTime() + TIME_BUDGET;
+    Future&lt;Ad&gt; f = exec.submit(new FetchAdTask());
+    // <span class="docEmphasis">Render the page while waiting for the ad</span>
+    Page page = renderPageBody();
+    Ad ad;
+    try {
+        // <span class="docEmphasis">Only wait for the remaining time budget</span>
+        long timeLeft = endNanos - System.nanoTime();
+        ad = f.get(timeLeft, NANOSECONDS);
+    } catch (ExecutionException e) {
+        ad = DEFAULT_AD;
+    } catch (TimeoutException e) {
+        ad = DEFAULT_AD;
+        f.cancel(true);
+    }
+    page.setAd(ad);
+    return page;
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1">Fetching a bid from one company is independent of fetching bids from another, so fetching a single bid is a sensible task boundary that allows bid retrieval to proceed concurrently. It would be easy enough to create <span class="docEmphasis">n</span> tasks, submit them to a thread pool, retain the <tt class="calibre25">Future</tt>s, and use a timed <tt class="calibre25">get</tt> to fetch each result sequentially via its <tt class="calibre25">Future</tt>, but there is an even easierway<tt class="calibre25">invokeAll</tt>.</p>
+<p class="docText1"><a class="calibre2" href="ch06lev1sec4.html#ch06list17">Listing 6.17</a> uses the timed version of <tt class="calibre25">invokeAll</tt> to submit multiple tasks to an <tt class="calibre25">ExecutorService</tt> and retrieve the results. The <tt class="calibre25">invokeAll</tt> method takes a collection of tasks and returns a collection of <tt class="calibre25">Future</tt>s. The two collections have identical structures; <tt class="calibre25">invokeAll</tt> adds the <tt class="calibre25">Future</tt>s to the returned collection in the order imposed by the task collection's iterator, thus allowing the caller to associate a <tt class="calibre25">Future</tt> with the <tt class="calibre25">Callable</tt> it represents. The timed version of <tt class="calibre25">invokeAll</tt> will return when all the tasks have completed, the calling thread is interrupted, or the timeout expires. Any tasks that are not complete when the timeout expires are cancelled. On return from <tt class="calibre25">invokeAll</tt>, each task will have either completed normally or been cancelled; the client code can call <tt class="calibre25">get</tt> or <tt class="calibre25">isCancelled</tt> to find <a name="iddle4889" class="calibre18" id="iddle4889"></a>out which.</p>
+<a href="21021536.html" class="calibre2"><img src="pixel.jpg" alt="" border="0" class="calibre26"/></a>
+<p class="calibre3"> </p>
+
+</div>
+
+{% endraw %}
+

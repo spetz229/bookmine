@@ -1,0 +1,142 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect116_d1e37324.html
+next: I_sect116_d1e37427_split_001.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect116_d1e37324.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="ffi_split_000.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect116_d1e37427" class="calibre27" id="I_sect116_d1e37427"></a><h3 id="title-IDAJX3XG" class="docSection1Title">16.12. Parsing a HTTP Request</h3><a name="x_Kv" class="calibre27" id="x_Kv"></a><p class="docText">As<a name="I_indexterm16_d1e37432" class="calibre27" id="I_indexterm16_d1e37432"></a><a name="ch16-httprequest" class="calibre27" id="ch16-httprequest"></a> another example of applicative parsing, we will develop a
+    basic parser for HTTP requests:</p><pre class="calibre39">-- file: ch16/HttpRequestParser.hs
+module HttpRequestParser
+    (
+      HttpRequest(..)
+    , Method(..)
+    , p_request
+    , p_query
+    ) where
+
+import ApplicativeParsec
+import Numeric (readHex)
+import Control.Monad (liftM4)
+import System.IO (Handle)</pre><br class="calibre48"/>
+<a name="x_Lv" class="calibre27" id="x_Lv"></a><p class="docText">An HTTP request consists of a method, an identifier, a
+    series of headers, and an optional body. For simplicity, we'll focus on
+    just two of the six method types specified by the HTTP 1.1 standard. A
+    <tt class="calibre34">POST</tt> method<a name="I_indexterm16_d1e37444" class="calibre27" id="I_indexterm16_d1e37444"></a><a name="I_indexterm16_d1e37447" class="calibre27" id="I_indexterm16_d1e37447"></a> has a body; a <tt class="calibre34">GET</tt> has none:</p><pre class="calibre39">-- file: ch16/HttpRequestParser.hs
+data Method = Get | Post
+          deriving (Eq, Ord, Show)
+
+data HttpRequest = HttpRequest {
+      reqMethod :: Method
+    , reqURL :: String
+    , reqHeaders :: [(String, String)]
+    , reqBody :: Maybe String
+    } deriving (Eq, Show)</pre><br class="calibre48"/>
+<a name="x_Mv" class="calibre27" id="x_Mv"></a><p class="docText">Because we're writing in an applicative style, our parser
+    can be both brief and readable. Readable, that is, if you're becoming used
+    to the applicative parsing notation:</p><pre class="calibre39">-- file: ch16/HttpRequestParser.hs
+p_request :: CharParser () HttpRequest
+p_request = q "GET" Get (pure Nothing)
+        &lt;|&gt; q "POST" Post (Just &lt;$&gt; many anyChar)
+  where q name ctor body = liftM4 HttpRequest req url p_headers body
+            where req = ctor &lt;$ string name &lt;* char ' '
+        url = optional (char '/') *&gt;
+              manyTill notEOL (try $ string " HTTP/1." &lt;* oneOf "01")
+              &lt;* crlf</pre><br class="calibre48"/>
+<a name="x_Nv" class="calibre27" id="x_Nv"></a><p class="docText">Briefly, the <i class="docEmphasis">q</i> helper
+    function accepts a method name, the type constructor to apply to it, and a
+    parser for a request's optional body. The <i class="docEmphasis">url</i> helper does not attempt to validate a URL,
+    because the HTTP specification does not state what characters a URL
+    contain. The function just consumes input until either the line ends or it
+    reaches an HTTP version identifier.</p><a name="I_sect116_d1e37427d1e37801" class="calibre27" id="I_sect116_d1e37427d1e37801"></a><h4 id="title-IDAIB5XG" class="docSection1Title">16.12.1. Backtracking and Its Discontents</h4><a name="x_Uv" class="calibre27" id="x_Uv"></a><p class="docText">The <tt class="calibre34">try</tt>
+      combinato<a name="I_indexterm16_d1e37476" class="calibre27" id="I_indexterm16_d1e37476"></a>r has to hold onto input in case it needs to restore it so
+      that an alternative parser can be used. This practice is referred to as
+      <span class="docEmphasis">backtracking</span>. Because <i class="docEmphasis">try</i> must save input, it is expensive to use.
+      Sprinkling a parser with unnecessary uses of <i class="docEmphasis">try</i> is a very effective way to slow it down,
+      sometimes to the point of unacceptable performance.</p><a name="x_Vv" class="calibre27" id="x_Vv"></a><p class="docText">The standard way to avoid the need for backtracking is
+      to tidy up a parser so that we can decide whether it will succeed or
+      fail using only a single token of input. In this case, the two parsers
+      consume the same initial tokens, so we turn them into a single
+      parser:</p><pre class="calibre39">ghci&gt; <b class="calibre40">let parser = (++) &lt;$&gt; string "HT" &lt;*&gt; (string "TP" &lt;|&gt; string "ML")</b>ghci&gt; <b class="calibre40">parseTest parser "HTTP"</b>
+"HTTP"
+ghci&gt; <b class="calibre40">parseTest parser "HTML"</b>
+"HTML"</pre><a name="x_Wv" class="calibre27" id="x_Wv"></a><p class="docText">Even better, Parsec gives us an improved error message
+      if we feed it nonmatching input:</p><pre class="calibre39">ghci&gt; <b class="calibre40">parseTest parser "HTXY"</b>
+parse error at (line 1, column 3):
+unexpected "X"
+expecting "TP" or "ML"
+</pre><a name="I_sect116_d1e37427d1e37847" class="calibre27" id="I_sect116_d1e37427d1e37847"></a><h4 id="title-IDAAD5XG" class="docSection1Title">16.12.2. Parsing Headers</h4><a name="x_Xv" class="calibre27" id="x_Xv"></a><p class="docText">Following the first line of a HTTP request<a name="I_indexterm16_d1e37520" class="calibre27" id="I_indexterm16_d1e37520"></a> is a series of zero or more headers. A header begins with
+      a field name, followed by a colon, followed by the content. If the lines
+      that follow begin with spaces, they are treated<a name="I_indexterm16_d1e37524" class="calibre27" id="I_indexterm16_d1e37524"></a><a name="I_indexterm16_d1e37525" class="calibre27" id="I_indexterm16_d1e37525"></a> as
+      <span class="docEmphasis">continuations</span> of<a name="I_indexterm16_d1e37530" class="calibre27" id="I_indexterm16_d1e37530"></a> the current content:</p><pre class="calibre39">-- file: ch16/HttpRequestParser.hs
+p_headers :: CharParser st [(String, String)]
+p_headers = header `manyTill` crlf
+  where header = liftA2 (,) fieldName (char ':' *&gt; spaces *&gt; contents)
+        contents = liftA2 (++) (many1 notEOL &lt;* crlf)
+                               (continuation &lt;|&gt; pure [])
+        continuation = liftA2 (:) (' ' &lt;$ many1 (oneOf " \t")) contents
+        fieldName = (:) &lt;$&gt; letter &lt;*&gt; many fieldChar
+        fieldChar = letter &lt;|&gt; digit &lt;|&gt; oneOf "-_"
+
+crlf :: CharParser st ()
+crlf = (() &lt;$ string "\r\n") &lt;|&gt; (() &lt;$ newline)
+
+notEOL :: CharParser st Char
+notEOL = noneOf "\r\n"</pre><br class="calibre48"/>
+<a name="I_sidebar16_d1e37537" class="calibre27" id="I_sidebar16_d1e37537"></a></td>
+                    </tr>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

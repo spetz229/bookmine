@@ -1,0 +1,72 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0108.html
+next: f_0110.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.word.boundaries">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 76</td>
+<td class="arr-recipe-name">Stake the Boundaries of a Word</td>
+</tr>
+</table>
+<p id="N18633" class="calibre4">
+<span class="calibre5">
+        When defining a pattern, specifying where a word begins and ends can be useful. Vim’s word-delimiter items let us do that.
+    </span>
+</p>
+<p id="N18643" class="calibre4">
+      Some words, especially short ones, have a habit of showing up inside other words. For example, “the” appears inside “these,” “they,” “their,” and many other words besides. So if we search the following excerpt by running <code class="cf">/the</code>
+<span class="calibre17">&lt;CR&gt;</span>, we’ll find more matches than we may have bargained for:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<span class="shade-fg-black">the</span> problem with <span class="shade-fg-black">the</span>se new recruits is that​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<span class="shade-fg-black">the</span>y don't keep <span class="shade-fg-black">the</span>ir boots clean.​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1866B" class="calibre4">
+      If we specifically want to match “the” as a word rather than a fragment, we can use word boundary delimiters. In <code class="cf">very magic</code> searches, these are represented by the <code class="cf">&lt;</code> and <code class="cf">&gt;</code> symbols. So if we amended our search to <code class="cf">/\v&lt;the&gt;</code>
+<span class="calibre17">&lt;CR&gt;</span>, it would find only one match in the excerpt.
+    </p>
+<p id="N18681" class="calibre4">
+      These are <span class="calibre5">zero-width</span> items, meaning that they don’t match any characters themselves. They represent the boundary between a word and the whitespace or punctuation that surrounds it.
+    </p>
+<p id="N1868A" class="calibre4">
+      We can approximate the meaning of <code class="cf">&lt;</code> and <code class="cf">&gt;</code> by combining the <code class="cf">\w</code> and <code class="cf">\W</code> character classes with the <code class="cf">\zs</code> and <code class="cf">\ze</code> match delimiters (which we’ll meet in <a xmlns:str="http://exslt.org/strings" href="f_0110.html#sec.pattern.zs">Tip 77</a>). <code class="cf">\w</code> matches word characters, including letters, numbers, and the “_” symbol, while <code class="cf">\W</code> matches everything except for word characters. Combining these, we could approximate the <code class="cf">&lt;</code> item as <code class="cf">\W\zs\w</code>, and the <code class="cf">&gt;</code> item as <code class="cf">\w\ze\W</code>.
+    </p>
+<p id="N186B5" class="calibre4">
+	In a <code class="cf">very magic</code> search, the naked <code class="cf">&lt;</code> and <code class="cf">&gt;</code> characters are interpreted as word delimiters, but in <code class="cf">magic</code>, <code class="cf">nomagic</code>, and <code class="cf">very nomagic</code> searches we have to escape them. Hence, to look up these items in Vim’s documentation, we must prepend a slash: <strong xmlns:str="http://exslt.org/strings" class="calibre10">/\&lt;</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/pattern.html#/\%3C">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>. Note that if we wanted to match the angle bracket characters literally in a <code class="cf">very magic</code> search, we would have to escape them.
+    </p>
+<p id="N186D8" class="calibre4">
+      Even if we don’t make a habit of using the word boundary items when composing our own search patterns, we use them indirectly each time we trigger the <span class="calibre17">*</span> or <span class="calibre17">#</span> commands (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">*</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/pattern.html#star">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). These search forward and backward, respectively, for the word under the cursor. If we examine the search history after using either of these commands (by pressing <span class="calibre17">/&lt;Up&gt;</span>), we’ll see that the last search pattern is wrapped with word delimiters. Incidentally, the <span class="calibre17">g*</span> and <span class="calibre17">g#</span> variants perform the same searches <span class="calibre5">without</span> word delimiters.
+	  </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

@@ -1,0 +1,242 @@
+---
+layout: page
+title: "Learning GNU Emacs, 3rd Edition"
+prev: OEBPS/ch12s07.html
+next: OEBPS/ch12s09.html
+book_path: books/learning-gnu-emacs--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h1 class="title"><a id="gnu3-CHP-12-SECT-8" class="calibre1"></a>Individual VC Commands</h1></div></div></div><p class="copyright">We've already explained what the main command,
+<span><strong class="calibre5">vc-next-action</strong></span>, does. Now
+we'll describe each of VC's other
+commands in detail. We have chosen the order of these descriptions to
+take you from frequently used and simpler commands to rarer and more
+complex ones.</p><p class="copyright">You can, accordingly, read to the end of chapter or bail out at any
+point if you think you've learned all you need to.
+But try to persevere because you may find that the descriptions of
+the less common commands give you some new ideas about how to track
+and organize your project files.</p><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-12-SECT-8.1" class="calibre1"></a>Working with Groups and Subtrees of Files</h2></div></div></div><p class="copyright">Usually, the projects you <a id="gnu3-CHP-12-ITERM-2880" class="calibre2"></a>
+               <a id="gnu3-CHP-12-ITERM-2881" class="calibre2"></a>
+               <a id="gnu3-CHP-12-ITERM-2882" class="calibre2"></a>
+               <a id="gnu3-CHP-12-ITERM-2883" class="calibre2"></a>
+               <a id="gnu3-CHP-12-ITERM-2884" class="calibre2"></a>want to put
+under version control have more than one file; it's
+normal for them to contain all the files under a specific directory
+and subdirectory. Therefore, seeing a list of all version-controlled
+files beneath the current working directory is often useful. Being
+able to perform an operation on all of them <span><em class="calibre7">en
+masse</em></span> is even more useful.</p><p class="copyright">VC mode supports this directly. The command <span><strong class="calibre5">C-x
+v d</strong></span> (for <span><strong class="calibre5">vc-directory</strong></span>)
+puts you in a buffer running a customized Dired (directory editing)
+mode, which lists all registered files under the current directory,
+indicating which, if any, are checked out and who has locked them.
+The status field in this listing is automatically kept up to date by
+check-in and check-out operations.</p><p class="copyright">If you mark several files in this Dired buffer (with the ordinary
+Dired mark command described in <a class="calibre2" href="ch05.html" title="Chapter 5. Emacs as a Work Environment">Chapter 5</a>) and
+then perform either a <span><strong class="calibre5">vc-next-action</strong></span>
+or <span><strong class="calibre5">vc-revert-buffer</strong></span>, VC performs
+that operation on all the marked files. The most common case in which
+you'll perform this procedure is when you want to
+check in changes to several files simultaneously. VC helps you out:
+it pops up a buffer for only one change comment, which it then
+applies to every revision the check-in creates.</p><p class="copyright">The <span><strong class="calibre5">vc-revert-buffer</strong></span> design is a bit
+more conservative; normally, it prompts you once for each file to
+make sure you really want to discard its changes.</p><p class="copyright">Some Dired commands are rebound in VC Dired to run version-control
+commands. The <span><strong class="calibre5">=</strong></span> keystroke, for
+example, runs <span><strong class="calibre5">vc-diff</strong></span> on the current
+file rather than a Dired <span><strong class="calibre5">diff</strong></span>. And
+<span><strong class="calibre5">g</strong></span> refreshes all the VC status fields
+in the directory.</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-12-SECT-8.2" class="calibre1"></a>Difference Reports</h2></div></div></div><p class="copyright">Earlier, we mentioned <a id="gnu3-CHP-12-ITERM-2885" class="calibre2"></a>
+               <a id="gnu3-CHP-12-ITERM-2886" class="calibre2"></a>
+               <a id="gnu3-CHP-12-ITERM-2887" class="calibre2"></a>that version control systems help you
+generate difference reports between versions. VC's
+command for this is <span><strong class="calibre5">C-x v =</strong></span> (for
+<span><strong class="calibre5">vc-diff</strong></span>). This command normally
+shows you the difference between your work file and the last revision
+you checked in so that you can see exactly what changes
+you'll be committing if you check in again.</p><p class="copyright">If you give this command a prefix argument, <span><strong class="calibre5">C-u
+C-x v =</strong></span>, it prompts you for a file name and two revision
+numbers and reports the difference between those revisions of the
+file. If the older revision number is empty (that is, you simply
+press <span><strong class="calibre5">Enter</strong></span> at that prompt), it
+defaults to the last checked-in revision. If the newer revision is
+empty, it defaults to the work file. So pressing <span><strong class="calibre5">Enter</strong></span> twice compares the work file with what
+was last checked in to the repository, a very common task.</p><p class="copyright">It's also possible to get a difference report for a
+whole tree of project files. If the filename you give <span><strong class="calibre5">C-u C-x v =</strong></span> is actually a directory,
+you'll see the differences between your specified
+versions for every registered file underneath that directory.</p><p class="copyright">By design, such a difference report can be shipped and mechanically
+applied as a patch using Larry Wall's <span><strong class="calibre5">patch</strong></span> utility (available on all modern
+Unixes). This is a tremendous help when you're
+cooperating on a software project by email; you can download sources,
+register them, make modifications—and then, with one command,
+generate a complete patch set of your changes to mail to your
+collaborators.</p><p class="copyright">The exact format of these reports varies somewhat between version
+control systems because VC uses each system's native
+difference reporter.<sup class="calibre6">[<a id="gnu3-CHP-12-FNOTE-3" href="#ftn.gnu3-CHP-12-FNOTE-3" class="calibre2">3</a>]</sup> Generally, the
+output resembles that of the Unix
+<span><strong class="calibre5">diff</strong></span> command. We'll see how to customize
+the report later in this chapter. Finally, the last section of the
+chapter introduces Ediff, an alternate and powerful way to compare
+and resolve differences between multiple files or versions.</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-12-SECT-8.3" class="calibre1"></a>Retrieving Old Revisions</h2></div></div></div><p class="copyright">You can use the <a id="gnu3-CHP-12-ITERM-2888" class="calibre2"></a>
+               <a id="gnu3-CHP-12-ITERM-2889" class="calibre2"></a>command <span><strong class="calibre5">C-x v ~</strong></span> (for <span><strong class="calibre5">vc-version-other-window</strong></span>) to retrieve any saved
+revision of a file. The revision is retrieved into a work file with
+the same name as your file, except for a suffix that identifies its
+revision number (the suffix is actually a dot, followed by a tilde,
+followed by the revision number, followed by another tilde). So you
+can retrieve several revisions, and they won't step
+on each other. This command is useful when you want to eyeball the
+entire old version of a file, as opposed to just its changes from
+previous versions or its differences from later ones.</p><p class="copyright">The version suffix format is very close to what Emacs generates for
+saved versions if you set the global Emacs Lisp variable <span><strong class="calibre5">version-control</strong></span> (which VC has made pretty much
+obsolete). For example, if you're visiting a file
+named <em class="calibre7"><code class="calibre21">foo.html</code></em> and you retrieve version
+1.3 by typing <span><strong class="calibre5">C-x v ~ 1 . 3 Enter</strong></span>,
+you will now be visiting a file named
+<em class="calibre7"><code class="calibre21">foo.html.~1.3~</code></em> (and because it ends with a
+tilde, Dired's command to flag backup files will
+mark it, as discussed in <a class="calibre2" href="ch05.html" title="Chapter 5. Emacs as a Work Environment">Chapter 5</a>).</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-12-SECT-8.4" class="calibre1"></a>Viewing Change Histories</h2></div></div></div><p class="copyright">If you use <span><strong class="calibre5">C-x v l</strong></span> (for <span><strong class="calibre5">vc-print-log</strong></span>) on a <a id="gnu3-CHP-12-ITERM-2890" class="calibre2"></a>
+               <a id="gnu3-CHP-12-ITERM-2891" class="calibre2"></a>registered file, VC pops up a buffer
+containing that file's change history. This command
+is most useful for viewing the change comments associated with each
+revision.</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-12-SECT-8.5" class="calibre1"></a>Registering a File</h2></div></div></div><p class="copyright">Normally, registering a file for <a id="gnu3-CHP-12-ITERM-2892" class="calibre2"></a>
+               <a id="gnu3-CHP-12-ITERM-2893" class="calibre2"></a>version control with <span><strong class="calibre5">C-x v v</strong></span> (for <span><strong class="calibre5">vc-next-action</strong></span>) with a nonconcurrent version
+control system also checks out an editable copy. Occasionally
+it's useful to be able to just register a file
+without checking it out. The command <span><strong class="calibre5">C-x v
+i</strong></span> (for <span><strong class="calibre5">vc-register</strong></span>) does
+this. With modern concurrent version control systems, this
+distinction is fading away.</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-12-SECT-8.6" class="calibre1"></a>Inserting Version Control Headers</h2></div></div></div><p class="copyright">Most version control systems <a id="gnu3-CHP-12-ITERM-2894" class="calibre2"></a>
+               <a id="gnu3-CHP-12-ITERM-2895" class="calibre2"></a>encourage you to embed in your file
+one or more magic strings that get automatically updated at check-in,
+check-out, and revert time. The purpose of these strings is to carry
+automatically inserted information about the current revision number
+of the file, who last modified it, and when it was last checked in.</p><p class="copyright">These header strings largely duplicate within the file the version
+information that VC puts on the mode line—and the rest of that
+information you can get with <span><strong class="calibre5">C-x v l</strong></span>
+(for <span><strong class="calibre5">vc-print-log</strong></span>). This feature
+might not seem very useful, but (in particular) embedding a version
+string can make it possible to mine version-control information out
+of a compiled binary program.</p><p class="copyright">Further, you may frequently view version-controlled files through
+something other than Emacs. If so, you won't have an
+Emacs mode line displaying version control information, and there is
+some value in having the magic headers visible in the file.
+Accordingly, VC provides you with a command to insert them. (Note
+that what VC inserts are correctly formatted placeholders for the
+headers; the actual values get filled in by the underlying version
+control system each time you commit the file.)</p><p class="copyright">If you type <span><strong class="calibre5">C-x v h</strong></span> (for <span><strong class="calibre5">vc-insert-headers</strong></span>) while visiting a registered
+and editable file, VC tries to determine from the syntax of the file
+how to insert the version control header(s) as a comment and then do
+so. VC knows about C and Java code, and <span><strong class="calibre5">nroff</strong></span>/<span><strong class="calibre5">troff</strong></span>/<span><strong class="calibre5">groff</strong></span>
+code especially, and can usually deduce the right thing from
+Emacs' <span><strong class="calibre5">comment-start</strong></span> and <span><strong class="calibre5">comment-end</strong></span> global variables (set by each
+major mode) so it can insert HTML comments, for example. It falls
+back to <span><strong class="calibre5">#-to-\n</strong></span> comments (like those
+used by shell, awk, Perl, tcl, and many other Unix languages) if it
+can't figure out anything better to do. This command
+is also smart enough to notice if you already seem to have version
+control headers present in the file and will ask you for confirmation
+before inserting a redundant set.</p><p class="copyright">One special behavior with respect to C code is worth mentioning. C
+files don't actually get version headers put in
+comments by default. Instead, Emacs generates a string initialization
+for a static dummy variable called <span><strong class="calibre5">vcid</strong></span>. This action is taken so the header will
+actually be generated into the corresponding object file as a string,
+and you can use the <span><em class="calibre7">strings</em></span> command (if
+you've got a Unix-like environment) to see which
+versions of its sources a binary was generated from.</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-12-SECT-8.7" class="calibre1"></a>Making and Retrieving Snapshots</h2></div></div></div><p class="copyright">A <span><em class="calibre7">snapshot</em></span> of a project is a set of
+<a id="gnu3-CHP-12-ITERM-2896" class="calibre2"></a>
+               <a id="gnu3-CHP-12-ITERM-2897" class="calibre2"></a>revisions
+of the project files treated as a unit. Typically, releases are
+associated with points at which the project's
+product goes to a customer or other outside evaluator.</p><p class="copyright">When you're working with a subtree of project files
+and want to define a release of a document or program, you may find
+it tedious to have to do it by remembering or storing long lists of
+file revision numbers. Accordingly, most version control systems give
+you the ability to associate a symbolic release name with all the
+revisions that make up a release, and then to use that symbolic name
+later on when naming revisions for retrieval or difference reports.</p><p class="copyright">Bare RCS and CVS both provide this capability. Bare SCCS does not,
+but VC includes code to simulate it under SCCS. In practice, the
+difference between native symbolic names and VC's is
+next to invisible. The only drawback of VC's
+simulation is that the SCCS tools won't know about
+symbolic names when you call them outside VC. (Note that this concept
+doesn't really apply to Subversion, because in that
+environment <span><em class="calibre7">every</em></span> revision is a snapshot of the
+files and directories comprising the entire module.)</p><p class="copyright">The <span><strong class="calibre5">C-x v s</strong></span> (for <span><strong class="calibre5">vc-create-snapshot</strong></span>) prompts you for a symbolic
+name. VC then associates this name with the current revision level of
+every registered file under the current directory.</p><p class="copyright">The symbolic names you create with <span><strong class="calibre5">vc-create-snapshot</strong></span> are also valid arguments to
+any other VC command that wants a revision number. Symbolic names are
+especially useful with <span><strong class="calibre5">vc-diff</strong></span>; it
+means you can compare named releases with each other or with your
+checked-out work files. The <span><strong class="calibre5">C-x v r</strong></span>
+(for <span><strong class="calibre5">vc-retrieve-snapshot</strong></span>) command
+takes a symbolic name and checks out every registered file underneath
+the current working directory at the revision level associated with
+the name.</p><p class="copyright">Both the snapshot commands will fail, returning an error and not
+marking or retrieving any files, if any registered file under the
+current directory is checked out by anyone. The <span><strong class="calibre5">vc-create-snapshot</strong></span> command fails in order to
+avoid making a snapshot that, when retrieved later,
+won't restore the current state completely. It also
+fails in order to avoid stepping on your work file changes before
+you've had the chance to check them in or revert
+them out.</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-12-SECT-8.8" class="calibre1"></a>Updating ChangeLog Files</h2></div></div></div><p class="copyright">The command <span><strong class="calibre5">C-x v a</strong></span> (for <span><strong class="calibre5">vc-update-change-log</strong></span>) helps VC work with some
+project-management <a id="gnu3-CHP-12-ITERM-2898" class="calibre2"></a>
+               <a id="gnu3-CHP-12-ITERM-2899" class="calibre2"></a>
+               <a id="gnu3-CHP-12-ITERM-2900" class="calibre2"></a>conventions used by the Free
+Software Foundation. FSF projects generally have in each directory a
+file called <span><em class="calibre7">ChangeLog</em></span> that is supposed to
+contain timestamped modification comments for every file in that
+directory. The <span><em class="calibre7">ChangeLog</em></span>, historically, provided
+the change history, or audit trail, for which VC uses change
+comments.</p><p class="copyright">Rather than make you enter every change comment twice (!), VC
+provides a hook that copies recent change comments out of masters
+beneath the current directory and appends them to a
+<span><em class="calibre7">ChangeLog</em></span> in the approved format.</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-12-SECT-8.9" class="calibre1"></a>Renaming Version-Controlled Files</h2></div></div></div><p class="copyright">Renaming version-controlled files <a id="gnu3-CHP-12-ITERM-2901" class="calibre2"></a>
+               <a id="gnu3-CHP-12-ITERM-2902" class="calibre2"></a>
+               <a id="gnu3-CHP-12-ITERM-2903" class="calibre2"></a>can be tricky. In RCS or SCCS, you
+have to rename not just the work file but its associated master.
+Under CVS, for reasons too arcane to go into here,
+it's hard to do at all without breaking something.</p><p class="copyright">The <span><strong class="calibre5">vc-rename-file</strong></span> tries to insulate
+you from the details and to catch and inform you about various error
+conditions that can arise. It simply prompts for old and new
+filenames, tries to do the right thing, and tells you if it cannot.</p><div class="warning"><h3 class="title6"><a id="gnu3-CHP-12-NOTE-18" class="calibre1"></a>Warning</h3><p class="calibre35">Renaming interacts badly with the simulated symbolic-name feature
+under SCCS. This is one of the better reasons to use RCS or CVS. And,
+actually, if you think you might need to rename or move files,
+you're best off investigating Subversion since one
+of its major design goals was to be the first version control system
+in which this task is straightforward.</p></div></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-12-SECT-8.10" class="calibre1"></a>When VC Gets Confused</h2></div></div></div><p class="copyright">The filesystem operations required to <a id="gnu3-CHP-12-ITERM-2904" class="calibre2"></a>determine a file's
+version control state can be expensive and slow, especially in an NFS
+or other networked environment. VC goes to some pains to compensate
+(unless, as we'll see later on, you tell it not to).</p><p class="copyright">It has two major methods: (1) caching per-file information (such as
+the locking user and current revision number) in memory rather than
+running version control utilities to parse it out of the relevant
+master every time, and (2) assuming that it can deduce a registered
+file's version control state from its write
+permissions. Specifically, VC assumes that a registered file that is
+writable is in the checked-out-and-locked state and that a registered
+file that is <span><em class="calibre7">not</em></span> writable is
+<span><em class="calibre7">not</em></span> a checked-out version being edited.</p><p class="copyright">Multiuser environments being what they are, VC's
+cached information and assumptions about permissions occasionally
+lead it down the wrong path. This situation almost always occurs
+because someone has manually changed a file's
+permissions behind VC's back.</p><p class="copyright">If you think that this situation has occurred, call <span><strong class="calibre5">vc-clear-context</strong></span>. This command forces VC to
+throw away all its cached-in-memory assumptions about the version
+control state of the files you are working with.</p><p class="copyright">It is also theoretically possible for VC to get confused by a race
+condition between two or more VCs, or between VC and someone running
+the bare SCCS, RCS, or CVS utilities. This is not just a VC problem;
+the same sort of race is possible (though less likely) between two or
+more people running the bare utilities. However, this kind of race is
+very rare even in VC; the authors haven't heard of
+any instance in hundreds of thousands of programmer-hours in which
+it's known to have happened.</p><p class="copyright">If you're concerned about this issue, the VC source
+code (<span><em class="calibre7">vc.el</em></span> in your Emacs Lisp source directory)
+includes a comment giving a careful and extensive analysis of
+potential multiuser conflict and race situations. VC is exactly as
+safe from them as the underlying utilities can be.</p></div><div class="book"><br class="book"/><hr class="calibre4"/><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-12-FNOTE-3" href="#gnu3-CHP-12-FNOTE-3" class="calibre2">3</a>] </sup>This is a slight
+oversimplification. VC actually has its own script as a wrapper
+around SCCS's <span><strong class="calibre5">sccsdiff</strong></span>, in order to give it a calling
+sequence more like RCS's <span><strong class="calibre5">rcsdiff</strong></span>.</p></div></div></div></div>
+
+{% endraw %}
+

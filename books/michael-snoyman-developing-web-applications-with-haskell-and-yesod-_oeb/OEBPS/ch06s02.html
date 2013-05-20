@@ -1,0 +1,61 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch06.html
+next: OEBPS/ch06s03.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="defaultLayout"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect16_d1e2647" class="calibre1"></a>defaultLayout</h1></div></div></div><p class="calibre7">Most websites like to apply some general template to all of their pages.
+                <code class="literal">defaultLayout</code> is the recommended approach for this. While you could
+            just as easily define your own function and call that instead, when you override
+                <code class="literal">defaultLayout</code> all of the Yesod-generated pages (error pages,
+            authentication pages) automatically get this style.</p><p class="calibre7">Overriding is very straightforward: we use <code class="literal">widgetToPageContent</code> to convert a <code class="literal">Widget</code> to a
+      title, head tags, and body tags, and then use <code class="literal">hamletToRepHtml</code> to convert a Hamlet template into a <code class="literal">RepHtml</code>. We can even add extra widget components, like a Lucius template, from
+      within <code class="literal">defaultLayout</code>. An example should make this all
+      clear:</p><a id="I_programlisting6_d1e2675" class="firstname"></a><pre class="programlistinghaskell">    <code class="n">defaultLayout</code> <code class="n">contents</code> <code class="ow">=</code> <code class="kr">do</code>
+        <code class="kt">PageContent</code> <code class="n">title</code> <code class="n">headTags</code> <code class="n">bodyTags</code> <code class="ow">&lt;-</code> <code class="n">widgetToPageContent</code> <code class="o">$</code> <code class="kr">do</code>
+            <code class="n">addCassius</code> <code class="p">[</code><code class="n">cassius</code><code class="o">|</code>
+<code class="o">#</code><code class="n">body</code>
+    <code class="n">font</code><code class="o">-</code><code class="n">family</code><code class="kt">:</code> <code class="n">sans</code><code class="o">-</code><code class="n">serif</code>
+<code class="o">#</code><code class="n">wrapper</code>
+    <code class="n">width</code><code class="kt">:</code> <code class="mi">760</code><code class="n">px</code>
+    <code class="n">margin</code><code class="kt">:</code> <code class="mi">0</code> <code class="n">auto</code>
+<code class="o">|</code><code class="p">]</code>
+            <code class="n">addWidget</code> <code class="n">contents</code>
+        <code class="n">hamletToRepHtml</code> <code class="p">[</code><code class="n">hamlet</code><code class="o">|</code>
+<code class="o">$</code><code class="n">doctype</code> <code class="mi">5</code>
+
+<code class="o">&lt;</code><code class="n">html</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">head</code><code class="o">&gt;</code>
+        <code class="o">&lt;</code><code class="n">title</code><code class="o">&gt;#</code><code class="p">{</code><code class="n">title</code><code class="p">}</code>
+        <code class="o">^</code><code class="p">{</code><code class="n">headTags</code><code class="p">}</code>
+    <code class="o">&lt;</code><code class="n">body</code><code class="o">&gt;</code>
+        <code class="o">&lt;</code><code class="n">div</code> <code class="n">id</code><code class="ow">=</code><code class="s">"wrapper"</code><code class="o">&gt;</code>
+            <code class="o">^</code><code class="p">{</code><code class="n">bodyTags</code><code class="p">}</code>
+<code class="o">|</code><code class="p">]</code>
+</pre><div class="book" title="getMessage"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3066439" class="calibre1"></a>getMessage</h2></div></div></div><p class="calibre7">Even though we haven’t covered sessions yet, I’d like to mention <code class="literal">getMessage</code> here. A common pattern in web development is setting
+        a message in one handler and displaying it in another. For example, if a user <code class="literal">POST</code>s a form, you may want to redirect him/her to another page
+        along with a “Form submission complete” message.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">This is commonly known as <a class="ulink" href="http://en.wikipedia.org/wiki/Post/Redirect/Get">Post/Redirect/Get</a>.</p></div><p class="calibre7">To facilitate this, Yesod comes built in with a pair of functions: <code class="literal">setMessage</code> sets a message in the user session, and <code class="literal">getMessage</code> retrieves the message (and clears it, so it doesn’t
+        appear a second time). It’s recommended that you put the result of <code class="literal">getMessage</code> into your <code class="literal">defaultLayout</code>. For
+        example:</p><a id="I_programlisting6_d1e2711" class="firstname"></a><pre class="programlistinghaskell">    <code class="n">defaultLayout</code> <code class="n">contents</code> <code class="ow">=</code> <code class="kr">do</code>
+        <code class="kt">PageContent</code> <code class="n">title</code> <code class="n">headTags</code> <code class="n">bodyTags</code> <code class="ow">&lt;-</code> <code class="n">widgetToPageContent</code> <code class="n">contents</code>
+        <code class="n">mmsg</code> <code class="ow">&lt;-</code> <code class="n">getMessage</code>
+        <code class="n">hamletToRepHtml</code> <code class="p">[</code><code class="n">hamlet</code><code class="o">|</code>
+<code class="o">$</code><code class="n">doctype</code> <code class="mi">5</code>
+
+<code class="o">&lt;</code><code class="n">html</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">head</code><code class="o">&gt;</code>
+        <code class="o">&lt;</code><code class="n">title</code><code class="o">&gt;#</code><code class="p">{</code><code class="n">title</code><code class="p">}</code>
+        <code class="o">^</code><code class="p">{</code><code class="n">headTags</code><code class="p">}</code>
+    <code class="o">&lt;</code><code class="n">body</code><code class="o">&gt;</code>
+        <code class="o">$</code><code class="n">maybe</code> <code class="n">msg</code> <code class="ow">&lt;-</code> <code class="n">mmsg</code>
+            <code class="o">&lt;</code><code class="n">div</code> <code class="o">#</code><code class="n">message</code><code class="o">&gt;#</code><code class="p">{</code><code class="n">msg</code><code class="p">}</code>
+        <code class="o">^</code><code class="p">{</code><code class="n">bodyTags</code><code class="p">}</code>
+<code class="o">|</code><code class="p">]</code>
+</pre><p class="calibre7">We’ll cover <code class="literal">getMessage</code>/<code class="literal">setMessage</code> in more detail when we discuss sessions.</p></div></div></div>
+
+{% endraw %}
+

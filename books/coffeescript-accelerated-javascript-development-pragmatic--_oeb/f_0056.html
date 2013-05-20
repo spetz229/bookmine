@@ -1,0 +1,309 @@
+---
+layout: page
+title: "CoffeeScript (for jay muratore)"
+prev: f_0055.html
+next: f_0057.html
+book_path: books/coffeescript-accelerated-javascript-development-pragmatic--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="sec.async" class="calibre13">6.3 Thinking Asynchronously</h2>
+<p id="N13C02" class="calibre5">
+      One of the most common complaints about JavaScript has always been its lack of support for threading. While popular languages like Java, Ruby, and Python allow several tasks to be carried out simultaneously, JavaScript is strictly linear.
+    </p>
+<p id="N13C09" class="calibre5">
+      Yet what might seem on its surface to be JavaScript’s greatest weakness is now widely seen as a blessing in disguise. Without threads, there are no mutexes, no race conditions, no endless <code class="cf">sleep</code> loops. Many of the most common sources of software bugs are banished. What’s more, multithreading often adds significant overhead to an application, especially to web servers, which is one reason why Node.js has a reputation as an efficient alternative to frameworks in languages that typically rely on threads for concurrency.
+    </p>
+<p id="N13C0F" class="calibre5">
+      (Of course, without threads there’s no way to take advantage of multiple processors. The good news is that there are already projects out there, such as multi-node and cluster, that effectively bind multiple instances of your app to the same server port, giving you the performance advantages of parallel processing without the headaches of sharing data across threads.<a id="FNPTR-46" href="f_0059.html#FOOTNOTE-46">[46]</a>)
+      </p>
+<p id="N13C22" class="calibre5">
+      Because JavaScript is event-oriented rather than thread-oriented, events only run when all other execution has stopped. Imagine how frustrating it would be if every time your application made a request (say, to the file system or to an HTTP server), it froze up completely until the request was completed! For that reason, nearly every function in the Node.js API uses a callback: you make your request, Node.js quickly passes it along, and your application continues as if nothing happened. When your request is completed (or goes awry), the function you passed to Node.js gets called.
+    </p>
+<p id="N13C2F" class="calibre5">
+      For example, if you wanted to show the contents of the current directory, you would write the following:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">fs = require <em class="string">'fs'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">fs.readdir <em class="string">'.'</em>, (err, files) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  console.log files</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console.log <em class="string">'This will happen first.'</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N13C4F" class="calibre5">
+      Here’s what happens:
+    </p>
+<ol class="calibre24">
+<li class="calibre3">
+<p id="N13C55" class="calibre5">We ask Node.js to read the current directory with <code class="cf">fs.readdir</code>, passing a callback.</p>
+</li>
+<li class="calibre3">
+<p id="N13C5C" class="calibre5">Node.js passes the request along to the operating system, then immediately returns.</p>
+</li>
+<li class="calibre3">
+<p id="N13C60" class="calibre5">We print <code class="cf">’This will happen first.’</code> to the console.</p>
+</li>
+<li class="calibre3">
+<p id="N13C67" class="calibre5">Once our code has run, Node.js checks to see if the operating system has answered our request yet. It has, so it runs our callback, and a list of files in the current directory is printed to the console.</p>
+</li>
+</ol>
+<p id="N13C6A" class="calibre5">
+      You got that? This is very important to understand. <span class="emph">Your code is never interrupted</span>. No matter how many RPMs your hard drive has, that callback isn’t getting run until after <span class="emph">all</span> of your code has run. JavaScript code never gets interrupted. Even the seemingly precise  <code class="cf">setTimeout</code> and <code class="cf">setInterval</code> will wait forever if your code gets stuck in an infinite loop.
+    </p>
+<p id="N13C79" class="calibre5">
+      All of that is as true in the browser as it is in Node, but it’s doubly important to understand in Node because your application logic <span class="emph">will</span> take the form of tangled chains of callbacks. Have no doubt about it. The challenge is to manage them in a way that humans can understand.
+    </p>
+<p id="N13C7F" class="calibre5">
+      Consider how a simple form submission to a web application gets handled:
+    </p>
+<ol class="calibre24">
+<li class="calibre3">
+<p id="N13C85" class="calibre5">We get the user’s information from the database to check that they have permission to make the request.</p>
+</li>
+<li class="calibre3">
+<p id="N13C89" class="calibre5">If so, we update the database accordingly.</p>
+</li>
+<li class="calibre3">
+<p id="N13C8D" class="calibre5">We read a template from the file system, customize it appropriately, and send it to the user.</p>
+</li>
+</ol>
+<p id="N13C90" class="calibre5">
+      Then, at the very least, our application skeleton looks like this:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">formRequestReceived = (req) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  checkDatabaseForPermissions req, <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    updateDatabase req, <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">      renderTemplate req, (tmpl) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">        sendResponse tmpl</code>
+</td>
+</tr>
+</table>
+<p id="N13CB2" class="calibre5">
+      And that’s without error-handling at each step!
+    </p>
+<p id="N13CB5" class="calibre5">
+        Unfortunately, that matryoshka doll feeling is never quite going to go away. The fact is, in most languages you’d rely on threads so that you could just write something like this:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">formRequestReceived = (req) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">if</strong> checkDatabaseForPermissions req</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    updateDatabase req</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    tmpl = renderTemplate req</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    sendResponse tmpl</code>
+</td>
+</tr>
+</table>
+<p id="N13CD4" class="calibre5">
+      But those languages are pretending to synchronize the asynchronous. Somewhere in each of those database-calling and file-reading functions, there’s a <code class="cf">sleep</code> loop saying, “I hope someone else does something useful while I wait to hear from the database.” It’s simpler on the surface, but at a price in memory, CPU, and—more often than not—unpleasant surprises.
+    </p>
+<p id="N13CDA" class="calibre5">
+      Note that many NodeJS API functions <span class="emph">do</span> offer a synchronous version for convenience. For instance, instead of using <code class="cf">fs.readdir</code> with a callback, you can call <code class="cf">fs.readdirSync</code> and simply get the list of filenames returned to you. If your application doesn’t have any events waiting to fire, then there’s no reason not to use these convenient alternatives.
+    </p>
+<p id="N13CEB" class="calibre5">
+      Unfortunately, there’s no way to implement a synchronous version of an arbitrary asynchronous function in JavaScript or CoffeeScript. It’s only possible using native extensions (typically written in C++), which are beyond the scope of this book.
+    </p>
+<h3 id="sec.scopeInLoops" class="calibre14">Scope in Loops</h3>
+<p id="N13CF3" class="calibre5">
+        Remember what we learned in Section 2.2, <a href="f_0019.html#sec.scope">​<em class="emph">Scope: Where You See ’Em</em>​</a>: <span class="emph">only functions create scope.</span> Expecting loops to create scope leads otherwise mild-mannered programmers to summon forth horrific bugs when dealing with asynchronous callbacks. In fact, this is probably the most common source of confusion in asynchronous code.
+      </p>
+<p id="N13D00" class="calibre5">
+        For instance, let’s say that we have an application that loads numbers from some (synchronous) source and keeps a running tally of those numbers until the sum meets or exceeds <code class="cf">limit</code>. Each time a number is loaded, that number—and the sum thus far—needs to be saved. Also, due to overzealous security requirements, each save needs to be encrypted using a key unique to the given number. That key must be fetched <span class="emph">asynchronously</span> via the <code class="cf">getEncryptionKey</code> function.
+      </p>
+<p id="N13D0C" class="calibre5">
+        A first attempt might look like this:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">sum = 0</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">while</strong> sum &lt; limit</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  sum += x = nextNum()</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  getEncryptionKey (key) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    saveEncrypted key, x, sum<em class="comment">  # FAIL!</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N13D2C" class="calibre5">
+        The problem here is that by the time the <code class="cf">getEncryptionKey</code> callback is called, <code class="cf">x</code> and <code class="cf">sum</code> have moved on—in fact, the entire loop has been run. So for each <code class="cf">x</code> the loop goes through, the values of <code class="cf">x</code> and <code class="cf">sum</code> after the loop has finished running will be saved (most likely with the wrong encryption key).
+      </p>
+<p id="N13D41" class="calibre5">
+        The solution is to <span class="emph">capture</span> the values of <code class="cf">x</code> and <code class="cf">sum</code>. The easiest way to do that is to use an anonymous function. The <code class="cf">do</code> keyword was added to CoffeeScript for precisely this purpose:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">sum = 0</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">while</strong> sum &lt; limit</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  sum += x = nextNum()</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">do</strong> (x, sum) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    getEncryptionKey (key) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">      saveEncrypted key, x, sum<em class="comment">  # Success!</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N13D81" class="calibre5">
+        If you’re familiar with Lisp, this use of <code class="cf">do</code> should remind you of the <code class="cf">let</code> keyword. <code class="cf">do (x, sum) -&gt; ...</code> is shorthand for <code class="cf">((x, sum) -&gt; ...)(x, sum)</code>. So now the line <code class="cf">saveEncrypted key, x, sum</code> references the copies of <code class="cf">x</code> and <code class="cf">sum</code> created by the <code class="cf">do</code> instead of the <code class="cf">x</code> and <code class="cf">sum</code> used by the loop.
+      </p>
+<p id="N13DA2" class="calibre5">
+        Note that this form shadows the outer <code class="cf">x</code> and <code class="cf">sum</code>, making them inaccessible. If you want to have access to the original variables while still capturing their values, then you might write something like this:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">do</strong> <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  capturedX = x; capturedSum = sum</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  ...</code>
+</td>
+</tr>
+</table>
+<p id="N13DC0" class="calibre5">
+    Now it’s time for a little project of our own, extending the jQuery version of 5x5 with a Node-powered back end.
+    </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

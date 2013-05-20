@@ -1,0 +1,191 @@
+---
+layout: page
+title: "Learning GNU Emacs, 3rd Edition"
+prev: OEBPS/ch02s03.html
+next: OEBPS/ch02s05.html
+book_path: books/learning-gnu-emacs--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h1 class="title"><a id="gnu3-CHP-2-SECT-4" class="calibre1"></a>Emacs and the Clipboard</h1></div></div></div><p class="copyright">Emacs 21 plays well
+<a id="gnu3-CHP-2-ITERM-1756" class="calibre2"></a>with the
+clipboard, though it still may not do what you want it to in some
+cases. Let's dig into this in a little more detail.</p><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-2-SECT-4.1" class="calibre1"></a>Placing Text on the Clipboard</h2></div></div></div><p class="copyright">By default, text
+<a id="gnu3-CHP-2-ITERM-1757" class="calibre2"></a>
+               <a id="gnu3-CHP-2-ITERM-1758" class="calibre2"></a>that you cut or copy using icons on the
+toolbar or options on the Edit menu is placed on the clipboard and is
+accessible to other applications.</p><p class="copyright">Unfortunately, Emacs diverges by platform on this issue. Normally we
+save platform-specific issues for <a class="calibre2" href="ch13.html" title="Chapter 13. Platform-Specific Considerations">Chapter 13</a>,
+but cutting and pasting is such a vital operation that we must
+describe the differences here.</p><p class="copyright">On Windows and Mac OS X (but not on Linux) any text you cut or copy
+using <span><strong class="calibre5">C-w</strong></span> or <span><strong class="calibre5">M-w</strong></span> is also copied to the clipboard.</p><p class="copyright">On Windows and Mac OS X, simply selecting text with the mouse places
+it on the clipboard. (This doesn't work on Linux.).
+Most applications require you to highlight text, then issue a copy
+command. Emacs doesn't. <a class="calibre2" href="ch02s04.html#gnu3-CHP-2-TABLE-6" title="Table 2-6. Selecting text with the mouse">Table 2-6</a>
+shows
+<a id="gnu3-CHP-2-ITERM-1759" class="calibre2"></a>
+               <a id="gnu3-CHP-2-ITERM-1760" class="calibre2"></a>
+               <a id="gnu3-CHP-2-ITERM-1761" class="calibre2"></a>how this works on various platforms.</p><div class="book"><a id="gnu3-CHP-2-TABLE-6" class="calibre2"></a><p class="title2"><b class="calibre25">Table 2-6. Selecting text with the mouse</b></p><div class="table-contents"><table summary="Selecting text with the mouse" class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/><col class="calibre10"/><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre26">
+</th><th class="calibre26">
+                           <p class="copyright">Linux</p>
+                        </th><th class="calibre26">
+                           <p class="copyright">Windows</p>
+                        </th><th class="calibre26">
+                           <p class="copyright">Mac OS X graphical</p>
+                        </th><th class="calibre27">
+                           <p class="copyright">Mac OS X terminal</p>
+                        </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">Sends to clipboard?</p>
+                        </td><td class="calibre28">
+                           <p class="copyright">no</p>
+                        </td><td class="calibre28">
+                           <p class="copyright">yes</p>
+                        </td><td class="calibre28">
+                           <p class="copyright">yes</p>
+                        </td><td class="calibre29">
+                           <p class="copyright">no<sup class="calibre6">[<a id="gnu3-CHP-2-FNOTE-4" href="#ftn.gnu3-CHP-2-FNOTE-4" class="calibre2">4</a>]</sup>
+                           </p>
+                        </td></tr><tr class="calibre12"><td class="calibre30">
+                           <p class="copyright">Sends to kill ring?</p>
+                        </td><td class="calibre30">
+                           <p class="copyright">yes</p>
+                        </td><td class="calibre30">
+                           <p class="copyright">yes</p>
+                        </td><td class="calibre30">
+                           <p class="copyright">yes</p>
+                        </td><td class="calibre31">
+                           <p class="copyright">no</p>
+                        </td></tr></tbody><tbody class="calibre15"><tr class="calibre12"><td colspan="5" class="calibre31"><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-2-FNOTE-4" href="#gnu3-CHP-2-FNOTE-4" class="calibre2">4</a>] </sup>You can make this happen if you highlight the text
+and then press xxxMacSymxxx<span><strong class="calibre5">-C</strong></span>. Simply highlighting the text
+doesn't copy it to the clipboard.</p></div></td></tr></tbody></table></div></div><br class="book"/><p class="copyright">To send text to the clipboard on Linux, select it with the mouse (or
+mark it as a region), then click on the cut or copy toolbar icon or
+menu option. You can also use the clipboard-specific commands listed
+in <a class="calibre2" href="ch02s04.html#gnu3-CHP-2-TABLE-7" title="Table 2-7. Pasting from the clipboard">Table 2-7</a> on any platform.</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-2-SECT-4.2" class="calibre1"></a>Retrieving Text from the Clipboard</h2></div></div></div><p class="copyright">As we mentioned,
+in<a id="gnu3-CHP-2-ITERM-1762" class="calibre2"></a>
+               <a id="gnu3-CHP-2-ITERM-1763" class="calibre2"></a> other applications, you typically cut and
+paste by selecting text, then issuing a copy command. How do you then
+paste that text into Emacs?</p><p class="copyright">Not surprisingly, the paste icon on the toolbar and the associated
+option on the Edit menu do this in most cases (see <a class="calibre2" href="ch02s04.html#gnu3-CHP-2-TABLE-7" title="Table 2-7. Pasting from the clipboard">Table 2-7</a>; Emacs on Mac OS X disables both the icon and
+the option inappropriately; the associated command name <span><strong class="calibre5">clipboard-yank</strong></span> works, however). <span><strong class="calibre5">C-y</strong></span> inserts text from the clipboard too.
+Additionally, an easy mouse gesture works on most platforms: simply
+click the middle mouse button or mouse wheel in the Emacs window to
+paste from the clipboard. The caveat here is that you must have a
+mouse with a middle button.</p><div class="book"><a id="gnu3-CHP-2-TABLE-7" class="calibre2"></a><p class="title2"><b class="calibre25">Table 2-7. Pasting from the clipboard</b></p><div class="table-contents"><table summary="Pasting from the clipboard" class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/><col class="calibre10"/><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre26">
+</th><th class="calibre26">
+                           <p class="copyright">Linux</p>
+                        </th><th class="calibre26">
+                           <p class="copyright">Windows</p>
+                        </th><th class="calibre26">
+                           <p class="copyright">Mac OS X graphical</p>
+                        </th><th class="calibre27">
+                           <p class="copyright">Mac OS X terminal</p>
+                        </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">C-y</strong></span> pastes?</p>
+                        </td><td class="calibre28">
+                           <p class="copyright">yes</p>
+                        </td><td class="calibre28">
+                           <p class="copyright">yes</p>
+                        </td><td class="calibre28">
+                           <p class="copyright">yes</p>
+                        </td><td class="calibre29">
+                           <p class="copyright">no<sup class="calibre6">[<a id="gnu3-CHP-2-FNOTE-5" href="#ftn.gnu3-CHP-2-FNOTE-5" class="calibre2">5</a>]</sup>
+                           </p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">Toolbar paste icon pastes?</p>
+                        </td><td class="calibre28">
+                           <p class="copyright">yes</p>
+                        </td><td class="calibre28">
+                           <p class="copyright">yes</p>
+                        </td><td class="calibre28">
+                           <p class="copyright">no</p>
+                        </td><td class="calibre29">
+                           <p class="copyright">no</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">Edit<span>→</span> Paste option pastes?</p>
+                        </td><td class="calibre28">
+                           <p class="copyright">yes</p>
+                        </td><td class="calibre28">
+                           <p class="copyright">yes</p>
+                        </td><td class="calibre28">
+                           <p class="copyright">no</p>
+                        </td><td class="calibre29">
+                           <p class="copyright">no</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">Middle mouse button pastes?</p>
+                        </td><td class="calibre28">
+                           <p class="copyright">yes</p>
+                        </td><td class="calibre28">
+                           <p class="copyright">yes</p>
+                        </td><td class="calibre28">
+                           <p class="copyright">yes</p>
+                        </td><td class="calibre29">
+                           <p class="copyright">no</p>
+                        </td></tr><tr class="calibre12"><td class="calibre30">
+                           <p class="copyright">
+                              <span><strong class="calibre5">M-x clipboard-yank</strong></span> pastes?</p>
+                        </td><td class="calibre30">
+                           <p class="copyright">yes</p>
+                        </td><td class="calibre30">
+                           <p class="copyright">yes</p>
+                        </td><td class="calibre30">
+                           <p class="copyright">yes</p>
+                        </td><td class="calibre31">
+                           <p class="copyright">no</p>
+                        </td></tr></tbody><tbody class="calibre15"><tr class="calibre12"><td colspan="5" class="calibre31"><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-2-FNOTE-5" href="#gnu3-CHP-2-FNOTE-5" class="calibre2">5</a>] </sup>xxxMacSymxxx-v passtes from the clipboard.</p></div></td></tr></tbody></table></div></div><br class="book"/><p class="copyright">Another issue with
+<a id="gnu3-CHP-2-ITERM-1764" class="calibre2"></a>
+               <a id="gnu3-CHP-2-ITERM-1765" class="calibre2"></a>cutting and
+<a id="gnu3-CHP-2-ITERM-1766" class="calibre2"></a>
+               <a id="gnu3-CHP-2-ITERM-1767" class="calibre2"></a>
+               <a id="gnu3-CHP-2-ITERM-1768" class="calibre2"></a>pasting
+is encoding. Encoding is a complex topic in Emacs; full Unicode
+support is slated for Emacs 22. At this point, we can only point you
+to a variable that may help you resolve cut-and-paste related
+encoding issues: <span><strong class="calibre5">set-clipboard-coding-system</strong></span>.</p><p class="copyright">If you're interested in the clipboard, you may want
+to change Emacs' keys for cutting and pasting to the
+more universal <span><strong class="calibre5">C-x</strong></span>, <span><strong class="calibre5">C-c</strong></span>, and <span><strong class="calibre5">C-v</strong></span>.
+See "Making Emacs Work the Way You
+Want" later in this chapter for more details.</p><p class="copyright">
+               <a class="calibre2" href="ch02s04.html#gnu3-CHP-2-TABLE-8" title="Table 2-8. Clipboard commands">Table 2-8</a> summarizes clipboard-related
+<a id="gnu3-CHP-2-ITERM-1769" class="calibre2"></a>
+               <a id="gnu3-CHP-2-ITERM-1770" class="calibre2"></a>commands.</p><div class="book"><a id="gnu3-CHP-2-TABLE-8" class="calibre2"></a><p class="title2"><b class="calibre25">Table 2-8. Clipboard commands</b></p><div class="table-contents"><table summary="Clipboard commands" class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre26">
+                           <p class="copyright">Keystrokes</p>
+                        </th><th class="calibre26">
+                           <p class="copyright">Command name</p>
+                        </th><th class="calibre27">
+                           <p class="copyright">Action</p>
+                        </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><em class="calibre7">(none)</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">clipboard-kill-region</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Cut region and place both in kill ring and on system clipboard.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <span><em class="calibre7">(none)</em></span>
+                           </p>
+                        </td><td class="calibre28">
+                           <p class="copyright">
+                              <span><strong class="calibre5">clipboard-yank</strong></span>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Paste text from clipboard.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre30">
+                           <p class="copyright">
+                              <span><em class="calibre7">(none)</em></span>
+                           </p>
+                        </td><td class="calibre30">
+                           <p class="copyright">
+                              <span><strong class="calibre5">clipboard-kill-ring-save</strong></span>
+                           </p>
+                        </td><td class="calibre31">
+                           <p class="copyright">Copy text to clipboard.</p>
+                        </td></tr></tbody></table></div></div><br class="book"/></div></div></div>
+
+{% endraw %}
+

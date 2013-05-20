@@ -1,0 +1,43 @@
+---
+layout: page
+title: "Learning GNU Emacs, 3rd Edition"
+prev: OEBPS/ch09s03.html
+next: OEBPS/ch09s05.html
+book_path: books/learning-gnu-emacs--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h1 class="title"><a id="gnu3-CHP-9-SECT-4" class="calibre1"></a>Java Support</h1></div></div></div><p class="copyright">As we mentioned earlier, recent versions of Emacs come with support
+for Java built-in (Java mode is based on cc-mode).
+We'll explore Java mode briefly and then take a more
+in-depth look at the <a id="gnu3-CHP-9-ITERM-2579" class="calibre2"></a>Java Development
+Environment for Emacs (JDEE).</p><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-9-SECT-4.1" class="calibre1"></a>Java Mode</h2></div></div></div><p class="copyright">Java mode shares all of the<a id="gnu3-CHP-9-ITERM-2580" class="calibre2"></a>
+               <a id="gnu3-CHP-9-ITERM-2581" class="calibre2"></a> formatting and
+font features mentioned above, but understands the Java language
+specifically. You get thrown into Java mode when opening any
+<span><em class="calibre7">.java</em></span> file.</p><p class="copyright">When working in Java mode, you have exactly the same features
+available as you do in C mode. Syntax highlighting handles Java
+keywords and syntax when font-lock
+mode is turned on. You can navigate Java commands using
+<span><strong class="calibre5">M-a</strong></span> and <span><strong class="calibre5">M-e</strong></span>. When commenting out a region, it uses the
+C++ style <span><strong class="calibre5">//</strong></span> comments.</p><p class="copyright">You'll notice a small augmentation in the indent
+alignment commands if you choose to spread your <span><strong class="calibre5">throws</strong></span> or <span><strong class="calibre5">extends</strong></span> clauses over multiple lines. For
+example, consider the following method declaration:</p><a id="I_9_tt480" class="calibre2"></a><pre class="programlisting">public Object getNetResource(String host, int port, String resName) 
+throws IllegalArgumentException, 
+IOException, 
+SQLException, 
+FileNotFoundException
+{</pre><p class="copyright">If you mark the region and run <span><strong class="calibre5">M-C-\</strong></span>
+to indent the region, it uses a special alignment for the exception
+list:</p><a id="I_9_tt481" class="calibre2"></a><pre class="programlisting">public Object getNetResource(String host, int port, String resName) 
+        throws IllegalArgumentException, 
+               IOException, 
+               SQLException, 
+               FileNotFoundException
+{</pre><p class="copyright">It all works like it is supposed to—just with Java as the
+language at the core of the action. However, for more than casual
+Java editing, you should read the next section on the JDEE.</p></div></div></div>
+
+{% endraw %}
+

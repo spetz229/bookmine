@@ -1,0 +1,253 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/apbs05.html
+next: OEBPS/apbs07.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Conduit"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect1_d1e10106" class="calibre1"></a>Conduit</h1></div></div></div><p class="calibre7"></p><p class="calibre7">This section covers the final major data type in our package: conduits. While sources
+      produce a stream of data and sinks consume a stream, conduits transform a stream.</p><div class="book" title="Types"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3100543" class="calibre1"></a>Types</h2></div></div></div><p class="calibre7"></p><p class="calibre7">As we did previously, let’s start off by looking at the types involved.</p><a id="I_programlisting_d1e10118" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">data</code> <code class="kt">ConduitResult</code> <code class="n">input</code> <code class="n">m</code> <code class="n">output</code> <code class="ow">=</code>
+    <code class="kt">Producing</code> <code class="p">(</code><code class="kt">Conduit</code> <code class="n">input</code> <code class="n">m</code> <code class="n">output</code><code class="p">)</code> <code class="p">[</code><code class="n">output</code><code class="p">]</code>
+  <code class="o">|</code> <code class="kt">Finished</code> <code class="p">(</code><code class="kt">Maybe</code> <code class="n">input</code><code class="p">)</code> <code class="p">[</code><code class="n">output</code><code class="p">]</code>
+
+<code class="kr">data</code> <code class="kt">Conduit</code> <code class="n">input</code> <code class="n">m</code> <code class="n">output</code> <code class="ow">=</code> <code class="kt">Conduit</code>
+    <code class="p">{</code> <code class="n">conduitPush</code> <code class="ow">::</code> <code class="n">input</code> <code class="ow">-&gt;</code> <code class="kt">ResourceT</code> <code class="n">m</code> <code class="p">(</code><code class="kt">ConduitResult</code> <code class="n">input</code> <code class="n">m</code> <code class="n">output</code><code class="p">)</code>
+    <code class="p">,</code> <code class="n">conduitClose</code> <code class="ow">::</code> <code class="kt">ResourceT</code> <code class="n">m</code> <code class="p">[</code><code class="n">output</code><code class="p">]</code>
+    <code class="p">}</code>
+</pre><p class="calibre7">This should look very similar to what we’ve seen with sinks. A conduit can be pushed to,
+        in which case it returns a result. A result either indicates that it is still producing
+        data, or that it is finished. When a conduit is closed, it returns some more output.</p><p class="calibre7">But let’s examine the idiosyncrasies a bit. Like sinks, we can only push one piece of
+        input at a time, and leftover data may be 0 or 1 pieces. However, there are a few
+        changes:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">When producing (the equivalent of processing for a sink), we can return output. This is
+    because a conduit will product a new stream of output instead of producing a single output value
+    at the end of processing.</p></li><li class="listitem"><p class="calibre7">A sink always returns a single output value, while a conduit returns 0 or more outputs (a
+    list). To understand why, consider conduits such as <code class="literal">concatMap</code> (produces
+    multiple outputs for one input) and <code class="literal">filter</code> (returns 0 or 1 output for each
+    input).</p></li><li class="listitem"><p class="calibre7">We have no special constructor like <code class="literal">SinkNoData</code>. That’s because we provide no
+     <code class="literal">Monad</code> instance for conduits. We’ll see later how you can still use a familiar
+    Monadic approach to creating conduits.</p></li></ul></div><p class="calibre7">Overall conduits should seem very similar to what we’ve covered so far.</p></div><div class="book" title="Simple Conduits"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3100642" class="calibre1"></a>Simple Conduits</h2></div></div></div><p class="calibre7"></p><p class="calibre7">We’ll start off by defining some simple conduits that don’t have any state.</p><a id="I_programlisting_d1e10154" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">import</code> <code class="nn">Prelude</code> <code class="kr">hiding</code> <code class="p">(</code><code class="nf">map</code><code class="p">,</code> <code class="nf">concatMap</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Data.Conduit</code>
+
+<code class="cm">-- A simple conduit that just passes on the data as is.</code>
+<code class="nf">passThrough</code> <code class="ow">::</code> <code class="kt">Monad</code> <code class="n">m</code> <code class="ow">=&gt;</code> <code class="kt">Conduit</code> <code class="n">input</code> <code class="n">m</code> <code class="n">input</code>
+<code class="nf">passThrough</code> <code class="ow">=</code> <code class="kt">Conduit</code>
+    <code class="p">{</code> <code class="n">conduitPush</code> <code class="ow">=</code> <code class="nf">\</code><code class="n">input</code> <code class="ow">-&gt;</code> <code class="n">return</code> <code class="o">$</code> <code class="kt">Producing</code> <code class="n">passThrough</code> <code class="p">[</code><code class="n">input</code><code class="p">]</code>
+    <code class="p">,</code> <code class="n">conduitClose</code> <code class="ow">=</code> <code class="n">return</code> <code class="kt">[]</code>
+    <code class="p">}</code>
+
+<code class="cm">-- map values in a stream</code>
+<code class="nf">map</code> <code class="ow">::</code> <code class="kt">Monad</code> <code class="n">m</code> <code class="ow">=&gt;</code> <code class="p">(</code><code class="n">input</code> <code class="ow">-&gt;</code> <code class="n">output</code><code class="p">)</code> <code class="ow">-&gt;</code> <code class="kt">Conduit</code> <code class="n">input</code> <code class="n">m</code> <code class="n">output</code>
+<code class="nf">map</code> <code class="n">f</code> <code class="ow">=</code> <code class="kt">Conduit</code>
+    <code class="p">{</code> <code class="n">conduitPush</code> <code class="ow">=</code> <code class="nf">\</code><code class="n">input</code> <code class="ow">-&gt;</code> <code class="n">return</code> <code class="o">$</code> <code class="kt">Producing</code> <code class="p">(</code><code class="n">map</code> <code class="n">f</code><code class="p">)</code> <code class="p">[</code><code class="n">f</code> <code class="n">input</code><code class="p">]</code>
+    <code class="p">,</code> <code class="n">conduitClose</code> <code class="ow">=</code> <code class="n">return</code> <code class="kt">[]</code>
+    <code class="p">}</code>
+
+<code class="cm">-- map and concatenate</code>
+<code class="nf">concatMap</code> <code class="ow">::</code> <code class="kt">Monad</code> <code class="n">m</code> <code class="ow">=&gt;</code> <code class="p">(</code><code class="n">input</code> <code class="ow">-&gt;</code> <code class="p">[</code><code class="n">output</code><code class="p">])</code> <code class="ow">-&gt;</code> <code class="kt">Conduit</code> <code class="n">input</code> <code class="n">m</code> <code class="n">output</code>
+<code class="nf">concatMap</code> <code class="n">f</code> <code class="ow">=</code> <code class="kt">Conduit</code>
+    <code class="p">{</code> <code class="n">conduitPush</code> <code class="ow">=</code> <code class="nf">\</code><code class="n">input</code> <code class="ow">-&gt;</code> <code class="n">return</code> <code class="o">$</code> <code class="kt">Producing</code> <code class="p">(</code><code class="n">concatMap</code> <code class="n">f</code><code class="p">)</code> <code class="o">$</code> <code class="n">f</code> <code class="n">input</code>
+    <code class="p">,</code> <code class="n">conduitClose</code> <code class="ow">=</code> <code class="n">return</code> <code class="kt">[]</code>
+    <code class="p">}</code>
+</pre></div><div class="book" title="Stateful Conduits"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3100674" class="calibre1"></a>Stateful Conduits</h2></div></div></div><p class="calibre7"></p><p class="calibre7">Of course, not all conduits can be declared without state. Doing so on the bare metal is not
+   too difficult.</p><a id="I_programlisting_d1e10162" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">import</code> <code class="nn">Prelude</code> <code class="kr">hiding</code> <code class="p">(</code><code class="nf">reverse</code><code class="p">)</code>
+<code class="kr">import</code> <code class="kr">qualified</code> <code class="nn">Data.List</code>
+<code class="kr">import</code> <code class="nn">Data.Conduit</code>
+<code class="kr">import</code> <code class="nn">Control.Monad.Trans.Resource</code>
+
+<code class="cm">-- Reverse the elements in the stream. Note that this has the same downside as</code>
+<code class="cm">-- the standard reverse function: you have to read the entire stream into</code>
+<code class="cm">-- memory before producing any output.</code>
+<code class="nf">reverse</code> <code class="ow">::</code> <code class="kt">Resource</code> <code class="n">m</code> <code class="ow">=&gt;</code> <code class="kt">Conduit</code> <code class="n">input</code> <code class="n">m</code> <code class="n">input</code>
+<code class="nf">reverse</code> <code class="ow">=</code>
+    <code class="n">mkConduit</code> <code class="kt">[]</code>
+  <code class="kr">where</code>
+    <code class="n">mkConduit</code> <code class="n">state</code> <code class="ow">=</code> <code class="kt">Conduit</code> <code class="p">(</code><code class="n">push</code> <code class="n">state</code><code class="p">)</code> <code class="p">(</code><code class="n">close</code> <code class="n">state</code><code class="p">)</code>
+    <code class="n">push</code> <code class="n">state</code> <code class="n">input</code> <code class="ow">=</code> <code class="n">return</code> <code class="o">$</code> <code class="kt">Producing</code> <code class="p">(</code><code class="n">mkConduit</code> <code class="o">$</code> <code class="n">input</code> <code class="kt">:</code> <code class="n">state</code><code class="p">)</code> <code class="kt">[]</code>
+    <code class="n">close</code> <code class="n">state</code> <code class="ow">=</code> <code class="n">return</code> <code class="n">state</code>
+
+<code class="cm">-- Same thing with sort: it will pull everything into memory</code>
+<code class="nf">sort</code> <code class="ow">::</code> <code class="p">(</code><code class="kt">Ord</code> <code class="n">input</code><code class="p">,</code> <code class="kt">Resource</code> <code class="n">m</code><code class="p">)</code> <code class="ow">=&gt;</code> <code class="kt">Conduit</code> <code class="n">input</code> <code class="n">m</code> <code class="n">input</code>
+<code class="nf">sort</code> <code class="ow">=</code>
+    <code class="n">mkConduit</code> <code class="kt">[]</code>
+  <code class="kr">where</code>
+    <code class="n">mkConduit</code> <code class="n">state</code> <code class="ow">=</code> <code class="kt">Conduit</code> <code class="p">(</code><code class="n">push</code> <code class="n">state</code><code class="p">)</code> <code class="p">(</code><code class="n">close</code> <code class="n">state</code><code class="p">)</code>
+    <code class="n">push</code> <code class="n">state</code> <code class="n">input</code> <code class="ow">=</code> <code class="n">return</code> <code class="o">$</code> <code class="kt">Producing</code> <code class="p">(</code><code class="n">mkConduit</code> <code class="o">$</code> <code class="n">input</code> <code class="kt">:</code> <code class="n">state</code><code class="p">)</code> <code class="kt">[]</code>
+    <code class="n">close</code> <code class="n">state</code> <code class="ow">=</code> <code class="n">return</code> <code class="o">$</code> <code class="kt">Data</code><code class="o">.</code><code class="kt">List</code><code class="o">.</code><code class="n">sort</code> <code class="n">state</code>
+</pre><p class="calibre7">But we can do better. Just like <code class="literal">sourceState</code> and <code class="literal">sinkState</code>, we
+            have <code class="literal">conduitState</code> to simplify things.</p><a id="I_programlisting_d1e10175" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">import</code> <code class="nn">Prelude</code> <code class="kr">hiding</code> <code class="p">(</code><code class="nf">reverse</code><code class="p">)</code>
+<code class="kr">import</code> <code class="kr">qualified</code> <code class="nn">Data.List</code>
+<code class="kr">import</code> <code class="nn">Data.Conduit</code>
+
+<code class="cm">-- Reverse the elements in the stream. Note that this has the same downside as</code>
+<code class="cm">-- the standard reverse function: you have to read the entire stream into</code>
+<code class="cm">-- memory before producing any output.</code>
+<code class="nf">reverse</code> <code class="ow">::</code> <code class="kt">Resource</code> <code class="n">m</code> <code class="ow">=&gt;</code> <code class="kt">Conduit</code> <code class="n">input</code> <code class="n">m</code> <code class="n">input</code>
+<code class="nf">reverse</code> <code class="ow">=</code>
+    <code class="n">conduitState</code> <code class="kt">[]</code> <code class="n">push</code> <code class="n">close</code>
+  <code class="kr">where</code>
+    <code class="n">push</code> <code class="n">state</code> <code class="n">input</code> <code class="ow">=</code> <code class="n">return</code> <code class="o">$</code> <code class="kt">StateProducing</code> <code class="p">(</code><code class="n">input</code> <code class="kt">:</code> <code class="n">state</code><code class="p">)</code> <code class="kt">[]</code>
+    <code class="n">close</code> <code class="n">state</code> <code class="ow">=</code> <code class="n">return</code> <code class="n">state</code>
+
+<code class="cm">-- Same thing with sort: it will pull everything into memory</code>
+<code class="nf">sort</code> <code class="ow">::</code> <code class="p">(</code><code class="kt">Ord</code> <code class="n">input</code><code class="p">,</code> <code class="kt">Resource</code> <code class="n">m</code><code class="p">)</code> <code class="ow">=&gt;</code> <code class="kt">Conduit</code> <code class="n">input</code> <code class="n">m</code> <code class="n">input</code>
+<code class="nf">sort</code> <code class="ow">=</code>
+    <code class="n">conduitState</code> <code class="kt">[]</code> <code class="n">push</code> <code class="n">close</code>
+  <code class="kr">where</code>
+    <code class="n">push</code> <code class="n">state</code> <code class="n">input</code> <code class="ow">=</code> <code class="n">return</code> <code class="o">$</code> <code class="kt">StateProducing</code> <code class="p">(</code><code class="n">input</code> <code class="kt">:</code> <code class="n">state</code><code class="p">)</code> <code class="kt">[]</code>
+    <code class="n">close</code> <code class="n">state</code> <code class="ow">=</code> <code class="n">return</code> <code class="o">$</code> <code class="kt">Data</code><code class="o">.</code><code class="kt">List</code><code class="o">.</code><code class="n">sort</code> <code class="n">state</code>
+</pre></div><div class="book" title="Using Conduits"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3100777" class="calibre1"></a>Using Conduits</h2></div></div></div><p class="calibre7"></p><p class="calibre7">The way <code class="literal">Conduit</code>s interact with the rest of the package is via
+    <em class="calibre4">fusing</em>. A conduit can be fused into a source, producing a new source, fused into a
+   sink to produce a new sink, or fused with another conduit to produce a new conduit. It’s best to
+   just look at the fusion operators.</p><a id="I_programlisting_d1e10189" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">-- Left fusion: source + conduit = source</code>
+<code class="p">(</code><code class="o">$=</code><code class="p">)</code> <code class="ow">::</code> <code class="p">(</code><code class="kt">Resource</code> <code class="n">m</code><code class="p">,</code> <code class="kt">IsSource</code> <code class="n">src</code><code class="p">)</code> <code class="ow">=&gt;</code> <code class="n">src</code> <code class="n">m</code> <code class="n">a</code> <code class="ow">-&gt;</code> <code class="kt">Conduit</code> <code class="n">a</code> <code class="n">m</code> <code class="n">b</code> <code class="ow">-&gt;</code> <code class="kt">Source</code> <code class="n">m</code> <code class="n">b</code>
+
+<code class="cm">-- Right fusion: conduit + sink = sink</code>
+<code class="p">(</code><code class="o">=$</code><code class="p">)</code> <code class="ow">::</code> <code class="kt">Resource</code> <code class="n">m</code> <code class="ow">=&gt;</code> <code class="kt">Conduit</code> <code class="n">a</code> <code class="n">m</code> <code class="n">b</code> <code class="ow">-&gt;</code> <code class="kt">Sink</code> <code class="n">b</code> <code class="n">m</code> <code class="n">c</code> <code class="ow">-&gt;</code> <code class="kt">Sink</code> <code class="n">a</code> <code class="n">m</code> <code class="n">c</code>
+
+<code class="cm">-- Middle fusion: conduit + conduit = conduit</code>
+<code class="p">(</code><code class="o">=$=</code><code class="p">)</code> <code class="ow">::</code> <code class="kt">Resource</code> <code class="n">m</code> <code class="ow">=&gt;</code> <code class="kt">Conduit</code> <code class="n">a</code> <code class="n">m</code> <code class="n">b</code> <code class="ow">-&gt;</code> <code class="kt">Conduit</code> <code class="n">b</code> <code class="n">m</code> <code class="n">c</code> <code class="ow">-&gt;</code> <code class="kt">Conduit</code> <code class="n">a</code> <code class="n">m</code> <code class="n">c</code>
+</pre><p class="calibre7">Using these operators is straightforward.</p><a id="I_programlisting_d1e10193" class="firstname"></a><pre class="programlistinghaskell"><code class="nf">useConduits</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="n">runResourceT</code>
+          <code class="o">$</code>  <code class="kt">CL</code><code class="o">.</code><code class="n">sourceList</code> <code class="p">[</code><code class="mi">1</code><code class="o">..</code><code class="mi">10</code><code class="p">]</code>
+          <code class="o">$=</code> <code class="n">reverse</code>
+          <code class="o">$=</code> <code class="kt">CL</code><code class="o">.</code><code class="n">map</code> <code class="n">show</code>
+          <code class="o">$$</code> <code class="kt">CL</code><code class="o">.</code><code class="n">consume</code>
+
+    <code class="cm">-- equivalent to</code>
+    <code class="n">runResourceT</code>
+          <code class="o">$</code>  <code class="kt">CL</code><code class="o">.</code><code class="n">sourceList</code> <code class="p">[</code><code class="mi">1</code><code class="o">..</code><code class="mi">10</code><code class="p">]</code>
+          <code class="o">$$</code> <code class="n">reverse</code>
+          <code class="o">=$</code> <code class="kt">CL</code><code class="o">.</code><code class="n">map</code> <code class="n">show</code>
+          <code class="o">=$</code> <code class="kt">CL</code><code class="o">.</code><code class="n">consume</code>
+
+    <code class="cm">-- and equivalent to</code>
+    <code class="n">runResourceT</code>
+          <code class="o">$</code>  <code class="kt">CL</code><code class="o">.</code><code class="n">sourceList</code> <code class="p">[</code><code class="mi">1</code><code class="o">..</code><code class="mi">10</code><code class="p">]</code>
+          <code class="o">$$</code> <code class="p">(</code><code class="n">reverse</code> <code class="o">=$=</code> <code class="kt">CL</code><code class="o">.</code><code class="n">map</code> <code class="n">show</code><code class="p">)</code>
+          <code class="o">=$</code> <code class="kt">CL</code><code class="o">.</code><code class="n">consume</code>
+</pre><p class="calibre7">There is in fact one last way of expressing the same idea. I’ll leave it as an exercise to the
+   reader to discover it.</p><p class="calibre7">It may seem like all these different approaches are redundant. While occasionally you
+        can in fact choose whichever approach you feel like using, in many cases you will need a
+        specific approach. For example:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">If you have a stream of numbers, and you want to apply a conduit (e.g., <code class="literal">map
+     show</code>) to only some of the stream that will be passed to a specific sink, you’ll want
+    to use the right fusion operator.</p></li><li class="listitem"><p class="calibre7">If you’re reading a file, and want to parse the entire file as textual data, you’ll want to
+    use left fusion to convert the entire stream.</p></li><li class="listitem"><p class="calibre7">If you want to create reusable conduits that combine together individual, smaller conduits,
+    you’ll use middle fusion.</p></li></ul></div></div><div class="book" title="Data Loss"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3100873" class="calibre1"></a>Data Loss</h2></div></div></div><p class="calibre7"></p><p class="calibre7">Let’s forget about conduits for a moment. Instead, suppose we want to write a
+        program—using plain old lists—that will take a list of numbers, apply some kind of
+        transformation to them, take the first five transformed values and do something with them,
+        and then do something else with the remaining <span class="bold"><strong class="bold">non-transformed</strong></span> values. For example, we want something like:</p><a id="I_programlisting_d1e10221" class="firstname"></a><pre class="programlistinghaskell"><code class="nf">main</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="kr">let</code> <code class="n">list</code> <code class="ow">=</code> <code class="p">[</code><code class="mi">1</code><code class="o">..</code><code class="mi">10</code><code class="p">]</code>
+        <code class="n">transformed</code> <code class="ow">=</code> <code class="n">map</code> <code class="n">show</code> <code class="n">list</code>
+        <code class="p">(</code><code class="n">begin</code><code class="p">,</code> <code class="n">end</code><code class="p">)</code> <code class="ow">=</code> <code class="n">splitAt</code> <code class="mi">5</code> <code class="n">transformed</code>
+        <code class="n">untransformed</code> <code class="ow">=</code> <code class="n">map</code> <code class="n">read</code> <code class="n">end</code>
+    <code class="n">mapM_</code> <code class="n">putStrLn</code> <code class="n">begin</code>
+    <code class="n">print</code> <code class="o">$</code> <code class="n">sum</code> <code class="n">untransformed</code>
+</pre><p class="calibre7">But clearly this isn’t a good general solution, since we don’t want to have to transform and
+   then untransform every element in the list. For one thing, we may not always have an inverse
+   function. Another issue is efficiency. In this case, we can write something more efficient:</p><a id="I_programlisting_d1e10225" class="firstname"></a><pre class="programlistinghaskell"><code class="nf">main</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="kr">let</code> <code class="n">list</code> <code class="ow">=</code> <code class="p">[</code><code class="mi">1</code><code class="o">..</code><code class="mi">10</code><code class="p">]</code>
+        <code class="p">(</code><code class="n">begin</code><code class="p">,</code> <code class="n">end</code><code class="p">)</code> <code class="ow">=</code> <code class="n">splitAt</code> <code class="mi">5</code> <code class="n">list</code>
+        <code class="n">transformed</code> <code class="ow">=</code> <code class="n">map</code> <code class="n">show</code> <code class="n">begin</code>
+    <code class="n">mapM_</code> <code class="n">putStrLn</code> <code class="n">transformed</code>
+    <code class="n">print</code> <code class="o">$</code> <code class="n">sum</code> <code class="n">end</code>
+</pre><p class="calibre7">Note the change: we perform our split before transforming any elements. This works
+        because, with <code class="literal">map</code>, we have a 1-to-1 correspondence
+        between the input and output elements. So splitting at 5 before or after mapping <code class="literal">show</code> is the same thing. But what happens if we replace <code class="literal">map show</code> with something more devious?</p><a id="I_programlisting_d1e10238" class="firstname"></a><pre class="programlistinghaskell"><code class="nf">deviousTransform</code> <code class="ow">=</code>
+    <code class="n">concatMap</code> <code class="n">go</code>
+  <code class="kr">where</code>
+    <code class="n">go</code> <code class="mi">1</code> <code class="ow">=</code> <code class="p">[</code><code class="n">show</code> <code class="mi">1</code><code class="p">]</code>
+    <code class="n">go</code> <code class="mi">2</code> <code class="ow">=</code> <code class="p">[</code><code class="n">show</code> <code class="mi">2</code><code class="p">,</code> <code class="s">"two"</code><code class="p">]</code>
+    <code class="n">go</code> <code class="mi">3</code> <code class="ow">=</code> <code class="n">replicate</code> <code class="mi">5</code> <code class="s">"three"</code>
+    <code class="n">go</code> <code class="n">x</code> <code class="ow">=</code> <code class="p">[</code><code class="n">show</code> <code class="n">x</code><code class="p">]</code>
+</pre><p class="calibre7">We no longer have the 1-to-1 correspondence. As a result, we can’t use the second method. But
+   it’s even worse: we can’t use the first method either, since there’s no inverse of our
+    <code class="literal">deviousTransform</code>.</p><p class="calibre7">There’s only one solution to the problem that I’m aware of: transform elements one at a time.
+   The final program looks like this:</p><a id="I_programlisting_d1e10247" class="firstname"></a><pre class="programlistinghaskell"><code class="nf">deviousTransform</code> <code class="mi">1</code> <code class="ow">=</code> <code class="p">[</code><code class="n">show</code> <code class="mi">1</code><code class="p">]</code>
+<code class="nf">deviousTransform</code> <code class="mi">2</code> <code class="ow">=</code> <code class="p">[</code><code class="n">show</code> <code class="mi">2</code><code class="p">,</code> <code class="s">"two"</code><code class="p">]</code>
+<code class="nf">deviousTransform</code> <code class="mi">3</code> <code class="ow">=</code> <code class="n">replicate</code> <code class="mi">5</code> <code class="s">"three"</code>
+<code class="nf">deviousTransform</code> <code class="n">x</code> <code class="ow">=</code> <code class="p">[</code><code class="n">show</code> <code class="n">x</code><code class="p">]</code>
+
+<code class="nf">transform5</code> <code class="ow">::</code> <code class="p">[</code><code class="kt">Int</code><code class="p">]</code> <code class="ow">-&gt;</code> <code class="p">([</code><code class="kt">String</code><code class="p">],</code> <code class="p">[</code><code class="kt">Int</code><code class="p">])</code>
+<code class="nf">transform5</code> <code class="n">list</code> <code class="ow">=</code>
+    <code class="n">go</code> <code class="kt">[]</code> <code class="n">list</code>
+  <code class="kr">where</code>
+    <code class="n">go</code> <code class="n">output</code> <code class="p">(</code><code class="n">x</code><code class="kt">:</code><code class="n">xs</code><code class="p">)</code>
+        <code class="o">|</code> <code class="n">newLen</code> <code class="o">&gt;=</code> <code class="mi">5</code> <code class="ow">=</code> <code class="p">(</code><code class="n">take</code> <code class="mi">5</code> <code class="n">output'</code><code class="p">,</code> <code class="n">xs</code><code class="p">)</code>
+        <code class="o">|</code> <code class="n">otherwise</code> <code class="ow">=</code> <code class="n">go</code> <code class="n">output'</code> <code class="n">xs</code>
+      <code class="kr">where</code>
+        <code class="n">output'</code> <code class="ow">=</code> <code class="n">output</code> <code class="o">++</code> <code class="n">deviousTransform</code> <code class="n">x</code>
+        <code class="n">newLen</code> <code class="ow">=</code> <code class="n">length</code> <code class="n">output'</code>
+
+    <code class="cm">-- Degenerate case: not enough input to make 5 outputs</code>
+    <code class="n">go</code> <code class="n">output</code> <code class="kt">[]</code> <code class="ow">=</code> <code class="p">(</code><code class="n">output</code><code class="p">,</code> <code class="kt">[]</code><code class="p">)</code>
+
+<code class="nf">main</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="kr">let</code> <code class="n">list</code> <code class="ow">=</code> <code class="p">[</code><code class="mi">1</code><code class="o">..</code><code class="mi">10</code><code class="p">]</code>
+        <code class="p">(</code><code class="n">begin</code><code class="p">,</code> <code class="n">end</code><code class="p">)</code> <code class="ow">=</code> <code class="n">transform5</code> <code class="n">list</code>
+    <code class="n">mapM_</code> <code class="n">putStrLn</code> <code class="n">begin</code>
+    <code class="n">print</code> <code class="o">$</code> <code class="n">sum</code> <code class="n">end</code>
+</pre><p class="calibre7">The final output of this program
+        is<a id="I_programlisting_d1e10252" class="firstname"></a></p><pre class="programlistinghaskell">1
+2
+two
+three
+three
+49</pre><p class="calibre7">What’s
+        important to note is that the number 3 is converted into five copies of the word “three,”
+        yet only two of them show up in the output. The rest are discarded in the <code class="literal">take 5</code> call.</p><p class="calibre7">This whole exercise is just to demonstrate the issue of data loss in conduits. By forcing
+   conduits to accept only one input at a time, we avoid the issue of transforming too many elements
+   at once. That doesn’t mean we don’t lose <span class="firstname"><em class="calibre4">any</em></span> data: if a conduit produces too much output
+   for the receiving sink to handle, some of it may be lost.</p><p class="calibre7">To put all this another way: conduits avoid chunking to get away from data loss. This is not an
+   issue unique to conduits. If you look in the implementation of <code class="literal">concatMapM</code> for
+    <code class="function">enumerator</code>, you’ll see that it forces elements to be handled one at a time.
+   In conduits, we opted to force the issue at the type level.</p></div><div class="book" title="SequencedSink"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3101086" class="calibre1"></a>SequencedSink</h2></div></div></div><p class="calibre7"></p><p class="calibre7">Suppose we want to be able to combine up existing conduits and sinks to produce a new, more
+   powerful conduit. For example, we want to write a conduit that takes a stream of numbers and sums
+   up every five. In other words, for the input <code class="literal">[1..50]</code>, it should result in the
+   sequence <code class="literal">[15,40,65,90,115,140,165,190,215,240]</code>. We can definitely do this with
+   the low-level conduit interface.</p><a id="I_programlisting_d1e10286" class="firstname"></a><pre class="programlistinghaskell"><code class="nf">sum5Raw</code> <code class="ow">::</code> <code class="kt">Resource</code> <code class="n">m</code> <code class="ow">=&gt;</code> <code class="kt">Conduit</code> <code class="kt">Int</code> <code class="n">m</code> <code class="kt">Int</code>
+<code class="nf">sum5Raw</code> <code class="ow">=</code>
+    <code class="n">conduitState</code> <code class="p">(</code><code class="mi">0</code><code class="p">,</code> <code class="mi">0</code><code class="p">)</code> <code class="n">push</code> <code class="n">close</code>
+  <code class="kr">where</code>
+    <code class="n">push</code> <code class="p">(</code><code class="n">total</code><code class="p">,</code> <code class="n">count</code><code class="p">)</code> <code class="n">input</code>
+        <code class="o">|</code> <code class="n">newCount</code> <code class="o">==</code> <code class="mi">5</code> <code class="ow">=</code> <code class="n">return</code> <code class="o">$</code> <code class="kt">StateProducing</code> <code class="p">(</code><code class="mi">0</code><code class="p">,</code> <code class="mi">0</code><code class="p">)</code> <code class="p">[</code><code class="n">newTotal</code><code class="p">]</code>
+        <code class="o">|</code> <code class="n">otherwise</code>     <code class="ow">=</code> <code class="n">return</code> <code class="o">$</code> <code class="kt">StateProducing</code> <code class="p">(</code><code class="n">newTotal</code><code class="p">,</code> <code class="n">newCount</code><code class="p">)</code> <code class="kt">[]</code>
+      <code class="kr">where</code>
+        <code class="n">newTotal</code> <code class="ow">=</code> <code class="n">total</code> <code class="o">+</code> <code class="n">input</code>
+        <code class="n">newCount</code> <code class="ow">=</code> <code class="n">count</code> <code class="o">+</code> <code class="mi">1</code>
+    <code class="n">close</code> <code class="p">(</code><code class="n">total</code><code class="p">,</code> <code class="n">count</code><code class="p">)</code>
+        <code class="o">|</code> <code class="n">count</code> <code class="o">==</code> <code class="mi">0</code> <code class="ow">=</code> <code class="n">return</code> <code class="kt">[]</code>
+        <code class="o">|</code> <code class="n">otherwise</code>  <code class="ow">=</code> <code class="n">return</code> <code class="p">[</code><code class="n">total</code><code class="p">]</code>
+</pre><p class="calibre7">But this is frustrating, since we already have all the tools we need to do this at a
+        high level! There’s the <code class="literal">fold</code> sink for adding up the
+        numbers, and the <code class="literal">isolate</code> conduit, which will only allow
+        up to a certain number of elements to be passed to a sink. Can’t we combine these
+        somehow?</p><p class="calibre7">The answer is a <code class="literal">SequencedSink</code>. The idea is to create a normal
+    <code class="literal">Sink</code>, except it returns a special output called a
+    <code class="literal">SequencedSinkResponse</code>. This value can emit new output, stop processing data, or
+   transfer control to a new conduit. (See the Haddocks for more information.) Then we can turn this
+   into a <code class="literal">Conduit</code> using the <code class="literal">sequenceSink</code> function. This function
+   also takes some state value that gets passed through to the sink.</p><p class="calibre7">So we can rewrite <code class="literal">sum5Raw</code> in a much more high-level manner.</p><a id="I_programlisting_d1e10318" class="firstname"></a><pre class="programlistinghaskell"><code class="nf">sum5</code> <code class="ow">::</code> <code class="kt">Resource</code> <code class="n">m</code> <code class="ow">=&gt;</code> <code class="kt">Conduit</code> <code class="kt">Int</code> <code class="n">m</code> <code class="kt">Int</code>
+<code class="nf">sum5</code> <code class="ow">=</code> <code class="n">sequenceSink</code> <code class="nb">()</code> <code class="o">$</code> <code class="nf">\</code><code class="nb">()</code> <code class="ow">-&gt;</code> <code class="kr">do</code>
+    <code class="n">nextSum</code> <code class="ow">&lt;-</code> <code class="kt">CL</code><code class="o">.</code><code class="n">isolate</code> <code class="mi">5</code> <code class="o">=$</code> <code class="kt">CL</code><code class="o">.</code><code class="n">fold</code> <code class="p">(</code><code class="o">+</code><code class="p">)</code> <code class="mi">0</code>
+    <code class="n">return</code> <code class="o">$</code> <code class="kt">Emit</code> <code class="nb">()</code> <code class="p">[</code><code class="n">nextSum</code><code class="p">]</code>
+</pre><p class="calibre7">All of the <code class="literal">()</code> in there are simply the unused state
+        variable being passed around, and they can be ignored. Otherwise, we’re doing exactly what
+        we want. We fuse <code class="literal">isolate</code> to <code class="literal">fold</code> to get the sum of the next five elements from the stream. We then emit
+        that value, and start all over again.</p><p class="calibre7">Let’s say we want to modify this slightly. We want to get the first 8 sums, and then pass
+   through the remaining values, multiplied by 2. We can keep track of how many values we’ve
+   returned in our state, and then use the <code class="literal">StartConduit</code> constructor to pass control
+   to the multiply-by-2 conduit next.</p><a id="I_programlisting_d1e10336" class="firstname"></a><pre class="programlistinghaskell"><code class="nf">sum5Pass</code> <code class="ow">::</code> <code class="kt">Resource</code> <code class="n">m</code> <code class="ow">=&gt;</code> <code class="kt">Conduit</code> <code class="kt">Int</code> <code class="n">m</code> <code class="kt">Int</code>
+<code class="nf">sum5Pass</code> <code class="ow">=</code> <code class="n">sequenceSink</code> <code class="mi">0</code> <code class="o">$</code> <code class="nf">\</code><code class="n">count</code> <code class="ow">-&gt;</code> <code class="kr">do</code>
+    <code class="kr">if</code> <code class="n">count</code> <code class="o">==</code> <code class="mi">8</code>
+        <code class="kr">then</code> <code class="n">return</code> <code class="o">$</code> <code class="kt">StartConduit</code> <code class="o">$</code> <code class="kt">CL</code><code class="o">.</code><code class="n">map</code> <code class="p">(</code><code class="o">*</code> <code class="mi">2</code><code class="p">)</code>
+        <code class="kr">else</code> <code class="kr">do</code>
+            <code class="n">nextSum</code> <code class="ow">&lt;-</code> <code class="kt">CL</code><code class="o">.</code><code class="n">isolate</code> <code class="mi">5</code> <code class="o">=$</code> <code class="kt">CL</code><code class="o">.</code><code class="n">fold</code> <code class="p">(</code><code class="o">+</code><code class="p">)</code> <code class="mi">0</code>
+            <code class="n">return</code> <code class="o">$</code> <code class="kt">Emit</code> <code class="p">(</code><code class="n">count</code> <code class="o">+</code> <code class="mi">1</code><code class="p">)</code> <code class="p">[</code><code class="n">nextSum</code><code class="p">]</code>
+</pre><p class="calibre7">These are obviously very contrived examples, but I hope it makes clear the power and simplicity
+   available from this approach.</p></div></div></div>
+
+{% endraw %}
+

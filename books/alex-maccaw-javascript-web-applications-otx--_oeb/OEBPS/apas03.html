@@ -1,0 +1,40 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/apas02.html
+next: OEBPS/apas04.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Events"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect1_d1e15409" class="calibre1"></a>Events</h1></div></div></div><p class="calibre3"><a id="I_indexterm_d1e15413" class="calibre1"></a><a id="I_indexterm_d1e15418" class="calibre1"></a>Event handling in browsers has had a turbulent history,
+    which has resulted in inconsistent APIs. jQuery resolves that problem for
+    you, ironing out all the differences among browsers and providing a great
+    API. Here’s a brief overview of jQuery’s event handling, but for more
+    information, see <a class="ulink" href="ch02.html" title="Chapter 2. Events and Observing">Chapter 2</a>, as well as the
+    <a class="ulink" href="http://api.jquery.com/category/events">official
+    docs</a>.</p><p class="calibre3">To add an event handler, use the <code class="literal">bind()</code> function,<a id="I_indexterm_d1e15434" class="calibre1"></a><a id="I_indexterm_d1e15437" class="calibre1"></a> passing the event type and callback:</p><pre class="screen">$(".clicky").bind("click", function(event){
+  // Executed on click
+});</pre><p class="calibre3">jQuery provides shortcuts for the more common events, so rather than
+    calling bind, you can do something like this:</p><pre class="screen">$(".clicky").click(function(){ /* ... */ });</pre><p class="calibre3">One event you’re very likely to use is
+    <span class="calibre1"><em class="calibre4">document.ready</em></span><a id="I_indexterm_d1e15453" class="calibre1"></a><a id="I_indexterm_d1e15456" class="calibre1"></a>. This is fired during the page load, when the DOM is ready
+    but before elements such as images are loaded. jQuery provides a neat
+    shortcut for the event—just pass a function straight to the <code class="literal">jQuery</code> object:</p><pre class="screen">jQuery(function($){
+  // Executed on document.ready
+});</pre><p class="calibre3">What often confuses jQuery newcomers is the context change inside
+    callbacks. For instance, in the example above, the context of the callback
+    is changed to reference the element, in this case <code class="literal">$(".clicky")</code>:</p><pre class="screen">$(".clicky").click(function(){ 
+  // 'this' equals the event target
+  assert( $(this).hasClass(".clicky") );
+});</pre><p class="calibre3">The context change <a id="I_indexterm_d1e15476" class="calibre1"></a><a id="I_indexterm_d1e15481" class="calibre1"></a>becomes a problem if you’re using <code class="literal">this</code> in the callback. A common idiom is to store
+    the context in a local variable, often called <code class="literal">self</code><a id="I_indexterm_d1e15492" class="calibre1"></a>:</p><pre class="screen">var self = this;
+$(".clicky").click(function(){ 
+  self.clickedClick();
+});</pre><p class="calibre3">An alternative is to wrap the callback in a proxy function using
+    <code class="literal">jQuery.proxy()</code><a id="I_indexterm_d1e15503" class="calibre1"></a>, like so:</p><pre class="screen">$(".clicky").click($.proxy(function(){ 
+  // Context isn't changed
+}, this));</pre><p class="calibre3">For a further explanation of event delegation and context, see <a class="ulink" href="ch02.html" title="Chapter 2. Events and Observing">Chapter 2</a>.</p></div></div>
+
+{% endraw %}
+

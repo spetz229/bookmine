@@ -1,0 +1,126 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch05s08.html
+next: OEBPS/ch06s02.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="calibre8"></div><div class="book" title="Chapter 6. Yesod Typeclass"><div class="book"><div class="book"><div class="book"><div class="calibre8"></div><h1 class="title1"><a id="I_chapter6_d1e2449" class="calibre1"></a>Chapter 6. Yesod Typeclass</h1></div></div></div><p class="calibre7">Every one of our Yesod applications requires an instance of the <code class="literal">Yesod</code> typeclass. So far, we’ve only seen <code class="literal">defaultLayout</code>. In this chapter, we’ll explore the meaning of many of the methods of
+    the <code class="literal">Yesod</code> typeclass.</p><p class="calibre7">The <code class="literal">Yesod</code> typeclass gives us a central place for defining
+    settings for our application. Everything else has a default definition that is usually the right
+    thing. But in order to build a powerful, customized application, you’ll usually end up wanting
+    to override at least a few of these methods.</p><div class="book" title="Rendering and Parsing URLs"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect16_d1e2468" class="calibre1"></a>Rendering and Parsing URLs</h1></div></div></div><p class="calibre7">We’ve already mentioned how Yesod is able to automatically render type-safe URLs into a
+      textual URL that can be inserted into an HTML page. Let’s say we have a route definition that
+      looks like:</p><a id="I_programlisting6_d1e2473" class="firstname"></a><pre class="programlistinghaskell"><code class="nf">mkYesod</code> <code class="s">"MyApp"</code> <code class="p">[</code><code class="n">parseRoutes</code><code class="o">|</code>
+<code class="o">/</code><code class="n">some</code><code class="o">/</code><code class="n">path</code> <code class="kt">SomePathR</code> <code class="kt">GET</code>
+<code class="p">]</code>
+</pre><p class="calibre7">If we place <code class="literal">SomePathR</code> into a hamlet template, how does Yesod render
+            it? Yesod always tries to construct <span class="firstname"><em class="calibre4">absolute</em></span> URLs. This is especially
+            useful once we start creating XML sitemaps and Atom feeds, or sending emails. But in
+            order to construct an absolute URL, we need to know the domain name of the
+            application.</p><p class="calibre7">You might think we could get that information from the user’s request, but we still need
+      to deal with ports. And even if we get the port number from the request, are we using HTTP or
+      HTTPS? And even if you know <span class="firstname"><em class="calibre4">that</em></span>, such an approach would mean that
+      different URLs would be generated depending on how the user submitted a request. For example,
+      we would generate different URLs depending on whether the user connected to “example.com” or
+      “www.example.com”. For Search Engine Optimization, we want to be able to consolidate on a
+      single canonical URL.</p><p class="calibre7">And finally, Yesod doesn’t make any assumption about <span class="firstname"><em class="calibre4">where</em></span> you host
+      your application. For example, I may have a mostly static site (http://static.example.com/),
+      but I’d like to stick a Yesod-powered Wiki at /wiki/. There is no reliable way for an
+      application to determine what subpath it is being hosted from. So instead of doing all of this
+      guesswork, Yesod needs you to tell it the <em class="calibre4">application root</em>.</p><p class="calibre7">Using the wiki example, you would write your <code class="literal">Yesod</code> instance as:</p><a id="I_programlisting6_d1e2507" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">instance</code> <code class="kt">Yesod</code> <code class="kt">MyWiki</code> <code class="kr">where</code>
+    <code class="n">approot</code> <code class="ow">=</code> <code class="kt">ApprootStatic</code> <code class="s">"http://static.example.com/wiki"</code>
+</pre><p class="calibre7">Notice that there is no trailing slash there. Next, when Yesod wants to construct a URL
+      for <code class="literal">SomePathR</code>, it determines that the relative path for
+        <code class="literal">SomePathR</code> is <code class="literal">/some/path</code>, appends that to your approot, and creates <code class="literal">http://static.example.com/wiki/some/path</code>.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">We've used the <code class="literal">ApprootStatic</code> constructor here, which allows you to hardcode an approot
+        value in your Haskell code. We also have an <code class="literal">ApprootMaster</code> constructor, which allows you to
+        grab the approot from the foundation value. In the scaffolded site, you can configure the
+        approot via a YAML settings file, and the approot is automatically parsed and loaded from it
+        at runtime.</p></div><p class="calibre7">And by the way, the scaffolded site can load different settings for developing, testing,
+      staging, and production builds, so you can easily test on one domain—like
+      localhost—and serve from a different domain.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">To reiterate: even though for the simple cases in this book, the first argument to
+          <code class="literal">approot</code> is usually ignored; in real life code it
+        usually isn’t. We also need to keep that argument so that Haskell’s type system can
+        determine which instance of <code class="literal">Yesod</code> to use in grabbing the
+          <code class="literal">approot</code>.</p></div><div class="book" title="joinPath"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3066105" class="calibre1"></a>joinPath</h2></div></div></div><p class="calibre7">In order to convert a type-safe URL into a text value, Yesod uses two helper functions.
+            The first is the <code class="literal">renderRoute</code> method of the <code class="literal">RenderRoute</code> typeclass. Every type-safe URL is an instance of this
+            typeclass. <code class="literal">renderRoute</code> converts a value into a list of path
+            pieces. For example, our <code class="literal">SomePathR</code> from above would be
+            converted into <code class="literal">["some", "path"]</code>.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">Actually, <code class="literal">renderRoute</code> produces both the path pieces and a list of
+                query-string parameters. The default instances of <code class="literal">renderRoute</code>
+                always provide an empty list of query string parameters. However, it is possible to
+                override this. One notable case is the static subsite, which puts a hash of the file
+                contents in the query string for caching purposes.</p></div><p class="calibre7">The other function is the <code class="literal">joinPath</code> method of the
+        Yesod typeclass. This function takes four arguments: the foundation value, the application
+        root, a list of path segments, and a list of query string parameters, and returns a textual
+        URL. The default implementation does the “right thing”: it separates the path
+        pieces by forward slashes, prepends the application root and appends the query
+        string.</p><p class="calibre7">If you are happy with default URL rendering, you should not need to modify it. However, if you want to modify URL rendering to do things like append a trailing slash, this would be the place to do it.</p></div><div class="book" title="cleanPath"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3066185" class="calibre1"></a>cleanPath</h2></div></div></div><p class="calibre7">The flip side to <code class="literal">joinPath</code> is <code class="literal">cleanPath</code>. Let’s look at how it gets used in the dispatch process:</p><div class="book"><ol class="orderedlist"><li class="listitem"><p class="calibre7">The path info requested by the user is split into a series of path pieces.</p></li><li class="listitem"><p class="calibre7">We pass the path pieces to the <code class="literal">cleanPath</code> function.</p></li><li class="listitem"><p class="calibre7">If <code class="literal">cleanPath</code> indicates a redirect (a <code class="literal">Left</code> response), then a 301 response is sent to the client.
+            This is used to force canonical URLs (e.g., remove extra slashes).</p></li><li class="listitem"><p class="calibre7">Otherwise, we try to dispatch using the response from <code class="literal">cleanPath</code> (a
+                    <code class="literal">Right</code>). If this works, we return a response. Otherwise, we
+                return a 404.</p></li></ol></div><p class="calibre7">This combination allows subsites to retain full control of how their URLs appear, yet
+        allows master sites to have modified URLs. As a simple example, let’s see how we could
+        modify Yesod to always produce trailing slashes on URLs:</p><a id="I_programlisting6_d1e2624" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE TypeFamilies, QuasiQuotes, MultiParamTypeClasses, TemplateHaskell, OverloadedStrings #-}</code>
+<code class="kr">import</code> <code class="nn">Yesod</code>
+<code class="kr">import</code> <code class="nn">Network.HTTP.Types</code> <code class="p">(</code><code class="nf">encodePath</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Blaze.ByteString.Builder.Char.Utf8</code> <code class="p">(</code><code class="nf">fromText</code><code class="p">)</code>
+<code class="kr">import</code> <code class="kr">qualified</code> <code class="nn">Data.Text</code> <code class="kr">as</code> <code class="n">T</code>
+<code class="kr">import</code> <code class="kr">qualified</code> <code class="nn">Data.Text.Encoding</code> <code class="kr">as</code> <code class="n">TE</code>
+<code class="kr">import</code> <code class="nn">Control.Arrow</code> <code class="p">((</code><code class="o">***</code><code class="p">))</code>
+<code class="kr">import</code> <code class="nn">Data.Monoid</code> <code class="p">(</code><code class="nf">mappend</code><code class="p">)</code>
+
+<code class="kr">data</code> <code class="kt">Slash</code> <code class="ow">=</code> <code class="kt">Slash</code>
+
+<code class="nf">mkYesod</code> <code class="s">"Slash"</code> <code class="p">[</code><code class="n">parseRoutes</code><code class="o">|</code>
+<code class="o">/</code> <code class="kt">RootR</code> <code class="kt">GET</code>
+<code class="o">/</code><code class="n">foo</code> <code class="kt">FooR</code> <code class="kt">GET</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="kr">instance</code> <code class="kt">Yesod</code> <code class="kt">Slash</code> <code class="kr">where</code>
+    <code class="n">joinPath</code> <code class="kr">_</code> <code class="n">ar</code> <code class="n">pieces'</code> <code class="n">qs'</code> <code class="ow">=</code>
+        <code class="n">fromText</code> <code class="n">ar</code> <code class="p">`</code><code class="n">mappend</code><code class="p">`</code> <code class="n">encodePath</code> <code class="n">pieces</code> <code class="n">qs</code>
+      <code class="kr">where</code>
+        <code class="n">qs</code> <code class="ow">=</code> <code class="n">map</code> <code class="p">(</code><code class="kt">TE</code><code class="o">.</code><code class="n">encodeUtf8</code> <code class="o">***</code> <code class="n">go</code><code class="p">)</code> <code class="n">qs'</code>
+        <code class="n">go</code> <code class="s">""</code> <code class="ow">=</code> <code class="kt">Nothing</code>
+        <code class="n">go</code> <code class="n">x</code> <code class="ow">=</code> <code class="kt">Just</code> <code class="o">$</code> <code class="kt">TE</code><code class="o">.</code><code class="n">encodeUtf8</code> <code class="n">x</code>
+        <code class="n">pieces</code> <code class="ow">=</code> <code class="n">pieces'</code> <code class="o">++</code> <code class="p">[</code><code class="s">""</code><code class="p">]</code>
+
+    <code class="cm">-- We want to keep canonical URLs. Therefore, if the URL is missing a</code>
+    <code class="cm">-- trailing slash, redirect. But the empty set of pieces always stays the</code>
+    <code class="cm">-- same.</code>
+    <code class="n">cleanPath</code> <code class="kr">_</code> <code class="kt">[]</code> <code class="ow">=</code> <code class="kt">Right</code> <code class="kt">[]</code>
+    <code class="n">cleanPath</code> <code class="kr">_</code> <code class="n">s</code>
+        <code class="o">|</code> <code class="n">dropWhile</code> <code class="p">(</code><code class="n">not</code> <code class="o">.</code> <code class="kt">T</code><code class="o">.</code><code class="n">null</code><code class="p">)</code> <code class="n">s</code> <code class="o">==</code> <code class="p">[</code><code class="s">""</code><code class="p">]</code> <code class="ow">=</code> <code class="cm">-- the only empty string is the last one</code>
+            <code class="kt">Right</code> <code class="o">$</code> <code class="n">init</code> <code class="n">s</code>
+        <code class="cm">-- Since joinPath will append the missing trailing slash, we simply</code>
+        <code class="cm">-- remove empty pieces.</code>
+        <code class="o">|</code> <code class="n">otherwise</code> <code class="ow">=</code> <code class="kt">Left</code> <code class="o">$</code> <code class="n">filter</code> <code class="p">(</code><code class="n">not</code> <code class="o">.</code> <code class="kt">T</code><code class="o">.</code><code class="n">null</code><code class="p">)</code> <code class="n">s</code>
+
+<code class="nf">getRootR</code> <code class="ow">=</code> <code class="n">defaultLayout</code> <code class="p">[</code><code class="n">whamlet</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">p</code>
+    <code class="o">&lt;</code><code class="n">a</code> <code class="n">href</code><code class="o">=@</code><code class="p">{</code><code class="kt">RootR</code><code class="p">}</code><code class="o">&gt;</code><code class="kt">RootR</code>
+<code class="o">&lt;</code><code class="n">p</code>
+    <code class="o">&lt;</code><code class="n">a</code> <code class="n">href</code><code class="o">=@</code><code class="p">{</code><code class="kt">FooR</code><code class="p">}</code><code class="o">&gt;</code><code class="kt">FooR</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">getFooR</code> <code class="ow">=</code> <code class="n">getRootR</code>
+
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">warpDebug</code> <code class="mi">3000</code> <code class="kt">Slash</code>
+</pre><p class="calibre7">First, let’s look at our <code class="literal">joinPath</code> implementation.
+        This is copied almost verbatim from the default Yesod implementation, with one difference:
+        we append an extra empty string to the end. When dealing with path pieces, an empty string
+        will append another slash. So adding an extra empty string will force a trailing
+        slash.</p><p class="calibre7"><code class="literal">cleanPath</code> is a little bit trickier. First, we check for the empty path
+            like before, and if so pass it through as-is. We use Right to indicate that a redirect
+            is not necessary. The next clause is actually checking for two different possible URL
+            issues:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">There is a double slash, which would show up as an empty string in the middle of our paths.</p></li><li class="listitem"><p class="calibre7">There is a missing trailing slash, which would show up as the last piece not being an empty string.</p></li></ul></div><p class="calibre7">Assuming neither of those conditions hold, then only the last piece is empty, and we
+            should dispatch based on all but the last piece. However, if this is not the case, we
+            want to redirect to a canonical URL. In this case, we strip out all empty pieces and do
+            not bother appending a trailing slash, since <code class="literal">joinPath</code> will do that for
+            us.</p></div></div></div></div>
+
+{% endraw %}
+

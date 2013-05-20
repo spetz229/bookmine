@@ -1,0 +1,196 @@
+---
+layout: page
+title: "Эффективное использование C++. 55 верных способов улучшить структуру и код ваших программ"
+prev: OEBPS/section21.xhtml
+next: OEBPS/section23.xhtml
+book_path: books/effektivnoe-ispoljzovanie-c--vernih-sposobov-uluchshitj-strukturu-i-kod-vashih-programm_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <div class="calibre">
+      <div class="title1">
+        <h2 class="calibre3">Правило 5: Какие функции C++ создает и вызывает молча</h2>
+      </div>
+      <p class="calibre2">Когда пустой класс перестает быть пустым? Когда за него берется C++. Если вы не объявите конструктор копирования, оператор присваивания или деструктор самостоятельно, то компилятор сделает это за вас. Более того, если вы не объявите вообще никакого конструктора, то компилятор автоматически создаст конструктор по умолчанию. Все эти функции будут открытыми и встроенными (см. правило 30). Например, такое объявление:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Empty {};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">эквиваленто следующему:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Empty {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Empty() {...} // конструктор по умолчанию</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Empty(const Empty&amp; rhs) {...} // конструктор копирования</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">~Empty() {...} // деструктор – см. ниже</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// о виртуальных деструкторах</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Empty&amp; operator=(const Empty&amp; rhs) {...} // оператор присваивания</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Эти функции генерируются, только если они нужны, но мало найдется случаев, когда без них можно обойтись. Так, следующий код приведет к их автоматической генерации компилятором:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">Empty e1; // конструктор по умолчанию;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// деструктор</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Empty e2(e1); // конструктор копирования</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">e2 = e1; // оператор присваивания</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Итак, компилятор пишет эти функции для вас, но что они делают? Конструктор по умолчанию и деструктор – это места, в которые компилятор помещает служебный код, например вызов конструкторов и деструкторов базовых классов и нестатических данных-членов. Отметим, что сгенерированный деструктор не является виртуальным (см. правило 7), если только речь не идет о классе, наследующем классу, у которого есть виртуальный деструктор (в этом случае виртуальность наследуется от базового класса).</p>
+      <p class="calibre2">Что касается конструктора копирования и оператора присваивания, то сгенерированные компилятором версии просто копируют каждый нестатический член данных исходного объекта в целевой. Например, рассмотрим шаблон NamedObject, который позволяет ассоциировать имена с объектами типа T:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">Template&lt;typename T&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class NamedObject {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">NamedObject(const char *name, const T&amp; value);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">NamedObject(const std::string&amp; name, const T&amp; value);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">private:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std:string nameValue;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">T objectValue;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Поскольку в классе NamedObject объявлен конструктор, компилятор не станет генерировать конструктор по умолчанию. Это важно. Значит, если вы спроектировали класс так, что его конструктору обязательно должны быть переданы какие-то аргументы, то вам не нужно беспокоиться, что компилятор проигнорирует ваше решение и по собственной инициативе добавит еще и конструктор без аргументов.</p>
+      <p class="calibre2">В классе NamedObject нет ни конструктора копирования, ни оператора присваивания, поэтому компилятор сгенерирует их (при необходимости). Посмотрите на следующее употребление конструктора копирования:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">NamedObject&lt;int&gt;no1(“Smallest Prime Number”, 2);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">NamedObject&lt;int&gt;no2(no1); // вызывается конструктор копирования</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Конструктор копирования, сгенерированный компилятором, должен инициализировать no2.nameValue и no2.objectValue, используя nol.nameValue и nol.objectValue соответственно. Член nameValue имеет тип string, а в стандартном классе string объявлен конструктор копирования, поэтому no2. nameValue будет инициализирован вызовом конструктора копирования string с аргументов nol.nameValue. С другой стороны, член NameObject&lt;int&gt;::objectValue имеет тип int (поскольку T есть int в данной конкретизации шаблона), а int – встроенный тип, поэтому no2.objectValue будет инициализирован побитовым копированием nol.objectValue.</p>
+      <p class="calibre2">Сгенерированный компилятором оператор присваивания для класса Named-Object&lt;int&gt; будет вести себя аналогичным образом, но, вообще говоря, сгенерированная компилятором версия оператора присваивания ведет себя так, как я описал, только в том случае, когда в результате получается корректный и осмысленный код. В противном случае компилятор не сгенерирует operator=.</p>
+      <p class="calibre2">Например, предположим, что класс NamedObject определен, как показано ниже. Обратите внимание, что nameValue – ссылка на string, а objectValue имеет тип const T:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">template&lt;class T&gt;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class NamedObject {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// этот конструктор более не принимает const name, поскольку nameValue –</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// теперь ссылка на неконстантную строку. Конструктор с аргументом типа</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// char* исключен, поскольку нам нужна строка, на которую можно сослаться</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">NamedObject(std::string&amp; name, const T&amp; value);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">... // как и ранее, предполагаем,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// что operator= не объявлен</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">private:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::string&amp; nameValue; // теперь это ссылка</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const T objectValue; // теперь const</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Посмотрим, что произойдет в приведенном ниже коде:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">std::string newDog(“Persephone”);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::string oldDog(“Satch”);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">NamedObject&lt;int&gt; p(newDog, 2); // Когда я впервые написал это,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// наша собака Персефона собиралась</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// встретить свой второй день рождения</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">NamedObject&lt;int&gt; s(oldDog, 36); // Семейному псу Сатчу (из моего</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// детства) было бы теперь 36 лет</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">p = s; // Что должно произойти</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// с данными-членами p?</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Перед присваиванием и p.nameValue, и s.nameValue ссылались на объекты string, хотя и на разные. Что должно произойти с членом p.nameValue в результате присваивания? Должен ли он ссылаться на ту же строку, что и s.nameValue, то есть должна ли модифицироваться ссылка? Если да, это подрывает основы, потому что C++ не позволяет изменить объект, на который указывает ссылка. Но, быть может, должна модифицироваться строка, на которую ссылается член p.nameValue, и тогда будут затронуты другие объекты, содержащие указатели или ссылки на эту строку, хотя они и не участвовали непосредственно в присваивании? Это ли должен делать сгенерированный компилятором оператор присваивания?</p>
+      <p class="calibre2">Сталкиваясь с подобной головоломкой, C++ просто отказывается компилировать этот код. Если вы хотите поддерживать присваивание в классе, включающем в себя член-ссылку, то должны определить оператор присваивания самостоятельно. Аналогичным образом компилятор ведет себя с классами, содержащими константные члены (такие как objectValue во втором варианте класса NamedObject выше). Модифицировать константные члены запрещено, поэтому компилятор не знает, как поступать при неявной генерации оператора присваивания. Кроме того, компилятор не станет неявно генерировать оператор присваивания в производном классе, если в его базовом объявлен закрытый оператор присваивания. И наконец, предполагается, что сгенерированные компилятором операторы присваивания для производных классов должны обрабатывать части базовых классов (см. правило 12), но при этом они конечно же не могут вызывать функции-члены, доступ к которым для них запрещен.</p>
+      <div class="subtitle">
+        <p class="subtitle1">
+          <strong class="calibre4">
+            <em class="calibre5">Что следует помнить</em>
+          </strong>
+        </p>
+      </div>
+      <p class="calibre2">• Компилятор может неявно генерировать для класса конструктор по умолчанию, конструктор копирования, оператор присваивания и деструктор.</p>
+    </div>
+  </div>
+
+{% endraw %}
+

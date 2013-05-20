@@ -1,0 +1,117 @@
+---
+layout: page
+title: "CoffeeScript (for jay muratore)"
+prev: f_0046.html
+next: f_0048.html
+book_path: books/trevor-burnham-coffeescript-accelerated-javascript-development-pragmatic--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="sec.jqueryDom" class="calibre13">5.2 Manipulating the DOM</h2>
+<p id="N132D1" class="calibre5">
+      If you’re familiar with raw JavaScript in a web context, you know that HTML tags like <code class="cf">&lt;p&gt;</code> define DOM elements, which JavaScript code can read, modify, and create from whole cloth.
+    </p>
+<p id="N132DB" class="calibre5">
+      jQuery wraps these elements with its own objects, which provide more convenient functionality (and much more cross-browser consistency) than accessing the elements directly. To obtain a jQuery object, you usually use a <span class="emph">selector</span>, a string passed to the jQuery object. We’ll learn more about selectors in the next section, Section 5.3, <a href="f_0048.html#sec.jquerySelectors">​<em class="emph">Getting Selective</em>​</a>; for now, all you need to know is that they’re a superset of CSS. So to select a DOM element with the ID <code class="cf">pikachu</code> and store the result in a jQuery object <code class="cf">$pokemon</code> (it’s a common stylistic convention to prefix all jQuery object names with <code class="cf">$</code>), you would write this:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$pokemon = $(<em class="string">'#pikachu'</em>)</code>
+</td>
+</tr>
+</table>
+<div class="sidebar" id="sb.whereDom">
+<div class="sidebar-title">Where’d Those DOM Elements Go?</div>
+<div class="calibre1">
+<p id="N132FF" class="calibre5">
+        Every jQuery object you create is just an ordered list of DOM elements wrapped up with a neat feature-rich bow. To get those elements out, the official docs suggest that you use the <code class="cf1">get</code>:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">pikachu = $(<em class="string">'#pikachu'</em>).get(0)</code>
+</td>
+</tr>
+</table>
+<p id="N13316" class="calibre5">
+        But a dirty little secret of jQuery objects is that they store their DOM elements by numerical index, allowing array-style access:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">pikachu = $(<em class="string">'#pikachu'</em>)[0]</code>
+</td>
+</tr>
+</table>
+<p id="N13327" class="calibre5">
+        You can even use array functions like <code class="cf1">length</code> and <code class="cf1">slice</code> (though not <code class="cf1">push</code> or <code class="cf1">concat</code>—instead, try <code class="cf1">add</code>).
+      </p>
+<p id="N13339" class="calibre5">
+        Of course, unless you know what you’re doing, you should resist the urge to use DOM elements directly. If your Firefox-tested DOM code crashes in IE7, you have only yourself to blame.
+      </p>
+</div>
+</div>
+<p id="N1333C" class="calibre5">
+      Once you’ve got a jQuery object, you have a massive arsenal of functions at your disposal. As a rule, these functions act on all of the matched elements. So if you have two paragraphs and you write the following,  both paragraphs will be faded out:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$(<em class="string">'p'</em>).fadeOut()</code>
+</td>
+</tr>
+</table>
+<p id="N1334D" class="calibre5">
+       An exception to this rule is “getter” functions. These only act on the first matched element (with the notable exception of <code class="cf">text</code>, which combines the textual context of all matched elements into a single string). Consider this:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">sonnet = $(<em class="string">'p'</em>).html()</code>
+</td>
+</tr>
+</table>
+<p id="N13366" class="calibre5">
+     This code will only return the HTML content of the first paragraph in your document. By contrast, “setters” act on all matched elements. Often, these have the same name, like so:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">sonnet = $(<em class="string">'p'</em>).html()</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$(<em class="string">'p'</em>).html sonnet</code>
+</td>
+</tr>
+</table>
+<p id="N1337D" class="calibre5">
+      This will first read the HTML of the first paragraph, then set the HTML of <span class="emph">all</span> paragraphs to match. (The <code class="cf">text</code> getter would strip out HTML tags, as well as concatenating the content of all matched elements. Think carefully about whether <code class="cf">text</code> or <code class="cf">html</code> is more appropriate when extracting content.<a id="FNPTR-40" href="f_0052.html#FOOTNOTE-40">[40]</a>)  Of course, this can be condensed to a (somewhat baffling) one-liner:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$(<em class="string">'p'</em>).html $(<em class="string">'p'</em>).html()</code>
+</td>
+</tr>
+</table>
+<p id="N133A3" class="calibre5">
+      The moral of this story is this: jQuery and CoffeeScript can be used to write elegant, readable code—or you can just make runnable ASCII art. With great power comes great responsibility.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

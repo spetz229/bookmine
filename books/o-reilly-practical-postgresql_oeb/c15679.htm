@@ -1,0 +1,256 @@
+---
+layout: page
+title: "Unknown"
+prev: x486.htm
+next: p206.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="p15677.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4"/><td width="10%" valign="bottom" class="calibre5"><a href="x16230.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><div class="calibre18"></div><h1 id="calibre_toc_3" class="calibre7"><a name="AUTHENTICATIONANDENCRYPTION" class="calibre8">Chapter 8. Authentication and Encryption</a></h1><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><b class="calibre10">Table of Contents</b></dt><dt class="NAVHEADER"><a href="c15679.htm#CLIENTAUTHENTICATION">Client Authentication</a></dt><dt class="NAVHEADER"><a href="x16230.htm">Encrypting sessions</a></dt></dl></div><p class="calibre9">This chapter documents the fundamental concepts involved with authenticating and encrypting a client session to the
+  PostgreSQL server. This includes how to correctly configure the <span><i class="EMPHASIS">pg_hba.conf</i></span> file for a variety of
+  authentication schemes, as well as a few common ways to encrypt your client connections.</p><div class="NAVHEADER"><h1 class="calibre7"><a name="CLIENTAUTHENTICATION" class="calibre8">Client Authentication</a></h1><p class="calibre9">Client authentication is a central feature to PostgreSQL. Without it, you would either have to sacrifice remote
+    connectivity, or blindly allow anyone to connect to your database and retrieve, or even modify your data.  PostgreSQL has
+    several different types of client authentication at its disposal. As the site administrator, you need to decide which
+    one is best for your system.</p><p class="calibre9">As of PostgreSQL 7.1.x, host-based client access is specified in the <span><i class="EMPHASIS">pg_hba.conf</i></span> file. The rights
+    and restrictions described in this file should not be confused with a PostgreSQL user's rights to objects within the
+    database. The <span><i class="EMPHASIS">pg_hba.conf</i></span> file allows you to set the type of <span><i class="EMPHASIS">host-based</i></span>
+    authentication to be used. This authentication is performed before PostgreSQL establishes a connection to the intended
+    database, where user rights would be relevant.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>The <span><i class="EMPHASIS">pg_hba.conf</i></span> is located in the PostgreSQL data directory
+      (e.g., <span><i class="EMPHASIS">/usr/local/pgsql/data</i></span> ), and is installed automatically upon the execution of the
+      <span><i class="EMPHASIS">initdb</i></span> command when PostgreSQL is installed.</p></blockquote></div><p class="calibre9">PostgreSQL's host-based authentication is flexible, featuring a wide variety of configurable options. You may restrict
+    database access to specific hosts, as well as allow access to a range of IP addresses by using netmasks. Each configured host
+    has its own <span><i class="EMPHASIS">host record</i></span>, which is a single line in the <span><i class="EMPHASIS">pg_hba.conf</i></span> file.</p><p class="calibre9">With these host records, you may specify access either to a particular database or all databases.  Furthermore, you
+    may require a user from a specified host to authenticate via the PostgreSQL users table after qualifying for a
+    connection.</p><p class="calibre9">Put simply, the <span><i class="EMPHASIS">pg_hba.conf</i></span> file allows you to determine <span><i class="EMPHASIS">who</i></span> is allowed to
+    connect to <span><i class="EMPHASIS">which</i></span> databases from <span><i class="EMPHASIS">what</i></span> machines, and to <span><i class="EMPHASIS">what degree</i></span>
+    they must prove their authenticity to gain access.</p><div class="NAVHEADER"><p class="calibre9"></p><table class="calibre" border="1" width="100%"><tr class="calibre1"><td class="calibre23"><b class="calibre10">Warning</b></td></tr><tr class="calibre1"><td class="calibre15"><p class="calibre9">Through remote password-based authentication, passwords may be transmitted in clear text depending on whether or not
+      you are using encrypted sessions. Be sure that you understand how your application is communicating with PostgreSQL before
+      allowing users to remotely connect to a PostgreSQL database.</p></td></tr></table></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN15710" class="calibre8">Password Authentication</a></h2><p class="calibre9">Passwords allow PostgreSQL users a way to identify themselves and prevent unauthorized individuals from
+      connecting with a user that is not theirs. As of PostgreSQL 7.1.x, user passwords are
+      stored in plain text in the <tt class="REPLACEABLE">pg_shadow</tt> system table.  The structure of this table is
+      illustrated in <a href="c15679.htm#THEPGSHADOWTABLE">Table 8-1</a>. Note that while the passwords are stored as plain text, only PostgreSQL
+      <span><i class="EMPHASIS">superusers</i></span> are allowed to view the <tt class="REPLACEABLE">pg_shadow</tt> table.</p><div class="NAVHEADER"><a name="THEPGSHADOWTABLE"></a><p class="calibre9"><b class="calibre10">Table 8-1. The pg_shadow table</b></p><table border="1" class="calibre"><thead class="calibre11"><tr class="calibre12"><th width="6" valign="TOP" class="calibre13"><p class="calibre9">Column</p></th><th width="6" valign="TOP" class="calibre13"><p class="calibre9">Type</p></th></tr></thead><tbody class="calibre14"><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">usename</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">name</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">usesysid</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">integer</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">usecreatedb</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">boolean</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">usetrace</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">boolean</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">usesuper</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">boolean</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">usecatupd</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">boolean</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">passwd</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">text</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">valuntil</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">abstime</tt></p></td></tr></tbody></table></div><p class="calibre9">The <tt class="REPLACEABLE">pg_shadow</tt> table is a system table, and thus is accessible from any database.  It
+      follows, therefore, that users are not assigned to a specific database. If a user exists in the
+      <tt class="REPLACEABLE">pg_shadow</tt> table, that user will be able to connect to any database on the server machine,
+      though not necessarily from any remote machine (depending on your configuration).</p><p class="calibre9">Users typically set passwords in PostgreSQL when the user is created (with the
+      <tt class="REPLACEABLE">CREATE USER</tt> command) or after the user has been created (using the
+      <tt class="REPLACEABLE">ALTER USER</tt> command). Alternatively, you may manually modify a user's password by using an
+      <tt class="REPLACEABLE">UPDATE</tt> statement. (For a more detailed explanation about defining passwords for users, see
+      <a href="c18591.htm">Chapter 10</a>.)</p><p class="calibre9">If a password is not set, a user's password defaults to <tt class="REPLACEABLE">NULL</tt>.  If
+      password-based authentication is enabled in the <span><i class="EMPHASIS">pg_hba.conf</i></span> file, connection attempts will always fail
+      for such a user.  Conversely, if the host that establishes the connection is a <span><i class="EMPHASIS">trusted</i></span> host (such as
+      <span><i class="EMPHASIS">localhost</i></span>, by default), <span><i class="EMPHASIS">anyone</i></span> from the trusted host may connect as a user with a
+      <tt class="REPLACEABLE">NULL</tt> password. In fact, passwords are ignored entirely for trusted hosts.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>The <tt class="REPLACEABLE">GRANT</tt> command allows you to restrict or allow a variety of access types to
+        tables within a database. See <a href="c18591.htm">Chapter 10</a> for more on this topic.</p></blockquote></div><p class="calibre9">Unless your needs for security are very minimal, you will not want to rely on password-only authentication with your PostgreSQL server.
+      Using a password-only method to authenticate users will allow any verified user access to any database on the system, and authenticating with
+      a password over clear text can result in unauthorized individuals acquiring user passwords. If you are likely to have your database connected to
+      the Internet in some fashion, we strongly suggest that you read the following sections. These cover the use of the
+      <span><i class="EMPHASIS">pg_hba.conf</i></span> file and session encryption. </p></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN15817" class="calibre8">The pg_hba.conf file</a></h2><p class="calibre9">We mentioned earlier in this section that the <span><i class="EMPHASIS">pg_hba.conf</i></span> file enables client authentication between the PostgreSQL server and the client application. This file consists of a series of <span><i class="EMPHASIS">entries</i></span>,
+      which define a host and its associated permissions (e.g., the database it is allowed to connect to, the authentication method
+      to use, and so on).</p><p class="calibre9">When an application requests a connection, the request will specify a PostgreSQL username and database with which it
+      intends to connect to PostgreSQL. Optionally, a password may be provided, depending on the expected configuration for the
+      connecting host.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>PostgreSQL has its own user and password tables, which are separate from system accounts.  It is not 
+        required that your PostgreSQL users match users available to the operating system.</p></blockquote></div><p class="calibre9">When PostgreSQL receives a connection request it will check the <span><i class="EMPHASIS">pg_hba.conf</i></span> file to verify
+      that the machine from which the application is requesting a connection has rights to connect to the specified database. If
+      the machine requesting access has permission to connect, PostgreSQL will check the conditions that the application must
+      meet in order to successfully authenticate. This affects connections that are initiated locally as well as remotely.</p><p class="calibre9">PostgreSQL will check the authentication method via the <span><i class="EMPHASIS">pg_hba.conf</i></span> for every connection
+      request.  This check is performed every time a new connection is requested from the PostgreSQL server, so there is no need
+      to re-start PostgreSQL after you add, modify or remove an entry in the <span><i class="EMPHASIS">pg_hba.conf</i></span> file. <a href="c15679.htm#ASIMPLEPGHBACONFFILE">Example 8-1</a> is a simple example of the <span><i class="EMPHASIS">pg_hba.conf</i></span> file.</p><div class="NAVHEADER"><a name="ASIMPLEPGHBACONFFILE"></a><p class="calibre9"><b class="calibre10">Example 8-1. A simple pg_hba.conf file</b></p><pre class="SCREEN">#                   PostgreSQL HOST ACCESS CONTROL FILE
+#
+
+local  all                                          trust
+host   all        127.0.0.1      255.255.255.255    trust
+host   booktown   192.168.1.3    255.255.255.255    ident    sales
+host   all        192.168.1.4    255.255.255.255    ident    audit</pre></div><p class="calibre9">When a connection is initialized, PostgreSQL will read through the <span><i class="EMPHASIS">pg_hba.conf</i></span> one entry at a
+      time, from the top down. As soon a matching record is found, PostgreSQL will stop searching and allow or reject the
+      connection, based on the found entry. If PostgreSQL does not find a matching entry in the <span><i class="EMPHASIS">pg_hba.conf</i></span>
+      file, the connection fails completely.</p><p class="calibre9">Table-level permissions still apply to a database, even if a user has permissions to connect to the database.  If
+      you can connect, but cannot select data from a table, you may want to verify that your connected user has permission to use
+      <tt class="REPLACEABLE">SELECT</tt> on that table. Using the <span><i class="EMPHASIS">psql</i></span> command-line application, you
+      can check the permissions of the tables within a database by using the <tt class="REPLACEABLE">\z</tt> slash command.
+      From any other interface to PostgreSQL, use the query demonstrated in <a href="c15679.htm#CHECKINGUSERPERMISSIONS">Example 8-2</a> to
+      see the same information provided by the <tt class="REPLACEABLE">\z</tt> slash command.</p><div class="NAVHEADER"><a name="CHECKINGUSERPERMISSIONS"></a><p class="calibre9"><b class="calibre10">Example 8-2. Checking user permissions</b></p><pre class="SCREEN">testdb=# <tt class="REPLACEABLE"><b class="calibre10">SELECT relname as "Relation", relacl as "Access permissions"</b></tt>
+testdb-# <tt class="REPLACEABLE"><b class="calibre10">       FROM pg_class</b></tt>
+testdb-# <tt class="REPLACEABLE"><b class="calibre10">       WHERE  relkind IN ('r', 'v', 'S')</b></tt>
+testdb-# <tt class="REPLACEABLE"><b class="calibre10">       AND relname !~ '^pg_'</b></tt>
+testdb-# <tt class="REPLACEABLE"><b class="calibre10">       ORDER BY relname;</b></tt>
+ Relation |     Access permissions
+----------+----------------------------------
+ foo      | {"=arwR","jdrake=arwR"}
+ my_list  | {"=","jdrake=arwR","jworsley=r"}
+(2 rows)</pre></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN15856" class="calibre8">Structure of the pg_hba.conf file</a></h3><p class="calibre9">The <span><i class="EMPHASIS">pg_hba.conf</i></span> file contains sequential entries that define the settings PostgreSQL should
+        use during the client authentication process for a specified host. This file is designed to be easily customizable to
+        your system needs.</p><p class="calibre9">Within this file, you may associate a TCP/IP host address (or a range of addresses) with a particular database (or
+        <span><i class="EMPHASIS">all</i></span> databases), and one of several available authentication methods. You may also specify access for
+        local connections using the term <tt class="REPLACEABLE">localhost</tt>, or
+        <tt class="REPLACEABLE">127.0.0.1</tt>, rather than using the system's external IP address. Several syntax rules
+        apply to the <span><i class="EMPHASIS">pg_hba.conf</i></span>.</p><p class="calibre9">First, you may only place one host record per line in the file. Subsequently, host records are not allowed to wrap
+        across multiple lines. Second, each host record must contain multiple fields, which must be separated by either tabs or
+        spaces. The number of fields in a host record is directly related to the type of host entry being defined. <a href="c15679.htm#AVALIDENTRYWITHSPACESANDTABS">Example 8-3</a> shows two host records, the first with the fields separated by spaces, and the
+        second with the file separated by tabs.</p><div class="NAVHEADER"><a name="AVALIDENTRYWITHSPACESANDTABS"></a><p class="calibre9"><b class="calibre10">Example 8-3. A valid pg_hba.conf entry with spaces and tabs</b></p><pre class="SCREEN">host all 127.0.0.1 255.255.255.255 trust
+host	all	127.0.0.1	255.255.255.255	trust</pre></div><p class="calibre9">Commenting is allowed within the <span><i class="EMPHASIS">pg_hba.conf</i></span> by placing a hash mark
+        (<tt class="REPLACEABLE">#</tt>) at the beginning of each line being commented. <a href="c15679.htm#AVALIDCOMMENT">Example 8-4</a>
+        demonstrates valid commented lines.</p><div class="NAVHEADER"><a name="AVALIDCOMMENT"></a><p class="calibre9"><b class="calibre10">Example 8-4. Valid pg_hba.conf comments</b></p><pre class="SCREEN"># Book Town host entries
+#
+#
+host all 127.0.0.1 255.255.255.255 trust</pre></div><p class="calibre9">Regarding the actual form of each host record, there are three general <span><i class="EMPHASIS">types</i></span>
+        available in the <span><i class="EMPHASIS">pg_hba.conf</i></span> (the <span><i class="EMPHASIS">type</i></span> keyword is always the
+        first word in the host record):</p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">host</tt></dt><dd class="calibre16"><p class="calibre9">A <tt class="REPLACEABLE">host</tt> entry is used to specify remote hosts that are allowed to connect to
+              the PostgreSQL server. PostgreSQL's <span><i class="EMPHASIS">postmaster</i></span> backend must be running with the
+              <span><i class="EMPHASIS">-i</i></span> option (TCP/IP) in order for a <tt class="REPLACEABLE">host</tt> entry to work
+              correctly.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">local</tt></dt><dd class="calibre16"><p class="calibre9">A <tt class="REPLACEABLE">local</tt> entry is semantically the same as a
+              <tt class="REPLACEABLE">host</tt> entry. However, you do not need to specify a host that is allowed to connect. The local
+              entry is used for client connections that are initiated from the same machine that the PostgreSQL server is operating on.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">hostssl</tt></dt><dd class="calibre16"><p class="calibre9">A <tt class="REPLACEABLE">hostssl</tt> entry is user to specify hosts (remote or local)
+              that are allowed to connect to the PostgreSQL server using SSL. The use of SSL insures that all
+              communication between the client and the server is encrypted. In order for this to work, both
+              the client and the server must support SSL. The <span><i class="EMPHASIS">postmaster</i></span> backend must be running with the
+              <span><i class="EMPHASIS">-l</i></span> (SSL) and <span><i class="EMPHASIS">-i</i></span> (TCP/IP) options.</p></dd></dl></div><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>See <a href="c16573.htm">Chapter 9</a> for more on how to start the <span><i class="EMPHASIS">postmaster</i></span> process with
+          the appropriate run-time options.</p></blockquote></div><p class="calibre9"><a href="c15679.htm#HOSTENTRYSYNTAX">Example 8-5</a> illustrates the general syntax for each type of host record available within
+        the <span><i class="EMPHASIS">pg_hba.conf</i></span> file. Notice that the format is essentially identical for each record, with the
+        exception that a <span><i class="EMPHASIS">local</i></span> record does not require an IP address or netmask to be specified, as
+        the connection is assumed to be from the same machine on which PostgreSQL is running.</p><div class="NAVHEADER"><a name="HOSTENTRYSYNTAX"></a><p class="calibre9"><b class="calibre10">Example 8-5. Host entry syntax</b></p><pre class="SCREEN"># A "local" record.
+local	<tt class="REPLACEABLE"><i class="EMPHASIS">database	auth_method	[ auth_option ]     </i></tt>
+
+# A "host" record.
+host	<tt class="REPLACEABLE"><i class="EMPHASIS">database	ip_addr	netmask	auth_method	[ auth_option ]</i></tt>
+
+# A "hostssl" record.
+hostssl	<tt class="REPLACEABLE"><i class="EMPHASIS">database	ip_addr	netmask	auth_method	[ auth_option ]</i></tt></pre></div><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>Remember that each entry in the <span><i class="EMPHASIS">pg_hba.conf</i></span> must be a single line. You cannot
+          word wrap or use line breaks.</p></blockquote></div><p class="calibre9">The following list is a description of the keywords for the <span><i class="EMPHASIS">pg_hba.conf</i></span>
+        entries mentioned previously:</p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE"><i class="EMPHASIS">database</i></tt></dt><dd class="calibre16"><p class="calibre9">This is the database name that the specified host is allowed to connect to.
+              The <tt class="REPLACEABLE"><i class="EMPHASIS">database</i></tt> keyword has three possible values:
+              </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre17"><dt class="NAVHEADER"><tt class="REPLACEABLE">all</tt></dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE">all</tt> keyword specifies that the client
+                  connecting can connect to any database the PostgreSQL server is hosting.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">sameuser</tt></dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE">sameuser</tt> keyword specifies that the client
+                  can only connect to a database that matches the clients authenticated user name.
+                  </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE"><i class="EMPHASIS">name</i></tt></dt><dd class="calibre16"><p class="calibre9">A specific <tt class="REPLACEABLE"><i class="EMPHASIS">name</i></tt> may be specified, so that the client
+                  can only connect to the database as specified by <tt class="REPLACEABLE"><i class="EMPHASIS">name</i></tt>.</p></dd></dl></div>
+</dd><dt class="NAVHEADER"><tt class="REPLACEABLE"><i class="EMPHASIS">ip_addr</i></tt>, <tt class="REPLACEABLE"><i class="EMPHASIS">netmask</i></tt></dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE"><i class="EMPHASIS">ip_addr</i></tt> and <tt class="REPLACEABLE"><i class="EMPHASIS">netmask</i></tt> fields specify
+              either a specific IP address, or range of IP addresses, that are allowed to connect to the PostgreSQL server. Such
+              a range can by specified by describing an IP network with an associated netmask. Otherwise, for a single IP
+              address, the <tt class="REPLACEABLE"><i class="EMPHASIS">netmask</i></tt> field should be set to
+              <tt class="REPLACEABLE">255.255.255.255</tt>.</p><p class="calibre9">If you are unsure of how to specify a netmask, view the online Linux Networking HOWTO, at
+              <span><i class="EMPHASIS">http://www.thelinuxreview.com/howto/networking</i></span>, or consult your system administrator.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE"><i class="EMPHASIS">auth_method</i></tt></dt><dd class="calibre16"><p class="calibre9">The authentication method specifies the type of authentication the server should
+              use for a user trying to connect to PostgreSQL. The following is a list of options
+              available for <tt class="REPLACEABLE"><i class="EMPHASIS">auth_method</i></tt>:
+              
+              </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre17"><dt class="NAVHEADER"><tt class="REPLACEABLE">trust</tt></dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE">trust</tt> method allows any user from the defined host to connect to a 
+                    PostgreSQL database without the use of a password, as any PostgreSQL user. You are <span><i class="EMPHASIS">trusting</i></span> the host-based
+                    authentication with the use of this method, and any user on the specified host. This is a dangerous condition
+                    if the specified host is not a secure machine, or provides access to users unknown to you.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">reject</tt></dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE">reject</tt> method automatically denies access to PostgreSQL
+                    for that host or user. This can be a prudent setting for sites that you know are <span><i class="EMPHASIS">never</i></span>
+                    allowed to connect to your database server.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">password</tt></dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE">password</tt> method specifies that a password must exist for a
+                    connecting user. The use of this method will require the connecting user to supply a password that matches
+                    the password found in the global <tt class="REPLACEABLE">pg_shadow</tt> system table for their username.
+                    If you use the <tt class="REPLACEABLE">password</tt> method, the password will be sent in clear
+                    text.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">crypt</tt></dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE">crypt</tt> method is similar to the
+                    <tt class="REPLACEABLE">password</tt> method. When using <tt class="REPLACEABLE">crypt</tt>,
+                    the password is not sent in clear text, but through a simple form of encryption. The use of this
+                    method is not very secure, but is better than using the clear text <tt class="REPLACEABLE">password</tt>
+                    method.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">krb4</tt>, <tt class="REPLACEABLE">krb5</tt></dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE">krb4</tt> and <tt class="REPLACEABLE">krb5</tt> methods are used to
+                    specify Version 4 or 5 of the Kerberos authentication system. The installation and configuration of Kerberos
+                    is beyond the scope of this book, but if you wish to authenticate via Kerberos, these methods are
+                    available.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">ident</tt></dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE">ident</tt> method specifies that an <span><i class="EMPHASIS">ident map</i></span>
+                    should be used when a host is requesting connections from a valid IP address listed in the
+                    <span><i class="EMPHASIS">pg_hba.conf</i></span> file. This method requires one option.</p><p class="calibre9">The required option may be either the special term <tt class="REPLACEABLE">sameuser</tt>, or a named
+                    map that is defined within the <span><i class="EMPHASIS">pg_ident.conf</i></span> file. For more information on defining an
+                    ident map, see <a href="c15679.htm#THEPGIDENTCONFFILE">the Section called <i class="EMPHASIS">The pg_ident.conf file</i></a>."</p></dd></dl></div>
+</dd><dt class="NAVHEADER"><tt class="REPLACEABLE">auth_option</tt></dt><dd class="calibre16"><p class="calibre9">The <tt class="REPLACEABLE">auth_option</tt> field may or may not be required, based on the type of
+              authentication method that is used; as of PostgreSQL 7.1.x, only the <tt class="REPLACEABLE">ident</tt> method
+              requires an option.</p></dd></dl></div><div class="NAVHEADER"><p class="calibre9"></p><table class="calibre" border="1" width="100%"><tr class="calibre1"><td class="calibre23"><b class="calibre10">Warning</b></td></tr><tr class="calibre1"><td class="calibre15"><p class="calibre9">We do not suggest the use of either <tt class="REPLACEABLE">password</tt> or
+          <tt class="REPLACEABLE">crypt</tt> without the use of an external encryption mechanism.  See <a href="x16230.htm">the Section called <i class="EMPHASIS">Encrypting sessions</i></a>" in this chapter for information on installing a central encryption mechanism for all of
+          your PostgreSQL traffic.</p></td></tr></table></div></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN16035" class="calibre8">Example pg_hba.conf entries</a></h3><p class="calibre9">This section contains a series of examples that can be used within the <span><i class="EMPHASIS">pg_hba.conf</i></span>.  To begin,
+        the host record within <a href="c15679.htm#SINGLEHOSTENTRY">Example 8-6</a> allows a single machine with the IP address
+        192.168.1.10 to connect to any database as any user, without the use of a password. This is because
+        it is configured with the <tt class="REPLACEABLE">all</tt> and <tt class="REPLACEABLE">trust</tt> terms,
+        respectively.</p><div class="NAVHEADER"><a name="SINGLEHOSTENTRY"></a><p class="calibre9"><b class="calibre10">Example 8-6. Single host entry</b></p><pre class="SCREEN">host	all	192.168.1.10	255.255.255.255	trust</pre></div><p class="calibre9"><a href="c15679.htm#REJECTIONENTRY">Example 8-7</a> shows a host record which will reject all users from host
+        192.168.1.10, for any requested database. This is set by the use of the terms
+        <tt class="REPLACEABLE">all</tt> and <tt class="REPLACEABLE">reject</tt> as the database target and
+        authentication method, respectively.</p><div class="NAVHEADER"><a name="REJECTIONENTRY"></a><p class="calibre9"><b class="calibre10">Example 8-7. Rejection entry</b></p><pre class="SCREEN">host	all	192.168.1.10	255.255.255.255	reject</pre></div><p class="calibre9">The host record in <a href="c15679.htm#SINGLEDATABASEENTRY">Example 8-8</a> will allow any user with the IP of
+        192.168.1.10, and a valid password, to connect to the database <tt class="REPLACEABLE">template1</tt>.  The
+        password will be encrypted during authentication because of the use of the term
+        <tt class="REPLACEABLE">crypt</tt>.</p><div class="NAVHEADER"><a name="SINGLEDATABASEENTRY"></a><p class="calibre9"><b class="calibre10">Example 8-8. Single host, single database entry</b></p><pre class="SCREEN">host	template1	192.168.1.10	255.255.255.255	crypt</pre></div><p class="calibre9">The host record in <a href="c15679.htm#SMALLNETWORKCONNECTIONENTRY">Example 8-9</a> allows a small subnet of computers to access any
+        database, without the need of a password. This subnet describes any IP from 192.168.1.1 to
+        192.168.1.15. Again, if you are unsure of how to configure your netmask, consult your network administrator, or 
+        view the Linux Networking HOWTO at <span><i class="EMPHASIS">http://www.thelinuxreview.com/howto/networking</i></span>.</p><div class="NAVHEADER"><a name="SMALLNETWORKCONNECTIONENTRY"></a><p class="calibre9"><b class="calibre10">Example 8-9. Small network connection entry</b></p><pre class="SCREEN">host	all	192.168.1.0	255.255.255.240	trust</pre></div><p class="calibre9">Expanding on the use of subnets, the host record in <a href="c15679.htm#LARGERNETWORKCONNECTIONENTRY">Example 8-10</a> allows any
+        machine on the 192.168.1 block to connect to the <tt class="REPLACEABLE">booktown</tt> database,
+        without the use of a password.</p><div class="NAVHEADER"><a name="LARGERNETWORKCONNECTIONENTRY"></a><p class="calibre9"><b class="calibre10">Example 8-10. Larger network connection entry</b></p><pre class="SCREEN">host	booktown	192.168.1.0	255.255.255.0	trust</pre></div><p class="calibre9">Remember, as stated earlier in this section, each host record line is read in succession from the top of the file
+        to the bottom. The first record which matches the host attempting to connect is used. If no matching record is found,
+        connection is completely disallowed.</p></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="THEPGIDENTCONFFILE" class="calibre8">The pg_ident.conf file</a></h3><p class="calibre9">When specifying the <tt class="REPLACEABLE">ident</tt> term as a host record's authentication method,
+        PostgreSQL uses the <span><i class="EMPHASIS">pg_ident.conf</i></span> file to map the <span><i class="EMPHASIS">identifying username</i></span> to a
+        PostgreSQL username.  The identifying username is the name provided by the connecting client's
+        <span><i class="EMPHASIS">identd</i></span> service (RFC 1413), which is required to identify the name of the system account initiating
+        the connection. This method is similar to the <tt class="REPLACEABLE">trust</tt> method, but restricts access based
+        on the identifying username.</p><p class="calibre9">As stated in the specification for the <span><i class="EMPHASIS">ident</i></span> protocol, "The Identification Protocol is not
+        intended as an authorization or access control protocol." This is only a useful method of identification for secure,
+        controlled machines, and is <span><i class="EMPHASIS">not</i></span> intended as a means for secure control from a wide array of external
+        machines. This is because an <span><i class="EMPHASIS">identd</i></span> daemon merely returns an arbitrary username describing the
+        current system user. For example, allowing the username <tt class="REPLACEABLE">jworsley</tt> from an entire subnet
+        of IP addresses would create a serious security hole, because anyone with a machine in that subnet could create a user named
+        <tt class="REPLACEABLE">jworsley</tt> and become "authenticated" as a result.</p><p class="calibre9">The <span><i class="EMPHASIS">pg_ident.conf</i></span> file should be located in the same path as the
+        <span><i class="EMPHASIS">pg_hba.conf</i></span> file. This should be the path defined by the <tt class="REPLACEABLE">PGDATA</tt> environment
+        variable (e.g., <span><i class="EMPHASIS">/usr/local/pgsql/data</i></span>). Like the <span><i class="EMPHASIS">pg_hba.conf</i></span>, changes to the
+        <span><i class="EMPHASIS">pg_ident.conf</i></span> file do not require PostgreSQL to be re-started.</p><p class="calibre9">The content of the <span><i class="EMPHASIS">pg_ident.conf</i></span> associates identifying usernames with PostgreSQL usernames
+        via definitions called ident <span><i class="EMPHASIS">maps</i></span>. This is useful for users whose system usernames do not match
+        their PostgreSQL usernames. Some rules you should keep in mind when defining and using an ident map are:
+        
+        </p><p class="calibre9"></p><ul class="calibre21"><li class="calibre22"><p class="calibre9">Each ident map <span><i class="EMPHASIS">member</i></span> is defined on a single line, which associates a map name with an identifying username, and a translated PostgreSQL username.</p></li><li class="calibre22"><p class="calibre9">The <span><i class="EMPHASIS">pg_ident.conf</i></span> file can contain multiple map names. Each group of single lines with the same associative map name are considered a single map.</p></li><li class="calibre22"><p class="calibre9">The <span><i class="EMPHASIS">pg_hba.conf</i></span> file determines the types of connections that relate to users in this file.</p></li></ul>
+<p class="calibre9">A single line record to define an ident map consist of 3 tokens: the name of the map, the identifying username, and the
+        translated PostgreSQL username. This syntax is entered as follows, where each token is separated by spaces, or tabs:</p><pre class="SCREEN"><tt class="REPLACEABLE"><i class="EMPHASIS">mapname</i></tt> <tt class="REPLACEABLE"><i class="EMPHASIS">identname</i></tt> <tt class="REPLACEABLE"><i class="EMPHASIS">postgresqlname</i></tt></pre><p class="calibre9"> </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE"><i class="EMPHASIS">mapname</i></tt></dt><dd class="calibre16"><p class="calibre9">The map name used in the <span><i class="EMPHASIS">pg_hba.conf</i></span> file to refer to the ident map.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE"><i class="EMPHASIS">identname</i></tt></dt><dd class="calibre16"><p class="calibre9">The identifying username, which is generally the name of the system user attempting to establish a connection to the database.
+             This is the name provided by the <span><i class="EMPHASIS">identd</i></span> daemon, which must be running on the system attempting to connect.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE"><i class="EMPHASIS">postgresqlname</i></tt></dt><dd class="calibre16"><p class="calibre9">The database username which is allowed for the preceding identifying username. You may specify several
+             lines with the same <tt class="REPLACEABLE"><i class="EMPHASIS">identname</i></tt>, but with different <tt class="REPLACEABLE"><i class="EMPHASIS">postgresqlname</i></tt> values,
+             in order to allow a single system user access to several accounts, which do not all need to be on the same database.</p></dd></dl></div>
+<p class="calibre9">As an example, suppose that the Book Town server has a set of system accounts named
+        <tt class="REPLACEABLE">jdrake</tt>, <tt class="REPLACEABLE">jworsley</tt>, and
+        <tt class="REPLACEABLE">auditor</tt>, used for two salespeople and an internal auditor, respectively.</p><p class="calibre9">You may wish to create a pair of ident maps for these two groups of users. Suppose that the sales department's
+        workstation has an IP address of 192.168.1.3, and only needs access to the
+        <tt class="REPLACEABLE">booktown</tt> database, while the audit department's workstation has an IP address of
+        192.168.1.4, and requires access to all databases. This scenario might result in a <span><i class="EMPHASIS">pga_hba.conf</i></span>,
+        such as the one displayed in <a href="c15679.htm#EXAMPLEIDENTCONFIGURATION">Example 8-11</a>.</p><div class="NAVHEADER"><a name="EXAMPLEIDENTCONFIGURATION"></a><p class="calibre9"><b class="calibre10">Example 8-11. An ident configuration in pg_hba.conf</b></p><pre class="SCREEN">host   booktown   192.168.1.3    255.255.255.255    ident    sales
+host   all        192.168.1.4    255.255.255.255    ident    audit</pre></div><p class="calibre9">This host access configuration states that the sales machine may connect to the
+        <tt class="REPLACEABLE">booktown</tt> database using an ident map named <span><i class="EMPHASIS">sales</i></span>, and the audit
+        workstation may connect to <span><i class="EMPHASIS">any</i></span> database using an ident map named <span><i class="EMPHASIS">audit</i></span>. Each of
+        these maps must then be configured within the <span><i class="EMPHASIS">pg_ident.conf</i></span> file. <a href="c15679.htm#EXAMPLEIDENTCONF">Example 8-12</a>
+        demonstrates such a configuration.</p><div class="NAVHEADER"><a name="EXAMPLEIDENTCONF"></a><p class="calibre9"><b class="calibre10">Example 8-12. A pg_ident.conf configuration</b></p><pre class="SCREEN"># MAP   IDENT        POSTGRESQL_USERNAME
+sales   jdrake       sales
+sales   jworsley     sales
+audit   auditor      sales
+audit   auditor      postgres</pre></div><p class="calibre9">The file shown in <a href="c15679.htm#EXAMPLEIDENTCONF">Example 8-12</a> allows either of the system users
+        <tt class="REPLACEABLE">jdrake</tt> or <tt class="REPLACEABLE">jworsley</tt> to connect as the PostgreSQL
+        <tt class="REPLACEABLE">sales</tt> user, and allows the system user named <tt class="REPLACEABLE">auditor</tt> to
+        connect to PostgreSQL as either <tt class="REPLACEABLE">sales</tt>, or <tt class="REPLACEABLE">postgres</tt>.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>It is possible for an identifying username to be mapped to multiple PostgreSQL usernames. This is illustrated in
+          <a href="c15679.htm#EXAMPLEIDENTCONF">Example 8-12</a> with the <tt class="REPLACEABLE">auditor</tt> user.</p></blockquote></div><p class="calibre9">If you wish only to use <tt class="REPLACEABLE">ident</tt> as a means of automatically identifying your remote
+        username, you do not need to use the <span><i class="EMPHASIS">pg_ident.conf</i></span> file. You can instead use the special term
+        <tt class="REPLACEABLE">sameuser</tt> in the <span><i class="EMPHASIS">pg_hba.conf</i></span> file, in place of a map name.</p><p class="calibre9">Again, this is similar to the <tt class="REPLACEABLE">trusted</tt> method, however
+        <tt class="REPLACEABLE">ident sameuser</tt> restricts connections based on the username provided by
+        <span><i class="EMPHASIS">identd</i></span>. Providing a PostgreSQL username to connect with (e.g., with the <span><i class="EMPHASIS">-U</i></span>  flag
+        to <span><i class="EMPHASIS">psql</i></span> ) that is different from the name sent by <span><i class="EMPHASIS">identd</i></span> will result in a
+        failure to connect.</p><p class="calibre9">Use of the <tt class="REPLACEABLE">sameuser</tt> map is demonstrated in <a href="c15679.htm#EXAMPLESAMEUSERCONFIGURATION">Example 8-13</a>.</p><div class="NAVHEADER"><a name="EXAMPLESAMEUSERCONFIGURATION"></a><p class="calibre9"><b class="calibre10">Example 8-13. A sameuser configuration</b></p><pre class="SCREEN">host   booktown   192.168.1.0    255.255.255.0    ident    sameuser</pre></div><p class="calibre9">The host record in <a href="c15679.htm#EXAMPLESAMEUSERCONFIGURATION">Example 8-13</a> allows any machine on the
+        192.168.1 network block to connect to the <tt class="REPLACEABLE">booktown</tt> database, using
+        the PostgreSQL username that matches the username provided by <span><i class="EMPHASIS">identd</i></span>. The
+        <tt class="REPLACEABLE">sameuser</tt> term causes PostgreSQL to implicitly compare the requested PostgreSQL username
+        against the name provided by <span><i class="EMPHASIS">identd</i></span>.</p></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN16189" class="calibre8">Authentication Failure</a></h2><p class="calibre9">When authentication failure occurs, PostgreSQL will usually do its best to provide a useful error message, rather
+      than blindly fail. The following are common error messages you may encounter, with explanations:
+      
+      </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">FATAL 1: user "testuser" does not exist</tt></dt><dd class="calibre16"><p class="calibre9">The specified username was not found in the <tt class="REPLACEABLE">pg_shadow</tt> system table, meaning the user
+            does not exist. See <a href="c18591.htm">Chapter 10</a> for more on adding users.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">FATAL 1: Database "testdb" does not exist in the system catalog</tt></dt><dd class="calibre16"><p class="calibre9">This database cannot be found because it does not exist. Note that if you do not specify a database name to a
+            PostgreSQL connection, it will attempt to connect to the provided username.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">No pg_hba.conf entry for host 123.123.123.1, user testuser, database testdb</tt></dt><dd class="calibre16"><p class="calibre9">You have succeeded in contacting the server, but the server is not accepting your
+            connection. The server refused the connection because it cannot find an entry for
+            <tt class="REPLACEABLE">testuser</tt> using <tt class="REPLACEABLE">testdb</tt> at their IP address (123.123.123.1)
+            in the <span><i class="EMPHASIS">pg_hba.conf</i></span> file.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">Password authentication failed for user 'testuser'</tt></dt><dd class="calibre16"><p class="calibre9">You have succeeded in contacting the server and it is replying back, but the connection
+            failed password authorization. Check the password you are supplying to the server,
+            and make sure that it is correct. Further, you can check the Kerberos or Ident software
+            programs if you are using them for your password authentication.</p><p class="calibre9">You may want to check if this user has a password. If this user does not have one, and the
+            <span><i class="EMPHASIS">pg_hba.conf</i></span> file is set to check for passwords, it will still check every user for their
+            password. For all users without a defined password, a <tt class="REPLACEABLE">NULL</tt> password is assigned to
+            that user. When the user tries to log in and does not specify a password, it will compare the
+            <tt class="REPLACEABLE">NULL</tt> password to the <tt class="REPLACEABLE">NULL</tt> input, and it will return
+            <tt class="REPLACEABLE">false</tt>.</p><p class="calibre9">On the other hand, if the user tries to supply a password (even a blank one), it will compare that input value
+            with the <tt class="REPLACEABLE">NULL</tt> password and still return <tt class="REPLACEABLE">false</tt>. If you are using
+            password authentication, you must assign a password to all users. If a password is not assigned to a user in
+            such a scheme, password authentication will always fail, and the user will not be able to log in.</p></dd></dl></div>
+</div></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="p15677.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x16230.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Administrating PostgreSQL</td><td width="34%" valign="top" class="calibre4"><a href="p15677.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Encrypting sessions</td></tr></table></div></div>
+
+{% endraw %}
+

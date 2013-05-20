@@ -1,0 +1,42 @@
+---
+layout: page
+title: "Understanding the Linux Kernel, 3rd Edition"
+prev: understandlk-APP-B-SECT-3.html
+next: understandlk-BIBL-1.html
+book_path: books/understanding-the-linux-kernel-rd-edition_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a name="understandlk-APP-B-SECT-4"></a>
+<h3 class="docSection1Title">B.4. Linking Modules on Demand</h3><a name="IDX-APP-B-0073"></a>
+<a name="IDX-APP-B-0074"></a>
+<a name="IDX-APP-B-0075"></a>
+<a name="IDX-APP-B-0076"></a>
+<p class="docText1">A module can be automatically linked when the functionality it provides is requested and automatically removed afterward.</p>
+<p class="docText1">For instance, suppose that the MS-DOS<a name="IDX-APP-B-0077"></a> 
+ filesystem has not been linked, either statically or dynamically. If a user tries to mount an MS-DOS filesystem, the <tt class="calibre25">mount( )</tt> system call normally fails by returning an error code, because MS-DOS is not included in the <tt class="calibre25">file_systems</tt> list of registered filesystems. However, if support for automatic linking of modules has been specified when configuring the kernel, Linux makes an attempt to link the MS-DOS module, and then scans the list of registered filesystems again. If the module is successfully linked, the <tt class="calibre25">mount( )</tt> system call can continue its execution as if the MS-DOS filesystem were present from the beginning.</p>
+<a name="understandlk-APP-B-SECT-4.1"></a>
+<h4 class="docSection2Title">B.4.1. The modprobe Program</h4>
+<p class="docText1">To automatically link a module, the kernel creates a kernel thread to execute the <i class="docEmphasis">modprobe</i> external program,<sup class="docFootnote"><a class="pcalibre5 docLink pcalibre1" href="#understandlk-APP-B-FN2">[*]</a></sup> which takes care of possible complications due to module dependencies. The dependencies were discussed earlier: a module may require one or more other modules, and these in turn may require still other modules. For instance, the MS-DOS module requires another module named <i class="docEmphasis">fat</i> containing some code common to all filesystems based on a File Allocation Table (FAT). Thus, if it is not already present, the <span class="docEmphasis">fat</span> module must also be automatically linked into the running kernel when the MS-DOS module is requested. Resolving dependencies and finding modules is a type of activity that's best done in User Mode, because it requires locating and accessing module object files in the filesystem.</p><blockquote class="calibre22"><p class="docFootnote1"><sup class="calibre24"><a name="understandlk-APP-B-FN2">[*]</a></sup> This is one of the few examples in which the kernel relies on an external program.</p></blockquote>
+<p class="docText1">The <i class="docEmphasis">modprobe</i> external program is similar to <i class="docEmphasis">insmod</i>, since it links in a module specified on the command line. However, <i class="docEmphasis">modprobe</i> also recursively links in all modules used by the module specified on the command line. For instance, if a user invokes <i class="docEmphasis">modprobe</i> to link the MS-DOS module, the program links the <span class="docEmphasis">fat</span> module, if necessary, followed by the MS-DOS module. Actually, <i class="docEmphasis">modprobe</i> simply checks for module dependencies; the actual linking of each module is done by forking a new process and executing <i class="docEmphasis">insmod</i>.</p>
+<p class="docText1">How does <i class="docEmphasis">modprobe</i> know about module dependencies? Another external program named <i class="docEmphasis">depmod</i> is executed at system startup. It looks at all the modules compiled for the running kernel, which are usually stored inside the <i class="docEmphasis">/lib/modules</i> directory. Then it writes all module dependencies to a file named <i class="docEmphasis">modules.dep</i>. The <i class="docEmphasis">modprobe</i> program can thus simply compare the information stored in the file with the list of linked modules yielded by the <i class="docEmphasis">/proc<a name="IDX-APP-B-0078"></a> 
+/modules</i> file.</p>
+<a name="understandlk-APP-B-SECT-4.2"></a>
+<h4 class="docSection2Title">B.4.2. The request_module( ) Function</h4><a name="IDX-APP-B-0079"></a>
+<a name="IDX-APP-B-0080"></a>
+<p class="docText1">In some cases, the kernel may invoke the <tt class="calibre25">request_module( )</tt> function to attempt automatic linking for a module.</p>
+<p class="docText1">Consider again the case of a user trying to mount an MS-DOS<a name="IDX-APP-B-0081"></a> 
+ filesystem. If the <tt class="calibre25">get_fs_type( )</tt> function discovers that the filesystem is not registered, it invokes the <tt class="calibre25">request_module( )</tt> function in the hope that MS-DOS has been compiled as a module.</p>
+<p class="docText1">If the <tt class="calibre25">request_module( )</tt> function succeeds in linking the requested module, <tt class="calibre25">get_fs_type( )</tt> can continue as if the module were always present. Of course, this does not always happen; in our example, the MS-DOS module might not have been compiled at all. In this case, <tt class="calibre25">get_fs_type( )</tt> returns an error code.</p>
+<p class="docText1">The <tt class="calibre25">request_module( )</tt> function receives the name of the module to be linked as its parameter. It executes <tt class="calibre25">kernel_thread( )</tt> to create a new kernel thread and waits until that kernel thread terminates.</p>
+<p class="docText1">The kernel thread, in turn, receives the name of the module to be linked as its parameter and invokes the <tt class="calibre25">execve( )</tt> system call to execute the <i class="docEmphasis">modprobe</i> external program,<sup class="docFootnote"><a class="pcalibre5 docLink pcalibre1" href="#understandlk-APP-B-FN3">[*]</a></sup> passing the module name to it. In turn, the <i class="docEmphasis">modprobe</i> program actually links the requested module, along with any that it depends on.</p><blockquote class="calibre22"><p class="docFootnote1"><sup class="calibre24"><a name="understandlk-APP-B-FN3">[*]</a></sup> The name and path of the program executed by <tt class="calibre42">exec_modprobe( )</tt> can be customized by writing into the <span class="docEmphasis">/proc/sys/kernel/modprobe</span> file.</p></blockquote>
+
+<br class="calibre7"/>
+
+</div>
+
+{% endraw %}
+

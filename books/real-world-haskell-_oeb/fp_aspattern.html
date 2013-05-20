@@ -1,0 +1,156 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: fp_partialapp.html
+next: fp_compose.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="fp_partialapp.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="fp_compose.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="fp_aspattern" class="calibre27" id="fp_aspattern"></a><h3 id="title-IDAMY1VD" class="docSection1Title">4.9. As-patterns</h3><a name="x_FA" class="calibre27" id="x_FA"></a><p class="docText">Haskell's <i class="docEmphasis">tails</i>
+    function,<a name="I_indexterm4_d1e11959" class="calibre27" id="I_indexterm4_d1e11959"></a><a name="I_indexterm4_d1e11962" class="calibre27" id="I_indexterm4_d1e11962"></a><a name="I_indexterm4_d1e11965" class="calibre27" id="I_indexterm4_d1e11965"></a> in the <tt class="calibre34">Data.List</tt> module,<a name="I_indexterm4_d1e11974" class="calibre27" id="I_indexterm4_d1e11974"></a> generalizes the <i class="docEmphasis">tail</i>
+    function we introduced earlier. Instead of returning one
+    "tail" of a list, it returns <span class="docEmphasis">all</span> of
+    them:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:m +Data.List</b>ghci&gt; <b class="calibre40">tail "foobar"</b>
+"oobar"
+ghci&gt; <b class="calibre40">tail (tail "foobar")</b>
+"obar"
+ghci&gt; <b class="calibre40">tails "foobar"</b>
+["foobar","oobar","obar","bar","ar","r",""]</pre><a name="x_GA" class="calibre27" id="x_GA"></a><p class="docText">Each of these strings is a <span class="docEmphasis">suffix</span> of
+    the initial string, so <i class="docEmphasis">tails</i> produces
+    a list of all suffixes, plus an extra empty list at the end. It always
+    produces that extra empty list, even when its input list is empty:</p><pre class="calibre39">ghci&gt; <b class="calibre40">tails []</b>
+[[]]
+</pre><a name="x_HA" class="calibre27" id="x_HA"></a><p class="docText">What if we want a function that behaves like <i class="docEmphasis">tails</i> but <span class="docEmphasis">only</span> returns the
+    nonempty suffixes? One possibility would be for us to write our own
+    version by hand. We'll use a new piece of notation, the <tt class="calibre34">@</tt>
+    symbol:</p><pre class="calibre39">-- file: ch04/SuffixTree.hs
+suffixes :: [a] -&gt; [[a]]
+suffixes xs@(_:xs') = xs : suffixes xs'
+suffixes _ = []</pre><br class="calibre48"/>
+<a name="x_JA" class="calibre27" id="x_JA"></a><p class="docText">The pattern <tt class="calibre34">xs@(_:xs')</tt> is called an
+    <span class="docEmphasis">as-pattern</span>, and it means "bind the variable
+    <span class="docMonofont">xs</span> to the value that matches the right side of the
+    <tt class="calibre34">@</tt> symbol."</p><a name="x_KA" class="calibre27" id="x_KA"></a><p class="docText">In our example, if the pattern after the
+    <tt class="calibre34">@</tt> matches,<a name="I_indexterm4_d1e12059" class="calibre27" id="I_indexterm4_d1e12059"></a><a name="I_indexterm4_d1e12062" class="calibre27" id="I_indexterm4_d1e12062"></a> <span class="docMonofont">xs</span> will be bound to the entire list that
+    matched, and <span class="docMonofont">xs'</span> will be bound to all but the head of
+    the list (we used the wild card <span class="docEmphasis">( <tt class="calibre34"/> )</span>
+    pattern to indicate that we're not interested in the value of the head of
+    the list):</p><pre class="calibre39">ghci&gt; <b class="calibre40">tails "foo"</b>
+["foo","oo","o",""]
+ghci&gt; <b class="calibre40">suffixes "foo"</b>
+["foo","oo","o"]</pre><a name="x_LA" class="calibre27" id="x_LA"></a><p class="docText">The as-pattern makes our code more readable. To see how it
+    helps, let us compare a definition that lacks an as-pattern:</p><pre class="calibre39">-- file: ch04/SuffixTree.hs
+noAsPattern :: [a] -&gt; [[a]]
+noAsPattern (x:xs) = (x:xs) : noAsPattern xs
+noAsPattern _ = []</pre><br class="calibre48"/>
+<a name="x_MA" class="calibre27" id="x_MA"></a><p class="docText">Here, the list that we've deconstructed in the pattern
+    match just gets put right back together in the body of the
+    function.</p><a name="x_NA" class="calibre27" id="x_NA"></a><p class="docText">As-patterns have a more practical use than simple
+    readability: they can help us to share data instead of copying it. In our
+    definition of <i class="docEmphasis">noAsPattern</i>, when we
+    match <tt class="calibre34">(x:xs)</tt>, we construct a new copy of it in the body of
+    our function. This causes us to allocate a new list node at runtime. That
+    may be cheap, but it isn't free. In contrast, when we defined <i class="docEmphasis">suffixes</i>, we reused the value
+    <span class="docMonofont">xs</span> that we matched with our as-pattern. Since we reuse
+    an existing value, we avoid a little allocation.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="fp_partialapp.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="fp_compose.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

@@ -1,0 +1,411 @@
+---
+layout: page
+title: "CoffeeScript (for jay muratore)"
+prev: f_0013.html
+next: f_0015.html
+book_path: books/trevor-burnham-coffeescript-accelerated-javascript-development-pragmatic--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="sec.running" class="calibre13">1.3 Meet ’coffee’</h2>
+<p id="N1056A" class="calibre5">
+      Now that you’ve got your editor set up, it’s time to introduce <code class="cf">coffee</code>, the standard command line compiler. Let’s start with the obligatory “Hello, world!” program. Open up your editor and create a new file called <code class="cf">hello.coffee</code> with the following contents:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console.log <em class="string">'Hello, world!'</em>
+</code>
+</td>
+</tr>
+</table>
+<p id="N10580" class="calibre5">Now you just need to run it:</p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$ <strong class="prompt">coffee hello.coffee</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">Hello, world!</code>
+</td>
+</tr>
+</table>
+<p id="N10594" class="calibre5">
+      You might be wondering several things: First, where did that <code class="cf">console.log</code> function come from? (Answer: It’s a Node.js global.) Second, where’s the JavaScript? Isn’t the point of CoffeeScript that it compiles to JavaScript?
+    </p>
+<p id="N1059A" class="calibre5">
+      What’s happening here is that <code class="cf">coffee</code> is compiling <code class="cf">hello.coffee</code> to JavaScript internally, then piping that output straight to Node for immediate execution. If that’s not what you want to do, you’ll have to use one or more of <code class="cf">coffee</code>’s many options. To see them, use <code class="cf">coffee -h</code>:
+      
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$ <strong class="prompt">coffee -h</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">Usage: coffee [options] path/to/script.coffee</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  -c, --compile      compile to JavaScript and save as .js files</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  -i, --interactive  run an interactive CoffeeScript REPL</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  -o, --output       set the directory for compiled JavaScript</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  -j, --join         concatenate the scripts before compiling</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  -w, --watch        watch scripts for changes, and recompile</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  -p, --print        print the compiled JavaScript to stdout</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  -l, --lint         pipe the compiled JavaScript through JSLint</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  -s, --stdio        listen for and compile scripts over stdio</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  -e, --eval         compile a string from the command line</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  -r, --require      require a library before executing your script</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  -b, --bare         compile without the top-level function wrapper</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  -t, --tokens       print the tokens that the lexer produces</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  -n, --nodes        print the parse tree that Jison produces</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">      --nodejs       pass options through to the "node" binary</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  -v, --version      display CoffeeScript version</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  -h, --help         display this help message</code>
+</td>
+</tr>
+</table>
+<p id="N105FB" class="calibre5">
+      So if you wanted to see the JavaScript that the compiler hid from you just now, you’d run this:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$ <strong class="prompt">coffee -p hello.coffee</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">(function() {</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  console.log('Hello, world!');</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">}).call(this);</code>
+</td>
+</tr>
+</table>
+<p id="N10615" class="calibre5">
+      See <a href="#sb.wrapper">​<em class="emph">JavaScript, Under Wraps</em>​</a> for an explanation of those extra two lines.
+    </p>
+<div class="sidebar" id="sb.wrapper">
+<div class="sidebar-title">JavaScript, Under Wraps</div>
+<div class="calibre1">
+<p id="N10622" class="calibre5">
+          You’re probably wondering why CoffeeScript output comes wrapped in a function. The reason is, in a word, <span class="emph">namespacing</span>. If you load a bunch of JavaScript files into a browser application, they’re treated like one big block of code. That can easily lead to unintended consequences:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">
+<em class="comment">// First file</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">
+<strong class="prompt">function</strong> declareNuclearWar() {</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">  alert(<em class="string">'Relax. This is only a test'</em>);</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">}</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">window.onload = <strong class="prompt">function</strong>() {</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">  declareNuclearWar();</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">}</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">
+<em class="comment">// Second file</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">
+<strong class="prompt">function</strong> declareNuclearWar() {</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">  alert(<em class="string">'The bombing begins in 5 minutes.'</em>);</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">}</code>
+</td>
+</tr>
+</table>
+<p id="N1066A" class="calibre5">
+          Whoever wrote the first file had no idea the havoc that code was going to unleash! Calamity could have been averted by wrapping each file in an anonymous function, thus isolating the two <code class="cf1">declareNuclearWar</code> declarations. (See Section 2.2, <a href="f_0019.html#sec.scope">​<em class="emph">Scope: Where You See ’Em</em>​</a>.) This is called the <span class="emph">module pattern</span>.
+        </p>
+<p id="N10676" class="calibre5">
+          To get modules to talk to each other, you’ve got to “export” some variables. (There’s more on that in Section 4.1, <a href="f_0038.html#sec.modules">​<em class="emph">Modules: Splitting Up Apps</em>​</a>.)
+        </p>
+<p id="N1067C" class="calibre5">Oh—and if you must get rid of the wrapping, run <code class="cf1">coffee</code> with the <code class="cf1">-b</code> (“bare”) flag.
+        </p>
+</div>
+</div>
+<h3 id="sec.compile" class="calibre14">Compiling to JavaScript</h3>
+<p id="N1068A" class="calibre5">
+        Probably the most common flag is <code class="cf">-c</code> (“compile”), which saves the JavaScript output to a file. The file is named the same as the original, except with a <code class="cf">js</code> extension instead of <code class="cf">coffee</code>. Let’s stick with the caffeinated beverage theme:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$ <strong class="prompt">coffee -c mochaccino.coffee</strong>
+</code>
+</td>
+</tr>
+</table>
+<p id="N106AB" class="calibre5">
+        This compiles to a file named <code class="cf">mochaccino.js</code> in the same directory. You can put the output somewhere else with the <code class="cf">-o</code> (“output”) flag, followed by the name of the target directory:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$ <strong class="prompt">coffee -co output source</strong>
+</code>
+</td>
+</tr>
+</table>
+<p id="N106C2" class="calibre5">
+        This example reads every <code class="cf">coffee</code> file in <code class="cf">source</code> (and its subdirectories) and writes the corresponding <code class="cf">js</code> files in <code class="cf">output</code>. Note that <code class="cf">-co</code> is simply shorthand for <code class="cf">-c -o</code>. The order matters: <code class="cf">-o</code> needs to <span class="emph">immediately</span> precede the output directory name.
+      </p>
+<p id="N106DD" class="calibre5">
+        Another popular flag is <code class="cf">-w</code> (“watch”), which tells <code class="cf">coffee</code> to keep running in the background; in conjunction with <code class="cf">-c</code>, it’ll recompile your code every time you make changes. It even works on directories and preserves nested file structures. So if I run the following, everything in the <code class="cf">coffee</code> directory will be continuously recompiled to the <code class="cf">js</code> directory:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$ <strong class="prompt">coffee -cwo js coffee</strong>
+</code>
+</td>
+</tr>
+</table>
+<p id="N10704" class="calibre5">
+        This will continue until I kill the compiler with <code class="cf">Ctrl</code>-<code class="cf">c</code>.
+      </p>
+<h3 id="sec.repl" class="calibre14">The REPL</h3>
+<p id="N10715" class="calibre5">
+        If you just run <code class="cf">coffee</code> with no arguments, you’ll enter what overly sophisticated programmers call the REPL, or the Read-Eval-Print Loop. In layman’s terms, this means you type something, it runs, you see the output, repeat.
+      </p>
+<p id="N1071B" class="calibre5">
+        This is great for playing around with the language. The REPL runs in a Node.js environment and prints the result of each expression. For instance, if we want to remind ourselves of some of the quirks of JavaScript’s <code class="cf">parseInt</code> function, we can try this:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$ <strong class="prompt">coffee</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">coffee&gt;<strong class="prompt"> parseInt '221'</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">221</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">coffee&gt;<strong class="prompt"> parseInt '221b'</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">221</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">coffee&gt;<strong class="prompt"> parseInt 'b221'</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">NaN</code>
+</td>
+</tr>
+</table>
+<p id="N1074A" class="calibre5">
+    That’s it for our coverage of <code class="cf">coffee</code>. By the way, if you want to see how <code class="cf">coffee</code> works, check out the annotated source.<a id="FNPTR-24" href="f_0016.html#FOOTNOTE-24">[24]</a> If you’d like, you can even reverse-engineer it and write your own interface for the CoffeeScript compiler (like my own Jitter<a id="FNPTR-25" href="f_0016.html#FOOTNOTE-25">[25]</a>).
+  </p>
+<p id="N1075F" class="calibre5">
+Remember that <code class="cf">coffee</code> is a lightweight tool; it doesn’t offer features like minification or automatically running tests after compilation. If you want to add those to your project, you should write your own build script, typically as a Cakefile. You can find some documentation on Cakefiles over at the CoffeeScript wiki.<a id="FNPTR-26" href="f_0016.html#FOOTNOTE-26">[26]</a>
+</p>
+<p id="N10770" class="calibre5">
+    You’re almost ready to start writing CoffeeScript code—but first, what should you do if something goes awry?
+  </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

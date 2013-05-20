@@ -1,0 +1,152 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: glob_bytestring.html
+next: glob_regex.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="glob_bytestring.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="glob_regex.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="glob_fnmatch" class="calibre27" id="glob_fnmatch"></a><h3 id="title-IDAO00VD" class="docSection1Title">8.2. Filename Matching</h3><a name="x_BF" class="calibre27" id="x_BF"></a><p class="docText">Many<a name="I_indexterm8_d1e21599" class="calibre27" id="I_indexterm8_d1e21599"></a><a name="I_indexterm8_d1e21600" class="calibre27" id="I_indexterm8_d1e21600"></a><a name="I_indexterm8_d1e21601" class="calibre27" id="I_indexterm8_d1e21601"></a><a name="I_indexterm8_d1e21606" class="calibre27" id="I_indexterm8_d1e21606"></a><a name="I_indexterm8_d1e21609" class="calibre27" id="I_indexterm8_d1e21609"></a> systems-oriented programming languages provide library
+    routines that let us match a filename against a pattern, or that will give
+    a list of files that match the pattern. In other languages, this function
+    is often named <i class="docEmphasis">fnmatch</i>.) Although
+    Haskell's standard library generally has good systems programming
+    facilities, it doesn't provide these kinds of pattern matching functions.
+    We'll take this as an opportunity to develop our own.</p><a name="x_CF" class="calibre27" id="x_CF"></a><p class="docText">The kinds of patterns we'll be dealing with are commonly
+    referred to as<a name="I_indexterm8_d1e21620" class="calibre27" id="I_indexterm8_d1e21620"></a> <span class="docEmphasis">glob patterns</span> (the term we'll use),
+    wild card patterns, or shell-style patterns. They have just a few simple
+    rules. You probably already know them, but we'll quickly recap
+    here:</p><ul class="calibre18"><li class="calibre19"><p class="docText">Matching a string against a pattern starts at the
+        beginning of the string, and finishes at the end.</p></li><li class="calibre19"><p class="docText">Most literal characters match themselves. For example,
+        the text <tt class="calibre34">foo</tt> in a pattern will
+        match <tt class="calibre34">foo</tt>, and only <tt class="calibre34">foo</tt>, in an input string.</p></li><li class="calibre19"><p class="docText">The <tt class="calibre34">*</tt> (asterisk)
+        character<a name="I_indexterm8_d1e21649" class="calibre27" id="I_indexterm8_d1e21649"></a><a name="I_indexterm8_d1e21652" class="calibre27" id="I_indexterm8_d1e21652"></a> means "match anything"; it will match any
+        text, including the empty string. For instance, the pattern
+        <tt class="calibre34">foo*</tt> will match any string that begins with
+        <tt class="calibre34">foo</tt>, such as <tt class="calibre34">foo</tt> itself,
+        <tt class="calibre34">foobar</tt>, or <tt class="calibre34">foo.c</tt>. The pattern
+        <tt class="calibre34">quux*.c</tt> will match any string that begins with
+        <tt class="calibre34">quux</tt> and ends in <tt class="calibre34">.c</tt>, such as
+        <tt class="calibre34">quuxbaz.c</tt>.</p></li><li class="calibre19"><p class="docText">The <tt class="calibre34">?</tt> (question
+        mark)<a name="I_indexterm8_d1e21694" class="calibre27" id="I_indexterm8_d1e21694"></a><a name="I_indexterm8_d1e21697" class="calibre27" id="I_indexterm8_d1e21697"></a> character matches any single character. The pattern
+        <tt class="calibre34">pic??.jpg</tt> will match names like <tt class="calibre34">picaa.jpg</tt> or
+        <tt class="calibre34">pic01.jpg</tt>.</p></li><li class="calibre19"><p class="docText">A <tt class="calibre34">[</tt> (open square
+        bracket) <a name="I_indexterm8_d1e21716" class="calibre27" id="I_indexterm8_d1e21716"></a><a name="I_indexterm8_d1e21721" class="calibre27" id="I_indexterm8_d1e21721"></a><a name="I_indexterm8_d1e21726" class="calibre27" id="I_indexterm8_d1e21726"></a>character begins a <span class="docEmphasis">character class</span>,
+        which is ended by a <tt class="calibre34">]</tt>. Its meaning
+        is "match any character in this class". A character class
+        can be <span class="docEmphasis">negated</span> by following the opening <tt class="calibre34">[</tt> with a <tt class="calibre34">!</tt>, so that it means "match any
+        character <span class="docEmphasis">not</span> in this class".</p><p class="docText">As a shorthand, a character followed<a name="I_indexterm8_d1e21757" class="calibre27" id="I_indexterm8_d1e21757"></a><a name="I_indexterm8_d1e21760" class="calibre27" id="I_indexterm8_d1e21760"></a> by a <tt class="calibre34">-</tt>
+        (dash),<a name="I_indexterm8_d1e21767" class="calibre27" id="I_indexterm8_d1e21767"></a> followed by another character, denotes a
+        <span class="docEmphasis">range</span>: "match any character within this
+        set."</p><p class="docText">Character classes have an added subtlety; they can't
+        be empty. The first character after the opening <tt class="calibre34">[</tt> or <tt class="calibre34">[!</tt>
+        is part of the class, so we can write a class containing the <tt class="calibre34">]</tt> character as <tt class="calibre34">[]aeiou]</tt>. The pattern
+        <tt class="calibre34">pic[0-9].[pP][nN][gG]</tt> will match a name consisting of the
+        string <tt class="calibre34">pic</tt>, followed by a single digit, followed by any
+        capitalization of the strig <tt class="calibre34">.png</tt>.</p></li></ul><a name="x_KF" class="calibre27" id="x_KF"></a><p class="docText">While Haskell doesn't provide a way to match glob patterns
+    among its standard libraries, it provides a good regular expression
+    matching library. Glob patterns are nothing more than cut-down regular
+    expressions with slightly different syntax. It's easy to convert glob
+    patterns into regular expressions, but to do so, we must first understand
+    how to use regular expressions in Haskell.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="glob_bytestring.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="glob_regex.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

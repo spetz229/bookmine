@@ -1,0 +1,242 @@
+---
+layout: page
+title: "Эффективное использование C++. 55 верных способов улучшить структуру и код ваших программ"
+prev: OEBPS/section25.xhtml
+next: OEBPS/section27.xhtml
+book_path: books/effektivnoe-ispoljzovanie-c--vernih-sposobov-uluchshitj-strukturu-i-kod-vashih-programm_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <div class="calibre">
+      <div class="title1">
+        <h2 class="calibre3">Правило 9: Никогда не вызывайте виртуальные функции в конструкторе или деструкторе</h2>
+      </div>
+      <p class="calibre2">Начну с повторения: вы не должны вызывать виртуальные функции во время работы конструкторов или деструкторов, потому что эти вызовы будут делать не то, что вы думаете, и результатами их работы вы будете недовольны. Если вы – программист на Java или C#, то обратите на это правило особое внимание, потому что это в этом отношении C++ ведет себя иначе.</p>
+      <p class="calibre2">Предположим, что имеется иерархия классов для моделирования биржевых транзакций, то есть поручений на покупку, на продажу и т. д. Важно, чтобы эти транзакции было легко проверить, поэтому каждый раз, когда создается новый объект транзакции, в протокол аудита должна вноситься соответствующая запись. Следующий подход к решению данной проблемы выглядит разумным:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Transaction { // базовый класс для всех</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public: // транзакций</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Transaction();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual void logTransaction() const = 0; // выполняет зависящую от типа</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// запись в протокол</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Transaction::Transaction() // реализация конструктора</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{ // базового класса</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">logTransaction();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class BuyTransaction: public Transaction { // производный класс</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual void logTransaction() const = 0; // как протоколировать</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// транзакции данного типа</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class SellTransaction: public Transaction { // производный класс</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual void logTransaction() const = 0; // как протоколировать</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// транзакции данного типа</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Посмотрим, что произойдет при исполнении следующего кода:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">BuyTransaction b;</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Ясно, что будет вызван конструктор BuyTransaction, но сначала должен быть вызван конструктор Transaction, потому что части объекта, принадлежащие базовому классу, конструируются прежде, чем части, принадлежащие производному классу. В последней строке конструктора Transaction вызывается виртуальная функция logTransaction, тут-то и начинаются сюрпризы. Здесь вызывается та версия logTransaction, которая определена в классе Transaction, а не в BuyTransaction, несмотря на то что тип создаваемого объекта – BuyTransaction. Во время конструирования базового класса не вызываются виртуальные функции, определенные в производном классе. Объект ведет себя так, как будто он принадлежит базовому типу. Короче говоря, во время конструирования базового класса виртуальных функций не существует.</p>
+      <p class="calibre2">Есть веская причина для столь, казалось бы, неожиданного поведения. Поскольку конструкторы базовых классов вызываются раньше, чем конструкторы производных, то данные-члены производного класса еще не инициализированы во время работы конструктора базового класса. Это может стать причиной неопределенного поведения и близкого знакомства с отладчиком. Обращение к тем частям объекта, которые еще не были инициализированы, опасно, поэтому C++ не дает такой возможности.</p>
+      <p class="calibre2">Есть даже более фундаментальные причины. Пока над созданием объекта производного класса трудится конструктор базового класса, типом объекта <em class="calibre5">является</em> базовый класс. Не только виртуальные функции считают его таковым, но и все прочие механизмы языка, использующие информацию о типе во время исполнения (например, описанный в правиле 27 оператор dynamic_cast и оператор typeid). В нашем примере, пока работает конструктор Transaction, инициализируя базовую часть объекта BuyTransaction, этот объект относится к типу Transaction. Именно так его воспринимают все части C++, и в этом есть смысл: части объекта, относящиеся к BuyTransaction, еще не инициализированы, поэтому безопаснее считать, что их не существует вовсе. Объект не является объектом производного класса до тех пор, пока не начнется исполнение конструктора последнего.</p>
+      <p class="calibre2">То же относится и к деструкторам. Как только начинает исполнение деструктор производного класса, предполагается, что данные-члены, принадлежащие этому классу, не определены, поэтому C++ считает, что их больше не существует. При входе в деструктор базового класса наш объект становится объектом базового класса, и все части C++ – виртуальные функции, оператор dynamic_cast и т. п. – воспринимают его именно так.</p>
+      <p class="calibre2">В приведенном выше примере кода конструктор Transaction напрямую обращается к виртуальной функции, что представляет собой откровенное нарушение принципов, описанных в данном правиле. Это нарушение легко обнаружить, поэтому некоторые компиляторы выдают предупреждение (а другие – нет; дискуссию о предупреждениях см. в правиле 53). Но даже без такого предупреждения ошибка наверняка проявится до времени исполнения, потому что функция logTransaction в классе Transaction объявлена чисто виртуальной. Если только она не была где-то определена (маловероятно, но возможно – см. правило 34), то такая программа не скомпонуется: компоновщик не найдет необходимую реализацию Transaction::logTransaction.</p>
+      <p class="calibre2">Не всегда так просто обнаружить вызов виртуальной функции во время работы конструктора или деструктора. Если Transaction имеет несколько конструкторов, каждый из которых выполняет одну и ту же работу, то следует проектировать программу так, чтобы избежать дублирования кода, поместив общую часть инициализации, включая вызов logTransaction, в закрытую невиртуальную функцию инициализации, скажем, init:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Transaction {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Transaction()</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{ init(); } // вызов невиртуальной функции</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Virtual void logTransaction() const = 0;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">private:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void init()</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">logTransaction(); // а это вызов виртуальной</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// функции!</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Концептуально этот код не отличается от приведенного выше, но он более коварный, потому что обычно будет скомпилирован и скомпонован без предупреждений. В этом случае, поскольку logTransaction – чисто виртуальная функция класса Transaction, в момент ее вызова большинство систем времени исполнения прервут программу (обычно выдав соответствующее сообщение). Однако если logTransaction будет «нормальной» виртуальной функцией, у которой в классе Transaction есть реализация, то эта функция и будет вызвана, и программа радостно продолжит работу, оставляя вас в недоумении, почему при создании объекта производного класса была вызвана неверная версия logTransaction. Единственный способ избежать этой проблемы – убедиться, что ни один из конструкторов и деструкторов не вызывает виртуальных функций при создании или уничтожении объекта, и что все функции, к которым они обращаются, следуют тому же правилу.</p>
+      <p class="calibre2">Но как вы можете убедиться в том, что вызывается правильная версия log-Transaction при создании любого объекта из иерархии Transaction? Понятно, что вызов виртуальной функции объекта из конструкторов не годится.</p>
+      <p class="calibre2">Есть разные варианты решения этой проблемы. Один из них – сделать функцию logTransaction невиртуальной в классе Transaction, затем потребовать, чтобы конструкторы производного класса передавали необходимую для записи в протокол информацию конструктору Transaction. Эта функция затем могла бы безопасно вызвать невиртуальную logTransaction. Примерно так:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Transaction {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">explicit Transaction(const std::string&amp; loginfo);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void logTransaction(const std::string&amp; loginfo) const; // теперь –</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// невиртуальная</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// функция</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Transaction::Transaction(const std::string&amp; loginfo)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">logTransaction(loginfo); // теперь –</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// невиртуальный</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// вызов</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class BuyTransaction : public Transaction {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">BuyTransaction( <em class="calibre5">parameters </em>)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">: Transaction(createLogString( <em class="calibre5">parameters </em>)) // передать информацию</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{...} // для записи в протокол</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">... // конструктору базового</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// класса</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">private:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">static std::string createLogString( <em class="calibre5">parameters </em>);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Другими словами, если вы не можете вызывать виртуальные функции из конструктора базового класса, то можете компенсировать это передачей необходимой информации конструктору базового класса из конструктора производного.</p>
+      <p class="calibre2">В этом примере обратите внимание на применение закрытой статической функции createLogString в BuyTransaction. Использование вспомогательной функции для создания значения, передаваемого конструктору базового класса, часто удобнее (и лучше читается), чем отслеживание длинного списка инициализации членов для передачи базовому классу того, что ему нужно. Сделав эту функцию статической, мы избегаем опасности нечаянно сослаться на неинициализированные данные-члены класса BuyTransaction. Это важно, поскольку тот факт, что эти данные-члены еще не определены, и является основной причиной, почему нельзя вызывать виртуальные функции из конструкторов и деструкторов.</p>
+      <div class="subtitle">
+        <p class="subtitle1">
+          <strong class="calibre4">
+            <em class="calibre5">Что следует помнить</em>
+          </strong>
+        </p>
+      </div>
+      <p class="calibre2">• Не вызывайте виртуальные функции во время работы конструкторов и деструкторов, потому что такие вызовы никогда не дойдут до производных классов, расположенных в иерархии наследования ниже того, который сейчас конструируется или уничтожается.</p>
+    </div>
+  </div>
+
+{% endraw %}
+

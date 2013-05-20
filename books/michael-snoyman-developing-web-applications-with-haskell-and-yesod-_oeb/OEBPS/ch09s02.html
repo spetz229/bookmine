@@ -1,0 +1,39 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch09.html
+next: OEBPS/ch09s03.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Controlling Sessions"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect19_d1e4624" class="calibre1"></a>Controlling Sessions</h1></div></div></div><p class="calibre7">There are three functions in the Yesod typeclass that control how sessions work.
+                <code class="function">encryptKey</code> returns the encryption key used.
+            By default, it will take this from a local file, so that sessions can persist between
+            database shutdowns. This file will be automatically created and filled with random data
+            if it does not exist. And if you override this function to return <code class="literal">Nothing</code>, sessions will be disabled.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">Why disable sessions? They <span class="bold"><strong class="bold">do</strong></span> introduce a
+                performance overhead. Under normal circumstances, this overhead
+                is minimal, especially compared to database access. However,
+                when dealing with very basic tasks, the overhead can become
+                noticeable. But be careful about disabling sessions: this will
+                also disable such features as 
+                    CSRF (Cross-Site Request Forgery) protection.</p></div><p class="calibre7">The next function is <code class="function">clientSessionDuration</code>. This function gives the
+            number of minutes that a session should be active. The default is 120 (2 hours).</p><p class="calibre7">This value ends up affecting the session cookie in two ways: first, it determines the
+      expiration date for the cookie itself. More importantly, however, the session expiration
+      timestamp is encoded inside the session signature. When Yesod decodes the signature, it checks
+      whether the date is in the past; if so, it ignores the session values.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">Every time Yesod sends a response to the client, it
+                sends an updated session cookie with a new expire date. This
+                way, even if you do not change the session values themselves, a
+                session will not time out if the user continues to browse your
+                site.</p></div><p class="calibre7">And this leads very nicely to the last function: <code class="function">sessionIpAddress</code>. By default, Yesod also encodes the client’s IP address
+      inside the cookie to prevent session hijacking. In general, this is a good thing. However,
+      some ISPs are known for putting their users behind proxies that rewrite their IP addresses,
+      sometimes changing the source IP in the middle of the session. If this happens, and you have
+        <code class="literal">sessionIpAddress</code> enabled, the user’s session will be
+      reset. Turning this setting to <code class="literal">False</code> will allow a session
+      to continue under such circumstances, at the cost of exposing a user to session
+      hijacking.</p></div></div>
+
+{% endraw %}
+

@@ -1,0 +1,151 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: funcstypes_calling.html
+next: funcstypes_composite_split_001.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="funcstypes_calling.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect12_d1e3762.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="funcstypes_composite" class="calibre27" id="funcstypes_composite"></a><h3 id="title-IDAGX4RD" class="docSection1Title">2.6. Useful Composite Data Types: Lists and Tuples</h3><a name="x_D3" class="calibre27" id="x_D3"></a><p class="docText">A composite data type<a name="I_indexterm2_d1e3408" class="calibre27" id="I_indexterm2_d1e3408"></a> is constructed from other types. The most common composite
+    data types in Haskell are lists<a name="ch02-lists001" class="calibre27" id="ch02-lists001"></a><a name="ch02-tuples001" class="calibre27" id="ch02-tuples001"></a> and tuples.</p><a name="x_E3" class="calibre27" id="x_E3"></a><p class="docText">We've already seen the list type mentioned earlier in the
+    <a class="docLink" href="starting_string.html#starting_string">Section 1.6</a>, where we found that Haskell represents
+    a text string as a list of Char values, and that the type
+    "list of Char" is written
+    [Char].</p><a name="x_Km" class="calibre27" id="x_Km"></a><p class="docText">The <i class="docEmphasis">head</i> function
+    <a name="I_indexterm2_d1e3439" class="calibre27" id="I_indexterm2_d1e3439"></a>returns the first element of a list:</p><pre class="calibre39">ghci&gt; <b class="calibre40">head [1,2,3,4]</b>
+1
+ghci&gt; <b class="calibre40">head ['a','b','c']</b>
+'a'</pre><a name="x_S3" class="calibre27" id="x_S3"></a><p class="docText">Its counterpart, <i class="docEmphasis">tail</i>, returns<a name="I_indexterm2_d1e3459" class="calibre27" id="I_indexterm2_d1e3459"></a> all <span class="docEmphasis">but</span> the head of a list:</p><pre class="calibre39">ghci&gt; <b class="calibre40">tail [1,2,3,4]</b>
+[2,3,4]
+ghci&gt; <b class="calibre40">tail [2,3,4]</b>
+[3,4]
+ghci&gt; <b class="calibre40">tail [True,False]</b>
+[False]
+ghci&gt; <b class="calibre40">tail "list"</b>
+"ist"
+ghci&gt; <b class="calibre40">tail []</b>
+*** Exception: Prelude.tail: empty list</pre><a name="x_F3" class="calibre27" id="x_F3"></a><p class="docText">As you can see, we can apply <i class="docEmphasis">head</i> and <i class="docEmphasis">tail</i> to lists of different types. Applying
+    <i class="docEmphasis">head</i> to a [Char] value
+    returns a Char value, while applying it to a
+    [Bool] value returns a Bool value. The <i class="docEmphasis">head</i> function doesn't care what type of list it
+    deals with.</p><a name="x_Lm" class="calibre27" id="x_Lm"></a><p class="docText">Because the values in a list can have any type, we call
+    the list<a name="I_indexterm2_d1e3522" class="calibre27" id="I_indexterm2_d1e3522"></a> type
+    <span class="docEmphasis">polymorphic</span>.<sup class="docFootnote"><a class="docLink1" href="#x_Lmd1e3589">[4]</a></sup> When we want to write a polymorphic type, we use a
+    <span class="docEmphasis">type variable</span>, which <a name="I_indexterm2_d1e3539" class="calibre27" id="I_indexterm2_d1e3539"></a>must begin with a lowercase letter. A type variable is a
+    placeholder, where we'll eventually substitute a real type.</p><blockquote class="calibre30"><p class="docFootnote1"><sup class="calibre50"><a name="x_Lmd1e3589" class="calibre5" id="x_Lmd1e3589">[4]</a></sup> We'll talk more about polymorphism in <a class="docLink" href="funcstypes_polymorphism.html#funcstypes_polymorphism">Section 2.11</a>.</p></blockquote><a name="x_Nm" class="calibre27" id="x_Nm"></a><p class="docText">We can write the type "list of <span class="docMonofont">a</span>" by enclosing the type variable
+    in<a name="I_indexterm2_d1e3550" class="calibre27" id="I_indexterm2_d1e3550"></a><a name="I_indexterm2_d1e3555" class="calibre27" id="I_indexterm2_d1e3555"></a> square brackets: [a]. This amounts to saying,
+    "I don't care what type I have; I can make a list with
+    it."</p><a name="funcstypes_composited1e3625" class="calibre27" id="funcstypes_composited1e3625"></a><div class="docNote"><p class="docNormalTitle">NOTE</p><p class="calibre37"><a name="x_Om" class="calibre27" id="x_Om"></a></p><p class="docText">We can now see why a type name must start with an
+      uppercase letter: it makes it distinct from a type variable, which must
+      start with a <span class="docEmphasis">lower</span>case
+      letter.</p></div><a name="x_bd" class="calibre27" id="x_bd"></a><p class="docText">When we talk about a list with values of a specific type,
+    we substitute that type for our type variable. So, for example, the type
+    [Int] is a list of values of type Int, because
+    we substituted Int for <span class="docMonofont">a</span>.
+    Similarly, the type [MyPersonalType] is a list of values of
+    type MyPersonalType. We can perform this substitution
+    recursively, too: [[Int]] is a list of values of type
+    [Int], i.e., a list of lists of Int.</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type [[True],[False,False]]</b>
+[[True],[False,False]] :: [[Bool]]
+</pre><a name="x_gB1" class="calibre27" id="x_gB1"></a><p class="docText">The type of this expression is a list of lists of
+    Bool.</p><a name="funcstypes_composited1e3675" class="calibre27" id="funcstypes_composited1e3675"></a><div class="docNote"><p class="docNormalTitle">NOTE</p><p class="calibre37"><a name="x_G3" class="calibre27" id="x_G3"></a></p><p class="docText">Lists are the bread and butter of Haskell collections.
+      In an imperative language, we might perform a task many times by
+      iterating through a loop. This is something that we often do in Haskell
+      by traversing a list, either by recursing or using a function that
+      recurses for us. Lists are the easiest stepping stone into the idea that
+      we can use data to structure our program and its control flow. We'll be
+      spending a lot more time discussing lists in <a class="docLink" href="fp_split_000.html#fp">Chapter 4</a>.</p></div><a name="x_H3" class="calibre27" id="x_H3"></a><p class="docText">A tuple is a fixed-size collection of values, where each
+    value can have a different type. This distinguishes them from a list,
+    which can have any length, but whose elements must all have the same
+    type.</p><a name="x_Pm" class="calibre27" id="x_Pm"></a><p class="docText">To help understand the difference, let's say we want to
+    track two pieces of information about a book: its year of publication—a
+    number—and its a title—a string. We can't keep both of these pieces of
+    information in a list, because they have different types. Instead, we use
+    a tuple:</p><pre class="calibre39">ghci&gt; <b class="calibre40">(1964, "Labyrinths")</b>
+(1964,"Labyrinths")
+</pre><a name="x_dd" class="calibre27" id="x_dd"></a><p class="docText">We write a tuple by enclosing its elements in parentheses
+    and separating <a name="I_indexterm2_d1e3635" class="calibre27" id="I_indexterm2_d1e3635"></a><a name="I_indexterm2_d1e3640" class="calibre27" id="I_indexterm2_d1e3640"></a>them with commas. We use the same notation for writing its
+    type:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type (True, "hello")</b>
+(True, "hello") :: (Bool, [Char])
+ghci&gt; <b class="calibre40">(4, ['a', 'm'], (16, True))</b>
+(4,"am",(16,True))</pre><a name="x_ed" class="calibre27" id="x_ed"></a><p class="docText">There's a special type, (), that <a name="I_indexterm2_d1e3662" class="calibre27" id="I_indexterm2_d1e3662"></a><a name="I_indexterm2_d1e3667" class="calibre27" id="I_indexterm2_d1e3667"></a>acts as a tuple of zero elements. This type has only one
+    value, which is also written <tt class="calibre34">()</tt>. Both the type and the value
+    are usually pronounced "unit." If you are familiar with C,
+    () is somewhat similar to void.</p><a name="x_fd" class="calibre27" id="x_fd"></a><p class="docText">Haskell doesn't have a notion of a one-element tuple.
+    Tuples are often referred to using the number of elements as a prefix. A
+    2-tuple has two elements and is usually <a name="I_indexterm2_d1e3688" class="calibre27" id="I_indexterm2_d1e3688"></a><a name="I_indexterm2_d1e3691" class="calibre27" id="I_indexterm2_d1e3691"></a>called a <span class="docEmphasis">pair</span>. A 3-tuple (sometimes
+    called a <span class="docEmphasis">triple</span>) has three elements; a 5-tuple has
+    five; and so on. In practice, working with tuples that contain more than a
+    handful of elements makes code unwieldy, so tuples of more than a few
+    elements are rarely used.</p><a name="x_gd" class="calibre27" id="x_gd"></a><p class="docText">A tuple's type represents the number, positions, and types
+    of its elements. This means that tuples containing different numbers or
+    types of elements have distinct types, as do tuples whose types appear in
+    different orders:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type (False, 'a')</b>
+(False, 'a') :: (Bool, Char)
+ghci&gt; <b class="calibre40">:type ('a', False)</b>
+('a', False) :: (Char, Bool)</pre><a name="x_hd" class="calibre27" id="x_hd"></a><p class="docText">In this example, the expression <tt class="calibre34">(False, 'a')</tt>
+    has the type (Bool, Char), which is distinct from the type of
+    <tt class="calibre34">('a', False)</tt>. Even though the number of elements and their
+    types is the same, these two types are distinct because the positions of
+    the element types are different:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type (False, 'a', 'b')</b>
+(False, 'a', 'b') :: (Bool, Char, Char)
+</pre><a name="x_id" class="calibre27" id="x_id"></a><p class="docText">This type, (Bool, Char, Char), is distinct
+    from (Bool, Char) because it contains three elements, not
+    two.</p><a name="x_K3" class="calibre27" id="x_K3"></a><p class="docText">We often use tuples to return multiple values from a
+    function. We can also use them any time we need a fixed-size collection of
+    values, if the circumstances don't require a custom container type.</p><a name="I_sidebar2_d1e3742" class="calibre27" id="I_sidebar2_d1e3742"></a></td>
+                    </tr>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

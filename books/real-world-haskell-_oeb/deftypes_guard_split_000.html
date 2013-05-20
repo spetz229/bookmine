@@ -1,0 +1,108 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: deftypes_pattern_limits.html
+next: deftypes_guard_split_001.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="deftypes_pattern_limits.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="fp_split_000.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="deftypes_guard" class="calibre27" id="deftypes_guard"></a><h3 id="title-IDAP34ZE" class="docSection1Title">3.13. Conditional Evaluation with Guards</h3><a name="x_C6" class="calibre27" id="x_C6"></a><p class="docText">Pattern matching<a name="I_indexterm3_d1e8244" class="calibre27" id="I_indexterm3_d1e8244"></a><a name="I_indexterm3_d1e8247" class="calibre27" id="I_indexterm3_d1e8247"></a> limits us to performing fixed tests of a value's shape.
+    Although this is useful, we will often want to make a more expressive
+    check before evaluating a function's body. Haskell provides a feature
+    called <span class="docEmphasis">guards</span> that give us this ability. We'll
+    introduce the idea with a modification of the function we wrote to compare
+    two nodes of a tree:</p><pre class="calibre39">-- file: ch03/BadTree.hs
+nodesAreSame (Node a _ _) (Node b _ _)
+    | a == b     = Just a
+nodesAreSame _ _ = Nothing</pre><br class="calibre48"/>
+<a name="x_FC1" class="calibre27" id="x_FC1"></a><p class="docText">In this example, we use pattern matching to ensure that
+    we are looking at values of the right shape, and a guard to compare pieces
+    of them.</p><a name="x_Lh" class="calibre27" id="x_Lh"></a><p class="docText">A pattern can be followed by zero or more guards, each an
+    expression of type <tt class="calibre34">Bool</tt>. A guard is introduced by a
+    <tt class="calibre34">|</tt> symbol. This is followed by the guard expression, then an
+    <tt class="calibre34">=</tt> symbol (or <tt class="calibre34">-&gt;</tt> if we're in a <tt class="calibre34">case</tt> expression), then the body to use if the
+    guard expression evaluates to <tt class="calibre34">true</tt>. If a pattern matches,
+    each guard associated with that pattern is evaluated in the order in which
+    they are written. If a guard succeeds, the body affiliated with it is used
+    as the result of the function. If no guard succeeds, pattern matching
+    moves on to the next pattern.</p><a name="x_Mh" class="calibre27" id="x_Mh"></a><p class="docText">When a guard expression is evaluated, all of the variables
+    mentioned in the pattern with which it is associated are bound and can be
+    used.</p><a name="x_GC1" class="calibre27" id="x_GC1"></a><p class="docText">Here is a reworked version of our <i class="docEmphasis">lend</i> function that uses guard:</p><pre class="calibre39">-- file: ch03/Lending.hs
+lend3 amount balance
+     | amount &lt;= 0            = Nothing
+     | amount &gt; reserve * 0.5 = Nothing
+     | otherwise              = Just newBalance
+    where reserve    = 100
+          newBalance = balance - amount</pre><br class="calibre48"/>
+<a name="x_HC1" class="calibre27" id="x_HC1"></a><p class="docText">The special-looking guard expression
+    <span class="docMonofont">otherwise</span> is<a name="I_indexterm3_d1e8295" class="calibre27" id="I_indexterm3_d1e8295"></a> simply a variable bound to the value <tt class="calibre34">true</tt> that
+    aids readability.</p><a name="x_F6" class="calibre27" id="x_F6"></a><p class="docText">We can use guards anywhere that we can use patterns.
+    Writing a function as a series of equations using pattern matching and
+    guards can make it much clearer. Remember the <i class="docEmphasis">myDrop</i> function we defined in <a class="docLink" href="funcstypes_srcfile.html#funcstypes_if">Section 2.9.2</a>?</p><pre class="calibre39">-- file: ch02/myDrop.hs
+myDrop n xs = if n &lt;= 0 || null xs
+              then xs
+              else myDrop (n - 1) (tail xs)</pre><br class="calibre48"/>
+<a name="x_H6" class="calibre27" id="x_H6"></a><p class="docText">Here is a reformulation that uses patterns and
+    guards:</p><pre class="calibre39">-- file: ch02/myDrop.hs
+niceDrop n xs | n &lt;= 0 = xs
+niceDrop _ []          = []
+niceDrop n (_:xs)      = niceDrop (n - 1) xs</pre><br class="calibre48"/>
+<a name="x_Oh" class="calibre27" id="x_Oh"></a><p class="docText">This change in style lets us enumerate up front the cases
+    in which we expect a function to behave differently. If we bury the
+    decisions inside a function as <tt class="calibre34">if</tt>
+    expressions, the code becomes harder to<a name="I_indexterm3_d1e8321" class="calibre27" id="I_indexterm3_d1e8321"></a> read.</p><a name="I_sidebar3_d1e8323" class="calibre27" id="I_sidebar3_d1e8323"></a></td>
+                    </tr>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

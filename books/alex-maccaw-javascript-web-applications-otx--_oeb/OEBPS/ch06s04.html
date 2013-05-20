@@ -1,0 +1,49 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch06s03.html
+next: OEBPS/ch06s05.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Module Alternatives"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect16_d1e5938" class="calibre1"></a>Module Alternatives</h1></div></div></div><p class="calibre3"><a id="I_indexterm6_d1e5942" class="calibre1"></a><a id="I_indexterm6_d1e5947" class="calibre1"></a>You may decide not to go the module route, perhaps because
+    you’ve already got a lot of existing code and libraries to support that
+    can’t be easily converted. Luckily, there are some great alternatives,
+    such as <a class="ulink" href="http://getsprockets.org">Sprockets</a><a id="I_indexterm6_d1e5955" class="calibre1"></a>. Sprockets adds synchronous <code class="literal">require()</code> support to your JavaScript. Comments
+    beginning with <code class="literal">//=</code> act as directives to
+    the Sprockets preprocessor. For example, the <code class="literal">//=
+    require</code> directive instructs Sprockets to look in its load path
+    for the library, fetch it, and include it inline:</p><pre class="screen">//= require &lt;jquery&gt;
+//= require "./states"</pre><p class="calibre3">In the example above, <span class="calibre1">jquery.js</span><a id="I_indexterm6_d1e5974" class="calibre1"></a> is in Sprockets’ load path, and <span class="calibre1">states.js</span> is required relative to the current file.
+    Sprockets is clever enough to include a library only once, <span class="calibre1">regardless</span> of the amount of time required.
+    As with all the CommonJS module wrappers, Sprockets supports caching and
+    minification. During development, your server can parse and concatenate
+    files on demand in the course of the page load. When the site is live, the
+    JavaScript files can be preconcatenated and served statically, increasing
+    <span class="calibre1">performance</span>.</p><p class="calibre3">Although Sprockets is a command-line tool, there are some great
+    integrations to Rack and Rails, such as <a class="ulink" href="https://github.com/kelredd/rack-sprockets">rack-sprockets</a>.
+    There are even some <a class="ulink" href="https://github.com/stuartloxton/php-sprockets">PHP
+    implementations</a>. The downside to Sprockets—and indeed all these
+    module wrappers—is that all your JavaScript files need to be preprocessed,
+    either by the server or via the command-line tool.</p><div class="book" title="LABjs"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2923417" class="calibre12"></a>LABjs</h2></div></div></div><p class="calibre3"><a class="ulink" href="http://www.labjs.com">LABjs</a><a id="I_indexterm6_d1e6001" class="calibre1"></a> is one of the simplest dependency management solutions
+      out there. It doesn’t require any server-side involvement or CommonJS
+      modules. Loading your scripts with LABjs reduces resource blocking
+      during page load, which is an easy and effective way to optimize your
+      site’s performance. By default, LABjs will load and execute scripts in
+      parallel as fast as possible. However, you can easily specify the
+      execution order if some scripts have dependencies:</p><pre class="screen">&lt;script&gt;
+  $LAB
+  .script('/js/json2.js')
+  .script('/js/jquery.js').wait()
+  .script('/js/jquery-ui.js')
+  .script('/js/vapor.js');
+&lt;/script&gt;</pre><p class="calibre3">In the above example, all the scripts load in parallel, but LABjs
+      ensures <span class="calibre1">jquery.js</span> is executed before
+      <span class="calibre1">jquery-ui.js</span> and <span class="calibre1">vapor.js</span>. The API is incredibly simple and succinct,
+      but if you want to learn about LABjs’ more advanced features, such as
+      support for inline scripts, check out the <a class="ulink" href="http://labjs.com/documentation.php">documentation</a>.</p></div></div></div>
+
+{% endraw %}
+

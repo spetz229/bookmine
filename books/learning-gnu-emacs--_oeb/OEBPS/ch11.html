@@ -1,0 +1,548 @@
+---
+layout: page
+title: "Learning GNU Emacs, 3rd Edition"
+prev: OEBPS/ch10s08.html
+next: OEBPS/ch11s02.html
+book_path: books/learning-gnu-emacs--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="calibre24"></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><div class="calibre24"></div><h1 class="title"><a id="gnu3-CHP-11" class="calibre1"></a>Chapter 11. Emacs Lisp Programming</h1></div></div></div><p class="copyright">If you have been using Emacs for a <a id="gnu3-CHP-11-ITERM-2734" class="calibre2"></a>
+         <a id="gnu3-CHP-11-ITERM-2735" class="calibre2"></a>while and have been taking advantage of
+some of its more advanced features, chances are that you have thought
+of something useful that Emacs doesn't do. Although
+Emacs has hundreds of built-in commands, dozens of packages and
+modes, and so on, everyone eventually runs into some functionality
+that Emacs doesn't have. Whatever feature you find
+missing, you can program using Emacs Lisp.</p><p class="copyright">Before you dive in, however, note that this chapter is not for
+everyone. It is intended for people who have already become
+comfortable using Emacs and who have a fair bit of programming
+experience, though not necessarily with Lisp <span><em class="calibre7">per
+se</em></span>. If you have no such experience, you may want to skip
+this chapter; if there is something specific you would like Emacs to
+do, you might try to find a friendly Emacs Lisp hacker to help you
+write the necessary code. Or, if you're a little
+adventurous, you could skim enough to find the file-template example
+and learn how to install it—it gives you some useful features.</p><p class="copyright">Readers who are building their Lisp skills but don't
+necessarily want to read the whole chapter might also want to look
+for the "Treasure Trove of
+Examples" section in the middle for a useful tool
+that can help jumpstart their exploration of the Emacs libraries.</p><p class="copyright">Note that we do not cover Lisp in its entirety in this chapter. That
+would require another large, dense book. Instead, we cover the basics
+of the language and other features that are often useful in writing
+Emacs code. If you wish to go beyond this chapter, refer to the
+<span><em class="calibre7">GNU Emacs Lisp Reference Manual</em></span>, distributed
+with Emacs (choose Help<span>→</span> More Manuals<span>→</span> Introduction
+to Lisp and Emacs Lisp Reference) for details about the specific Lisp
+features in Emacs. You may also turn to any of the various Lisp
+textbooks<sup class="calibre6">[<a id="gnu3-CHP-11-FNOTE-1" href="#ftn.gnu3-CHP-11-FNOTE-1" class="calibre2">1</a>]</sup> available for a solid grounding in the
+language itself.</p><p class="copyright">Emacs Lisp is a full-blown Lisp implementation;<sup class="calibre6">[<a id="gnu3-CHP-11-FNOTE-2" href="#ftn.gnu3-CHP-11-FNOTE-2" class="calibre2">2</a>]</sup> thus it is
+more than the usual macro or script language found in many text
+editors. (One of the authors has written a small expert system
+entirely in Emacs Lisp.) In fact, you could even think of Emacs
+itself as a Lisp system with lots of built-in functions, many of
+which happen to pertain to text manipulation, window management, file
+I/O, and other features useful to text editing. The source code for
+Emacs, written in C, implements the Lisp interpreter, Lisp
+primitives, and only the most basic commands for text editing; a
+large layer of built-in Lisp code and libraries on top of that
+implements the rest of Emacs's functionality. A
+current version of Emacs comes with close to 250,000 lines of Lisp.</p><p class="copyright">This chapter starts with an introduction to the aspects of Lisp that
+resemble common programming languages like Java and Perl. These
+features are enough to enable you to write many Emacs commands. Then
+we deal with how to interface Lisp code with Emacs so that the
+functions you write can become Emacs commands. We will see various
+built-in Lisp functions that are useful for writing your own Emacs
+commands, including those that use regular expressions; we give an
+explanation of regular expressions that extends the introduction in
+<a class="calibre2" href="ch03.html" title="Chapter 3. Search and Replace">Chapter 3</a> and is oriented toward Lisp
+programming. We then return to the basics of Lisp for a little while,
+covering the unique features of the language that have to do with
+lists, and show how this chapter's concepts fit
+together by presenting a file template system you can install and use
+in your own programming or writing projects.</p><p class="copyright">Finally we show you how to program a simple major mode, illustrating
+that this "summit" of Emacs Lisp
+programming isn't so hard to scale. After that, you
+will see how easy it is to customize Emacs's
+built-in major modes without having to change (or even look at) the
+code that implements them. We finish the chapter by describing how to
+build your own library of Lisp packages.</p><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h1 class="title"><a id="gnu3-CHP-11-SECT-1" class="calibre1"></a>Introduction to Lisp</h1></div></div></div><p class="copyright">You may have heard of Lisp as a
+<a id="gnu3-CHP-11-ITERM-2736" class="calibre2"></a>language
+for artificial intelligence (AI). If you aren't into
+AI, don't worry. Lisp may have an unusual syntax,
+but many of its basic features are just like those of more
+conventional languages you may have seen, such as Java or Perl. We
+emphasize such features in this chapter. After introducing the basic
+Lisp concepts, we proceed by building up various example functions
+that you can actually use in Emacs. In order to try out the examples,
+you should be familiar with Emacs Lisp mode and Lisp interaction
+mode, which were discussed in <a class="calibre2" href="ch09.html" title="Chapter 9. Computer Language Support">Chapter 9</a>.</p><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-11-SECT-1.1" class="calibre1"></a>Basic Lisp Entities</h2></div></div></div><p class="copyright">The basic elements
+<a id="gnu3-CHP-11-ITERM-2737" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2738" class="calibre2"></a>in
+Lisp you need to be familiar with are functions, variables, and
+atoms. Functions are the only <span><em class="calibre7">program units</em></span> in
+Lisp; they cover the notions of procedures, subroutines, programs,
+and even operators in other languages.</p><p class="copyright">
+               <span><em class="calibre7">Functions</em></span> are defined as lists of the above
+entities, usually as lists of calls to other, existing functions. All
+functions
+<a id="gnu3-CHP-11-ITERM-2739" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2740" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2741" class="calibre2"></a>have <span><em class="calibre7">return
+values</em></span> (as with Perl functions and non-void Java methods);
+a function's return value is simply the value of the
+last item in the list, usually the value returned by the last
+function called. A function call within another function is
+equivalent to a <span><em class="calibre7">statement</em></span> in other languages,
+and we use statement interchangeably with function call in this
+chapter. Here is the syntax for function:</p><a id="I_11_tt564" class="calibre2"></a><pre class="programlisting">(<em class="calibre7"><code class="calibre32">function-name</code></em> 
+               <em class="calibre7"><code class="calibre32">argument1</code></em> 
+               <em class="calibre7"><code class="calibre32">argument2</code></em> ...)</pre><p class="copyright">which is equivalent to this:</p><a id="I_11_tt565" class="calibre2"></a><pre class="programlisting">               <em class="calibre7"><code class="calibre32">method_name </code></em>(<em class="calibre7"><code class="calibre32">argument1, argument2,</code></em> ...);</pre><p class="copyright">in Java. This syntax is used for
+<a id="gnu3-CHP-11-ITERM-2742" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2743" class="calibre2"></a>all
+functions, including those equivalent to arithmetic or comparison
+operators in other languages. For example, in order to add 2 and 4 in
+Java or Perl, you would use the expression 2 + 4, whereas in Lisp you
+would use the following:</p><a id="I_11_tt566" class="calibre2"></a><pre class="programlisting">(+ 2 4)</pre><p class="copyright">Similarly, where you would use 4 &gt;= 2 (greater than or equal to),
+the Lisp equivalent is:</p><a id="I_11_tt567" class="calibre2"></a><pre class="programlisting">(&gt;= 4 2)</pre><p class="copyright">
+               <span><em class="calibre7">Variables</em></span> in Lisp are
+<a id="gnu3-CHP-11-ITERM-2744" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2745" class="calibre2"></a>similar
+to those in any other language, except that they do not have
+<span><em class="calibre7">types</em></span>. A Lisp variable can assume any type of
+value (values themselves do have types, but variables
+don't impose restrictions on what they can hold).</p><p class="copyright">
+               <span><em class="calibre7">Atoms</em></span> are values of <a id="gnu3-CHP-11-ITERM-2746" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2747" class="calibre2"></a>any
+type, including integers, floating point (real) numbers, characters,
+strings, Boolean truth values, symbols, and special Emacs types such
+as buffers, windows, and processes. The syntax for various kinds of
+atoms is:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">Integers</strong></span> are what you would
+<a id="gnu3-CHP-11-ITERM-2748" class="calibre2"></a>
+                     <a id="gnu3-CHP-11-ITERM-2749" class="calibre2"></a>
+                     <a id="gnu3-CHP-11-ITERM-2750" class="calibre2"></a>
+                     <a id="gnu3-CHP-11-ITERM-2751" class="calibre2"></a>expect: signed whole numbers in
+the range -2<sup class="calibre6">27</sup> to
+2<sup class="calibre6">27</sup>-1.</p></li><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">Floating point numbers</strong></span> are real
+<a id="gnu3-CHP-11-ITERM-2752" class="calibre2"></a>numbers that you can represent with
+decimal points and scientific notation (with lowercase
+"e" for the power of 10). For
+example, the number 5489 can be written 5489, 5.489e3, 548.9e1, and
+so on.</p></li><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">Characters</strong></span> are preceded by a
+question <a id="gnu3-CHP-11-ITERM-2753" class="calibre2"></a>mark, for example,
+<code class="calibre21">?a</code>. <span><strong class="calibre5">Esc</strong></span>,
+<span><strong class="calibre5">Newline</strong></span>, and <span><strong class="calibre5">Tab</strong></span> are abbreviated <code class="calibre21">\e</code>,
+<code class="calibre21">\n</code>, and <code class="calibre21">\t</code> respectively; other
+control characters are denoted with the prefix
+<code class="calibre21">\C-</code>, so that (for example) <span><strong class="calibre5">C-a</strong></span> is denoted as
+<code class="calibre21">?\C-a</code>.<sup class="calibre6">[<a id="gnu3-CHP-11-FNOTE-3" href="#ftn.gnu3-CHP-11-FNOTE-3" class="calibre2">3</a>]</sup>
+                  </p></li><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">Strings</strong></span> are surrounded by
+<a id="gnu3-CHP-11-ITERM-2754" class="calibre2"></a>double quotes;
+quote marks and backslashes within strings need to be preceded by a
+backslash. For example, "<code class="calibre21">Jane said, \"See</code>
+                     <code class="calibre21">Dick run.\"</code>" is a legal string.
+Strings can be split across multiple lines without any special
+syntax. Everything until the closing quote, including all the line
+breaks, is part of the string value.</p></li><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">Booleans</strong></span> use <code class="calibre21">t</code>
+for true and <code class="calibre21">nil</code> for false,
+<a id="gnu3-CHP-11-ITERM-2755" class="calibre2"></a>though
+most of the time, if a Boolean value is expected, any
+non-<code class="calibre21">nil</code> value is assumed to mean true.
+<code class="calibre21">nil</code> is also used as a null or nonvalue in various
+situations, as we will see.</p></li><li class="listitem"><p class="copyright">
+                     <span><strong class="calibre5">Symbols</strong></span> are names of things in Lisp,
+for <a id="gnu3-CHP-11-ITERM-2756" class="calibre2"></a>example, names of variables or
+functions. Sometimes it is important to refer to the
+<span><em class="calibre7">name</em></span> of something instead of its value, and this
+is done by preceding the name with a single quote
+('). For example, the <span><strong class="calibre5">define-key</strong></span> function, described in <a class="calibre2" href="ch10.html" title="Chapter 10. Customizing Emacs">Chapter 10</a>, uses the <span><em class="calibre7">name</em></span> of the
+command (as a symbol) rather than the command itself.</p></li></ul></div><p class="copyright">A simple example that ties many of these basic Lisp concepts together
+is the function <span><strong class="calibre5">setq</strong></span>.<sup class="calibre6">[<a id="gnu3-CHP-11-FNOTE-4" href="#ftn.gnu3-CHP-11-FNOTE-4" class="calibre2">4</a>]</sup> As you may have figured out from previous
+chapters, <span><strong class="calibre5">setq</strong></span> is a way of assigning
+values to variables, as in</p><a id="I_11_tt568" class="calibre2"></a><pre class="programlisting">(setq auto-save-interval 800)</pre><p class="copyright">Notice that <span><strong class="calibre5">setq</strong></span> is a function,
+unlike in other languages in which special syntax such as
+<code class="calibre21">=</code> or <code class="calibre21">:=</code> is used for assignment.
+<span><strong class="calibre5">setq</strong></span> takes two arguments: a variable
+name and a value. In this example, the variable <span><strong class="calibre5">auto-save-interval</strong></span> (the number of keystrokes
+between auto-saves) is set to the value <code class="calibre21">800</code>.</p><p class="copyright">
+               <span><strong class="calibre5">setq</strong></span> can actually be used to assign
+values to multiple variables, as in</p><a id="I_11_tt569" class="calibre2"></a><pre class="programlisting">(setq <em class="calibre7"><code class="calibre32">thisvar thisvalue</code></em>
+               <em class="calibre7"><code class="calibre32">     thatvar thatvalue</code></em>
+               <em class="calibre7"><code class="calibre32">     theothervar theothervalue</code></em>
+               <span><strong class="calibre5">)</strong></span></pre><p class="copyright">The return value of <span><strong class="calibre5">setq</strong></span> is simply
+the last value assigned, in this case
+<em class="calibre7"><code class="calibre21">theothervalue</code></em>. You can set the values of
+variables in other ways, as we'll see, but <span><strong class="calibre5">setq</strong></span> is the most widely applicable.</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-11-SECT-1.2" class="calibre1"></a>Defining Functions</h2></div></div></div><p class="copyright">Now it's time for <a id="gnu3-CHP-11-ITERM-2757" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2758" class="calibre2"></a>an
+example of a simple function definition. Start Emacs without any
+arguments; this puts you into the <code class="calibre21">*scratch*</code>
+buffer, an empty buffer in Lisp interaction mode (see <a class="calibre2" href="ch09.html" title="Chapter 9. Computer Language Support">Chapter 9</a>), so that you can actually try this and
+subsequent examples.</p><p class="copyright">Before we get to the example, however, some more comments on Lisp
+syntax are necessary. First, you will notice that the dash
+(<code class="calibre21">-</code>) is used as a
+"break" character to separate words
+in names of variables, functions, and so on. This practice is simply
+a widely used Lisp programming convention; thus the dash takes the
+place of the underscore (<code class="calibre21">_</code>) in languages like C
+and Ada. A more important issue has to do with all of the parentheses
+in Lisp code. Lisp is an <span><em class="calibre7">old</em></span> language that was
+designed before anyone gave much thought to language syntax (it was
+still considered amazing that you could use any language other than
+the native processor's binary instruction set), so
+its syntax is not exactly programmer-friendly. Yet
+Lisp's heavy use of lists—and thus its heavy
+use of parentheses—has its advantages, as
+we'll see toward the end of this chapter.</p><p class="copyright">The main problem a programmer faces is how to keep all the
+parentheses balanced properly. Compounding this problem is the usual
+programming convention of putting multiple right parentheses at the
+end of a line, rather than the more readable technique of placing
+each right parenthesis directly below its matching left parenthesis.
+Your best defense against this is the support the Emacs Lisp modes
+give you, particularly the <span><strong class="calibre5">Tab</strong></span> key
+for proper indentation and the flash-matching-parenthesis feature.</p><p class="copyright">Now we're ready for our example function. Suppose
+you are a student or journalist who needs to keep track of the number
+of words in a paper or story you are writing. Emacs has no built-in
+way of counting the number of words in a buffer, so
+we'll write a Lisp function that does the job:</p><a id="I_11_tt570" class="calibre2"></a><pre class="programlisting">1  (defun count-words-buffer ( )
+2    (let ((count 0))
+3      (save-excursion
+4        (goto-char (point-min))
+5        (while (&lt; (point) (point-max))
+6          (forward-word 1)
+7          (setq count (1+ count)))
+8        (message "buffer contains %d words." count))))</pre><p class="copyright">Let's go through this function line by line and see
+what it does. (Of course, if you are trying this in Emacs,
+don't type the line numbers in.)</p><p class="copyright">The <span><strong class="calibre5">defun</strong></span> on line 1 defines the
+function by its name and arguments. Notice that <span><strong class="calibre5">defun</strong></span> is itself a function—one that,
+when called, defines a new function. (<span><strong class="calibre5">defun</strong></span> returns the name of the function
+defined, as a symbol.) The function's arguments
+appear as a list of names inside parentheses; in this case, the
+function has no arguments. Arguments can be made
+<span><em class="calibre7">optional</em></span> by preceding them with the keyword
+<span><strong class="calibre5">&amp;optional</strong></span>. If an argument is
+optional and not supplied when the function is called, its value is
+assumed to be <code class="calibre21">nil</code>.</p><p class="copyright">Line 2 contains a <span><strong class="calibre5">let</strong></span> construct,
+whose general form is:</p><a id="I_11_tt571" class="calibre2"></a><pre class="programlisting">(let ((<em class="calibre7"><code class="calibre32">var1 value</code></em>1) (var2 value2) ... )
+  <em class="calibre7"><code class="calibre32">statement-block</code></em>)</pre><p class="copyright">The first thing <span><strong class="calibre5">let</strong></span> does is define
+the variables <code class="calibre21">var1</code>, <code class="calibre21">var2</code>, etc.,
+and set them to the initial values <code class="calibre21">value1</code>,
+<code class="calibre21">value2</code>, etc. Then <span><strong class="calibre5">let</strong></span> executes the <span><em class="calibre7">statement
+block</em></span>, which is a sequence of function calls or values,
+just like the body of a function.</p><p class="copyright">It is useful to think of <span><strong class="calibre5">let</strong></span> as
+doing three things:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="copyright">Defining (or declaring) a list of variables</p></li><li class="listitem"><p class="copyright">Setting the variables to initial values, as if with <span><strong class="calibre5">setq</strong></span>
+                  </p></li><li class="listitem"><p class="copyright">Creating a block in which the variables are known; the <span><strong class="calibre5">let</strong></span> block is known as the
+<span><em class="calibre7">scope</em></span> of the variables</p></li></ul></div><p class="copyright">If a <span><strong class="calibre5">let</strong></span> is used to define a
+variable, its value can be reset later within the <span><strong class="calibre5">let</strong></span> block with <span><strong class="calibre5">setq</strong></span>. Furthermore, a variable defined with
+<span><strong class="calibre5">let</strong></span> can have the same name as a
+global variable; all <span><strong class="calibre5">setq</strong></span>s on that
+variable within the <span><strong class="calibre5">let</strong></span> block act on
+the local variable, leaving the global variable undisturbed. However,
+a <span><strong class="calibre5">setq</strong></span> on a variable that is not
+defined with a <span><strong class="calibre5">let</strong></span> affects the
+global environment. It is advisable to avoid using global variables
+as much as possible because their names might conflict with those of
+existing global variables and therefore your changes might have
+unexpected and inexplicable side effects later on.</p><p class="copyright">So, in our example function, we use <span><strong class="calibre5">let</strong></span> to define the local variable <span><strong class="calibre5">count</strong></span> and initialize it to 0. As we will see,
+this variable is used as a loop counter.</p><p class="copyright">Lines 3 through 8 are the statements within the <span><strong class="calibre5">let</strong></span> block. The first of these calls the
+built-in Emacs function <span><strong class="calibre5">save-excursion</strong></span>, which is a way of being
+polite. The function is going to move the cursor around the buffer,
+so we don't want to disorient the user by jumping
+them to a strange place in their file just because they asked for a
+word count. Calling <span><strong class="calibre5">save-excursion</strong></span>
+tells Emacs to remember the location of cursor at the beginning of
+the function, and go back there after executing any statements in its
+body. Notice how <span><strong class="calibre5">save-excursion</strong></span> is
+providing us with capability similar to <span><strong class="calibre5">let</strong></span>; you can think of it as a way of making
+the cursor location itself a local variable.</p><p class="copyright">Line 4 calls <span><strong class="calibre5">goto-char</strong></span>. The argument
+to <span><strong class="calibre5">goto-char</strong></span> is a (nested) function
+call to the built-in function <span><strong class="calibre5">point-min</strong></span>. As we have mentioned before,
+<span><em class="calibre7">point</em></span> is Emacs's internal name
+for the position of the cursor, and we'll refer to
+the cursor as point throughout the remainder of this chapter.
+<span><strong class="calibre5">point-min</strong></span> returns the value of the
+first character position in the current buffer, which is almost
+always 1; then, <span><strong class="calibre5">goto-char</strong></span> is called
+with the value 1, which has the effect of moving point to the
+beginning of the buffer.</p><p class="copyright">The next line sets up a <span><strong class="calibre5">while</strong></span> loop;
+Java and Perl have a similar construct. The <span><strong class="calibre5">while</strong></span> construct has the general form</p><a id="I_11_tt572" class="calibre2"></a><pre class="programlisting">   (while <em class="calibre7"><code class="calibre32">condition</code></em>     
+               <em class="calibre7"><code class="calibre32">statement-block</code></em>)</pre><p class="copyright">Like <span><strong class="calibre5">let</strong></span> and <span><strong class="calibre5">save-excursion</strong></span>, <span><strong class="calibre5">while</strong></span> sets up another statement block.
+<span><strong class="calibre5">condition</strong></span> is a value (an atom, a
+variable, or a function returning a value). This value is tested; if
+it is <code class="calibre21">nil</code>, the condition is considered to be
+false, and the <span><strong class="calibre5">while</strong></span> loop
+terminates. If the value is other than <code class="calibre21">nil</code>, the
+condition is considered to be true, the statement block gets
+executed, the condition is tested again, and the process repeats.</p><p class="copyright">Of course, it is possible to write an infinite loop. If you write a
+Lisp function with a <span><strong class="calibre5">while</strong></span> loop and
+try running it, and your Emacs session hangs, chances are that you
+have made this all-too-common mistake; just type <span><strong class="calibre5">C-g</strong></span> to abort it.</p><p class="copyright">In our sample function, the condition is the function
+<code class="calibre21">&lt;</code>, which is a less-than function with two
+arguments, analogous to the &lt; operator in Java or Perl. The first
+argument is another function that returns the current character
+position of point; the second argument returns the maximum character
+position in the buffer, that is, the length of the buffer. The
+function <code class="calibre21">&lt;</code> (and other relational functions)
+return a Boolean value, <code class="calibre21">t</code> or
+<code class="calibre21">nil</code>.</p><p class="copyright">The loop's statement block consists of two
+statements. Line 6 moves point forward one word (i.e., as if you had
+typed <span><strong class="calibre5">M-f</strong></span>). Line 7 increments the
+loop counter by 1; the function <code class="calibre21">1+</code> is shorthand
+for <code class="calibre21">(+ 1 variable-name)</code>. Notice that the third
+right parenthesis on line 7 matches the left parenthesis preceding
+<span><strong class="calibre5">while</strong></span>. So, the <span><strong class="calibre5">while</strong></span> loop causes Emacs to go through the
+current buffer a word at a time while counting the words.</p><p class="copyright">The final statement in the function uses the built-in function
+<span><strong class="calibre5">message</strong></span> to print a message in the
+minibuffer saying how many words the buffer contains. The form of the
+<span><strong class="calibre5">message</strong></span> function will be familiar to
+C programmers. The first argument to <span><strong class="calibre5">message</strong></span> is a format string, which contains
+text and special formatting instructions of the form
+<code class="calibre21">%</code>
+               <em class="calibre7"><code class="calibre21">x</code></em>, where
+<em class="calibre7"><code class="calibre21">x</code></em> is one of a few possible letters. For
+each of these instructions, in the order in which they appear in the
+format string, <code class="calibre21">message</code> reads the next argument and
+tries to interpret it according to the letter after the percent sign.
+<a class="calibre2" href="ch11.html#gnu3-CHP-11-TABLE-1" title="Table 11-1. Message format strings">Table 11-1</a> lists meanings for the letters in the
+format string.</p><div class="book"><a id="gnu3-CHP-11-TABLE-1" class="calibre2"></a><p class="title2"><b class="calibre25">Table 11-1. Message format strings</b></p><div class="table-contents"><table summary="Message format strings" class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre26">
+                           <p class="copyright">Format string</p>
+                        </th><th class="calibre27">
+                           <p class="copyright">Meaning</p>
+                        </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <code class="calibre21">%s</code>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">String or symbol</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <code class="calibre21">%c</code>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Character</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <code class="calibre21">%d</code>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Integer</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <code class="calibre21">%e</code>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Floating point in scientific notation</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <code class="calibre21">%f</code>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Floating point in decimal-point notation</p>
+                        </td></tr><tr class="calibre12"><td class="calibre30">
+                           <p class="copyright">
+                              <code class="calibre21">%g</code>
+                           </p>
+                        </td><td class="calibre31">
+                           <p class="copyright">Floating point in whichever format yields the shortest string</p>
+                        </td></tr></tbody></table></div></div><br class="book"/><p class="copyright">For example:</p><a id="I_11_tt573" class="calibre2"></a><pre class="programlisting">(message "\"%s\" is a string, %d is a number, and %c is a character" 
+         "hi there" 142 ?q)</pre><p class="copyright">causes the message:</p><a id="I_11_tt574" class="calibre2"></a><pre class="programlisting">"hi there" is a string, 142 is a number, and q is a character</pre><p class="copyright">to appear in the minibuffer. This is analogous to the C code:</p><a id="I_11_tt575" class="calibre2"></a><pre class="programlisting">printf ("\"%s\" is a string, %d is a number, and %c is a character\n", 
+        "hi there", 142, 'q');</pre><p class="copyright">The floating-point-format characters are a bit more complicated. They
+assume a certain number of significant digits unless you tell them
+otherwise. For example, the following:</p><a id="I_11_tt576" class="calibre2"></a><pre class="programlisting">(message "This book was printed in %f, also known as %e." 2004 2004)</pre><p class="copyright">yields this:</p><a id="I_11_tt577" class="calibre2"></a><pre class="programlisting">This book was printed in 2004.000000, also known as 2.004000e+03.</pre><p class="copyright">But you can control the number of digits after the decimal point by
+inserting a period and the number of digits desired between the
+<code class="calibre21">%</code> and <a id="gnu3-CHP-11-ITERM-2759" class="calibre2"></a> 
+               <a id="gnu3-CHP-11-ITERM-2760" class="calibre2"></a>the <code class="calibre21">e</code>,
+<code class="calibre21">f</code>, or <code class="calibre21">g</code>. For example, this:</p><a id="I_11_tt578" class="calibre2"></a><pre class="programlisting">(message "This book was printed in %.3e, also known as %.0f." 2004 2004)</pre><p class="copyright">prints in the minibuffer:</p><a id="I_11_tt579" class="calibre2"></a><pre class="programlisting">This book was printed in 2.004e+03, also known as 2004.</pre></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-11-SECT-1.3" class="calibre1"></a>Turning Lisp Functions into Emacs Commands</h2></div></div></div><p class="copyright">The <span><strong class="calibre5">count-words-buffer</strong></span> function
+<a id="gnu3-CHP-11-ITERM-2761" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2762" class="calibre2"></a>that we've
+just finished works, but it still isn't as
+convenient to use as the Emacs commands you work with daily. If you
+have typed it in, try it yourself. First you need to get Emacs to
+evaluate the lines you typed in, thereby actually defining the
+function. To do this, move your cursor to just after the last closing
+parenthesis in the function and type <span><strong class="calibre5">C-j</strong></span>
+(or <span><strong class="calibre5">Linefeed</strong></span>)—the
+"evaluate" key in Lisp interaction
+mode—to tell Emacs to perform the function definition. You
+should see the name of the function appear again in the buffer; the
+return value of the <span><strong class="calibre5">defun</strong></span> function
+is the symbol that has been defined. (If instead you get an error
+message, double check that your function looks exactly like the
+example and that you haven't typed in the line
+numbers, and try again.)</p><p class="copyright">Once the function is defined, you can execute it by typing <span><strong class="calibre5">(count-words-buffer)</strong></span> on its own line in your
+Lisp interaction window, and once again typing <span><strong class="calibre5">C-j</strong></span> after the closing parenthesis.</p><p class="copyright">Now that you can execute the function correctly from a Lisp
+interaction window, try executing the function with <span><strong class="calibre5">M-x</strong></span>, as with any other Emacs command. Try
+typing <span><strong class="calibre5">M-x count-words-buffer Enter</strong></span>:
+you will get the error message <code class="calibre21">[No match]</code>. (You
+can type <span><strong class="calibre5">C-g</strong></span> to cancel this failed
+attempt.) You get this error message because you need to
+"register" a function with Emacs to
+make it available for interactive use. The function to do this is
+<span><strong class="calibre5">interactive</strong></span>, which has the form:</p><a id="I_11_tt580" class="calibre2"></a><pre class="programlisting">(interactive "prompt-string")</pre><p class="copyright">This statement should be the first in a function, that is, right
+after the line containing the <span><strong class="calibre5">defun</strong></span>
+and the documentation string (which we will cover shortly). Using
+<span><strong class="calibre5">interactive</strong></span> causes Emacs to register
+the function as a command and to prompt the user for the arguments
+declared in the <span><strong class="calibre5">defun</strong></span> statement. The
+prompt string is optional.</p><p class="copyright">The prompt string has a special format: for each argument you want to
+prompt the user for, you provide a section of prompt string. The
+sections are separated by newlines (<code class="calibre21">\n</code>). The first
+letter of each
+<a id="gnu3-CHP-11-ITERM-2763" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2764" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2765" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2766" class="calibre2"></a>section is a code for
+the type of argument you want. There are many choices; the most
+commonly used are listed in <a class="calibre2" href="ch11.html#gnu3-CHP-11-TABLE-2" title="Table 11-2. Argument codes for interactive functions">Table 11-2</a>.</p><div class="book"><a id="gnu3-CHP-11-TABLE-2" class="calibre2"></a><p class="title2"><b class="calibre25">Table 11-2. Argument codes for interactive functions</b></p><div class="table-contents"><table summary="Argument codes for interactive functions" class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre26">
+                           <p class="copyright">
+                              <span><strong class="calibre5">Code</strong></span>
+                           </p>
+                        </th><th class="calibre27">
+                           <p class="copyright">
+                              <span><strong class="calibre5">User is prompted for</strong></span>:</p>
+                        </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <code class="calibre21">b</code>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Name of an existing buffer</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <code class="calibre21">e</code>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Event (mouse action or function key press)</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <code class="calibre21">f</code>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Name of an existing file</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <code class="calibre21">n</code>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Number (integer)</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <code class="calibre21">s</code>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">String</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+</td><td class="calibre29">
+                           <p class="copyright">
+                              <span><em class="calibre7">Most of these have uppercase variations</em></span>
+                           </p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <code class="calibre21">B</code>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Name of a buffer that may not exist</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <code class="calibre21">F</code>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Name of a file that may not exist</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <code class="calibre21">N</code>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Number, unless command is invoked with a prefix argument, in which
+case use the prefix argument and skip this prompt</p>
+                        </td></tr><tr class="calibre12"><td class="calibre30">
+                           <p class="copyright">
+                              <code class="calibre21">S</code>
+                           </p>
+                        </td><td class="calibre31">
+                           <p class="copyright">Symbol</p>
+                        </td></tr></tbody></table></div></div><br class="book"/><p class="copyright">With the <span><strong class="calibre5">b</strong></span> and <span><strong class="calibre5">f</strong></span> options, Emacs signals an error if the
+buffer or file given does not already exist. Another useful option to
+<span><strong class="calibre5">interactive</strong></span> is <span><strong class="calibre5">r</strong></span>, which we will see later. There are many
+other option letters; consult the documentation for function
+<span><strong class="calibre5">interactive</strong></span> for the details. The
+rest of each section is the actual prompt that appears in the
+minibuffer.</p><p class="copyright">The way <span><strong class="calibre5">interactive</strong></span> is used to fill
+in function arguments is somewhat complicated and best explained
+through an example. A simple example is in the function <span><strong class="calibre5">goto-percent</strong></span>, which we will see shortly. It
+contains the statement</p><a id="I_11_tt581" class="calibre2"></a><pre class="programlisting">(interactive "nPercent: ")</pre><p class="copyright">The <code class="calibre21">n</code> in the prompt string tells Emacs to prompt
+for an integer; the string <code class="calibre21">Percent</code>: appears in the
+minibuffer.</p><p class="copyright">As a slightly more complicated example, let's say we
+want to write our own version of the <span><strong class="calibre5">replace-string</strong></span> command.
+Here's how we would do the prompting:</p><a id="I_11_tt582" class="calibre2"></a><pre class="programlisting">(defun replace-string (from to)
+  (interactive "sReplace string: \nsReplace string %s with: ")
+  ...)</pre><p class="copyright">The prompt string consists of two sections, <code class="calibre21">sReplace
+string</code>: and <code class="calibre21">sReplace string</code> 
+               <code class="calibre21">%s
+with</code>:, separated by a Newline. The initial
+<code class="calibre21">s</code> in each means that a string is expected; the
+<code class="calibre21">%s</code> is a formatting operator (as in the previous
+<span><strong class="calibre5">message</strong></span> function) that Emacs
+replaces with the user's response to the first
+prompt. When applying formatting operators in a prompt, it is as if
+<span><strong class="calibre5">message</strong></span> has been called with a list
+of all responses read so far, so the first formatting operator is
+applied to the first response, and so on.</p><p class="copyright">When this command is invoked, first the prompt <code class="calibre21">Replace
+string</code>: appears in the minibuffer. Assume the user types
+<strong class="calibre5"><code class="calibre21">fred</code></strong> in response. After the user presses
+<span><strong class="calibre5">Enter</strong></span>, the prompt <code class="calibre21">Replace
+fred with</code>: appears. The user types the replacement string
+and presses <span><strong class="calibre5">Enter</strong></span> again.</p><p class="copyright">The two strings the user types are used as values of the function
+arguments <span><strong class="calibre5">from</strong></span> and <span><strong class="calibre5">to</strong></span> (in that order), and the command runs to
+completion. Thus, <span><strong class="calibre5">interactive</strong></span>
+supplies values to the function's arguments in the
+order of the sections of the prompt string.</p><p class="copyright">The use of <span><strong class="calibre5">interactive</strong></span> does not
+preclude calling the function from other Lisp code; in this case, the
+calling function needs to supply values for all arguments. For
+example, if we were interested in calling our version of <span><strong class="calibre5">replace-string</strong></span> from another Lisp function that
+needs to replace all occurrences of
+"Bill" with
+"Deb" in a file, we would use</p><a id="I_11_tt583" class="calibre2"></a><pre class="programlisting">(replace-string "Bill" "Deb")</pre><p class="copyright">The function is not being called interactively in this case, so the
+<span><strong class="calibre5">interactive</strong></span> statement has no effect;
+the argument <span><strong class="calibre5">from</strong></span> is set to
+"Bill," and <span><strong class="calibre5">to</strong></span> is set to
+"Deb."</p><p class="copyright">Getting back to our <span><strong class="calibre5">count-words-buffer</strong></span> command: it has no
+arguments, so its <span><strong class="calibre5">interactive</strong></span>
+command does not need a prompt string. The final modification we want
+to make to our command is to add a <span><em class="calibre7">documentation
+string</em></span> (or <span><em class="calibre7">doc string</em></span> for short),
+which is shown by online help facilities such as <span><strong class="calibre5">describe-function</strong></span> (<span><strong class="calibre5">C-h
+f</strong></span>). Doc strings are normal Lisp strings; they are optional
+and can be arbitrarily many lines long, although, by convention, the
+first line is a terse, complete sentence summarizing the
+command's functionality. Remember that any double
+quotes inside a string need to be preceded by backslashes.</p><p class="copyright">With all of the fixes taken into <a id="gnu3-CHP-11-ITERM-2767" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2768" class="calibre2"></a>account, the complete function looks
+like this:</p><a id="I_11_tt584" class="calibre2"></a><pre class="programlisting">(defun count-words-buffer ( )
+  "Count the number of words in the current buffer; 
+print a message in the minibuffer with the result."
+  (interactive)
+  (save-excursion
+    (let ((count 0))
+      (goto-char (point-min))
+      (while (&lt; (point) (point-max))
+        (forward-word 1)
+        (setq count (1+ count)))
+      (message "buffer contains %d words." count))))</pre></div></div><div class="book"><br class="book"/><hr class="calibre4"/><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-11-FNOTE-1" href="#gnu3-CHP-11-FNOTE-1" class="calibre2">1</a>] </sup>We recommend <span><em class="calibre7">Lisp</em></span> by
+Patrick Henry Winston and Berthold Klaus Paul Horn (Addison
+Wesley).</p></div><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-11-FNOTE-2" href="#gnu3-CHP-11-FNOTE-2" class="calibre2">2</a>] </sup>Experienced Lisp programmers should note that Emacs Lisp most
+closely resembles MacLisp, with a few Common Lisp features added.
+More complete Common Lisp emulation can be had by loading the package
+<code class="calibre21">cl</code> (see Appendix B).</p></div><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-11-FNOTE-3" href="#gnu3-CHP-11-FNOTE-3" class="calibre2">3</a>] </sup>Integers are also allowed
+where characters are expected. The ASCII code is used on most
+machines. For example, the number 65 is interpreted as the character
+A on such a machine.</p></div><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-11-FNOTE-4" href="#gnu3-CHP-11-FNOTE-4" class="calibre2">4</a>] </sup>We hope that Lisp purists will forgive us for calling <span><strong class="calibre5">setq</strong></span> a function, for the sake of simplicity,
+rather than a <span><em class="calibre7">form</em></span>, which it technically
+is.</p></div></div></div></div>
+
+{% endraw %}
+

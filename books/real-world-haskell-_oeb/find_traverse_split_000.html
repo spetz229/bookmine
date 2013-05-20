@@ -1,0 +1,139 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: find_predicate.html
+next: find_traverse_split_001.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="find_predicate.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect19_d1e24516.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="find_traverse" class="calibre27" id="find_traverse"></a><h3 id="title-IDACWPTH" class="docSection1Title">9.7. Controlling Traversal</h3><a name="x_eP" class="calibre27" id="x_eP"></a><p class="docText">When<a name="I_indexterm9_d1e24337" class="calibre27" id="I_indexterm9_d1e24337"></a><a name="I_indexterm9_d1e24338" class="calibre27" id="I_indexterm9_d1e24338"></a> traversing the filesystem,
+    we'd like to give ourselves more control over which directories we enter,
+    and when. An easy way in which we can allow this is to pass in a function
+    that takes a list of subdirectories of a given directory and returns
+    another list. This list can have elements removed, or it can be ordered
+    differently than the original list, or both. The simplest such control
+    function is <i class="docEmphasis">id</i>, which will return its
+    input list unmodified.</p><a name="x_fP" class="calibre27" id="x_fP"></a><p class="docText">For variety, we're going to change a few aspects of our
+    representation here. Instead of the elaborate function type InfoP
+    a, we'll<a name="I_indexterm9_d1e24348" class="calibre27" id="I_indexterm9_d1e24348"></a><a name="I_indexterm9_d1e24351" class="calibre27" id="I_indexterm9_d1e24351"></a> use a normal algebraic data type to substantially represent
+    the same information:</p><pre class="calibre39">-- file: ch09/ControlledVisit.hs
+data Info = Info {
+      infoPath :: FilePath
+    , infoPerms :: Maybe Permissions
+    , infoSize :: Maybe Integer
+    , infoModTime :: Maybe ClockTime
+    } deriving (Eq, Ord, Show)
+
+getInfo :: FilePath -&gt; IO Info</pre><br class="calibre48"/>
+<a name="x_gP" class="calibre27" id="x_gP"></a><p class="docText">We're using record syntax to give ourselves
+    "free" accessor functions, such as <i class="docEmphasis">infoPath</i>. The type of our <i class="docEmphasis">traverse</i> function is simple, as we just
+    proposed. To obtain Info about a file or directory, we call
+    the <i class="docEmphasis">getInfo</i> action:</p><pre class="calibre39">-- file: ch09/ControlledVisit.hs
+traverse :: ([Info] -&gt; [Info]) -&gt; FilePath -&gt; IO [Info]</pre><br class="calibre48"/>
+<a name="x_hP" class="calibre27" id="x_hP"></a><p class="docText">The definition of <i class="docEmphasis">traverse</i> is short, but dense:</p><pre class="calibre39">-- file: ch09/ControlledVisit.hs
+traverse order path = do
+    names &lt;- getUsefulContents path
+    contents &lt;- mapM getInfo (path : map (path &lt;/&gt;) names)
+    liftM concat $ forM (order contents) $ \info -&gt; do
+      if isDirectory info &amp;&amp; infoPath info /= path
+        then traverse order (infoPath info)
+        else return [info]
+
+getUsefulContents :: FilePath -&gt; IO [String]
+getUsefulContents path = do
+    names &lt;- getDirectoryContents path
+    return (filter (`notElem` [".", ".."]) names)
+
+isDirectory :: Info -&gt; Bool
+isDirectory = maybe False searchable . infoPerms</pre><br class="calibre48"/>
+<a name="x_iP" class="calibre27" id="x_iP"></a><p class="docText">While we're not introducing any new techniques here, this
+    is one of the densest function definitions we've yet encountered. Let's
+    walk through it almost line by line, explaining what is going on.</p><p class="docText">The first couple of lines hold no mystery, as they're almost
+    verbatim copies of code we've already seen. Things begin to get
+    interesting when we assign to the variable <span class="docMonofont">contents</span>.
+    Let's read this line from right to left. We already know that
+    <span class="docMonofont">names</span> is a list of directory entries. We make sure that
+    the current directory is prepended to every element of the list and
+    included in the list itself. We use <i class="docEmphasis">mapM</i> to apply <i class="docEmphasis">getInfo</i> to the resulting paths.</p><a name="x_kP" class="calibre27" id="x_kP"></a><p class="docText">The line that follows is even more dense. Again reading
+    from right to left, we see that the last element of the line begins the
+    definition of an anonymous function that continues to the end of the
+    paragraph. Given one Info value, this function either visits
+    a directory recursively (there's an extra check to make sure we don't
+    visit <span class="docMonofont">path</span> again), or returns that value as a
+    single-element list (to match the result type of <i class="docEmphasis">traverse</i>).</p><a name="x_lP" class="calibre27" id="x_lP"></a><p class="docText">We use <i class="docEmphasis">forM</i> to apply
+    this function to each element of the list of Info values
+    returned by <span class="docMonofont">order</span>, the user-supplied traversal control
+    function.</p><a name="x_mP" class="calibre27" id="x_mP"></a><p class="docText">At the beginning of the line, we use the technique of
+    lifting in a new context. The <i class="docEmphasis">liftM</i>
+    function<a name="I_indexterm9_d1e24427" class="calibre27" id="I_indexterm9_d1e24427"></a> takes a regular function, <i class="docEmphasis">concat</i>, and lifts it into the IO
+    monad. In other words, it takes the result of <i class="docEmphasis">forM</i> (of type IO [[Info]]) out of
+    the IO monad, applies <i class="docEmphasis">concat</i> to it (yielding a result of type
+    [Info], which is what we need), and puts the result back into
+    the IO monad.</p><a name="x_nP" class="calibre27" id="x_nP"></a><p class="docText">Finally, we mustn't forget to define our <i class="docEmphasis">getInfo</i> function:</p><pre class="calibre39">-- file: ch09/ControlledVisit.hs
+maybeIO :: IO a -&gt; IO (Maybe a)
+maybeIO act = handle (\_ -&gt; return Nothing) (Just `liftM` act)
+
+getInfo path = do
+  perms &lt;- maybeIO (getPermissions path)
+  size &lt;- maybeIO (bracket (openFile path ReadMode) hClose hFileSize)
+  modified &lt;- maybeIO (getModificationTime path)
+  return (Info path perms size modified)</pre><br class="calibre48"/>
+<a name="x_oP" class="calibre27" id="x_oP"></a><p class="docText">The only noteworthy thing here is a useful combinator,
+    <i class="docEmphasis">maybeIO</i>, which turns an
+    IO action that might throw an exception into one that wraps
+    its result in Maybe.</p><a name="I_sidebar9_d1e24474" class="calibre27" id="I_sidebar9_d1e24474"></a></td>
+                    </tr>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

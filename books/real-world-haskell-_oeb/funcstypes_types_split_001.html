@@ -1,0 +1,99 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: funcstypes_types_split_000.html
+next: I_sect12_d1e3131.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<p class="calibre37"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="sfbody1"><tr class="calibre16"><td class="v3"><h2 class="docSidebarTitle" id="calibre_pb_0">Weaker and Stronger Types</h2><a name="x_r2" class="calibre27" id="x_r2"></a><p class="docText">It is useful to be aware that many language
+        communities have their own definitions of a strong type. Nevertheless,
+        we will speak briefly and in broad terms about the notion of strength
+        in type systems.</p><a name="x_ul" class="calibre27" id="x_ul"></a><p class="docText">In academic computer science, the meanings of
+        <span class="docEmphasis">strong</span> and <span class="docEmphasis">weak</span> have a
+        narrowly technical meaning. Strength refers to <span class="docEmphasis">how
+        permissive</span> a <a name="I_indexterm2_d1e3017" class="calibre27" id="I_indexterm2_d1e3017"></a>type system is, whereas a weaker type system treats more
+        expressions as valid than a stronger type system does.</p><a name="x_vl" class="calibre27" id="x_vl"></a><p class="docText">For example, in Perl, the expression <tt class="calibre34">"foo" +
+        2</tt> evaluates to the number 2, but the expression <tt class="calibre34">"13foo" +
+        2</tt> evaluates to the number 15. Haskell rejects both expressions
+        as invalid, because the <i class="docEmphasis">(+)</i>
+        operator requires both of its operands to be numeric. Because Perl's
+        type system is more permissive than Haskell's, we say that it is
+        weaker under this narrow technical interpretation.</p><a name="x_wl" class="calibre27" id="x_wl"></a><p class="docText">The fireworks around type systems have their roots in
+        ordinary English, where people attach notions of
+        <span class="docEmphasis">value</span> to the words "weak" and
+        "strong"—we usually think of strength as better than
+        weakness. Many more programmers speak plain English than academic
+        jargon, and quite often academics <span class="docEmphasis">really are</span>
+        throwing brickbats at whatever type system doesn't suit their fancy.
+        The result is often that popular Internet pastime, a flame war.</p></td></tr></table></p><br class="calibre20"/><a name="funcstypes_typesd1e3105" class="calibre5" id="funcstypes_typesd1e3105"></a><h4 id="title-IDAWRTOB" class="docSection1Title">2.2.2. Static Types</h4><a name="x_t2" class="calibre5" id="x_t2"></a><p class="docText">Having a <span class="docEmphasis">static</span> type
+      system<a name="I_indexterm2_d1e3054" class="calibre27" id="I_indexterm2_d1e3054"></a> means that the compiler knows the type of every value and
+      expression at compile time, before any code is executed. A Haskell
+      compiler or interpreter will detect when we try to use expressions whose
+      types don't match, and reject our code with an error message before we
+      run it:</p><pre class="calibre35">ghci&gt; <b class="calibre12">True &amp;&amp; "false"</b>
+
+&lt;interactive&gt;:1:8:
+    Couldn't match expected type `Bool' against inferred type `[Char]'
+    In the second argument of `(&amp;&amp;)', namely `"false"'
+    In the expression: True &amp;&amp; "false"
+    In the definition of `it': it = True &amp;&amp; "false"
+</pre><a name="x_CN" class="calibre5" id="x_CN"></a><p class="docText">We've seen this kind of error message before. The
+      compiler has inferred that the type of the expression <tt class="calibre34">"false"</tt> is [Char]. The <i class="docEmphasis">(&amp;&amp;)</i> operator requires each of its
+      operands to be of type Bool, and its left operand indeed
+      has this type. Since the actual type of <tt class="calibre34">"false"</tt> does not match the required type, the
+      compiler rejects this expression as ill typed.</p><a name="x_xl" class="calibre5" id="x_xl"></a><p class="docText">Static typing can occasionally make it difficult to
+      write some useful kinds of code. In languages such as Python,
+      <span class="docEmphasis">duck typing</span> is common,<a name="I_indexterm2_d1e3086" class="calibre27" id="I_indexterm2_d1e3086"></a> where an object acts enough like another to be used as a
+      substitute for it.<sup class="docFootnote"><a class="docLink1" href="#x_xld1e3149">[2]</a></sup> Fortunately, Haskell's system of
+      <span class="docEmphasis">typeclasses</span>, <a name="I_indexterm2_d1e3098" class="calibre27" id="I_indexterm2_d1e3098"></a>which we will cover in <a class="docLink" href="typeclasses_split_000.html#typeclasses">Chapter 6</a>,
+      provides almost all of the benefits of dynamic typing, in a safe and
+      convenient form. Haskell has some support for programming with truly
+      dynamic types, though it is not quite as easy as it is in a language
+      that wholeheartedly embraces the notion.</p><blockquote class="calibre52"><p class="docFootnote1"><sup class="calibre50"><a name="x_xld1e3149" class="calibre5" id="x_xld1e3149">[2]</a></sup> "If it walks like a duck, and quacks like a
+          duck, then let's call it a duck."</p></blockquote><a name="x_u2" class="calibre5" id="x_u2"></a><p class="docText">Haskell's combination of strong and static typing makes
+      it impossible for type errors to occur at runtime. While this means that
+      we need to do a little more thinking up front, it also eliminates many
+      simple errors that can otherwise be devilishly hard to find. It's a
+      truism within the Haskell community that once code compiles, it's more
+      likely to work correctly than in other languages. (Perhaps a more
+      realistic way of putting this is that Haskell code often has fewer
+      trivial bugs.)</p><a name="x_yl" class="calibre5" id="x_yl"></a><p class="docText">Programs written in dynamically typed languages require
+      large suites of tests to give some assurance that simple type errors
+      cannot occur. Test suites cannot offer complete coverage: some common
+      tasks, such as refactoring a program to make it more modular, can
+      introduce new type errors that a test suite may not expose.</p><a name="x_zl" class="calibre5" id="x_zl"></a><p class="docText">In Haskell, the compiler proves the absence of type
+      errors for us: a Haskell program that compiles will not suffer from type
+      errors when it runs. Refactoring is usually a matter of moving code
+      around, and then recompiling and tidying up a few times until the
+      compiler gives us the "all clear."</p><a name="x_eB1" class="calibre5" id="x_eB1"></a><p class="docText">A helpful analogy to understand the value of static
+      typing is to look at it as putting pieces into a jigsaw puzzle. In
+      Haskell, if a piece has the wrong shape, it simply won't fit. In a
+      dynamically typed language, all the pieces are 1x1 squares and always
+      fit, so you have to constantly examine the resulting picture and check
+      (through testing) whether it's correct.</p><a name="funcstypes_typesd1e3174" class="calibre5" id="funcstypes_typesd1e3174"></a><h4 id="title-IDAKUTOB" class="docSection1Title">2.2.3. Type Inference</h4><a name="x_v2" class="calibre5" id="x_v2"></a><p class="docText">Finally, a Haskell <a name="I_indexterm2_d1e3120" class="calibre27" id="I_indexterm2_d1e3120"></a>compiler can automatically deduce the types of
+      almost<sup class="docFootnote"><a class="docLink1" href="#x_v2d1e3183">[3]</a></sup> all expressions in a program. This process is known as
+      <span class="docEmphasis">type inference</span>. Haskell allows us to explicitly
+      declare the type of any value, but the presence of type inference means
+      that this is almost always optional, not something we are required to
+      do.</p><blockquote class="calibre52"><p class="docFootnote1"><sup class="calibre50"><a name="x_v2d1e3183" class="calibre5" id="x_v2d1e3183">[3]</a></sup> Occasionally, we need to give the compiler a little
+          information to help it make a choice in understanding our
+          code.</p></blockquote>
+<ul class="calibre28"></ul><table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody"><tr class="calibre6"><td valign="middle" class="v1" height="5"><img src="pixel.gif" alt="" border="0" class="calibre8"/></td></tr><tr class="calibre6"><td valign="middle" class="v1"><table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody"><tr class="calibre6"><td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td></tr></table></td><td class="v1"/><td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect12_d1e2872.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect12_d1e3131.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td></tr></table><table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody"><tr class="calibre6"><td valign="top" class="v2"><span class="calibre9"></span></td></tr></table><!--IP User 2--><td class="calibre7">
+                         
+                      </td><tr class="calibre6"><td colspan="3" valign="bottom" class="calibre7"><br class="calibre20"/><p class="v4"></p><br class="calibre20"/></td></tr></div>
+
+{% endraw %}
+

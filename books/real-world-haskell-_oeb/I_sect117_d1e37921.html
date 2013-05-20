@@ -1,0 +1,321 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect117_d1e37631.html
+next: I_sect117_d1e38308.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect117_d1e37631.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect117_d1e38308.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect117_d1e37921" class="calibre27" id="I_sect117_d1e37921"></a><h3 id="title-IDAO3ING" class="docSection1Title">17.2. Regular Expressions for Haskell: A Binding for PCRE</h3><a name="x_XH1" class="calibre27" id="x_XH1"></a><p class="docText">As<a name="I_indexterm17_d1e37928" class="calibre27" id="I_indexterm17_d1e37928"></a><a name="ch17-regexppcrelib" class="calibre27" id="ch17-regexppcrelib"></a> we've seen in previous sections, Haskell programs have
+    something of a bias towards lists as a foundational data structure. List
+    functions are a core part of the base library, and convenient syntax for
+    constructing and taking apart list structures is wired into the language.
+    Strings are, of course, simply lists of characters (rather than, for
+    example, flat arrays of characters). This flexibility is all well and
+    good, but it results in a tendency for the standard library to favor
+    polymorphic list operations at the expense of string-<span class="docEmphasis">specific</span> operations.</p><a name="x_YH1" class="calibre27" id="x_YH1"></a><p class="docText">Indeed, many common tasks can be solved via
+    regular-expression-based string processing, yet support for regular
+    expressions isn't part of the Haskell <tt class="calibre34">Prelude</tt>. So let's look at how we'd take an
+    off-the-shelf regular expression library, PCRE, and provide a natural,
+    convenient Haskell binding to it, giving us useful regular expressions for
+    <span class="docEmphasis">Haskell</span>.</p><a name="x_ZH1" class="calibre27" id="x_ZH1"></a><p class="docText">PCRE itself is a ubiquitous C library implementing
+    Perl-style regular expressions. It is widely available and preinstalled on
+    many systems. You can find it at . In the following sections, we'll
+    assume the PCRE library and headers are available on the machine.</p><a name="I_sect117_d1e37921d1e38283" class="calibre27" id="I_sect117_d1e37921d1e38283"></a><h4 id="title-IDAZ4ING" class="docSection1Title">17.2.1. Simple Tasks: Using the C Preprocessor</h4><a name="x_aH1" class="calibre27" id="x_aH1"></a><p class="docText">The simplest task <a name="I_indexterm17_d1e37956" class="calibre27" id="I_indexterm17_d1e37956"></a>when setting out to write a new FFI binding from Haskell
+      to C is to bind constants defined in C headers<a name="I_indexterm17_d1e37962" class="calibre27" id="I_indexterm17_d1e37962"></a> to equivalent Haskell values. For example, PCRE provides
+      a set of flags for modifying how the core pattern matching system works
+      (such as ignoring case or allowing matching on newlines). These flags
+      appear as numeric constants in the PCRE header files:</p><pre class="calibre39">/* Options */
+
+#define PCRE_CASELESS           0x00000001
+#define PCRE_MULTILINE          0x00000002
+#define PCRE_DOTALL             0x00000004
+#define PCRE_EXTENDED           0x00000008</pre><br class="calibre48"/>
+<a name="x_bH1" class="calibre27" id="x_bH1"></a><p class="docText">To export these values to Haskell, we need to insert
+      them into a Haskell source file somehow. One obvious way to do this is
+      by using the C preprocessor to substitute definitions from C into the
+      Haskell source, which we then compile as a normal Haskell source file.
+      Using the preprocessor, we can even declare simple constants, via
+      textual substitutions on the Haskell source file:</p><pre class="calibre39">-- file: ch17/Enum1.hs
+{-# LANGUAGE CPP #-}
+
+#define N 16
+
+main = print [ 1 .. N ]</pre><br class="calibre48"/>
+<a name="x_cH1" class="calibre27" id="x_cH1"></a><p class="docText">The file is processed with the preprocessor in a
+      similar manner to C source<a name="I_indexterm17_d1e37976" class="calibre27" id="I_indexterm17_d1e37976"></a> (with CPP run for us by the Haskell compiler, when it
+      spots the <tt class="calibre34">LANGUAGE</tt> pragma), resulting in program
+      output:</p><pre class="calibre39">$ <b class="calibre40">runhaskell Enum.hs</b>
+[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+</pre><a name="x_dH1" class="calibre27" id="x_dH1"></a><p class="docText">However, relying on CPP is a rather fragile approach.
+      The C preprocessor isn't aware it is processing a Haskell source file
+      and will happily include text, or transform source, in such a way as to
+      make our Haskell code invalid. We need to be careful not to confuse CPP.
+      If we were to include C headers, we risk substituting unwanted symbols,
+      or inserting C type information and prototypes into the Haskell source,
+      resulting in a broken mess.</p><a name="x_eH1" class="calibre27" id="x_eH1"></a><p class="docText">To solve these problems, the binding preprocessor
+      <tt class="calibre34">hsc2hs</tt> is distributed with GHC. It provides a convenient
+      syntax for including C binding information in Haskell, as well as
+      letting us safely operate with headers. It is the tool of choice for the
+      majority of Haskell FFI bindings.</p><a name="I_sect117_d1e37921d1e38330" class="calibre27" id="I_sect117_d1e37921d1e38330"></a><h4 id="title-IDAUAJNG" class="docSection1Title">17.2.2. Binding Haskell to C with hsc2hs</h4><a name="x_fH1" class="calibre27" id="x_fH1"></a><p class="docText">To use <tt class="calibre34">hsc2hs</tt> as<a name="I_indexterm17_d1e38006" class="calibre27" id="I_indexterm17_d1e38006"></a><a name="I_indexterm17_d1e38009" class="calibre27" id="I_indexterm17_d1e38009"></a><a name="I_indexterm17_d1e38014" class="calibre27" id="I_indexterm17_d1e38014"></a> an intelligent binding tool for Haskell, we need to
+      create an <i class="docEmphasis">.hsc</i> file,
+      <i class="docEmphasis">Regex.hsc</i>, which will hold the Haskell source for
+      our binding, along with <tt class="calibre34">hsc2hs</tt> processing rules, C headers,
+      and C type information. To start off, we need some pragmas and
+      imports:</p><pre class="calibre39">-- file: ch17/Regex-hsc.hs
+{-# LANGUAGE CPP, ForeignFunctionInterface #-}
+
+module Regex where
+
+import Foreign
+import Foreign.C.Types
+
+#include &lt;pcre.h&gt;</pre><br class="calibre48"/>
+<a name="x_gH1" class="calibre27" id="x_gH1"></a><p class="docText">The module begins with a typical preamble for an FFI
+      binding: enable CPP, enable the FFI syntax, declare a module name, and
+      then import some things from the base library. The unusual item is the
+      final line, where we include the C header for PCRE. This wouldn't be
+      valid in a <i class="docEmphasis">.hs</i> source file, but is fine in
+      <i class="docEmphasis">.hsc</i> code.</p><a name="I_sect117_d1e37921d1e38371" class="calibre27" id="I_sect117_d1e37921d1e38371"></a><h4 id="title-IDAGCJNG" class="docSection1Title">17.2.3. Adding Type Safety to PCRE</h4><a name="x_hH1" class="calibre27" id="x_hH1"></a><p class="docText">Next we need a<a name="I_indexterm17_d1e38044" class="calibre27" id="I_indexterm17_d1e38044"></a><a name="I_indexterm17_d1e38051" class="calibre27" id="I_indexterm17_d1e38051"></a> type to represent PCRE compile-time flags. In C, these
+      are integer flags to the <tt class="calibre34">compile</tt> function, so we could just
+      use <tt class="calibre34">CInt</tt> to represent them. All we know about the flags is
+      that they're C numeric constants, so <tt class="calibre34">CInt</tt> is the
+      appropriate representation.</p><a name="x_iH1" class="calibre27" id="x_iH1"></a><p class="docText">As a Haskell library writer though, this feels sloppy.
+      The type of values that can be used as regex flags contains fewer values
+      than <tt class="calibre34">CInt</tt> allows for. Nothing would prevent the end user
+      from passing illegal integer values as arguments, or mixing up flags
+      that should be passed only at regex compile time, with runtime flags. It
+      is also possible to do arbitrary math on flags or to make other mistakes
+      where integers and flags are confused. We really need to more precisely
+      specify that the type of flags is distinct from its runtime
+      representation as a numeric value. If we can do this, we can statically
+      prevent a class of bugs relating to misuse of flags.</p><a name="x_jH1" class="calibre27" id="x_jH1"></a><p class="docText">Adding such a layer of type safety is relatively easy,
+      and a great use case for <tt class="calibre34">newtype</tt>, the type introduction
+      declaration. <tt class="calibre34">newtype</tt> lets us create a type with an
+      identical runtime representation type to another type, but which is
+      treated as a separate type at compile time. We can represent flags
+      <a name="I_indexterm17_d1e38079" class="calibre27" id="I_indexterm17_d1e38079"></a>as <tt class="calibre34">CInt</tt> values, but at compile time they'll
+      be tagged distinctly for the type checker. This makes it a type error to
+      use invalid flag values (as we specify only those valid flags and
+      prevent access to the data constructor), or to pass flags to functions
+      expecting integers. We get to use the Haskell type system to introduce a
+      layer of type safety<a name="I_indexterm17_d1e38086" class="calibre27" id="I_indexterm17_d1e38086"></a> to the C PCRE API.</p><a name="x_kH1" class="calibre27" id="x_kH1"></a><p class="docText">To do this, we define a <tt class="calibre34">newtype</tt> for PCRE
+      compile-time options, whose representation is actually that of a
+      <tt class="calibre34">CInt</tt> value, like so:</p><pre class="calibre39">-- file: ch17/Regex-hsc.hs
+-- | A type for PCRE compile-time options. These are newtyped CInts,
+-- which can be bitwise-or'd together, using '(Data.Bits..|.)'
+--
+newtype PCREOption = PCREOption { unPCREOption :: CInt }
+    deriving (Eq,Show)</pre><br class="calibre48"/>
+<a name="x_lH1" class="calibre27" id="x_lH1"></a><p class="docText">The type name is <tt class="calibre34">PCREOption</tt>, and it has a
+      single constructor, also named <tt class="calibre34">PCREOption</tt>, which lifts a
+      <tt class="calibre34">CInt</tt> value into a new type by wrapping it in a constructor.
+      We can also happily define an accessor, <tt class="calibre34">unPCREOption</tt>, using
+      the Haskell record syntax to access the <span class="docEmphasis">underlying</span> <tt class="calibre34">CInt</tt>. That's a lot
+      of convenience in one line. While we're here, we can also derive some
+      useful typeclass operations for flags (equality and printing). We need
+      to remember to export the data constructor abstractly from the source
+      module, ensuring that users can't construct their own
+      <tt class="calibre34">PCREOption</tt> values.</p><a name="I_sect117_d1e37921d1e38456" class="calibre27" id="I_sect117_d1e37921d1e38456"></a><h4 id="title-IDAVEJNG" class="docSection1Title">17.2.4. Binding to Constants</h4><a name="x_mH1" class="calibre27" id="x_mH1"></a><p class="docText">Now that we've pulled <a name="I_indexterm17_d1e38129" class="calibre27" id="I_indexterm17_d1e38129"></a>in the required modules, turned on the language features
+      we need, and defined a type to represent PCRE options, we need to
+      actually define some Haskell values corresponding to those PCRE
+      constants.</p><a name="x_nH1" class="calibre27" id="x_nH1"></a><p class="docText">We can do this in two ways with <tt class="calibre34">hsc2hs</tt>.
+      The first is to use the <tt class="calibre34">#const</tt> keyword <tt class="calibre34">hsc2hs</tt>
+      provides. This lets us name constants to be provided by the C
+      preprocessor. We can bind to the constants manually by listing the CPP
+      symbols for them using the <tt class="calibre34">#const</tt> keyword:</p><pre class="calibre39">-- file: ch17/Regex-hsc-const.hs
+caseless       :: PCREOption
+caseless       = PCREOption #const PCRE_CASELESS
+
+dollar_endonly :: PCREOption
+dollar_endonly = PCREOption #const PCRE_DOLLAR_ENDONLY
+
+dotall         :: PCREOption
+dotall         = PCREOption #const PCRE_DOTALL</pre><br class="calibre48"/>
+<a name="x_oH1" class="calibre27" id="x_oH1"></a><p class="docText">This introduces three new constants on the Haskell
+      side, <tt class="calibre34">caseless</tt>, <tt class="calibre34">dollar_endonly</tt>, and
+      <tt class="calibre34">dotall</tt>, corresponding to the similarly named C definitions.
+      We immediately wrap the constants in a <tt class="calibre34">newtype</tt>
+      constructor, so they're exposed to the programmer as abstract
+      <tt class="calibre34">PCREOption</tt> types only.</p><a name="x_pH1" class="calibre27" id="x_pH1"></a><p class="docText">Creating a <i class="docEmphasis">.hsc</i> file is the first
+      step. We now need to actually create a Haskell source file, with the C
+      preprocessing done. Time to run <tt class="calibre34">hsc2hs</tt> over the
+      <i class="docEmphasis">.hsc</i> file:</p><pre class="calibre39">$ hsc2hs Regex.hsc</pre><a name="x_qH1" class="calibre27" id="x_qH1"></a><p class="docText">This creates a new output file,
+      <i class="docEmphasis">Regex.hs</i>, where the CPP variables have been
+      expanded, yielding valid Haskell code:</p><pre class="calibre39">-- file: ch17/Regex-hsc-const-generated.hs
+caseless       :: PCREOption
+caseless       = PCREOption 1
+{-# LINE 21 "Regex.hsc" #-}
+
+dollar_endonly :: PCREOption
+dollar_endonly = PCREOption 32
+{-# LINE 24 "Regex.hsc" #-}
+
+dotall         :: PCREOption
+dotall         = PCREOption 4
+{-# LINE 27 "Regex.hsc" #-}</pre><br class="calibre48"/>
+<a name="x_rH1" class="calibre27" id="x_rH1"></a><p class="docText">Notice how the original line in the
+      <i class="docEmphasis">.hsc</i> file<a name="I_indexterm17_d1e38191" class="calibre27" id="I_indexterm17_d1e38191"></a> is listed next to each expanded definition via the
+      <tt class="calibre34">LINE</tt> pragma.<a name="I_indexterm17_d1e38198" class="calibre27" id="I_indexterm17_d1e38198"></a> The compiler uses this information to report errors in
+      terms of their source, in the original file, rather than in the
+      generated one. We can load this generated <i class="docEmphasis">.hs</i> file
+      into the interpreter and play with the results:</p><pre class="calibre39">$ <b class="calibre40">ghci Regex.hs</b>*Regex&gt; <b class="calibre40">caseless</b>
+PCREOption {unPCREOption = 1}
+*Regex&gt; <b class="calibre40">unPCREOption caseless</b>
+1
+*Regex&gt; <b class="calibre40">unPCREOption caseless + unPCREOption caseless</b>
+2
+*Regex&gt; <b class="calibre40">caseless + caseless</b>
+interactive&gt;:1:0:
+    No instance for (Num PCREOption)</pre><a name="x_sH1" class="calibre27" id="x_sH1"></a><p class="docText">So things are working as expected. The values are
+      opaque, we get type errors if we try to break the abstraction, and we
+      can unwrap them and operate on them if needed. The
+      <tt class="calibre34">unPCREOption</tt> accessor is used to unwrap the boxes. That's a
+      good start, but let's see how we can simplify this task further.</p><a name="I_sect117_d1e37921d1e38570" class="calibre27" id="I_sect117_d1e37921d1e38570"></a><h4 id="title-IDASIJNG" class="docSection1Title">17.2.5. Automating the Binding</h4><a name="x_tH1" class="calibre27" id="x_tH1"></a><p class="docText">Clearly, manually listing all the C defines and
+      wrapping them is tedious and error prone. Wrapping all the literals in
+      <tt class="calibre34">newtype</tt> constructors is also annoying. This kind of binding
+      is such a common task that <tt class="calibre34">hsc2hs</tt> provides convenient
+      syntax to automate it: the <tt class="calibre34">#enum</tt> construct.</p><a name="x_uH1" class="calibre27" id="x_uH1"></a><p class="docText">We can replace our list of top-level bindings with the
+      equivalent:</p><pre class="calibre39">-- file: ch17/Regex-hsc.hs
+-- PCRE compile options
+#{enum PCREOption, PCREOption
+  , caseless             = PCRE_CASELESS
+  , dollar_endonly       = PCRE_DOLLAR_ENDONLY
+  , dotall               = PCRE_DOTALL
+  }</pre><br class="calibre48"/>
+<a name="x_vH1" class="calibre27" id="x_vH1"></a><p class="docText">This is much more concise! The <tt class="calibre34">#enum</tt>
+      construct <a name="I_indexterm17_d1e38262" class="calibre27" id="I_indexterm17_d1e38262"></a>gives us three fields to work with. The first is the name
+      of the type we'd like the C defines to be treated as. This lets us pick
+      something other than just <tt class="calibre34">CInt</tt> for the binding. We chose
+      <tt class="calibre34">PCREOption</tt>'s to construct.</p><a name="x_wH1" class="calibre27" id="x_wH1"></a><p class="docText">The second field is an optional constructor to place in
+      front of the symbols. This is specifically for the case we want to
+      construct <tt class="calibre34">newtype</tt> values, and where much of the grunt work
+      is saved. The final part of the <tt class="calibre34">#enum</tt> syntax is
+      self-explanatory: it just defines Haskell names for constants to be
+      filled in via CPP.</p><a name="x_xH1" class="calibre27" id="x_xH1"></a><p class="docText">Running this code through <tt class="calibre34">hsc2hs</tt>, as
+      before, generates a Haskell file with the following binding code
+      produced (with <tt class="calibre34">LINE</tt> pragmas removed for brevity):</p><pre class="calibre39">-- file: ch17/Regex.hs
+caseless              :: PCREOption
+caseless              = PCREOption 1
+dollar_endonly        :: PCREOption
+dollar_endonly        = PCREOption 32
+dotall                :: PCREOption
+dotall                = PCREOption 4</pre><br class="calibre48"/>
+<a name="x_yH1" class="calibre27" id="x_yH1"></a><p class="docText">Perfect. Now we can do something in Haskell with these
+      values. Our aim here is to treat flags as abstract types, not as bit
+      fields in integers in C. Passing multiple flags in C would be done by
+      bitwise or-ing multiple flags together. For an abstract type though,
+      that would expose too much information. In order to preserve the
+      abstraction and give it a Haskell flavor, we'd prefer that users pass in
+      flags in a list that the library itself combined. This is achievable
+      with a simple fold:</p><pre class="calibre39">-- file: ch17/Regex.hs
+-- | Combine a list of options into a single option, using bitwise (.|.)
+combineOptions :: [PCREOption] -&gt; PCREOption
+combineOptions = PCREOption . foldr ((.|.) . unPCREOption) 0</pre><br class="calibre48"/>
+<a name="x_zH1" class="calibre27" id="x_zH1"></a><p class="docText">This simple loop starts with an initial value of 0,
+      unpacks each flag, and uses bitwise-or—<tt class="calibre34">(.|.)</tt>—on the
+      underlying <tt class="calibre34">CInt</tt>, to combine each value with the loop
+      accumulator. The final accumulated state is then wrapped up in the
+      <tt class="calibre34">PCREOption</tt> constructor.</p><a name="x_AI1" class="calibre27" id="x_AI1"></a><p class="docText">Let's turn now to actually compiling some regular
+      expressions.</p>
+<a href="21061538.html" class="calibre2"><img src="pixel.gif" alt="" border="0" class="calibre31"/></a><ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect117_d1e37631.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect117_d1e38308.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

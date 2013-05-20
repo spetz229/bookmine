@@ -1,0 +1,437 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect126_d1e49941.html
+next: I_sect126_d1e50419.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect126_d1e49941.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect126_d1e50419.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect126_d1e50018" class="calibre27" id="I_sect126_d1e50018"></a><h3 id="title-IDA4MB5H" class="docSection1Title">26.8. Creating a Friendly Interface</h3><a name="x_N81" class="calibre27" id="x_N81"></a><p class="docText">Although our immutable Bloom filter API is
+    straightforward to use once we have created a Bloom value,
+    the <i class="docEmphasis">fromList</i> function leaves some
+    important decisions unresolved. We still have to choose a function that
+    can generate many hash values and determine what the capacity of a Bloom
+    filter should be:</p><pre class="calibre39">-- file: BloomFilter/Easy.hs
+easyList :: (Hashable a)
+         =&gt; Double        -- false positive rate (between 0 and 1)
+         -&gt; [a]           -- values to populate the filter with
+         -&gt; Either String (B.Bloom a)</pre><br class="calibre48"/>
+<a name="x_O81" class="calibre27" id="x_O81"></a><p class="docText">Here is a possible "friendlier" way to
+    create a Bloom filter. It leaves responsibility for hashing values in the
+    hands of a typeclass, Hashable. It lets us configure the
+    Bloom filter based on a parameter that is easier to understand—namely the
+    rate of false positives that we are willing to tolerate. And it chooses
+    the size of the filter for us, based on the desired false positive rate
+    and the number of elements in the input list.</p><a name="x_P81" class="calibre27" id="x_P81"></a><p class="docText">This function will, of course, not always be usable—for
+    example, it will fail if the length of the input list is too long.
+    However, its simplicity rounds out the other interfaces we provide. It
+    lets us offer our users a range of control over creation, from entirely
+    imperative to completely declarative.</p><a name="I_sect126_d1e50018d1e50317" class="calibre27" id="I_sect126_d1e50018d1e50317"></a><h4 id="title-IDAZNB5H" class="docSection1Title">26.8.1. Re-Exporting Names for Convenience</h4><a name="x_Q81" class="calibre27" id="x_Q81"></a><p class="docText">In the export list for our module, we re-export some
+      names from the base <tt class="calibre34">BloomFilter</tt>
+      module. This allows casual users to import only the <tt class="calibre34">BloomFilter.Easy</tt> module and have access to
+      all of the types and functions they are likely to need.</p><a name="x_R81" class="calibre27" id="x_R81"></a><p class="docText">If we import both <tt class="calibre34">BloomFilter.Easy</tt> and
+      <tt class="calibre34">BloomFilter</tt>, you might wonder what will happen if we try to
+      use a name exported by both. We already know that if we import
+      <tt class="calibre34">BloomFilter</tt> unqualified and try to use <i class="docEmphasis">length</i>, <span class="docMonofont">GHC</span> will issue an error about ambiguity,
+      because the <tt class="calibre34">Prelude</tt> also makes the name <i class="docEmphasis">length</i> available.</p><a name="x_S81" class="calibre27" id="x_S81"></a><p class="docText">The Haskell standard requires an implementation to be
+      able to tell when several names refer to the same "thing." For instance,
+      the Bloom type is exported by <tt class="calibre34">BloomFilter</tt> and
+      <tt class="calibre34">BloomFilter.Easy</tt>. If we import both modules and try to use
+      Bloom, <span class="docMonofont">GHC</span> will
+      be able to see that the Bloom re-exported from
+      <tt class="calibre34">BloomFilter.Easy</tt> is the same as the one exported from
+      <tt class="calibre34">BloomFilter</tt>, and it will not report an ambiguity.</p><a name="I_sect126_d1e50018d1e50379" class="calibre27" id="I_sect126_d1e50018d1e50379"></a><h4 id="title-IDAWPB5H" class="docSection1Title">26.8.2. Hashing Values</h4><a name="x_T81" class="calibre27" id="x_T81"></a><p class="docText">A Bloom filter depends <a name="I_indexterm26_d1e50108" class="calibre27" id="I_indexterm26_d1e50108"></a><a name="I_indexterm26_d1e50111" class="calibre27" id="I_indexterm26_d1e50111"></a>on fast, high-quality hashes for good performance and a
+      low false positive rate. It is surprisingly difficult to write a general
+      purpose hash function that has both of these properties.</p><a name="x_U81" class="calibre27" id="x_U81"></a><p class="docText">Luckily for us, a fellow named Bob .<a name="I_indexterm26_d1e50117" class="calibre27" id="I_indexterm26_d1e50117"></a>Jenkins developed some hash functions that have exactly
+      these properties, and he placed the code in the public domain at <sup class="docFootnote"><a class="docLink1" href="#x_U81d1e50399">[61]</a></sup> He wrote his hash functions in C, so we can easily use the
+      FFI to create bindings to them. The specific source file that we need
+      from that site is named <a class="docLink" target="_blank" href="http://burtleburtle.net/bob/c/lookup3.c"><i class="docEmphasis">lookup3.c</i></a>. We create a <i class="docEmphasis">cbits</i> directory and download it to
+      there.</p><blockquote class="calibre30"><p class="docFootnote1"><sup class="calibre50"><a name="x_U81d1e50399" class="calibre5" id="x_U81d1e50399">[61]</a></sup> Jenkins's hash functions have
+          <span class="docEmphasis">much</span> better mixing properties than some other
+          popular noncryptographic hash functions that you might be familiar
+          with, such as <i class="docEmphasis">FNV</i> and <i class="docEmphasis">hashpjw</i>, so we recommend avoiding
+          them.</p></blockquote><a name="idd1e50419" class="calibre27" id="idd1e50419"></a><div class="docNote"><p class="docNormalTitle">NOTE</p><p class="calibre37"><a name="x_W81" class="calibre27" id="x_W81"></a></p><p class="docText">On line 36 of the copy of <i class="docEmphasis">lookup3.c</i> that you just downloaded, there
+        is a macro named <tt class="calibre34">SELF_TEST</tt> defined. To use this source
+        file as a library, you <span class="docEmphasis">must</span> delete this line or
+        comment it out. If you forget to do so, the <i class="docEmphasis">main</i> function defined near the bottom of
+        the file will supersede the <i class="docEmphasis">main</i>
+        of any Haskell program you link this library against.</p></div><a name="x_X81" class="calibre27" id="x_X81"></a><p class="docText">There remains one hitch: we will frequently need 7 or
+      even 10 hash functions. We really don't want to scrape together that
+      many different functions, and fortunately we do not need to. In most
+      cases, we can get away with just two. We will see how shortly. The
+      Jenkins hash library includes two functions, <i class="docEmphasis">hashword2</i> and <i class="docEmphasis">hashlittle2</i>, that compute two hash values.
+      Here is a C header file that describes the APIs of these two functions.
+      We save this to <i class="docEmphasis">cbits/lookup3.h</i>:</p><pre class="calibre39">/* save this file as lookup3.h */
+
+#ifndef _lookup3_h
+#define _lookup3_h
+
+#include &lt;stdint.h&gt;
+#include &lt;sys/types.h&gt;
+
+/* only accepts uint32_t aligned arrays of uint32_t */
+void hashword2(const uint32_t *key,  /* array of uint32_t */
+	       size_t length,	     /* number of uint32_t values */
+	       uint32_t *pc,	     /* in: seed1, out: hash1 */
+	       uint32_t *pb);	     /* in: seed2, out: hash2 */
+
+/* handles arbitrarily aligned arrays of bytes */
+void hashlittle2(const void *key,   /* array of bytes */
+		 size_t length,     /* number of bytes */
+		 uint32_t *pc,      /* in: seed1, out: hash1 */
+		 uint32_t *pb);     /* in: seed2, out: hash2 */
+
+#endif /* _lookup3_h */</pre><br class="calibre48"/>
+<a name="x_Y81" class="calibre27" id="x_Y81"></a><p class="docText">A <span class="docEmphasis">salt</span> is a value that perturbs
+      the hash value that the function computes. If we hash the same value
+      with two different salts, we will get two different hashes. Since these
+      functions compute two hashes, they accept two salts.</p><a name="x_Z81" class="calibre27" id="x_Z81"></a><p class="docText">Here are our Haskell bindings to these
+      functions:</p><pre class="calibre39">-- file: BloomFilter/Hash.hs
+{-# LANGUAGE BangPatterns, ForeignFunctionInterface #-}
+module BloomFilter.Hash
+    (
+      Hashable(..)
+    , hash
+    , doubleHash
+    ) where
+
+import Data.Bits ((.&amp;.), shiftR)
+import Foreign.Marshal.Array (withArrayLen)
+import Control.Monad (foldM)
+import Data.Word (Word32, Word64)
+import Foreign.C.Types (CSize)
+import Foreign.Marshal.Utils (with)
+import Foreign.Ptr (Ptr, castPtr, plusPtr)
+import Foreign.Storable (Storable, peek, sizeOf)
+import qualified Data.ByteString as Strict
+import qualified Data.ByteString.Lazy as Lazy
+import System.IO.Unsafe (unsafePerformIO)
+
+foreign import ccall unsafe "lookup3.h hashword2" hashWord2
+    :: Ptr Word32 -&gt; CSize -&gt; Ptr Word32 -&gt; Ptr Word32 -&gt; IO ()
+
+foreign import ccall unsafe "lookup3.h hashlittle2" hashLittle2
+    :: Ptr a -&gt; CSize -&gt; Ptr Word32 -&gt; Ptr Word32 -&gt; IO ()</pre><br class="calibre48"/>
+<a name="x_a81" class="calibre27" id="x_a81"></a><p class="docText">We have specified that the definitions of the functions
+      can be found in the <i class="docEmphasis">lookup3.h</i>
+      header file that we just created.</p><a name="x_b81" class="calibre27" id="x_b81"></a><p class="docText">For convenience and efficiency, we will combine the
+      32-bit salts consumed, and the hash values computed, by the Jenkins hash
+      functions into a single 64-bit value:</p><pre class="calibre39">-- file: BloomFilter/Hash.hs
+hashIO :: Ptr a    -- value to hash
+       -&gt; CSize    -- number of bytes
+       -&gt; Word64   -- salt
+       -&gt; IO Word64
+hashIO ptr bytes salt =
+    with (fromIntegral salt) $ \sp -&gt; do
+      let p1 = castPtr sp
+          p2 = castPtr sp `plusPtr` 4
+      go p1 p2
+      peek sp
+  where go p1 p2
+          | bytes .&amp;. 3 == 0 = hashWord2 (castPtr ptr) words p1 p2
+          | otherwise        = hashLittle2 ptr bytes p1 p2
+        words = bytes `div` 4</pre><br class="calibre48"/>
+<a name="x_c81" class="calibre27" id="x_c81"></a><p class="docText">Without explicit types around to describe what is
+      happening, this code is not completely obvious. The <i class="docEmphasis">with</i> function allocates room for the salt on
+      the C stack and stores the current salt value in there, so
+      <span class="docMonofont">sp</span> is a Ptr Word64. The pointers
+      <span class="docMonofont">p1</span> and <span class="docMonofont">p2</span> are Ptr
+      Word32; <span class="docMonofont">p1</span> points at the low word of
+      <span class="docMonofont">sp</span>, and <span class="docMonofont">p2</span> at the high word. This
+      is how we chop the single Word64 salt into two Ptr
+      Word32 parameters.</p><a name="x_d81" class="calibre27" id="x_d81"></a><p class="docText">Because all of our data pointers are coming from the
+      Haskell heap, we know that they will be aligned on an address that is
+      safe to pass to either <i class="docEmphasis">hashWord2</i>
+      (which accepts only 32-bit-aligned addresses) or <i class="docEmphasis">hashLittle2</i>. Since <i class="docEmphasis">hashWord32</i> is the faster of the two hashing
+      functions, we call it if our data is a multiple of 4 bytes in size;
+      otherwise, we call <i class="docEmphasis">hashLittle2</i>.</p><a name="x_e81" class="calibre27" id="x_e81"></a><p class="docText">Since the C hash function will write the computed
+      hashes into <span class="docMonofont">p1</span> and <span class="docMonofont">p2</span>, we need
+      only to <i class="docEmphasis">peek</i> the pointer
+      <span class="docMonofont">sp</span> to retrieve the computed hash.</p><a name="x_f81" class="calibre27" id="x_f81"></a><p class="docText">We don't want clients of this module to be stuck
+      fiddling with low-level details, so we use a typeclass to provide a
+      clean, high-level interface:</p><pre class="calibre39">-- file: BloomFilter/Hash.hs
+class Hashable a where
+    hashSalt :: Word64        -- ^ salt
+             -&gt; a             -- ^ value to hash
+             -&gt; Word64
+
+hash :: Hashable a =&gt; a -&gt; Word64
+hash = hashSalt 0x106fc397cf62f64d3</pre><br class="calibre48"/>
+<a name="x_g81" class="calibre27" id="x_g81"></a><p class="docText">We also provide a number of useful implementations of
+      this typeclass. To hash basic types, we must write a little boilerplate
+      code:</p><pre class="calibre39">-- file: BloomFilter/Hash.hs
+hashStorable :: Storable a =&gt; Word64 -&gt; a -&gt; Word64
+hashStorable salt k = unsafePerformIO . with k $ \ptr -&gt;
+                      hashIO ptr (fromIntegral (sizeOf k)) salt
+
+instance Hashable Char   where hashSalt = hashStorable
+instance Hashable Int    where hashSalt = hashStorable
+instance Hashable Double where hashSalt = hashStorable</pre><br class="calibre48"/>
+<a name="x_h81" class="calibre27" id="x_h81"></a><p class="docText">We might prefer to use the Storable
+      typeclass to write just one declaration, as follows:</p><pre class="calibre39">-- file: BloomFilter/Hash.hs
+instance Storable a =&gt; Hashable a where
+    hashSalt = hashStorable</pre><br class="calibre48"/>
+<a name="x_i81" class="calibre27" id="x_i81"></a><p class="docText">Unfortunately, Haskell does not permit us to write
+      instances of this form, as allowing them would make the type system
+      <span class="docEmphasis">undecidable</span>: they can cause the compiler's type
+      checker to loop infinitely. This restriction on undecidable types forces
+      us to write out individual declarations. It does not, however, pose a
+      problem for a definition such as this one:</p><pre class="calibre39">-- file: BloomFilter/Hash.hs
+hashList :: (Storable a) =&gt; Word64 -&gt; [a] -&gt; IO Word64
+hashList salt xs =
+    withArrayLen xs $ \len ptr -&gt;
+      hashIO ptr (fromIntegral (len * sizeOf x)) salt
+  where x = head xs
+
+instance (Storable a) =&gt; Hashable [a] where
+    hashSalt salt xs = unsafePerformIO $ hashList salt xs</pre><br class="calibre48"/>
+<a name="x_j81" class="calibre27" id="x_j81"></a><p class="docText">The compiler will accept this instance, so we gain the
+      ability to hash values of many list types.<sup class="docFootnote"><a class="docLink1" href="#x_j81d1e50560">[62]</a></sup> Most importantly, since Char is an instance
+      of Storable, we can now hash String
+      values.</p><blockquote class="calibre30"><p class="docFootnote1"><sup class="calibre50"><a name="x_j81d1e50560" class="calibre5" id="x_j81d1e50560">[62]</a></sup> Unfortunately, we do not have room to explain why
+          one of these instances is decidable, but the other is not.</p></blockquote><a name="x_l81" class="calibre27" id="x_l81"></a><p class="docText">For tuple types, we take advantage of function
+      composition. We take a salt in at one end of the composition pipeline
+      and use the result of hashing each tuple element as the salt for the
+      next element:</p><pre class="calibre39">-- file: BloomFilter/Hash.hs
+hash2 :: (Hashable a) =&gt; a -&gt; Word64 -&gt; Word64
+hash2 k salt = hashSalt salt k
+
+instance (Hashable a, Hashable b) =&gt; Hashable (a,b) where
+    hashSalt salt (a,b) = hash2 b . hash2 a $ salt
+
+instance (Hashable a, Hashable b, Hashable c) =&gt; Hashable (a,b,c) where
+    hashSalt salt (a,b,c) = hash2 c . hash2 b . hash2 a $ salt</pre><br class="calibre48"/>
+<a name="x_m81" class="calibre27" id="x_m81"></a><p class="docText">To hash ByteString types, we write special
+      instances that plug straight into the internals of the
+      ByteString types (this gives us excellent hashing
+      performance):</p><pre class="calibre39">-- file: BloomFilter/Hash.hs
+hashByteString :: Word64 -&gt; Strict.ByteString -&gt; IO Word64
+hashByteString salt bs = Strict.useAsCStringLen bs $ \(ptr, len) -&gt;
+                         hashIO ptr (fromIntegral len) salt
+
+instance Hashable Strict.ByteString where
+    hashSalt salt bs = unsafePerformIO $ hashByteString salt bs
+
+rechunk :: Lazy.ByteString -&gt; [Strict.ByteString]
+rechunk s
+    | Lazy.null s = []
+    | otherwise   = let (pre,suf) = Lazy.splitAt chunkSize s
+                    in  repack pre : rechunk suf
+    where repack    = Strict.concat . Lazy.toChunks
+          chunkSize = 64 * 1024
+
+instance Hashable Lazy.ByteString where
+    hashSalt salt bs = unsafePerformIO $
+                       foldM hashByteString salt (rechunk bs)</pre><br class="calibre48"/>
+<a name="x_cL1" class="calibre27" id="x_cL1"></a><p class="docText">Since a lazy ByteString is represented as
+      a series of chunks, we must be careful with the boundaries between those
+      chunks. The string <tt class="calibre34">"foobar"</tt> can be represented in five
+      different ways—for example, <tt class="calibre34">["fo","obar"]</tt> or
+      <tt class="calibre34">["foob","ar"]</tt>. This is invisible to most users of the type,
+      but not to us, as we use the underlying chunks directly. Our <i class="docEmphasis">rechunk</i> function ensures that the chunks we
+      pass to the C hashing code are a uniform 64 KB in size so that we will
+      give consistent hash values no matter where the original chunk
+      boundaries lie.</p><a name="I_sect126_d1e50018d1e50604" class="calibre27" id="I_sect126_d1e50018d1e50604"></a><h4 id="title-IDA4XB5H" class="docSection1Title">26.8.3. Turning Two Hashes into Many</h4><a name="x_n81" class="calibre27" id="x_n81"></a><p class="docText">As we mentioned earlier, <a name="I_indexterm26_d1e50333" class="calibre27" id="I_indexterm26_d1e50333"></a><a name="I_indexterm26_d1e50338" class="calibre27" id="I_indexterm26_d1e50338"></a>we need many more than two hashes to make effective use of
+      a Bloom filter. We can use a technique called <span class="docEmphasis">double
+      hashing</span> to <a name="I_indexterm26_d1e50347" class="calibre27" id="I_indexterm26_d1e50347"></a>combine the two values computed by the<a name="I_indexterm26_d1e50351" class="calibre27" id="I_indexterm26_d1e50351"></a> Jenkins hash functions, yielding many more hashes. The
+      resulting hashes are of good enough quality for our needs and far
+      cheaper than computing many distinct hashes:</p><pre class="calibre39">-- file: BloomFilter/Hash.hs
+doubleHash :: Hashable a =&gt; Int -&gt; a -&gt; [Word32]
+doubleHash numHashes value = [h1 + h2 * i | i &lt;- [0..num]]
+    where h   = hashSalt 0x9150a946c4a8966e value
+          h1  = fromIntegral (h `shiftR` 32) .&amp;. maxBound
+          h2  = fromIntegral h
+          num = fromIntegral numHashes</pre><br class="calibre48"/>
+<a name="I_sect126_d1e50018d1e50633" class="calibre27" id="I_sect126_d1e50018d1e50633"></a><h4 id="title-IDADZB5H" class="docSection1Title">26.8.4. Implementing the Easy Creation Function</h4><a name="x_o81" class="calibre27" id="x_o81"></a><p class="docText">In the <tt class="calibre34">BloomFilter.Easy</tt> module, we use our
+      new <i class="docEmphasis">doubleHash</i> function to define
+      the <i class="docEmphasis">easyList</i> function whose type we
+      defined earlier:</p><pre class="calibre39">-- file: BloomFilter/Easy.hs
+module BloomFilter.Easy
+    (
+      suggestSizing
+    , sizings
+    , easyList
+
+    -- re-export useful names from BloomFilter
+    , B.Bloom
+    , B.length
+    , B.elem
+    , B.notElem
+    ) where
+
+import BloomFilter.Hash (Hashable, doubleHash)
+import Data.List (genericLength)
+import Data.Maybe (catMaybes)
+import Data.Word (Word32)
+import qualified BloomFilter as B
+
+easyList errRate values =
+    case suggestSizing (genericLength values) errRate of
+      Left err            -&gt; Left err
+      Right (bits,hashes) -&gt; Right filt
+        where filt = B.fromList (doubleHash hashes) bits values</pre><br class="calibre48"/>
+<a name="x_p81" class="calibre27" id="x_p81"></a><p class="docText">This depends on a <i class="docEmphasis">suggestSizing</i> function that estimates the
+      best combination of filter size and number of hashes to compute, based
+      on our desired false positive rate and the maximum number of elements
+      that we expect the filter to contain:</p><pre class="calibre39">-- file: BloomFilter/Easy.hs
+suggestSizing
+    :: Integer       -- expected maximum capacity
+    -&gt; Double        -- desired false positive rate
+    -&gt; Either String (Word32,Int) -- (filter size, number of hashes)
+suggestSizing capacity errRate
+    | capacity &lt;= 0                = Left "capacity too small"
+    | errRate &lt;= 0 || errRate &gt;= 1 = Left "invalid error rate"
+    | null saneSizes               = Left "capacity too large"
+    | otherwise                    = Right (minimum saneSizes)
+  where saneSizes = catMaybes . map sanitize $ sizings capacity errRate
+        sanitize (bits,hashes)
+          | bits &gt; maxWord32 - 1 = Nothing
+          | otherwise            = Just (ceiling bits, truncate hashes)
+          where maxWord32 = fromIntegral (maxBound :: Word32)
+
+sizings :: Integer -&gt; Double -&gt; [(Double, Double)]
+sizings capacity errRate =
+    [(((-k) * cap / log (1 - (errRate ** (1 / k)))), k) | k &lt;- [1..50]]
+  where cap = fromIntegral capacity</pre><br class="calibre48"/>
+<a name="x_q81" class="calibre27" id="x_q81"></a><p class="docText">We perform some rather paranoid checking. For instance,
+      the <i class="docEmphasis">sizings</i> function suggests pairs
+      of array size and hash count, but it does not validate its suggestions.
+      Since we use 32-bit hashes, we must filter out suggested array sizes
+      that are too large.</p><a name="x_r81" class="calibre27" id="x_r81"></a><p class="docText">In our <i class="docEmphasis">suggestSizing</i> function, we attempt to
+      minimize only the size of the bit array, without regard for the number
+      of hashes. To see why, let us interactively explore the relationship
+      between array size and number of hashes.</p><a name="x_s81" class="calibre27" id="x_s81"></a><p class="docText">Suppose we want to insert 10 million elements into a
+      Bloom filter, with a false positive rate of 0.1%:</p><pre class="calibre39">ghci&gt; <b class="calibre40">let kbytes (bits,hashes) = (ceiling bits `div` 8192, hashes)</b>ghci&gt; <b class="calibre40">:m +BloomFilter.Easy Data.List</b>ghci&gt; <b class="calibre40">mapM_ (print . kbytes) . take 10 . sort $ sizings 10000000 0.001</b>
+Loading package array-0.1.0.0 ... linking ... done.
+Loading package bytestring-0.9.0.1.1 ... linking ... done.
+Loading package rwh-bloomfilter-0.1 ... linking ... done.
+(17550,10.0)
+(17601,11.0)
+(17608,9.0)
+(17727,12.0)
+(17831,8.0)
+(17905,13.0)
+(18122,14.0)
+(18320,7.0)
+(18368,15.0)
+(18635,16.0)</pre><a name="x_t81" class="calibre27" id="x_t81"></a><p class="docText">We achieve the most compact table (just over 17 KB) by
+      computing 10 hashes. If we really were hashing the data repeatedly, we
+      could reduce the number of hashes to 7 at a cost of 5% in space. Since
+      we are using Jenkins's hash functions—which compute two hashes in a
+      single pass—and double hashing the results to produce additional hashes,
+      the cost of computing those extra hashes is tiny, so we will choose the
+      smallest table size.</p><a name="x_u81" class="calibre27" id="x_u81"></a><p class="docText">If we increase our tolerance for false positives
+      tenfold, to 1%, the amount of space and the number of hashes we need go
+      down, though not by easily predictable amounts:</p><pre class="calibre39">ghci&gt; <b class="calibre40">mapM_ (print . kbytes) . take 10 . sort $ sizings 10000000 0.01</b>
+(11710,7.0)
+(11739,6.0)
+(11818,8.0)
+(12006,9.0)
+(12022,5.0)
+(12245,10.0)
+(12517,11.0)
+(12810,12.0)
+(12845,4.0)
+(13118,13.0)
+</pre>
+<a href="21061538.html" class="calibre2"><img src="pixel.gif" alt="" border="0" class="calibre31"/></a><ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect126_d1e49941.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect126_d1e50419.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

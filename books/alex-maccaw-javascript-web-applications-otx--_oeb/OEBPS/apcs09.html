@@ -1,0 +1,51 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/apcs08.html
+next: OEBPS/apcs10.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Transitions"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect1_d1e16700" class="calibre1"></a>Transitions</h1></div></div></div><p class="calibre3"><a id="I_indexterm_d1e16704" class="calibre1"></a><a id="I_indexterm_d1e16709" class="calibre1"></a>CSS3 adds transition support, letting you create simple
+    animations when a style changes. You need to pass a duration, property,
+    and optional animation type to the <code class="literal">transition</code> property. You can specify the
+    duration in seconds (s) or milliseconds (ms):</p><pre class="screen">/* duration, property, animation type (optional) */
+transition: 1.5s opacity ease-out
+
+/* Multiple transitions */
+transition: 2s opacity , .5s height ease-in
+transition: .5s height , .5s .5s width</pre><p class="calibre3">In the first example, when the opacity changes (say, a style gets
+    applied inline), the original and new values will be animated
+    between.</p><p class="calibre3">There are various types of timing functions:<a id="I_indexterm_d1e16723" class="calibre1"></a><a id="I_indexterm_d1e16728" class="calibre1"></a></p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre3"><code class="literal">linear</code></p></li><li class="listitem"><p class="calibre3"><code class="literal">ease-in</code></p></li><li class="listitem"><p class="calibre3"><code class="literal">ease-out</code></p></li><li class="listitem"><p class="calibre3"><code class="literal">ease-in-out</code></p></li></ul></div><p class="calibre3">Or, you can specify a custom timing sequence using a cubic bezier
+    curve,<a id="I_indexterm_d1e16752" class="calibre1"></a> which describes the animation speed, such as this bouncing
+    animation:</p><pre class="screen">#transition-example {
+  position: absolute;
+  /* cubic-bezier(x1, y1, x2, y2) */
+  transition: 5s left cubic-bezier(0.0, 0.35, .5, 1.3);
+}</pre><p class="calibre3">In Safari and Chrome, once the transition is complete, a
+    <span class="calibre1"><em class="calibre4">WebKitTransitionEvent</em></span><a id="I_indexterm_d1e16762" class="calibre1"></a> will be fired on the element. In Firefox, the event is
+    called <span class="calibre1"><em class="calibre4">transitionend</em></span><a id="I_indexterm_d1e16768" class="calibre1"></a>. Unfortunately, there are several caveats to using CSS3
+    transitions: you get little control over playback and not all values are
+    transitionable. That said, transitions are very useful for simple
+    animations, and some browsers (such as Safari) even hardware-accelerate
+    them:</p><pre class="screen">#transition-example {
+  width: 50px;
+  height: 50px;
+  background: red;
+  -webkit-transition: 2s background ease-in-out;
+  -moz-transition: 2s background ease-in-out;
+  -o-transition: 2s background ease-in-out;
+  transition: 2s background ease-in-out;
+}
+
+#transition-example:hover {
+  background: blue;
+}</pre><p class="calibre3">For one reason or another, you can only transition between gradients
+    if at least one gradient has a touch of alpha transparency. You also can’t
+    transition between some values, like <code class="literal">height:0</code> to
+    <code class="literal">height:auto</code>.</p><p class="calibre3">Browser support:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre3">Firefox: with <code class="literal">-moz-</code></p></li><li class="listitem"><p class="calibre3">Chrome: with <code class="literal">-webkit-</code></p></li><li class="listitem"><p class="calibre3">Safari: with <code class="literal">-webkit-</code></p></li><li class="listitem"><p class="calibre3">IE &gt;= 10.0: with <code class="literal">-ms-</code></p></li><li class="listitem"><p class="calibre3">Opera: with <code class="literal">-o-</code></p></li></ul></div></div></div>
+
+{% endraw %}
+

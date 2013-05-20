@@ -1,0 +1,35 @@
+---
+layout: page
+title: "CoffeeScript (for jay muratore)"
+prev: f_0047.html
+next: f_0049.html
+book_path: books/coffeescript-accelerated-javascript-development-pragmatic--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="sec.jquerySelectors" class="calibre13">5.3 Getting Selective</h2>
+<p id="N133AE" class="calibre5">
+      When you pass a string to jQuery, it’s interpreted as a <span class="emph">selector</span>, and an object containing the matching elements is returned. The selector syntax is designed to mirror and extend CSS’s selector syntax. By itself, an HTML tag type (such as <code class="cf">’p’</code>) will match all elements of that type. An identifier preceded by <code class="cf">#</code> is a unique ID, and one preceded by <code class="cf">.</code> is a class name.
+    </p>
+<p id="N133C7" class="calibre5">
+      You can list multiple selectors, separated by commas, to match all of them. For instance, <code class="cf">$(’a, button, .link’)</code> would match all <code class="cf">a</code> elements, all <code class="cf">button</code> elements, and all elements with the <code class="cf">link</code> class. The same set of elements could be obtained with <code class="cf">$(’a’).add($(’button’)).add($(’.link’))</code>.
+    </p>
+<p id="N133DC" class="calibre5">
+      When multiple identifiers are joined by spaces, they match descendants. For instance, <code class="cf">$(’#header img’)</code> matches all <code class="cf">img</code> tags that are within the element with the unique ID <code class="cf">header</code>. The same selection could be done through chaining with the <code class="cf">find</code> method: <code class="cf">$(’#header’).find(’img’)</code>. If you only wanted images that are the immediate children of <code class="cf">header</code>, you could either use the CSS2 syntax <code class="cf">$(’#header &gt; img’)</code> or the chain <code class="cf">$(’#header’).children(’img’)</code>.
+    </p>
+<p id="N133F7" class="calibre5">
+      In addition to these CSS selectors, there are several special modifiers added by jQuery. For instance, to match only odd table rows, we could write <code class="cf">$(’tr:odd’)</code>. To match only list items that contain links, we could write <code class="cf">$(’li:has(a)’)</code>. Matching all checked checkboxes is as easy as writing <code class="cf">$(’:checked’)</code>.
+    </p>
+<p id="N13403" class="calibre5">
+      There are two important points to remember about selected elements in jQuery. First, the selection is performed only once—selectors are not “live” (except in the appropriately named <code class="cf">live</code> method and the functionally similar <code class="cf">delegate</code>, which run the given selector as needed every time an event is fired). Second, there’s no distinction in jQuery between a single element and a collection of elements; a single element is just a collection of size 1. So for instance, if the first <code class="cf">div</code> on your page has the id <code class="cf">header</code>, then <code class="cf">$(’#header’)</code>, <code class="cf">$(’div:first’)</code>, and <code class="cf">$(’div’).first()</code> are all equivalent.
+    </p>
+<p id="N13420" class="calibre5">
+      Feeling overwhelmed yet? Relax! The important thing is to remember the general concept: you pass a string to the <code class="cf">$</code> function; you get a set of elements out. We’ll review some of these selection techniques in the exercises. You can find a thorough list of selector strings jQuery understands at <a href="http://api.jquery.com/category/selectors/">http://api.jquery.com/category/selectors/</a>.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

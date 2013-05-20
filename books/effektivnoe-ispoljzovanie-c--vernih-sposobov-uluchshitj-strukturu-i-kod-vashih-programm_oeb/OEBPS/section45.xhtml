@@ -1,0 +1,203 @@
+---
+layout: page
+title: "Эффективное использование C++. 55 верных способов улучшить структуру и код ваших программ"
+prev: OEBPS/section44.xhtml
+next: OEBPS/section46.xhtml
+book_path: books/effektivnoe-ispoljzovanie-c--vernih-sposobov-uluchshitj-strukturu-i-kod-vashih-programm_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <div class="calibre">
+      <div class="title1">
+        <h2 class="calibre3">Правило 24: Объявляйте функции, не являющиеся членами, когда преобразование типов должно быть применимо ко всем параметрам</h2>
+      </div>
+      <p class="calibre2">Во введении я отмечал, что в общем случае поддержка классом неявных преобразований типов – неудачная мысль. Но, конечно, из этого правила есть исключения, и одно из наиболее важных касается создания числовых типов. Например, если вы проектируете класс для представления рациональных чисел, то неявное преобразование целого числа в рациональное выглядит вполне разумно. Уж во всяком случае не менее разумно, чем встроенное в C++ преобразование int в double (и куда разумнее встроенного преобразования из double в int). Коли так, то начать объявления класса Rational можно было бы следующим образом:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Rational {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Rational(int numerator = 0,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">int denominator = 1); // конструктор сознательно не explicit;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// допускает неявное преобразование</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// int в Rational</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">int numerator() const; // функции доступа к числителю и</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">int denominator() const; // знаменателю – см. правило 22</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">private:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Вы знаете, что понадобится поддерживать арифметические операции (сложение, умножение и т. п.), но не уверены, следует реализовывать их посредством функций-членов или свободных функций, возможно, являющихся друзьями класса. Инстинкт говорит: «Сомневаешься – придерживайся объектно-ориентированного подхода». Вы понимаете, что, скажем, умножение рациональных чисел относится к классу Rational, поэтому кажется естественным реализовать operator* в самом этом классе. Но наперекор интуиции правило 23 утверждает, что идея помещения функции внутрь класса, с которым она ассоциирована, иногда противоречит объектно-ориентированным принципам. Впрочем, оставим на время эту тему и посмотрим, во что выливается объявление operator* функцией-членом Rational:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Rational {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Rational operator*(const Rational&amp; rhs) const;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Если вы не понимаете, почему эта функция объявлена именно таким образом (возвращает константный результат по значению и принимает ссылку на const в качестве аргумента), обратитесь к правилам 3, 20 и 21.</p>
+      <p class="calibre2">Такое решение позволяет легко манипулировать рациональными числами:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">Rational oneEighth(1, 8);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Rational one Half(1, 2);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Rational result = oneHalf * oneEighth; // правильно</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">result = result * oneEighth; // правильно</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Но вы не удовлетворены. Хотелось бы поддерживать также смешанные операции, чтобы Rational можно было умножить, например, на int. В конце концов, это довольно естественно – иметь возможность перемножать два числа, даже если они принадлежат к разным числовым типам.</p>
+      <p class="calibre2">Однако если вы попытаетесь выполнить смешанные арифметические операции, то обнаружите, что они работают только в половине случаев:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">result = oneHalf * 2; // правильно</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">result = 2 * oneHalf; // ошибка!</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Это плохой знак. Умножение должно быть коммутативным (не зависеть от порядка сомножителей), помните?</p>
+      <p class="calibre2">Источник проблемы становится понятным, если переписать два последних выражения в функциональной форме:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">result = oneHalf.operator*(2); // правильно</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">result = 2.operator*(oneHalf); // ошибка!</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Объект oneHalf – это экземпляр класса, включающего в себя operator*, поэтому компилятор вызывает эту функцию. Но с целым числом 2 не ассоциирован никакой класс, а значит, нет для него и функции operator*. Компилятор будет также искать функции operator*, не являющиеся членами класса (в текущем пространстве имен или в глобальной области видимости):</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">result = operator*(2, oneHalf); // ошибка!</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Но в данном случае нет и свободной функции operator*, которая принимала бы аргументы int и Rational, поэтому поиск завершится ничем.</p>
+      <p class="calibre2">Посмотрим еще раз на успешный вызов. Видите, что второй параметр – целое число 2, хотя Rational::operator* принимает в качестве аргумента объект Rational. Что происходит? Почему 2 работает в одной позиции и не работает в другой?</p>
+      <p class="calibre2">Происходит неявное преобразование типа. Компилятор знает, что вы передали int, а функция требует Rational, но он также знает, что можно получить подходящий объект, если вызвать конструктор Rational c переданным вами аргументом int. Так он и поступает. Иными словами, компилятор трактует показанный выше вызов, как если бы он был написан примерно так:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">const Rational temp(2); // создать временный объект Rational из 2</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">result = oneHalf * temp; // то же, что oneHalf.operator*(temp);</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Конечно, компилятор делает это только потому, что есть конструктор, объявленный без квалификатора explicit. Если бы квалификатор explicit присутствовал, то ни одно из следующих предложений не скомпилировалось бы:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">result = oneHalf * 2; // ошибка! (при наличии explicit-конструктора):</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// невозможно преобразовать 2 в Ratinal</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">result = 2 * oneHalf; // та же ошибка, та же проблема</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Со смешанной арифметикой при таком подходе придется распроститься, но, по крайней мере, такое поведение непротиворечиво.</p>
+      <p class="calibre2">Ваша цель, однако, – обеспечить и согласованность, и поддержку смешанной арифметики, то есть нужно найти такое решение, при котором оба предложения компилируются. Это возвращает нас к вопросу о том, почему даже при наличии explicit-конструктора в классе Rational одно из них компилируется, а другое – нет:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">result = oneHalf * 2; // правильно (при не explicit-конструкторе)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">result = 2 * oneHalf; // ошибка! (даже при не explicit-конструкторе)</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Оказывается, что к параметрам применимы неявные преобразования, <em class="calibre5">только если они перечислены в списке параметров.</em> Неявный параметр, соответствующий объекту, чья функция-член вызывается (тот, на который указывает this), никогда не подвергается неявному преобразованию. Вот почему первый вызов компилируется, а второй – нет. В первом случае параметр указан в списке параметров функции, а во втором – нет.</p>
+      <p class="calibre2">Однако вам хотелось бы получить полноценную поддержку смешанной арифметики, и теперь ясно, как ее обеспечить: нужен operator* в виде свободной функции, тогда компилятор сможет выполнить неявное преобразование <em class="calibre5">всех</em> аргументов:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Rational {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">... // не содержит operator*</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Rational operator*(const Rational&amp; lhs, // теперь свободная функция</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const Rational&amp; rhs)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">return Rational(lhs.numerator() * rhs.numerator(),</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">lhs.denominator() * rhs.denominator());</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Rational oneFourth(1, 4);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Rational result;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">result = oneFourth * 2; // правильно</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">result = 2 * oneFourth; // ура, работает!</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Это можно было бы назвать счастливым концом, если бы не одно «но». Должен ли operator* быть другом класса Rational?</p>
+      <p class="calibre2">В данном случае ответом будет «нет», потому что operator* может быть реализован полностью в терминах открытого интерфейса Rational. Приведенный выше код показывает, как это можно сделать. И мы приходим к важному выводу: противоположностью функции-члена является свободная функция, а функция – друг класса. Многие программисты на C++ полагают, что раз функция имеет отношение к классу и не должна быть его членом (например, из-за необходимости преобразовывать типы всех аргументов), то она должна быть другом. Этот пример показывает, что такое предположение неправильно. Если вы можете избежать назначения функции другом класса, то должны так и поступить, потому что, как и в реальной жизни, друзья часто доставляют больше хлопот, чем хотелось бы. Конечно, иногда отношения дружественности оправданы, но факт остается фактом: если функция не должна быть членом, это не означает автоматически, что она должна быть другом.</p>
+      <p class="calibre2">Сказанное выше правда, и ничего, кроме правды, но это не вся правда. Когда вы переходите от «Объектно-ориентированного C++» к «C++ с шаблонами» (см. правило 1) и превращаете Rational из класса в <em class="calibre5">шаблон класса,</em> то вступают в силу новые факторы, новые способы их учета, и появляются неожиданные проектные решения. Все это является темой правила 46.</p>
+      <div class="subtitle">
+        <p class="subtitle1">
+          <strong class="calibre4">
+            <em class="calibre5">Что следует помнить</em>
+          </strong>
+        </p>
+      </div>
+      <p class="calibre2">• Если преобразование типов должно быть применимо ко всем параметрам функции (включая и скрытый параметр this), то функция не должна быть членом класса.</p>
+    </div>
+  </div>
+
+{% endraw %}
+

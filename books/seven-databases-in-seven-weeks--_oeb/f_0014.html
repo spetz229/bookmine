@@ -1,0 +1,94 @@
+---
+layout: page
+title: "Seven Databases in Seven Weeks (for Greg Kennedy)"
+prev: f_0013.html
+next: f_0015.html
+book_path: books/seven-databases-in-seven-weeks--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="N1020B" class="calibre18">1.2 The Genres</h2>
+<p id="N1020F" class="calibre5">
+Like music, databases can be broadly classified into one or more styles. An individual song may share all of the same notes with other songs, but some are more appropriate for certain uses. Not many people blast Bach’s <span class="calibre6">Mass in B Minor</span> out an open convertible speeding down the 405. Similarly, some databases are better for some situations over others. The question you must always ask yourself is not “Can I use this database to store and refine this data?” but rather, “Should I?”
+    </p>
+<p id="N1021B" class="calibre5">
+      In this section, we’re going to explore five main database genres. We’ll also take a look at the databases we’re going to focus on for each genre.
+    </p>
+<p id="N1021E" class="calibre5">
+It’s important to remember that most of the data problems you’ll face could be solved by most or all of the databases in this book, not to mention other databases. The question is less about whether a given database style could be shoehorned to model your data and more about whether it’s the best fit for your problem space, your usage patterns, and your available resources. You’ll learn the art of divining whether a database is intrinsically useful to you.
+    </p>
+<h3 class="calibre20">Relational</h3>
+<p id="N10225" class="calibre5">
+The relational model is generally what comes to mind for most people with database experience.  Relational database management systems (RDBMSs) are set-theory-based systems implemented as two-dimensional tables with rows and columns.  The canonical means of interacting with an RDBMS is by writing queries in Structured Query Language (SQL).  Data values are typed and may be numeric, strings, dates, uninterpreted blobs, or other types.  The types are enforced by the system.  Importantly, tables can join and morph into new, more complex tables, because of their mathematical basis in relational (set) theory.
+      </p>
+<p id="N10232" class="calibre5">
+There are lots of open source relational databases to choose from, including MySQL, H2, HSQLDB, SQLite, and many others.  The one we cover is in Chapter 2, <a href="f_0016.html#chp.postgres">​<em class="calibre6">PostgreSQL</em>​</a>.
+      </p>
+<h4 class="calibre21">PostgreSQL</h4>
+<p id="N1023C" class="calibre5">
+Battle-hardened PostgreSQL is by far the oldest and most robust database we cover.  With its adherence to the SQL standard, it will feel familiar to anyone who has worked with relational databases before, and it provides a solid point of comparison to the other databases we’ll work with.  We’ll also explore some of SQL’s unsung features and Postgres’s specific advantages.  There’s something for everyone here, from SQL novice to expert.
+        </p>
+<h3 class="calibre20">Key-Value</h3>
+<p id="N1024D" class="calibre5">
+The key-value (KV) store is the simplest model we cover.  As the name implies, a KV store pairs keys to values in much the same way that a map (or hashtable) would in any popular programming language.  Some KV implementations permit complex value types such as hashes or lists, but this is not required.  Some KV implementations provide a means of iterating through the keys, but this again is an added bonus.  A filesystem could be considered a key-value store, if you think of the file path as the key and the file contents as the value.  Because the KV moniker demands so little, databases of this type can be incredibly performant in a number of scenarios but generally won’t be helpful when you have complex query and aggregation needs.
+      </p>
+<p id="N1025A" class="calibre5">
+As with relational databases, many open source options are available.  Some of the more popular offerings include memcached (and its cousins memcachedb and membase), Voldemort, and the two we cover in this book:  Redis and Riak.
+</p>
+<h4 class="calibre21">Riak</h4>
+<p id="N1026A" class="calibre5">
+More than a key-value store, <span class="calibre6">Riak</span>—covered in Chapter 3, <a href="f_0022.html#chp.riak">​<em class="calibre6">Riak</em>​</a>—embraces web constructs like HTTP and REST from the ground up.  It’s a faithful implementation of Amazon’s Dynamo, with advanced features such as vector clocks for conflict resolution.  Values in Riak can be anything, from plain text to XML to image data, and relationships between keys are handled by named structures called <span class="calibre6">links</span>.  One of the lesser known databases in this book, Riak, is rising in popularity, and it’s the first one we’ll talk about that supports advanced querying via mapreduce.
+        </p>
+<h4 class="calibre21">Redis</h4>
+<p id="N1027F" class="calibre5">
+Redis provides for complex datatypes like sorted sets and hashes, as well as basic message patterns like publish-subscribe and blocking queues. It also has one of the most robust query mechanisms for a KV store. And by caching writes in memory before committing to disk, Redis gains amazing performance in exchange for increased risk of data loss in the case of a hardware failure.  This characteristic makes it a good fit for caching noncritical data and for acting as a message broker. We leave it until the end—see Chapter 8, <a href="f_0052.html#chp.redis">​<em class="calibre6">Redis</em>​</a>—so we can build a multidatabase application with Redis and others working together in harmony.
+</p>
+<h3 class="calibre20">Columnar</h3>
+<p id="N10292" class="calibre5">
+Columnar, or column-oriented, databases are so named because the important aspect of their design is that data from a given column (in the two-dimensional table sense) is stored together.  By contrast, a row-oriented database (like an RDBMS) keeps information about a row together.  The difference may seem inconsequential, but the impact of this design decision runs deep.   In column-oriented databases, adding columns is quite inexpensive and is done on a row-by-row basis.  Each row can have a different set of columns, or none at all, allowing tables to remain <span class="calibre6">sparse</span> without incurring a storage cost for null values.  With respect to structure, columnar is about midway between relational and key-value.
+      </p>
+<p id="N102B1" class="calibre5">
+In the columnar database market, there’s somewhat less competition than in relational databases or key-value stores.  The three most popular are HBase (which we cover in Chapter 4, <a href="f_0028.html#chp.hbase">​<em class="calibre6">HBase</em>​</a>), Cassandra, and Hypertable.
+
+      </p>
+<h4 class="calibre21">HBase</h4>
+<p id="N102C0" class="calibre5">
+This column-oriented database shares the most similarities with the relational model of all the nonrelational databases we cover.  Using Google’s BigTable paper as a blueprint, HBase is built on Hadoop (a mapreduce engine) and designed for scaling horizontally on clusters of commodity hardware.  HBase makes strong consistency guarantees and features tables with rows and columns—which should make SQL fans feel right at home.  Out-of-the-box support for versioning and compression sets this database apart in the “Big Data” space.
+        </p>
+<h3 class="calibre20">Document</h3>
+<p id="N102C7" class="calibre5">
+Document-oriented databases store, well, documents.  In short, a document is like a hash, with a unique ID field and values that may be any of a variety of types, including more hashes.  Documents can contain nested structures, and so they exhibit a high degree of flexibility, allowing for variable domains.  The system imposes few restrictions on incoming data, as long as it meets the basic requirement of being expressible as a document.  Different document databases take different approaches with respect to indexing, ad hoc querying, replication, consistency, and other design decisions.  Choosing wisely between them requires understanding these differences and how they impact your particular use cases.
+      </p>
+<p id="N102D0" class="calibre5">
+The two major open source players in the document database market are MongoDB, which we cover in Chapter 5, <a href="f_0034.html#chp.mongo">​<em class="calibre6">MongoDB</em>​</a>, and CouchDB, covered in Chapter 6, <a href="f_0040.html#chp.couchdb">​<em class="calibre6">CouchDB</em>​</a>.
+</p>
+<h4 class="calibre21">MongoDB</h4>
+<p id="N102E0" class="calibre5">
+MongoDB is designed to be <span class="calibre6">huge</span> (the name <code class="cf1">mongo</code> is extracted from the word hu<span class="calibre6">mongo</span>us).  Mongo server configurations attempt to remain consistent—if you write something, subsequent reads will receive the same value (until the next update).  This feature makes it attractive to those coming from an RDBMS background.  It also offers atomic read-write operations such as incrementing a value and deep querying of nested document structures.  Using JavaScript for its query language, MongoDB supports both simple queries and complex mapreduce jobs.
+        </p>
+<h4 class="calibre21">CouchDB</h4>
+<p id="N102F5" class="calibre5">
+CouchDB targets a wide variety of deployment scenarios, from the datacenter to the desktop, on down to the smartphone.  Written in Erlang, CouchDB has a distinct ruggedness largely lacking in other databases.  With nearly incorruptible data files, CouchDB remains highly available even in the face of intermittent connectivity loss or hardware failure.  Like Mongo, CouchDB’s native query language is JavaScript.  Views consist of mapreduce functions, which are stored as documents and replicated between nodes like any other data.
+        </p>
+<h3 class="calibre20">Graph</h3>
+<p id="N10301" class="calibre5">
+One of the less commonly used database styles, graph databases excel at dealing with highly interconnected data.  A graph database consists of nodes and relationships between nodes.  Both nodes and relationships can have properties—key-value pairs—that store data.  The real strength of graph databases is traversing through the nodes by following relationships.
+      </p>
+<p id="N10309" class="calibre5">
+        In Chapter 7, <a href="f_0046.html#chp.neo4j">​<em class="calibre6">Neo4J</em>​</a>, we discuss the most popular graph database today, Neo4J.
+      </p>
+<h4 class="calibre21">Neo4J</h4>
+<p id="N10313" class="calibre5">
+One operation where other databases often fall flat is crawling through self-referential or otherwise intricately linked data.  This is exactly where Neo4J shines.  The benefit of using a graph database is the ability to quickly traverse nodes and relationships to find relevant data.  Often found in social networking applications, graph databases are gaining traction for their flexibility, with Neo4j as a pinnacle implementation.
+        </p>
+<h3 class="calibre20">Polyglot</h3>
+<p id="N1031F" class="calibre5">
+In the wild, databases are often used alongside other databases. It’s still common to find a lone relational database, but over time it is becoming popular to use several databases together, leveraging their strengths to create an ecosystem that is more powerful, capable, and robust than the sum of its parts. This practice is known as <span class="calibre6">polyglot persistence</span> and is a topic we consider further in Chapter 9, <a href="f_0058.html#chp.wrapup">​<em class="calibre6">Wrapping Up</em>​</a>.
+</p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre3"/>
+</div>
+
+{% endraw %}
+

@@ -1,0 +1,225 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: fp_aspattern.html
+next: fp_readability.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="fp_aspattern.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="fp_readability.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="fp_compose" class="calibre27" id="fp_compose"></a><h3 id="title-IDAVQSOB" class="docSection1Title">4.10. Code Reuse Through Composition</h3><a name="x_OA" class="calibre27" id="x_OA"></a><p class="docText">It seems<a name="ch04-coderesuse" class="calibre27" id="ch04-coderesuse"></a> a shame to introduce a new<a name="I_indexterm4_d1e12122" class="calibre27" id="I_indexterm4_d1e12122"></a><a name="I_indexterm4_d1e12125" class="calibre27" id="I_indexterm4_d1e12125"></a> function, <i class="docEmphasis">suffixes</i>,
+    that does almost the same thing as the existing <i class="docEmphasis">tails</i> function. Surely we can do better?</p><a name="x_PA" class="calibre27" id="x_PA"></a><p class="docText">Recall the <i class="docEmphasis">init</i>
+    function we introduced in <a class="docLink" href="fp_lists_split_000.html#fp_lists">Section 4.5</a>—it returns all but
+    the last element of a list:</p><pre class="calibre39">-- file: ch04/SuffixTree.hs
+suffixes2 xs = init (tails xs)</pre><br class="calibre48"/>
+<a name="x_QA" class="calibre27" id="x_QA"></a><p class="docText">This <i class="docEmphasis">suffixes2</i>
+    function behaves identically to <i class="docEmphasis">suffixes</i>, but it's a single line of
+    code:</p><pre class="calibre39">ghci&gt; <b class="calibre40">suffixes2 "foo"</b>
+["foo","oo","o"]
+</pre><a name="x_RA" class="calibre27" id="x_RA"></a><p class="docText">If we take a step back, we see the glimmer of a pattern.
+    We're applying a function, then applying another function to its result.
+    Let's turn that pattern into a function definition:</p><pre class="calibre39">-- file: ch04/SuffixTree.hs
+compose :: (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+compose f g x = f (g x)</pre><br class="calibre48"/>
+<a name="x_SA" class="calibre27" id="x_SA"></a><p class="docText">We now have a function, <i class="docEmphasis">compose</i>, that we can use to "glue"
+    two other functions <span class="docEmphasis">together</span>:</p><pre class="calibre39">-- file: ch04/SuffixTree.hs
+suffixes3 xs = compose init tails xs</pre><br class="calibre48"/>
+<a name="x_TA" class="calibre27" id="x_TA"></a><p class="docText">Haskell's automatic currying lets us drop the
+    <span class="docMonofont">xs</span> variable, so we can make our definition even
+    shorter:</p><pre class="calibre39">-- file: ch04/SuffixTree.hs
+suffixes4 = compose init tails</pre><br class="calibre48"/>
+<a name="x_UA" class="calibre27" id="x_UA"></a><p class="docText">Fortunately, we don't need to write our own <i class="docEmphasis">compose</i> function. Plugging functions into each
+    other like this is so common that the <tt class="calibre34">Prelude</tt> provides
+    function composition via the <i class="docEmphasis">(.)</i>
+    operator:</p><pre class="calibre39">-- file: ch04/SuffixTree.hs
+suffixes5 = init . tails</pre><br class="calibre48"/>
+<a name="x_VA" class="calibre27" id="x_VA"></a><p class="docText">The <i class="docEmphasis">(.)</i>
+    operator<a name="I_indexterm4_d1e12203" class="calibre27" id="I_indexterm4_d1e12203"></a> isn't a special piece of language syntax—it's just a normal
+    operator:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type (.)</b>
+(.) :: (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+ghci&gt; <b class="calibre40">:type suffixes</b>
+suffixes :: [a] -&gt; [[a]]
+ghci&gt; <b class="calibre40">:type suffixes5</b>
+suffixes5 :: [a] -&gt; [[a]]
+ghci&gt; <b class="calibre40">suffixes5 "foo"</b>
+["foo","oo","o"]</pre><a name="x_WA" class="calibre27" id="x_WA"></a><p class="docText">We can create new functions at any time by writing chains
+    of composed functions, stitched together with <i class="docEmphasis">(.)</i>, so long (of course) as the result type of
+    the function on the right of each <i class="docEmphasis">(.)</i>
+    matches the type of parameter that the function on the left can
+    accept.</p><a name="x_JD1" class="calibre27" id="x_JD1"></a><p class="docText">As an example, let's solve a simple puzzle. Count the
+    number of words in a string that begins with a capital letter:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:module +Data.Char</b>ghci&gt; <b class="calibre40">let capCount = length . filter (isUpper . head) . words</b>ghci&gt; <b class="calibre40">capCount "Hello there, Mom!"</b>
+2</pre><a name="x_KD1" class="calibre27" id="x_KD1"></a><p class="docText">We can understand what this composed function does by
+    examining its pieces. The <i class="docEmphasis">(.)</i>
+    function is right-associative, so we will proceed from right to
+    left:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type words</b>
+words :: String -&gt; [String]
+</pre><a name="x_LD1" class="calibre27" id="x_LD1"></a><p class="docText">The <i class="docEmphasis">words</i> function
+    has a result type of [String], so whatever is on the left
+    side of <i class="docEmphasis">(.)</i> must accept a compatible
+    argument:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type isUpper . head</b>
+isUpper . head :: [Char] -&gt; Bool
+</pre><a name="x_MD1" class="calibre27" id="x_MD1"></a><p class="docText">This function returns <tt class="calibre34">true</tt> if a word begins
+    with a capital letter (try it in <i class="docEmphasis">ghci</i>),
+    so <tt class="calibre34">filter (isUpper . head)</tt> returns a list of
+    Strings containing only words that begin with capital
+    letters:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type filter (isUpper . head)</b>
+filter (isUpper . head) :: [[Char]] -&gt; [[Char]]
+</pre><a name="x_ND1" class="calibre27" id="x_ND1"></a><p class="docText">Since this expression returns a list, all that remains is
+    to calculate the length of the list, which we do with another
+    composition.</p><a name="x_XA" class="calibre27" id="x_XA"></a><p class="docText">Here's another example, drawn from a real application. We
+    want to extract a list of macro names from a C header file shipped with
+    <tt class="calibre34">libpcap</tt>, a popular network packet-filtering library. The
+    header file contains a large number definitions of the following
+    form:</p><pre class="calibre39">#define DLT_EN10MB      1       /* Ethernet (10Mb) */
+#define DLT_EN3MB       2       /* Experimental Ethernet (3Mb) */
+#define DLT_AX25        3       /* Amateur Radio AX.25 */</pre><br class="calibre48"/>
+<a name="x_OD1" class="calibre27" id="x_OD1"></a><p class="docText">Our goal is to extract names such as
+    <tt class="calibre34">DLT_EN10MB</tt> and <tt class="calibre34">DLT_AX25</tt>:</p><pre class="calibre39">-- file: ch04/dlts.hs
+import Data.List (isPrefixOf)
+
+dlts :: String -&gt; [String]
+
+dlts = foldr step [] . lines</pre><br class="calibre48"/>
+<a name="x_YA" class="calibre27" id="x_YA"></a><p class="docText">We treat an entire file as a string, split it up with
+    <i class="docEmphasis">lines</i>, and then apply <tt class="calibre34">foldr
+    step []</tt> to the resulting list of lines. The <i class="docEmphasis">step</i> helper function operates on a single
+    line:</p><pre class="calibre39">-- file: ch04/dlts.hs
+  where step l ds
+          | "#define DLT_" `isPrefixOf` l = secondWord l : ds
+          | otherwise                     = ds
+        secondWord = head . tail . words</pre><br class="calibre48"/>
+<a name="x_ZA" class="calibre27" id="x_ZA"></a><p class="docText">If we match a macro definition with our guard expression,
+    we cons the name of the macro onto the head of the list we're returning;
+    otherwise, we leave the list untouched.</p><a name="x_aA" class="calibre27" id="x_aA"></a><p class="docText">While the individual functions in the body of <i class="docEmphasis">secondWord</i> are familiar to us by now, it can
+    take a little practice to piece together a chain of compositions such as
+    this. Let's walk through the procedure.</p><a name="x_bA" class="calibre27" id="x_bA"></a><p class="docText">Once again, we proceed from right to left. The first
+    function is <i class="docEmphasis">words</i>:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type words</b>
+words :: String -&gt; [String]
+ghci&gt; <b class="calibre40">words "#define DLT_CHAOS    5"</b>
+["#define","DLT_CHAOS","5"]</pre><a name="x_cA" class="calibre27" id="x_cA"></a><p class="docText">We then apply <tt class="calibre34">tail</tt> to the result of <i class="docEmphasis">words</i>:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type tail</b>
+tail :: [a] -&gt; [a]
+ghci&gt; <b class="calibre40">tail ["#define","DLT_CHAOS","5"]</b>
+["DLT_CHAOS","5"]
+ghci&gt; <b class="calibre40">:type tail . words</b>
+tail . words :: String -&gt; [String]
+ghci&gt; <b class="calibre40">(tail . words) "#define DLT_CHAOS    5"</b>
+["DLT_CHAOS","5"]</pre><a name="x_eA" class="calibre27" id="x_eA"></a><p class="docText">Finally, applying <i class="docEmphasis">head</i> to the result of <tt class="calibre34">drop 1 .
+    words</tt> will give us the name of our macro:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type head . tail . words</b>
+head . tail . words :: String -&gt; String
+ghci&gt; <b class="calibre40">(head . tail . words) "#define DLT_CHAOS    5"</b>
+"DLT_CHAOS"</pre><a name="fp_composed1e12469" class="calibre27" id="fp_composed1e12469"></a><h4 id="title-IDA41SOB" class="docSection1Title">4.10.1. Use Your Head Wisely</h4><a name="x_fA" class="calibre27" id="x_fA"></a><p class="docText">After warning against unsafe list functions earlier in
+      this chapter in <a class="docLink" href="fp_lists_split_000.html#fp_lists_safe">Section 4.5.2</a>, here we are calling
+      both <i class="docEmphasis">head</i> and <i class="docEmphasis">tail</i>, two of those unsafe list functions.
+      What gives?</p><a name="x_gA" class="calibre27" id="x_gA"></a><p class="docText">In this case, we can assure ourselves by inspection that
+      we're safe from a runtime failure. The pattern guard in the definition
+      of <i class="docEmphasis">step</i> contains two words, so when
+      we apply <i class="docEmphasis">words</i> to any string that
+      makes it past the guard, we'll have a list of at least two elements:
+      <tt class="calibre34">"#define"</tt> and some macro beginning with
+      <tt class="calibre34">"DLT_"</tt>.</p><a name="x_hA" class="calibre27" id="x_hA"></a><p class="docText">This is the kind of reasoning we ought to do to convince
+      ourselves that our code won't explode when we call partial functions.
+      Don't forget our earlier admonition: calling unsafe functions such as
+      this requires care and can often make our code more fragile in subtle
+      ways. If for some reason we modified the pattern guard to only contain
+      one word, we could expose ourselves to the possibility of a crash, as
+      the body of the function assumes that it will receive two words.</p>
+<a href="21061538.html" class="calibre2"><img src="pixel.gif" alt="" border="0" class="calibre31"/></a><ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="fp_aspattern.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="fp_readability.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

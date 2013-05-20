@@ -1,0 +1,226 @@
+---
+layout: page
+title: "jQuery UI"
+prev: OEBPS/ch10s02.html
+next: OEBPS/ch10s04.html
+book_path: books/eric-sarrion-jquery-ui-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Examples of Using Drag Functionality"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="examples_of_using_drag_functionality" class="calibre1"></a>Examples of Using Drag Functionality</h1></div></div></div><p class="calibre7">In this section, we’ll try out some of the drag functionality
+    discussed in this chapter.</p><div class="book" title="Carrying Out a Treatment When Moving"><div class="book"><div class="book"><div class="book"><h2 class="title5"><a id="carrying_out_a_treatment_when_moving" class="calibre1"></a>Carrying Out a Treatment When Moving</h2></div></div></div><p class="calibre7">Let’s display the coordinates of an element as it is being moved
+      (<a class="ulink" href="ch10s03.html#coordinates_of_the_drag" title="Figure 10-1. Coordinates of the drag">Figure 10-1</a>):</p><a id="I_programlisting10_d1e9014" class="firstname"></a><pre class="programlisting">&lt;script src = jquery.js&gt;&lt;/script&gt;
+&lt;script src = jqueryui/js/jquery-ui-1.8.16.custom.min.js&gt;&lt;/script&gt;
+
+&lt;link rel=stylesheet type=text/css
+      href=jqueryui/css/smoothness/jquery-ui-1.8.16.custom.css /&gt;
+
+&lt;div id=div1 style="border:solid 1px;background-color:gainsboro;"&gt;
+  &lt;span&gt;Item 1 to move&lt;/span&gt;&lt;br /&gt;&lt;br /&gt;
+  &lt;span&gt;Item 2 to move&lt;/span&gt;&lt;br /&gt;&lt;br /&gt;
+  &lt;span&gt;Item 3 to move&lt;/span&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Start : &lt;span id=start&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;Drag : &lt;span id=drag&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;Stop : &lt;span id=stop&gt;&lt;/span&gt;&lt;/p&gt;
+
+&lt;script&gt;
+
+<span class="firstname"><strong class="userinput">$("#div1 span").draggable ({</strong></span>
+  <span class="firstname"><strong class="userinput">start : function (event, ui)</strong></span>
+  <span class="firstname"><strong class="userinput">{</strong></span>
+    <span class="firstname"><strong class="userinput">$("#start").text (ui.offset.top + ", " + ui.offset.left);</strong></span>
+  <span class="firstname"><strong class="userinput">},</strong></span>
+  <span class="firstname"><strong class="userinput">drag : function (event, ui)</strong></span>
+  <span class="firstname"><strong class="userinput">{</strong></span>
+    <span class="firstname"><strong class="userinput">$("#drag").text (ui.offset.top + ", " + ui.offset.left);</strong></span>
+  <span class="firstname"><strong class="userinput">},</strong></span>
+  <span class="firstname"><strong class="userinput">stop : function (event, ui)</strong></span>
+  <span class="firstname"><strong class="userinput">{</strong></span>
+    <span class="firstname"><strong class="userinput">$("#stop").text (ui.offset.top + ", " + ui.offset.left);</strong></span>
+  <span class="firstname"><strong class="userinput">}</strong></span>
+<span class="firstname"><strong class="userinput">});</strong></span>
+
+&lt;/script&gt;</pre><p class="calibre7">The first displacement causes the <code class="literal">start</code>, while the movements that follow are
+      managed by the <code class="literal">drag</code> event. When the
+      mouse is released, the <code class="literal">stop</code> event is
+      triggered.</p><div class="book"><div class="figure"><a id="coordinates_of_the_drag" class="firstname"></a><div class="book"><div class="book"><a id="I_mediaobject10_d1e9074" class="firstname"></a><img src="httpatomoreillycomsourceoreillyimages1096445.png" alt="Coordinates of the drag" class="calibre5"/></div></div><p class="title4">Figure 10-1. Coordinates of the drag</p></div></div></div><div class="book" title="Imposing Limits on Displacement"><div class="book"><div class="book"><div class="book"><h2 class="title5"><a id="imposing_limits_on_displacement" class="calibre1"></a>Imposing Limits on Displacement</h2></div></div></div><p class="calibre7">You can limit the movement of elements on the screen. Here, we’ll
+      look at the various possible constraints.</p><div class="book" title="Constraining the displacement to a given space"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="constraining_the_displacement_to_a_given" class="calibre1"></a>Constraining the displacement to a given space</h3></div></div></div><p class="calibre7">Here, we’ll add onto the previous example by preventing <code class="literal">&lt;span&gt;</code> elements to be moved outside
+        the parent <code class="literal">&lt;div&gt;</code>. Currently,
+        no constraints are specified, which allows us to move any element
+        using the <code class="literal">draggable (options)</code>
+        method anywhere on the page:</p><a id="I_programlisting10_d1e9098" class="firstname"></a><pre class="programlisting">&lt;script src = jquery.js&gt;&lt;/script&gt;
+&lt;script src = jqueryui/js/jquery-ui-1.8.16.custom.min.js&gt;&lt;/script&gt;
+
+&lt;link rel=stylesheet type=text/css
+      href=jqueryui/css/smoothness/jquery-ui-1.8.16.custom.css /&gt;
+
+&lt;div id=div1 style="border:solid 1px;background-color:gainsboro;"&gt;
+  &lt;span&gt;Item 1 to move&lt;/span&gt;&lt;br /&gt;&lt;br /&gt;
+  &lt;span&gt;Item 2 to move&lt;/span&gt;&lt;br /&gt;&lt;br /&gt;
+  &lt;span&gt;Item 3 to move&lt;/span&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+
+<span class="firstname"><strong class="userinput">$("#div1 span").draggable ({</strong></span>
+  <span class="firstname"><strong class="userinput">containment : "#div1"</strong></span>
+<span class="firstname"><strong class="userinput">});</strong></span>
+
+&lt;/script&gt;</pre><p class="calibre7">The <code class="literal">containment</code> option
+        specifies the constraint of displacement. Here, <code class="literal">&lt;span&gt;</code> elements are prevented from
+        going outside a <code class="literal">&lt;div&gt;</code> whose
+        ID is div1 (<a class="ulink" href="ch10s03.html#constrained_movement_within_a_ldivg" title="Figure 10-2. Constrained movement within a &lt;div&gt;">Figure 10-2</a>).</p><div class="book"><div class="figure"><a id="constrained_movement_within_a_ldivg" class="firstname"></a><div class="book"><div class="book"><a id="I_mediaobject10_d1e9125" class="firstname"></a><img src="httpatomoreillycomsourceoreillyimages1096447.png.jpg" alt="Constrained movement within a &lt;div&gt;" class="calibre5"/></div></div><p class="title4">Figure 10-2. Constrained movement within a &lt;div&gt;</p></div></div><p class="calibre7">As this <code class="literal">&lt;div&gt;</code> is also
+        the parent of movable elements, this constraint can also be written as
+        follows:</p><a id="I_programlisting10_d1e9135" class="firstname"></a><pre class="programlisting">containment : "parent"</pre><p class="calibre7">It is also possible to impose constraints on horizontal or
+        vertical movement, as we see in the following section.</p></div><div class="book" title="Constraining the displacement horizontally or vertically"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="constraining_the_displacement_horizontal" class="calibre1"></a>Constraining the displacement horizontally or
+        vertically</h3></div></div></div><p class="calibre7">We can impose constraints on vertical or horizontal motion using
+        <code class="literal">options.axis</code> worth <code class="literal">"x"</code> or <code class="literal">"y"</code>. For example, to require that <code class="literal">&lt;span&gt;</code> elements can only move
+        horizontally, we write the following code (shown in bold):</p><a id="I_programlisting10_d1e9156" class="firstname"></a><pre class="programlisting">&lt;script src = jquery.js&gt;&lt;/script&gt;
+&lt;script src = jqueryui/js/jquery-ui-1.8.16.custom.min.js&gt;&lt;/script&gt;
+
+&lt;link rel=stylesheet type=text/css
+      href=jqueryui/css/smoothness/jquery-ui-1.8.16.custom.css /&gt;
+
+&lt;div id=div1 style="border:solid 1px;background-color:gainsboro;"&gt;
+  &lt;span&gt;Item 1 to move&lt;/span&gt;&lt;br /&gt;&lt;br /&gt;
+  &lt;span&gt;Item 2 to move&lt;/span&gt;&lt;br /&gt;&lt;br /&gt;
+  &lt;span&gt;Item 3 to move&lt;/span&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+
+<span class="firstname"><strong class="userinput">$("#div1 span").draggable ({</strong></span>
+  <span class="firstname"><strong class="userinput">axis : "x"</strong></span>
+<span class="firstname"><strong class="userinput">});</strong></span>
+
+&lt;/script&gt;</pre><p class="calibre7">To prevent movement of these items outside of the <code class="literal">&lt;div&gt;</code> parent, we need to add <code class="literal">options.containment</code>:</p><a id="I_programlisting10_d1e9175" class="firstname"></a><pre class="programlisting">&lt;script&gt;
+
+<span class="firstname"><strong class="userinput">$("#div1 span").draggable ({</strong></span>
+  <span class="firstname"><strong class="userinput">axis : "x",</strong></span>
+  <span class="firstname"><strong class="userinput">containment : "parent"</strong></span>
+<span class="firstname"><strong class="userinput">});</strong></span>
+
+&lt;/script&gt;</pre></div></div><div class="book" title="Moving an Object by Duplicating"><div class="book"><div class="book"><div class="book"><h2 class="title5"><a id="moving_an_object_by_duplicating" class="calibre1"></a>Moving an Object by Duplicating</h2></div></div></div><p class="calibre7">Here, we want to move an item that is the clone of the selected
+      element (<a class="ulink" href="ch10s03.html#moving_a_cloned_item" title="Figure 10-3. Moving a cloned item">Figure 10-3</a>). This is done using
+      the <code class="literal">options.helper</code> option, value
+      <code class="literal">"clone"</code>:</p><a id="I_programlisting10_d1e9202" class="firstname"></a><pre class="programlisting">&lt;script src = jquery.js&gt;&lt;/script&gt;
+&lt;script src = jqueryui/js/jquery-ui-1.8.16.custom.min.js&gt;&lt;/script&gt;
+
+&lt;link rel=stylesheet type=text/css
+      href=jqueryui/css/smoothness/jquery-ui-1.8.16.custom.css /&gt;
+
+&lt;div id=div1 style="border:solid 1px;background-color:gainsboro;"&gt;
+  &lt;span&gt;Item 1 to move&lt;/span&gt;&lt;br /&gt;&lt;br /&gt;
+  &lt;span&gt;Item 2 to move&lt;/span&gt;&lt;br /&gt;&lt;br /&gt;
+  &lt;span&gt;Item 3 to move&lt;/span&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+
+<span class="firstname"><strong class="userinput">$("#div1 span").draggable ({</strong></span>
+  <span class="firstname"><strong class="userinput">helper : "clone"</strong></span>
+<span class="firstname"><strong class="userinput">});</strong></span>
+
+&lt;/script&gt;</pre><div class="figure"><a id="moving_a_cloned_item" class="firstname"></a><div class="book"><div class="book"><a id="I_mediaobject10_d1e9216" class="firstname"></a><img src="httpatomoreillycomsourceoreillyimages1096449.png" alt="Moving a cloned item" class="calibre5"/></div></div><p class="title4">Figure 10-3. Moving a cloned item</p></div><p class="calibre7">In <a class="ulink" href="ch10s03.html#moving_a_cloned_item" title="Figure 10-3. Moving a cloned item">Figure 10-3</a>, the first element is
+      being dragged—only the cloned element is moved, while the original item
+      remains in its original position. If you release the mouse, the cloned
+      element disappears and the original item is still in its original
+      position (<a class="ulink" href="ch10s03.html#the_original_item_remains_in_its_origina" title="Figure 10-4. The original item remains in its original position.">Figure 10-4</a>).
+      The duplicate item is effectively moved and is removed from the DOM tree
+      at the end of the move.</p><div class="book"><div class="figure"><a id="the_original_item_remains_in_its_origina" class="firstname"></a><div class="book"><div class="book"><a id="I_mediaobject10_d1e9230" class="firstname"></a><img src="httpatomoreillycomsourceoreillyimages1096452.png.jpg" alt="The original item remains in its original position." class="calibre5"/></div></div><p class="title4">Figure 10-4. The original item remains in its original position.</p></div></div><p class="calibre7">We now want to keep the dragged item on the page. For this, we
+      must create a new element that it is the same as the moved element and
+      that keeps its position on the page at the end of the movement (<a class="ulink" href="ch10s03.html#moving_a_cloned_item_comma_keeping_it_on" title="Figure 10-5. Moving a cloned item, keeping it on the page">Figure 10-5</a>):</p><a id="I_programlisting10_d1e9239" class="firstname"></a><pre class="programlisting">&lt;script src = jquery.js&gt;&lt;/script&gt;
+&lt;script src = jqueryui/js/jquery-ui-1.8.16.custom.min.js&gt;&lt;/script&gt;
+
+&lt;link rel=stylesheet type=text/css
+      href=jqueryui/css/smoothness/jquery-ui-1.8.16.custom.css /&gt;
+
+&lt;div id=div1 style="border:solid 1px;background-color:gainsboro;"&gt;
+  &lt;span&gt;Item 1 to move&lt;/span&gt;&lt;br /&gt;&lt;br /&gt;
+  &lt;span&gt;Item 2 to move&lt;/span&gt;&lt;br /&gt;&lt;br /&gt;
+  &lt;span&gt;Item 3 to move&lt;/span&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+
+<span class="firstname"><strong class="userinput">$("#div1 span").draggable ({</strong></span>
+  <span class="firstname"><strong class="userinput">helper : "clone",</strong></span>
+  <span class="firstname"><strong class="userinput">stop : function (event, ui)</strong></span>
+  <span class="firstname"><strong class="userinput">{</strong></span>
+    <span class="firstname"><strong class="userinput">ui.helper.clone ().appendTo ($(this).parent ());</strong></span>
+  <span class="firstname"><strong class="userinput">}</strong></span>
+<span class="firstname"><strong class="userinput">});</strong></span>
+
+&lt;/script&gt;</pre><p class="calibre7">At the end of the displacement (the <code class="literal">stop
+      ()</code> method), we duplicate the moved element (with <code class="literal">ui.helper.clone ()</code>) and insert it into the
+      page at the same level as the moved <code class="literal">&lt;span&gt;</code> (with <code class="literal">appendTo ()</code>).</p><div class="book"><div class="figure"><a id="moving_a_cloned_item_comma_keeping_it_on" class="firstname"></a><div class="book"><div class="book"><a id="I_mediaobject10_d1e9280" class="firstname"></a><img src="httpatomoreillycomsourceoreillyimages1096454.png" alt="Moving a cloned item, keeping it on the page" class="calibre5"/></div></div><p class="title4">Figure 10-5. Moving a cloned item, keeping it on the page</p></div></div><p class="calibre7">Every time we move one of the <code class="literal">&lt;span&gt;</code> elements, we create a copy of the
+      item, which explains the presence of several identical elements on the
+      page.</p><p class="calibre7">Next, we can improve this script by preventing duplicates of the
+      same element by <span class="firstname">removing</span> the original.
+      At the end of the displacement, the original item disappears (it is
+      replaced by the one that was moved):</p><a id="I_programlisting10_d1e9296" class="firstname"></a><pre class="programlisting">&lt;script src = jquery.js&gt;&lt;/script&gt;
+&lt;script src = jqueryui/js/jquery-ui-1.8.16.custom.min.js&gt;&lt;/script&gt;
+
+&lt;link rel=stylesheet type=text/css
+      href=jqueryui/css/smoothness/jquery-ui-1.8.16.custom.css /&gt;
+
+&lt;div id=div1 style="border:solid 1px;background-color:gainsboro;"&gt;
+  &lt;span&gt;Item 1 to move&lt;/span&gt;&lt;br /&gt;&lt;br /&gt;
+  &lt;span&gt;Item 2 to move&lt;/span&gt;&lt;br /&gt;&lt;br /&gt;
+  &lt;span&gt;Item 3 to move&lt;/span&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+
+<span class="firstname"><strong class="userinput">$("#div1 span").draggable ({</strong></span>
+  <span class="firstname"><strong class="userinput">helper : "clone",</strong></span>
+  <span class="firstname"><strong class="userinput">stop : function (event, ui)</strong></span>
+  <span class="firstname"><strong class="userinput">{</strong></span>
+    <span class="firstname"><strong class="userinput">ui.helper.clone ().appendTo ($(this).parent ());</strong></span>
+    <span class="firstname"><strong class="userinput">$(this).remove ();</strong></span>
+  <span class="firstname"><strong class="userinput">}</strong></span>
+<span class="firstname"><strong class="userinput">});</strong></span>
+
+&lt;/script&gt;</pre><p class="calibre7">The <code class="literal">$(this).remove ()</code> statement
+      deletes the original item at the end of the <span class="firstname">displacement.</span></p><p class="calibre7">The result of this script is shown in <a class="ulink" href="ch10s03.html#the_original_elements_have_been_removed" title="Figure 10-6. The original elements have been removed">Figure 10-6</a>.</p><div class="book"><div class="figure"><a id="the_original_elements_have_been_removed" class="firstname"></a><div class="book"><div class="book"><a id="I_mediaobject10_d1e9339" class="firstname"></a><img src="httpatomoreillycomsourceoreillyimages1096456.png" alt="The original elements have been removed" class="calibre5"/></div></div><p class="title4">Figure 10-6. The original elements have been removed</p></div></div><p class="calibre7">However, each moved item is no longer draggable! Indeed, we have
+      inserted a new (cloned) element on the page, but it does not have the
+      characteristics of a draggable element. To allow movement of this
+      element, we can call the <code class="literal">draggable ()</code>
+      method. Consequently, moved items will be cloned, but may continue to be
+      displaced by being cloned again:</p><a id="I_programlisting10_d1e9349" class="firstname"></a><pre class="programlisting">&lt;script src = jquery.js&gt;&lt;/script&gt;
+&lt;script src = jqueryui/js/jquery-ui-1.8.16.custom.min.js&gt;&lt;/script&gt;
+
+&lt;link rel=stylesheet type=text/css
+      href=jqueryui/css/smoothness/jquery-ui-1.8.16.custom.css /&gt;
+
+&lt;div id=div1 style="border:solid 1px;background-color:gainsboro;"&gt;
+  &lt;span&gt;Item 1 to move&lt;/span&gt;&lt;br /&gt;&lt;br /&gt;
+  &lt;span&gt;Item 2 to move&lt;/span&gt;&lt;br /&gt;&lt;br /&gt;
+  &lt;span&gt;Item 3 to move&lt;/span&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+
+<span class="firstname"><strong class="userinput">$("#div1 span").draggable ({</strong></span>
+  <span class="firstname"><strong class="userinput">helper : "clone"</strong></span>
+<span class="firstname"><strong class="userinput">}).bind ("dragstop", f = function (event, ui)</strong></span>
+<span class="firstname"><strong class="userinput">{</strong></span>
+  <span class="firstname"><strong class="userinput">ui.helper.clone ()</strong></span>
+           <span class="firstname"><strong class="userinput">.appendTo ($(this).parent ())</strong></span>
+           <span class="firstname"><strong class="userinput">.draggable ( { helper : "clone" } )</strong></span>
+           <span class="firstname"><strong class="userinput">.bind ("dragstop", f);</strong></span>
+  <span class="firstname"><strong class="userinput">$(this).remove ();</strong></span>
+<span class="firstname"><strong class="userinput">});</strong></span>
+
+&lt;/script&gt;</pre><p class="calibre7">Here, we use the <code class="literal">dragstop</code> event
+      instead of the <code class="literal">stop ()</code> method used
+      previously. Indeed, it is necessary for the cloned item to use this
+      event handler, so the easiest way to pass it is to use the <code class="literal">bind ("dragstop", f)</code> method, where the
+      <code class="literal">f</code> function is the callback function
+      used previously.</p></div></div></div>
+
+{% endraw %}
+

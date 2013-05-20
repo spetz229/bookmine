@@ -1,0 +1,265 @@
+---
+layout: page
+title: "CoffeeScript (for jay muratore)"
+prev: f_0011.html
+next: f_0013.html
+book_path: books/trevor-burnham-coffeescript-accelerated-javascript-development-pragmatic--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="sec.installing" class="calibre13">1.1 Installing CoffeeScript</h2>
+<p id="N102D6" class="calibre5">
+      The CoffeeScript compiler is written in CoffeeScript. That presents a chicken-and-egg problem: How do we run the compiler on a system that doesn’t already have the CoffeeScript compiler? If only there were some way to run JavaScript on your machine without a web browser and give that code access to the local file system…
+    </p>
+<p id="N102D9" class="calibre5">
+      Ah, but there is: Node.js! People think of Node as a JavaScript web server (more on that in Chapter 6, <a href="f_0053.html#chp.nodejs">​<em class="emph">Server-Side Apps with Node.js</em>​</a>), but it’s so much more. Fundamentally, it’s a bridge between JavaScript code and your operating system. Node also has a wonderful tool called npm, the Node Package Manager.<a id="FNPTR-15" href="f_0016.html#FOOTNOTE-15">[15]</a> If your background is in Ruby, think of it as the Node analog of RubyGems. It’s become <span class="emph">the</span> de facto standard for installing and managing Node apps and libraries.
+    </p>
+<p id="N102E8" class="calibre5">
+      The rest of this section will be about installing Node and npm, which we need in order to use CoffeeScript’s canonical <code class="cf">coffee</code> compiler. (We’ll also need Node and npm for the last chapter of this book.) But if you’re in a rush to get your feet wet, you might want to head over to <a href="http://coffeescript.org/">http://coffeescript.org/</a>, hit the “Try CoffeeScript” button, and skip ahead to the next chapter. (You’ll need something in your browser to display <code class="cf">console</code> output, such as Firebug Lite.<a id="FNPTR-16" href="f_0016.html#FOOTNOTE-16">[16]</a>)
+      </p>
+<p id="N102FD" class="calibre5">Ready? Let’s get to it.</p>
+<h3 id="sec.installing.node" class="calibre14">CoffeeScript with Node.js and npm</h3>
+<p id="N1030A" class="calibre5">
+        Although there are many ways to run CoffeeScript without Node (several of which are covered in Appendix B, <a href="f_0066.html#app.ways">​<em class="emph">Ways of Running CoffeeScript</em>​</a>), I’ll assume throughout this book that you’re using the standard <code class="cf">coffee</code> command, which was designed to run under Node. The final chapter, Chapter 6, <a href="f_0053.html#chp.nodejs">​<em class="emph">Server-Side Apps with Node.js</em>​</a>, is the only one that explicitly requires Node and npm.
+      </p>
+<p id="N10318" class="calibre5">
+        Heads up—if you’re on Windows, you’ll need to get Cygwin before we continue.<a id="FNPTR-17" href="f_0016.html#FOOTNOTE-17">[17]</a> Cygwin basically acts as a Linux emulator. While first-class Windows support is on the Node.js roadmap for version 0.6, using Cygwin is the most reliable approach available as of this writing.
+        </p>
+<p id="N10329" class="calibre5">
+        If you’re on a Mac, you’ll need to install Xcode,<a id="FNPTR-18" href="f_0016.html#FOOTNOTE-18">[18]</a> not for the app itself but for the command-line developer tools that come with it. You can check whether these tools are already on your system by trying to run <code class="cf">gcc</code>, the GNU Compiler Collection:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$ <strong class="prompt">gcc</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">i686-apple-darwin10-gcc-4.2.1: no input files</code>
+</td>
+</tr>
+</table>
+<p id="N1034E" class="calibre5">
+        If your output looked like that, you’re set. If not, get Xcode (if you’re on a Mac) or install the standard build tools directly (if you’re on Linux or Cygwin).
+      </p>
+<p id="N10351" class="calibre5">
+        Everyone’s on a Linux/Unix/Mac-type system with standard build tools now? Great! Now head to <a href="http://gist.github.com/579814">http://gist.github.com/579814</a>. There you’ll find a bewildering array of installation options curated by npm creator Isaac Schlueter. For all the Mac users out there, I recommend the Homebrew approach (install Homebrew first).<a id="FNPTR-19" href="f_0016.html#FOOTNOTE-19">[19]</a> For everyone else, the direct approach—first on the list—is probably best. Node is a big package, so it may take a few minutes to install.
+        </p>
+<p id="N10362" class="calibre5">
+        Once Node is on your system, run the latest remote install script for npm:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$ <strong class="prompt">curl http://npmjs.org/install.sh | sh</strong>
+</code>
+</td>
+</tr>
+</table>
+<p id="N10378" class="calibre5">
+        If you get a permissions error, either <code class="cf">chown</code> the directory Node is installed in (this will save you from headaches down the road) or use <code class="cf">sudo sh</code> instead of plain <code class="cf">sh</code>.
+      </p>
+<p id="N10384" class="calibre5">
+        No matter how you installed them, check that <code class="cf">node</code> and <code class="cf">npm</code> are on your path:
+        <code class="cf">PATH</code>
+</p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$ <strong class="prompt">node -v</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">v0.4.8</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$ <strong class="prompt">npm -v</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">1.0.13</code>
+</td>
+</tr>
+</table>
+<p id="N103A9" class="calibre5">
+        (A word on versions: Node’s API is stable in even-numbered point releases. So, the examples in this book should run fine under the latest 0.4.x. Node 0.5.x, on the other hand, will feature API changes, which will be incorporated into the stable 0.6.x. As to npm, I’ll assume throughout this book that you’re using npm 1.x. So if you’re still on npm 0.x, now would be a good time to upgrade.)
+      </p>
+<p id="N103AC" class="calibre5">
+        Now grab the latest CoffeeScript release:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$ <strong class="prompt">npm install -g coffee-script</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">/usr/local/bin/cake -&gt; /usr/local/lib/node_modules/coffee-script/bin/cake</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">/usr/local/bin/coffee -&gt; /usr/local/lib/node_modules/coffee-script/bin/coffee</code>
+</td>
+</tr>
+</table>
+<p id="N103C3" class="calibre5">
+        The <code class="cf">-g</code> flag, short for <code class="cf">--global</code>, makes the installed library available system-wide. (By default, <code class="cf">npm install [package]</code> puts the given package in the local <code class="cf">node_modules</code> subdirectory, which is handy when installing a package that is only for a specific project.) I recommend using <code class="cf">-g</code> whenever you install packages that include binaries.
+      </p>
+<p id="N103DC" class="calibre5">
+        The output from <code class="cf">npm install</code> tells us that two binaries were installed as part of the package: <code class="cf">cake</code> and <code class="cf">coffee</code>. Let’s check that <code class="cf">coffee</code> is on our system’s <code class="cf">PATH</code>:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$ <strong class="prompt">coffee -v</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">CoffeeScript version 1.1.1</code>
+</td>
+</tr>
+</table>
+<p id="N10403" class="calibre5">
+        If that didn’t work, look at the directory before <code class="cf">-&gt;</code> in your <code class="cf">npm install</code> output (for example, <code class="cf">/usr/local/bin</code>) and add that directory to your <code class="cf">PATH</code>. On a Mac with the default <code class="cf">bash</code> shell, do that by adding the following line to your <code class="cf">~/.profile</code>:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">export PATH=/usr/local/bin:$PATH</code>
+</td>
+</tr>
+</table>
+<p id="N10423" class="calibre5">
+        Make sure to include the <code class="cf">:$PATH</code> part—otherwise, <code class="cf">/usr/local/bin</code> would replace your <code class="cf">PATH</code> rather than being added to it! For the line to take effect, you’ll have to save the file and start a new shell session (for example, by opening a new Terminal window and closing the old one).
+      </p>
+<p id="N1042F" class="calibre5">
+        If you’re using a different OS or shell, these steps might be slightly different; enter <code class="cf">echo $SHELL</code> to find out which shell you’re using. Don’t forget that you have to restart your shell session after modifying the file in order for it to take effect.
+      </p>
+<p id="N10435" class="calibre5">
+        There’s one last step: just as our binaries have to be on <code class="cf">PATH</code> for us to be able to use them from anywhere, the Node libraries npm installs have to be on <code class="cf">NODE_PATH</code>. To see where Node is installing its libraries, type the following:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">$ <strong class="prompt">npm ls -g</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">/usr/local/lib</code>
+</td>
+</tr>
+</table>
+<p id="N10453" class="calibre5">
+        (This command also lists all of the packages that npm has installed globally. If you omit <code class="cf">-g</code>, you’ll see all the packages installed in the current directory.) We need to add the <code class="cf">node_modules</code> subdirectory of that path to <code class="cf">NODE_PATH</code>. On my system, that means adding the following to <code class="cf">~/.profile</code>:
+      </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">export NODE_PATH=/usr/local/lib/node_modules</code>
+</td>
+</tr>
+</table>
+<p id="N1046D" class="calibre5">
+        Once again, the steps you’ll need to take may be different on your system. To test that <code class="cf">NODE_PATH</code> is working its magic, start a new shell session and enter the <code class="cf">node</code> command. That’ll take you to the Node.js REPL, an environment where you can interactively run commands. Now enter this:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">&gt; require('coffee-script')</code>
+</td>
+</tr>
+</table>
+<p id="N10485" class="calibre5">
+        I promise, that’s the only JavaScript you’ll have to type in this book!
+      </p>
+<p id="N10488" class="calibre5">
+        If <code class="cf">NODE_PATH</code> isn’t set correctly, you’ll get <code class="cf">Error: Cannot find module ’coffee-script’</code>. If you see a long object description instead, you’re golden. When you’re done with Node’s REPL, enter <code class="cf">process.exit()</code>, or just hit <code class="cf">Ctrl</code>-<code class="cf">c</code>.
+      </p>
+<p id="N1049A" class="calibre5">
+        By the way, the <code class="cf">coffee-script</code> library is beyond the scope of this book; suffice it to say that it lets you compile CoffeeScript to JavaScript from within your CoffeeScript or JavaScript program. You can do some pretty cool stuff with this, like writing your own compiler with custom postprocessing,<a id="FNPTR-20" href="f_0016.html#FOOTNOTE-20">[20]</a> or writing your own build script as a Cakefile.<a id="FNPTR-21" href="f_0016.html#FOOTNOTE-21">[21]</a>
+</p>
+<div class="sidebar" id="sb.installCoffeeEdge">
+<div class="sidebar-title">Staying on the Bleeding Edge</div>
+<div class="calibre1">
+<p id="N104AF" class="calibre5">
+          If you absolutely must have the latest CoffeeScript, it’s actually pretty easy. Just use <code class="cf1">git</code> to clone the CoffeeScript repo, then have <code class="cf1">npm</code> install it from the local directory:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">$ <strong class="prompt">git clone http://github.com/jashkenas/coffee-script.git</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">$ <strong class="prompt">cd coffee-script</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">$ <strong class="prompt">npm install -g</strong>
+</code>
+</td>
+</tr>
+</table>
+<p id="N104D7" class="calibre5">
+          This will install the current <code class="cf1">master</code> branch, which may or may not be stable. You can revert to a specific version of CoffeeScript (say, 1.1.1) by running the following:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix1"> </td>
+<td class="codeline1">
+<code class="calibre16">$ <strong class="prompt">npm install -g coffee-script@1.1.1</strong>
+</code>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<p id="N104EB" class="calibre5">
+    Whew! I know that installation may have felt like a lot of work, but believe me, those efforts will pay off now that we have the full power of Node and npm at our disposal. Now let’s set up your editing environment.
+  </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

@@ -1,0 +1,181 @@
+---
+layout: page
+title: "Java Concurrency in Practice"
+prev: ch08lev1sec2.html
+next: ch08lev1sec4.html
+book_path: books/brian-goetz-tim-peierls-joshua-bloch-joseph-bowbeer-david-holmes-doug-lea-java-concurrency-in-practice--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a name="ch08lev1sec3" class="calibre18" id="ch08lev1sec3"></a>
+<h3 id="title-IDALMNYH" class="docSection1Title">8.3. Configuring <tt class="calibre33">ThreadPoolExecutor</tt></h3>
+<p class="docText1"><tt class="calibre25">ThreadPoolExecutor</tt> provides the base implementation for the executors returned by the <tt class="calibre25">newCachedThreadPool</tt>, <tt class="calibre25">newFixedThreadPool</tt>, and <tt class="calibre25">newScheduled-ThreadExecutor</tt> factories in <tt class="calibre25">Executors</tt>. <tt class="calibre25">ThreadPoolExecutor</tt> is a flexible, robust pool implementation that allows a variety of customizations.</p>
+<p class="docText1">If the default execution policy does not meet your needs, you can instantiate a <tt class="calibre25">ThreadPoolExecutor</tt> through its constructor and customize it as you see fit; you can consult the source code for <tt class="calibre25">Executors</tt> to see the execution policies for the default configurations and use them as a starting point. <tt class="calibre25">ThreadPoolExecutor</tt> has several constructors, the most general of which is shown in <a class="calibre2" href="#ch08list02">Listing 8.2</a>.</p>
+<a name="ch08lev2sec3" class="calibre18" id="ch08lev2sec3"></a>
+<h4 id="title-IDASNNYH" class="docSection2Title">8.3.1. Thread Creation and Teardown</h4>
+<p class="docText1">The core pool size, maximum pool size, and keep-alive time govern thread creation and teardown. The core size is the target size; the implementation attempts to maintain the pool at this size even when there are no tasks to execute,<sup class="docFootnote"><a class="calibre2" href="#ch08fn02">[2]</a></sup> and will <a name="iddle1251" class="calibre18" id="iddle1251"></a><a name="iddle1476" class="calibre18" id="iddle1476"></a><a name="iddle1574" class="calibre18" id="iddle1574"></a><a name="iddle1674" class="calibre18" id="iddle1674"></a><a name="iddle2926" class="calibre18" id="iddle2926"></a><a name="iddle2927" class="calibre18" id="iddle2927"></a><a name="iddle2930" class="calibre18" id="iddle2930"></a><a name="iddle2931" class="calibre18" id="iddle2931"></a><a name="iddle3182" class="calibre18" id="iddle3182"></a><a name="iddle3617" class="calibre18" id="iddle3617"></a><a name="iddle3618" class="calibre18" id="iddle3618"></a><a name="iddle3627" class="calibre18" id="iddle3627"></a><a name="iddle3768" class="calibre18" id="iddle3768"></a><a name="iddle3769" class="calibre18" id="iddle3769"></a><a name="iddle3932" class="calibre18" id="iddle3932"></a><a name="iddle4303" class="calibre18" id="iddle4303"></a><a name="iddle4315" class="calibre18" id="iddle4315"></a><a name="iddle4316" class="calibre18" id="iddle4316"></a><a name="iddle4642" class="calibre18" id="iddle4642"></a><a name="iddle4643" class="calibre18" id="iddle4643"></a><a name="iddle4644" class="calibre18" id="iddle4644"></a><a name="iddle4683" class="calibre18" id="iddle4683"></a><a name="iddle4804" class="calibre18" id="iddle4804"></a><a name="iddle4835" class="calibre18" id="iddle4835"></a><a name="iddle4836" class="calibre18" id="iddle4836"></a><a name="iddle4856" class="calibre18" id="iddle4856"></a><a name="iddle4903" class="calibre18" id="iddle4903"></a><a name="iddle4904" class="calibre18" id="iddle4904"></a><a name="iddle4925" class="calibre18" id="iddle4925"></a><a name="iddle4926" class="calibre18" id="iddle4926"></a>not create more threads than this unless the work queue is full.<sup class="docFootnote"><a class="calibre2" href="#ch08fn03">[3]</a></sup> The maximum pool size is the upper bound on how many pool threads can be active at once. A thread that has been idle for longer than the keep-alive time becomes a candidate for reaping and can be terminated if the current pool size exceeds the core size.</p><blockquote class="calibre19"><p class="docFootnote1"><sup class="calibre27"><a name="ch08fn02" class="calibre18" id="ch08fn02">[2]</a></sup> Whena <tt class="calibre35">ThreadPoolExecutor</tt> is initially created, the core threads are not started immediately but instead as tasks are submitted, unless you call <tt class="calibre35">prestartAllCoreThreads</tt>.</p></blockquote><blockquote class="calibre19"><p class="docFootnote1"><sup class="calibre27"><a name="ch08fn03" class="calibre18" id="ch08fn03">[3]</a></sup> Developers are sometimes tempted to set the core size to zero so that the worker threads will eventually be torn down and therefore won't prevent the JVM from exiting, but this can cause some strange-seeming behavior in thread pools that don't use a <tt class="calibre35">SynchronousQueue</tt> for their work queue (as <tt class="calibre35">newCachedThreadPool</tt> does). If the pool is already at the core size, <tt class="calibre35">THReadPoolExecutor</tt> creates a new thread only if the work queue is full. So tasks submitted to a thread pool with a work queue that has any capacity and a core size of zero will not execute until the queue fills up, which is usually not what is desired. In Java 6, <tt class="calibre35">allowCoreThreadTimeOut</tt> allows you to request that all pool threads be able to time out; enable this feature with a core size of zero if you want a bounded thread pool with a bounded work queue but still have all the threads torn down when there is no work to do.</p></blockquote>
+<a name="ch08list02" class="calibre18" id="ch08list02"></a><h5 id="title-IDANZNYH" class="docExampleTitle">Listing 8.2. General Constructor for <tt class="calibre33">THReadPoolExecutor</tt>.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">public ThreadPoolExecutor(int corePoolSize,
+                          int maximumPoolSize,
+                          long keepAliveTime,
+                          TimeUnit unit,
+                          BlockingQueue&lt;Runnable&gt; workQueue,
+                          ThreadFactory threadFactory,
+                          RejectedExecutionHandler handler) { ... }
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1">By tuning the core pool size and keep-alive times, you can encourage the pool to reclaim resources used by otherwise idle threads, making them available for more useful work. (Like everything else, this is a tradeoff: reaping idle threads incurs additional latency due to thread creation if threads must later be created when demand increases.)</p>
+<p class="docText1">The <tt class="calibre25">newFixedThreadPool</tt> factory sets both the core pool size and the maximum pool size to the requested pool size, creating the effect of infinite timeout; the <tt class="calibre25">newCachedThreadPool</tt> factory sets the maximum pool size to <tt class="calibre25">Integer.MAX_VALUE</tt> and the core pool size to zero with a timeout of one minute, creating the effect of an infinitely expandable thread pool that will contract again when demand decreases. Other combinations are possible using the explicit <tt class="calibre25">THReadPool-Executor</tt> constructor.</p>
+<a name="ch08lev2sec4" class="calibre18" id="ch08lev2sec4"></a>
+<h4 id="title-IDAM0NYH" class="docSection2Title">8.3.2. Managing Queued Tasks</h4>
+<p class="docText1">Bounded thread pools limit the number of tasks that can be executed concurrently. (The single-threaded executors are a notable special case: they guarantee that no tasks will execute concurrently, offering the possibility of achieving thread safety through thread confinement.)</p>
+<p class="docText1">We saw in <a class="calibre2" href="ch06lev1sec1.html#ch06lev2sec2">Section 6.1.2</a> how unbounded thread creation could lead to instability, and addressed this problem by using a fixed-sized thread pool instead of creating a new thread for every request. However, this is only a partial solution; it is still possible for the application to run out of resources under heavy load, just harder. If the arrival rate for new requests exceeds the rate at which they can be <a name="iddle1222" class="calibre18" id="iddle1222"></a><a name="iddle1239" class="calibre18" id="iddle1239"></a><a name="iddle1252" class="calibre18" id="iddle1252"></a><a name="iddle2383" class="calibre18" id="iddle2383"></a><a name="iddle2384" class="calibre18" id="iddle2384"></a><a name="iddle2989" class="calibre18" id="iddle2989"></a><a name="iddle3196" class="calibre18" id="iddle3196"></a><a name="iddle3197" class="calibre18" id="iddle3197"></a><a name="iddle3664" class="calibre18" id="iddle3664"></a><a name="iddle3767" class="calibre18" id="iddle3767"></a><a name="iddle3893" class="calibre18" id="iddle3893"></a><a name="iddle3894" class="calibre18" id="iddle3894"></a><a name="iddle3973" class="calibre18" id="iddle3973"></a><a name="iddle4599" class="calibre18" id="iddle4599"></a><a name="iddle4864" class="calibre18" id="iddle4864"></a><a name="iddle4996" class="calibre18" id="iddle4996"></a><a name="iddle5160" class="calibre18" id="iddle5160"></a>handled, requests will still queue up. With a thread pool, they wait in a queue of <tt class="calibre25">Runnable</tt>s managed by the <tt class="calibre25">Executor</tt> instead of queueing up as threads contending for the CPU. Representing a waiting task with a <tt class="calibre25">Runnable</tt> and a list node is certainly a lot cheaper than with a thread, but the risk of resource exhaustion still remains if clients can throw requests at the server faster than it can handle them.</p>
+<p class="docText1">Requests often arrive in bursts even when the average request rate is fairly stable. Queues can help smooth out transient bursts of tasks, but if tasks continue to arrive too quickly you will eventually have to throttle the arrival rate to avoid running out of memory.<sup class="docFootnote"><a class="calibre2" href="#ch08fn04">[4]</a></sup> Even before you run out of memory, response time will get progressively worse as the task queue grows.</p><blockquote class="calibre19"><p class="docFootnote1"><sup class="calibre27"><a name="ch08fn04" class="calibre18" id="ch08fn04">[4]</a></sup> This is analogous to flow control in communications networks: you may be willing to buffer a certain amount of data, but eventually you need to find a way to get the other side to stop sending you data, or throw the excess data on the floor and hope the sender retransmits it when you're not so busy.</p></blockquote>
+<p class="docText1"><tt class="calibre25">ThreadPoolExecutor</tt> allows you to supply a <tt class="calibre25">BlockingQueue</tt> to hold tasks awaiting execution. There are three basic approaches to task queueing: unbounded queue, bounded queue, and synchronous handoff. The choice of queue interacts with other configuration parameters such as pool size.</p>
+<p class="docText1">The default for <tt class="calibre25">newFixedThreadPool</tt> and <tt class="calibre25">newSingleThreadExecutor</tt> is to use an unbounded <tt class="calibre25">LinkedBlockingQueue</tt>. Tasks will queue up if all worker threads are busy, but the queue could grow without bound if the tasks keep arriving faster than they can be executed.</p>
+<p class="docText1">A more stable resource management strategy is to use a bounded queue, such as an <tt class="calibre25">ArrayBlockingQueue</tt> or a bounded <tt class="calibre25">LinkedBlockingQueue</tt> or <tt class="calibre25">Priority-BlockingQueue</tt>. Bounded queues help prevent resource exhaustion but introduce the question of what to do with new tasks when the queue is full. (There are a number of possible <span class="docEmphasis">saturation policies</span> for addressing this problem; see <a class="calibre2" href="#ch08lev2sec5">Section 8.3.3</a>.) With a bounded work queue, the queue size and pool size must be tuned together. A large queue coupled with a small pool can help reduce memory usage, CPU usage, and context switching, at the cost of potentially constraining throughput.</p>
+<p class="docText1">For very large or unbounded pools, you can also bypass queueing entirely and instead hand off tasks directly from producers to worker threads using a <tt class="calibre25">SynchronousQueue</tt>. A <tt class="calibre25">SynchronousQueue</tt> is not really a queue at all, but a mechanism for managing handoffs between threads. In order to put an element on a <tt class="calibre25">SynchronousQueue</tt>, another thread must already be waiting to accept the handoff. If no thread is waiting but the current pool size is less than the maximum, <tt class="calibre25">Thread-PoolExecutor</tt> creates a new thread; otherwise the task is rejected according to the saturation policy. Using a direct handoff is more efficient because the task can be handed right to the thread that will execute it, rather than first placing it on a queue and then having the worker thread fetch it from the queue. <tt class="calibre25">SynchronousQueue</tt> is a practical choice only if the pool is unbounded or if rejecting excess tasks is acceptable. The <tt class="calibre25">newCachedThreadPool</tt> factory uses a <tt class="calibre25">SynchronousQueue</tt>.</p>
+<p class="docText1">Using a FIFO queue like <tt class="calibre25">LinkedBlockingQueue</tt> or <tt class="calibre25">ArrayBlockingQueue</tt> causes tasks to be started in the order in which they arrived. For more control over task execution order, you can use a <tt class="calibre25">PriorityBlockingQueue</tt>, which <a name="iddle1006" class="calibre18" id="iddle1006"></a><a name="iddle1007" class="calibre18" id="iddle1007"></a><a name="iddle1059" class="calibre18" id="iddle1059"></a><a name="iddle1250" class="calibre18" id="iddle1250"></a><a name="iddle1295" class="calibre18" id="iddle1295"></a><a name="iddle1952" class="calibre18" id="iddle1952"></a><a name="iddle1953" class="calibre18" id="iddle1953"></a><a name="iddle2607" class="calibre18" id="iddle2607"></a><a name="iddle3306" class="calibre18" id="iddle3306"></a><a name="iddle3532" class="calibre18" id="iddle3532"></a><a name="iddle3586" class="calibre18" id="iddle3586"></a><a name="iddle3755" class="calibre18" id="iddle3755"></a><a name="iddle3756" class="calibre18" id="iddle3756"></a><a name="iddle3828" class="calibre18" id="iddle3828"></a><a name="iddle3829" class="calibre18" id="iddle3829"></a><a name="iddle3832" class="calibre18" id="iddle3832"></a><a name="iddle3833" class="calibre18" id="iddle3833"></a><a name="iddle3925" class="calibre18" id="iddle3925"></a><a name="iddle4052" class="calibre18" id="iddle4052"></a><a name="iddle4053" class="calibre18" id="iddle4053"></a><a name="iddle4598" class="calibre18" id="iddle4598"></a><a name="iddle4600" class="calibre18" id="iddle4600"></a><a name="iddle4805" class="calibre18" id="iddle4805"></a><a name="iddle4865" class="calibre18" id="iddle4865"></a>orders tasks according to priority. Priority can be defined by natural order (if tasks implement <tt class="calibre25">Comparable</tt>) or by a <tt class="calibre25">Comparator</tt>.</p>
+<a name="ch08sb03" class="calibre18" id="ch08sb03"></a><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<p class="docText1">The <tt class="calibre25">newCachedThreadPool</tt> factory is a good default choice for an <tt class="calibre25">Executor</tt>, providing better queuing performance than a fixed thread pool.<sup class="docFootnote"><a class="calibre2" href="#ch08fn05">[5]</a></sup> A fixed size thread pool is a good choice when you need to limit the number of concurrent tasks for resource-management purposes, as in a server application that accepts requests from network clients and would otherwise be vulnerable to overload.</p>
+</td></tr></table></p><p class="calibre1"> </p><blockquote class="calibre19"><p class="docFootnote1"><sup class="calibre27"><a name="ch08fn05" class="calibre18" id="ch08fn05">[5]</a></sup> This performance difference comes from the use of <tt class="calibre35">SynchronousQueue</tt> instead of <tt class="calibre35">LinkedBlocking-Queue</tt>. <tt class="calibre35">SynchronousQueue</tt> was replaced in Java 6 with a new nonblocking algorithm that improved throughput in <tt class="calibre35">Executor</tt> benchmarks by a factor of three over the Java 5.0 <tt class="calibre35">SynchronousQueue</tt> implementation (<a class="calibre2" href="bib01.html#biblio01_030">Scherer et al., 2006</a>).</p></blockquote>
+<p class="docText1">Bounding either the thread pool or the work queue is suitable only when tasks are independent. With tasks that depend on other tasks, bounded thread pools or queues can cause thread starvation deadlock; instead, use an unbounded pool configuration like <tt class="calibre25">newCachedThreadPool</tt>.<sup class="docFootnote"><a class="calibre2" href="#ch08fn06">[6]</a></sup></p><blockquote class="calibre19"><p class="docFootnote1"><sup class="calibre27"><a name="ch08fn06" class="calibre18" id="ch08fn06">[6]</a></sup> An alternative configuration for tasks that submit other tasks and wait for their results is to use a bounded thread pool, a <tt class="calibre35">SynchronousQueue</tt> as the work queue, and the caller-runs saturation policy.</p></blockquote>
+<a name="ch08lev2sec5" class="calibre18" id="ch08lev2sec5"></a>
+<h4 id="title-IDAENBUK" class="docSection2Title">8.3.3. Saturation Policies</h4>
+<p class="docText1">When a bounded work queue fills up, the <span class="docEmphasis">saturation policy</span> comes into play. The saturation policy for a <tt class="calibre25">ThreadPoolExecutor</tt> can be modified by calling <tt class="calibre25">setRejectedExecutionHandler</tt>. (The saturation policy is also used when a task is submitted to an <tt class="calibre25">Executor</tt> that has been shut down.) Several implementations of <tt class="calibre25">RejectedExecutionHandler</tt> are provided, each implementing a different saturation policy: <tt class="calibre25">AbortPolicy</tt>, <tt class="calibre25">CallerRunsPolicy</tt>, <tt class="calibre25">DiscardPolicy</tt>, and <tt class="calibre25">DiscardOldestPolicy</tt>.</p>
+<p class="docText1">The default policy, <span class="docEmphasis">abort</span>, causes <tt class="calibre25">execute</tt> to throw the unchecked <tt class="calibre25">Rejected-ExecutionException</tt>; the caller can catch this exception and implement its own overflow handling as it sees fit. The <span class="docEmphasis">discard</span> policy silently discards the newly submitted task if it cannot be queued for execution; the <span class="docEmphasis">discard-oldest</span> policy discards the task that would otherwise be executed next and tries to resubmit the new task. (If the work queue is a priority queue, this discards the highest-priority element, so the combination of a discard-oldest saturation policy and a priority queue is not a good one.)</p>
+<p class="docText1">The <span class="docEmphasis">caller-runs</span> policy implements a form of throttling that neither discards tasks nor throws an exception, but instead tries to slow down the flow of new tasks by pushing some of the work back to the caller. It executes the newly submitted task not in a pool thread, but in the thread that calls <tt class="calibre25">execute</tt>. If we modified our <tt class="calibre25">WebServer</tt> example to use a bounded queue and the caller-runs policy, after all the pool threads were occupied and the work queue filled up the next task would be executed in the main thread during the call to <tt class="calibre25">execute</tt>. Since <a name="iddle1527" class="calibre18" id="iddle1527"></a><a name="iddle1528" class="calibre18" id="iddle1528"></a><a name="iddle1731" class="calibre18" id="iddle1731"></a><a name="iddle1736" class="calibre18" id="iddle1736"></a><a name="iddle1737" class="calibre18" id="iddle1737"></a><a name="iddle1738" class="calibre18" id="iddle1738"></a><a name="iddle1831" class="calibre18" id="iddle1831"></a><a name="iddle2090" class="calibre18" id="iddle2090"></a><a name="iddle2298" class="calibre18" id="iddle2298"></a><a name="iddle2299" class="calibre18" id="iddle2299"></a><a name="iddle2459" class="calibre18" id="iddle2459"></a><a name="iddle3923" class="calibre18" id="iddle3923"></a><a name="iddle4142" class="calibre18" id="iddle4142"></a><a name="iddle4771" class="calibre18" id="iddle4771"></a><a name="iddle4772" class="calibre18" id="iddle4772"></a><a name="iddle4846" class="calibre18" id="iddle4846"></a><a name="iddle5001" class="calibre18" id="iddle5001"></a>this would probably take some time, the main thread cannot submit any more tasks for at least a little while, giving the worker threads some time to catch up on the backlog. The main thread would also not be calling <tt class="calibre25">accept</tt> during this time, so incoming requests will queue up in the TCP layer instead of in the application. If the overload persisted, eventually the TCP layer would decide it has queued enough connection requests and begin discarding connection requests as well. As the server becomes overloaded, the overload is gradually pushed outwardfrom the pool threads to the work queue to the application to the TCP layer, and eventually to the clientenabling more graceful degradation under load.</p>
+<p class="docText1">Choosing a saturation policy or making other changes to the execution policy can be done when the <tt class="calibre25">Executor</tt> is created. <a class="calibre2" href="#ch08list03">Listing 8.3</a> illustrates creating a fixedsize thread pool with the caller-runs saturation policy.</p>
+<a name="ch08list03" class="calibre18" id="ch08list03"></a><h5 id="title-IDADVBUK" class="docExampleTitle">Listing 8.3. Creating a Fixed-sized Thread Pool with a Bounded Queue and the Caller-runs Saturation Policy.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">ThreadPoolExecutor executor
+    = new ThreadPoolExecutor(N_THREADS, N_THREADS,
+        0L, TimeUnit.MILLISECONDS,
+        new LinkedBlockingQueue&lt;Runnable&gt;(CAPACITY));
+executor.setRejectedExecutionHandler(
+    new ThreadPoolExecutor.CallerRunsPolicy());
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1">There is no predefined saturation policy to make <tt class="calibre25">execute</tt> block when the work queue is full. However, the same effect can be accomplished by using a <tt class="calibre25">Semaphore</tt> to bound the task injection rate, as shown in <tt class="calibre25">BoundedExecutor</tt> in <a class="calibre2" href="#ch08list04">Listing 8.4</a>. In such an approach, use an unbounded queue (there's no reason to bound both the queue size and the injection rate) and set the bound on the semaphore to be equal to the pool size <span class="docEmphasis">plus</span> the number of queued tasks you want to allow, since the semaphore is bounding the number of tasks both currently executing and awaiting execution.</p>
+<a name="ch08lev2sec6" class="calibre18" id="ch08lev2sec6"></a>
+<h4 id="title-IDAEWBUK" class="docSection2Title">8.3.4. Thread Factories</h4>
+<p class="docText1">Whenever a thread pool needs to create a thread, it does so through a <span class="docEmphasis">thread factory</span> (see <a class="calibre2" href="#ch08list05">Listing 8.5</a>). The default thread factory creates a new, nondaemon thread with no special configuration. Specifying a thread factory allows you to customize the configuration of pool threads. <tt class="calibre25">THReadFactory</tt> has a single method, <tt class="calibre25">newTHRead</tt>, that is called whenever a thread pool needs to create a new thread.</p>
+<p class="docText1">There are a number of reasons to use a custom thread factory. You might want to specify an <tt class="calibre25">UncaughtExceptionHandler</tt> for pool threads, or instantiate an instance of a custom <tt class="calibre25">THRead</tt> class, such as one that performs debug logging. You might want to modify the priority (generally not a very good idea; see <a class="calibre2" href="ch10lev1sec3.html#ch10lev2sec8">Section 10.3.1</a>) or set the daemon status (again, not all that good an idea; see <a class="calibre2" href="ch07lev1sec4.html#ch07lev2sec15">Section 7.4.2</a>) of pool threads. Or maybe you just want to give pool threads more meaningful names to simplify interpreting thread dumps and error logs.</p>
+<p class="docText1"></p><a name="ch08list04" class="calibre18" id="ch08list04"></a><h5 id="title-IDAVXBUK" class="docExampleTitle">Listing 8.4. Using a <tt class="calibre33">Semaphore</tt> to Throttle Task Submission.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">@ThreadSafe
+public class BoundedExecutor {
+    private final Executor exec;
+    private final Semaphore semaphore;
+
+    public BoundedExecutor(Executor exec, int bound) {
+        this.exec = exec;
+        this.semaphore = new Semaphore(bound);
+    }
+
+    public void submitTask(final Runnable command)
+            throws InterruptedException {
+        semaphore.acquire();
+        try {
+            exec.execute(new Runnable() {
+                public void run() {
+                    try {
+                        command.run();
+                    } finally {
+                        semaphore.release();
+                    }
+                }
+            });
+        } catch (RejectedExecutionException e) {
+            semaphore.release();
+        }
+    }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<a name="ch08list05" class="calibre18" id="ch08list05"></a><h5 id="title-IDALI1CX" class="docExampleTitle">Listing 8.5. <tt class="calibre33">ThreadFactory</tt> Interface.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">public interface ThreadFactory {
+    Thread newThread(Runnable r);
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1"><a name="iddle4139" class="calibre18" id="iddle4139"></a><a name="iddle4845" class="calibre18" id="iddle4845"></a><a name="iddle4866" class="calibre18" id="iddle4866"></a><a name="iddle1032" class="calibre18" id="iddle1032"></a><a name="iddle1033" class="calibre18" id="iddle1033"></a><a name="iddle1477" class="calibre18" id="iddle1477"></a><a name="iddle1529" class="calibre18" id="iddle1529"></a><a name="iddle1530" class="calibre18" id="iddle1530"></a><a name="iddle1575" class="calibre18" id="iddle1575"></a><a name="iddle1739" class="calibre18" id="iddle1739"></a><a name="iddle1740" class="calibre18" id="iddle1740"></a><a name="iddle2142" class="calibre18" id="iddle2142"></a><a name="iddle2144" class="calibre18" id="iddle2144"></a><a name="iddle3171" class="calibre18" id="iddle3171"></a><a name="iddle3548" class="calibre18" id="iddle3548"></a><a name="iddle3549" class="calibre18" id="iddle3549"></a><a name="iddle3550" class="calibre18" id="iddle3550"></a><a name="iddle3587" class="calibre18" id="iddle3587"></a><a name="iddle3588" class="calibre18" id="iddle3588"></a><a name="iddle3626" class="calibre18" id="iddle3626"></a><a name="iddle4116" class="calibre18" id="iddle4116"></a><a name="iddle4117" class="calibre18" id="iddle4117"></a><a name="iddle4304" class="calibre18" id="iddle4304"></a><a name="iddle4802" class="calibre18" id="iddle4802"></a><tt class="calibre25">MyThreadFactory</tt> in <a class="calibre2" href="#ch08list06">Listing 8.6</a> illustrates a custom thread factory. It instantiates a new <tt class="calibre25">MyAppThread</tt>, passing a pool-specific name to the constructor so that threads from each pool can be distinguished in thread dumps and error logs. <tt class="calibre25">My-AppThread</tt> can also be used elsewhere in the application so that all threads can take advantage of its debugging features.</p>
+<a name="ch08list06" class="calibre18" id="ch08list06"></a><h5 id="title-IDAQR1CX" class="docExampleTitle">Listing 8.6. Custom Thread Factory.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">public class MyThreadFactory implements ThreadFactory {
+    private final String poolName;
+
+    public MyThreadFactory(String poolName) {
+        this.poolName = poolName;
+    }
+
+    public Thread newThread(Runnable runnable) {
+        return new MyAppThread(runnable, poolName);
+    }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1">The interesting customization takes place in <tt class="calibre25">MyAppThread</tt>, shown in <a class="calibre2" href="#ch08list07">Listing 8.7</a>, which lets you provide a thread name, sets a custom <tt class="calibre25">UncaughtException-Handler</tt> that writes a message to a <tt class="calibre25">Logger</tt>, maintains statistics on how many threads have been created and destroyed, and optionally writes a debug message to the log when a thread is created or terminates.</p>
+<p class="docText1">If your application takes advantage of <span class="docEmphasis">security policies</span> to grant permissions to particular codebases, you may want to use the <tt class="calibre25">privilegedThreadFactory</tt> factory method in <tt class="calibre25">Executors</tt> to construct your thread factory. It creates pool threads that have the same permissions, <tt class="calibre25">AccessControlContext</tt>, and <tt class="calibre25">contextClassLoader</tt> as the thread creating the <tt class="calibre25">privilegedThreadFactory</tt>. Otherwise, threads created by the thread pool inherit permissions from whatever client happens to be calling <tt class="calibre25">execute</tt> or <tt class="calibre25">submit</tt> at the time a new thread is needed, which could cause confusing security-related exceptions.</p>
+<a name="ch08lev2sec7" class="calibre18" id="ch08lev2sec7"></a>
+<h4 id="title-IDACT1CX" class="docSection2Title">8.3.5. Customizing ThreadPoolExecutor After Construction</h4>
+<p class="docText1">Most of the options passed to the <tt class="calibre25">ThreadPoolExecutor</tt> constructors can also be modified after construction via setters (such as the core thread pool size, maximum thread pool size, keep-alive time, thread factory, and rejected execution handler). If the <tt class="calibre25">Executor</tt> is created through one of the factory methods in <tt class="calibre25">Executors</tt> (except <tt class="calibre25">newSingleThreadExecutor</tt>), you can cast the result to <tt class="calibre25">THRead-PoolExecutor</tt> to access the setters as in <a class="calibre2" href="#ch08list08">Listing 8.8</a>.</p>
+<p class="docText1"><tt class="calibre25">Executors</tt> includes a factory method, <tt class="calibre25">unconfigurableExecutorService</tt>, which takes an existing <tt class="calibre25">ExecutorService</tt> and wraps it with one exposing only the methods of <tt class="calibre25">ExecutorService</tt> so it cannot be further configured. Unlike the pooled implementations, <tt class="calibre25">newSingleThreadExecutor</tt> returns an <tt class="calibre25">ExecutorService</tt> wrapped in this manner, rather than a raw <tt class="calibre25">ThreadPoolExecutor</tt>. While <a name="iddle2143" class="calibre18" id="iddle2143"></a><a name="iddle1165" class="calibre18" id="iddle1165"></a><a name="iddle2289" class="calibre18" id="iddle2289"></a><a name="iddle2652" class="calibre18" id="iddle2652"></a><a name="iddle2764" class="calibre18" id="iddle2764"></a><a name="iddle3172" class="calibre18" id="iddle3172"></a><a name="iddle3191" class="calibre18" id="iddle3191"></a><a name="iddle3253" class="calibre18" id="iddle3253"></a><a name="iddle3620" class="calibre18" id="iddle3620"></a><a name="iddle4443" class="calibre18" id="iddle4443"></a><a name="iddle4444" class="calibre18" id="iddle4444"></a><a name="iddle4793" class="calibre18" id="iddle4793"></a><a name="iddle4857" class="calibre18" id="iddle4857"></a><a name="iddle4914" class="calibre18" id="iddle4914"></a><a name="iddle5012" class="calibre18" id="iddle5012"></a>a single-threaded executor is actually implemented as a thread pool with one thread, it also promises not to execute tasks concurrently. If some misguided code were to increase the pool size on a single-threaded executor, it would undermine the intended execution semantics.</p>
+<a name="ch08list07" class="calibre18" id="ch08list07"></a><h5 id="title-IDAFCVCX" class="docExampleTitle">Listing 8.7. Custom Thread Base Class.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">public class MyAppThread extends Thread {
+    public static final String DEFAULT_NAME = "MyAppThread";
+    private static volatile boolean debugLifecycle = false;
+    private static final AtomicInteger created = new AtomicInteger();
+    private static final AtomicInteger alive = new AtomicInteger();
+    private static final Logger log = Logger.getAnonymousLogger();
+
+    public MyAppThread(Runnable r) { this(r, DEFAULT_NAME); }
+
+    public MyAppThread(Runnable runnable, String name) {
+        super(runnable, name + "-" + created.incrementAndGet());
+        setUncaughtExceptionHandler(
+            new Thread.UncaughtExceptionHandler() {
+                public void uncaughtException(Thread t,
+                                              Throwable e) {
+                    log.log(Level.SEVERE,
+                        "UNCAUGHT in thread " + t.getName(), e);
+                }
+            });
+    }
+
+    public void run() {
+        // <span class="docEmphasis">Copy debug flag to ensure consistent value throughout.</span>
+        boolean debug = debugLifecycle;
+        if (debug) log.log(Level.FINE, "Created "+getName());
+        try {
+            alive.incrementAndGet();
+            super.run();
+        } finally {
+            alive.decrementAndGet();
+            if (debug) log.log(Level.FINE, "Exiting "+getName());
+        }
+    }
+
+    public static int getThreadsCreated() { return created.get(); }
+    public static int getThreadsAlive() { return alive.get(); }
+    public static boolean getDebug() { return debugLifecycle; }
+    public static void setDebug(boolean b) { debugLifecycle = b; }
+}
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<a name="ch08list08" class="calibre18" id="ch08list08"></a><h5 id="title-IDAYCVCX" class="docExampleTitle">Listing 8.8. Modifying an <tt class="calibre33">Executor</tt> Created with the Standard Factories.</h5><p class="calibre21"><table cellspacing="0" width="90%" border="1" cellpadding="5" class="calibre5"><tr class="calibre6"><td class="calibre28">
+<pre class="calibre30">ExecutorService exec = Executors.newCachedThreadPool();
+if (exec instanceof ThreadPoolExecutor)
+    ((ThreadPoolExecutor) exec).setCorePoolSize(10);
+else
+    throw new AssertionError("Oops, bad assumption");
+</pre><br class="calibre11"/>
+</td></tr></table></p>
+<p class="docText1">You can use this technique with your own executors to prevent the execution policy from being modified. If you will be exposing an <tt class="calibre25">ExecutorService</tt> to code you don't trust not to modify it, you can wrap it with an <tt class="calibre25">unconfigurableExecutorService</tt>.</p>
+
+<p class="calibre1"> </p>
+
+</div>
+
+{% endraw %}
+

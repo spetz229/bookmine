@@ -1,0 +1,303 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: io_example.html
+next: io_monad.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="io_example.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="io_monad.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="io_lazy" class="calibre27" id="io_lazy"></a><h3 id="title-IDA0X0VD" class="docSection1Title">7.4. Lazy I/O</h3><a name="x_WD" class="calibre27" id="x_WD"></a><p class="docText">So far<a name="ch07-lazyio" class="calibre27" id="ch07-lazyio"></a><a name="ch07-iolazy" class="calibre27" id="ch07-iolazy"></a><a name="ch07-lazyevalio" class="calibre27" id="ch07-lazyevalio"></a> in this chapter, you've seen examples of fairly traditional
+    I/O. Each line, or block of data, is requested and processed
+    individually.</p><a name="x_XD" class="calibre27" id="x_XD"></a><p class="docText">Haskell has another approach available to you as well.
+    Since Haskell is a lazy language, meaning that any given piece of data is
+    only evaluated when its value must be known, there are some novel ways of
+    approaching I/O.</p><a name="io_lazy_hGetContents" class="calibre27" id="io_lazy_hGetContents"></a><h4 id="title-IDAZY0VD" class="docSection1Title">7.4.1. hGetContents</h4><a name="x_YD" class="calibre27" id="x_YD"></a><p class="docText">One<a name="ch07-hgetcontents" class="calibre27" id="ch07-hgetcontents"></a> novel way to approach I/O is with the <tt class="calibre34">hGetContents</tt> function.<sup class="docFootnote"><a class="docLink1" href="#x_YDd1e20293">[23]</a></sup> <tt class="calibre34">hGetContents</tt> has the
+      type <tt class="calibre34">Handle -&gt; IO String</tt>. The
+      <tt class="calibre34">String</tt> it returns represents all of
+      the data in the file given by the <tt class="calibre34">Handle</tt>.<sup class="docFootnote"><a class="docLink1" href="#x_YDd1e20313">[24]</a></sup></p><blockquote class="calibre30"><p class="docFootnote1"><sup class="calibre50"><a name="x_YDd1e20293" class="calibre5" id="x_YDd1e20293">[23]</a></sup> There is also a shortcut function called <tt class="calibre34">getContents</tt> that operates on standard
+          input.</p></blockquote><blockquote class="calibre30"><p class="docFootnote1"><sup class="calibre50"><a name="x_YDd1e20313" class="calibre5" id="x_YDd1e20313">[24]</a></sup> More precisely, it is the entire data from the
+          current position of the file pointer to the end of the file.</p></blockquote><a name="x_bD" class="calibre27" id="x_bD"></a><p class="docText">In a strictly evaluated language, using such a function
+      is often a bad idea. It may be fine to read the entire contents of a 2
+      KB file, but if you try to read the entire contents of a 500 GB file,
+      you are likely to crash due to lack of RAM to store all that data. In
+      these languages, you would traditionally use mechanisms such as loops to
+      process the file's entire data.</p><a name="x_cD" class="calibre27" id="x_cD"></a><p class="docText">But <tt class="calibre34">hGetContents</tt> is
+      different. The <tt class="calibre34">String</tt> it
+      returns<a name="I_indexterm7_d1e19966" class="calibre27" id="I_indexterm7_d1e19966"></a> is evaluated lazily. At the moment you call <tt class="calibre34">hGetContents</tt>, nothing is actually read. Data
+      is only read from the <tt class="calibre34">Handle</tt> as the
+      elements (characters) of the list are processed. As elements of the
+      <tt class="calibre34">String</tt> are no longer used, Haskell's
+      garbage collector automatically frees that memory. All of this happens
+      completely transparently to you. And since you have what looks like
+      (and, really, is) a pure <tt class="calibre34">String</tt>, you
+      can pass it to pure (non-IO) code.</p><a name="x_dD" class="calibre27" id="x_dD"></a><p class="docText">Let's take a quick look at an example. Back in <a class="docLink" href="io_files.html#io_files">Section 7.2</a>, you saw an imperative program that converted the
+      entire content of a file to uppercase. Its imperative algorithm was
+      similar to what you'd see in many other languages. Here now is the much
+      simpler algorithm that exploits lazy evaluation:</p><pre class="calibre39">-- file: ch07/toupper-lazy1.hs
+import System.IO
+import Data.Char(toUpper)
+
+main :: IO ()
+main = do 
+       inh &lt;- openFile "input.txt" ReadMode
+       outh &lt;- openFile "output.txt" WriteMode
+       inpStr &lt;- hGetContents inh
+       let result = processData inpStr
+       hPutStr outh result
+       hClose inh
+       hClose outh
+
+processData :: String -&gt; String
+processData = map toUpper</pre><br class="calibre48"/>
+<a name="x_eD" class="calibre27" id="x_eD"></a><p class="docText">Notice that <tt class="calibre34">hGetContents</tt> handled <span class="docEmphasis">all</span>
+      of the reading for us. Also, take a look at <tt class="calibre34">processData</tt>. It's a pure function since
+      it has no side effects and always returns the same result each time it
+      is called. It has no need to know—and no way to tell—that its input is
+      being read lazily from a file in this case. It can work perfectly well
+      with a 20-character literal or a 500 GB data dump on disk.</p><a name="x_fD" class="calibre27" id="x_fD"></a><p class="docText">You can even verify that with <i class="docEmphasis">ghci</i>:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:load toupper-lazy1.hs</b>
+[1 of 1] Compiling Main             ( toupper-lazy1.hs, interpreted )
+Ok, modules loaded: Main.
+ghci&gt; <b class="calibre40">processData "Hello, there!  How are you?"</b>
+"HELLO, THERE!  HOW ARE YOU?"
+ghci&gt; <b class="calibre40">:type processData</b>
+processData :: String -&gt; String
+ghci&gt; <b class="calibre40">:type processData "Hello!"</b>
+processData "Hello!" :: String</pre><p class="calibre37"><table border="0" cellspacing="0" cellpadding="1" width="90%" class="calibre41"><tr class="calibre16"><td class="v3"><table width="100%" border="0" cellspacing="0" cellpadding="6" class="calibre42"><tr class="calibre16"><td width="60" valign="top" class="v3"><img src="warning_yellow.gif" alt="" class="calibre44"/></td><td valign="top" class="v3"><a name="x_sp" class="calibre27" id="x_sp"></a><p class="docText">If we had tried to hang on to <tt class="calibre34">inpStr</tt> in the example just shown past the
+        one place where it was used (the call to <tt class="calibre34">processData</tt>), the program would have lost
+        its memory efficiency. That's because the compiler would have been
+        forced to keep <tt class="calibre34">inpStr</tt>'s value in
+        memory for future use. Here it knows that <tt class="calibre34">inpStr</tt> will never be reused and frees the
+        memory as soon as it is done with it. Just remember: memory is only
+        freed after its last use.</p></td></tr></table></td></tr></table></p><br class="calibre48"/><a name="x_gD" class="calibre27" id="x_gD"></a><p class="docText">This program was a bit verbose to make it clear that
+      there was pure code in use. Here's a bit more concise version, which we
+      will build on in the following examples:</p><pre class="calibre39">-- file: ch07/toupper-lazy2.hs
+import System.IO
+import Data.Char(toUpper)
+
+main = do 
+       inh &lt;- openFile "input.txt" ReadMode
+       outh &lt;- openFile "output.txt" WriteMode
+       inpStr &lt;- hGetContents inh
+       hPutStr outh (map toUpper inpStr)
+       hClose inh
+       hClose outh</pre><br class="calibre48"/>
+<a name="x_hD" class="calibre27" id="x_hD"></a><p class="docText">You are not required to ever consume all the data from
+      the input file when using <tt class="calibre34">hGetContents</tt>. Whenever the Haskell system
+      determines that the entire string <tt class="calibre34">hGetContents</tt> returned can be garbage
+      collected—which means it will never be used again—the file is closed for
+      you automatically. The same principle applies to data read from the
+      file. Whenever a given piece of data will never again be needed, the
+      Haskell environment releases the memory it was stored within. Strictly
+      speaking, we wouldn't have to call <tt class="calibre34">hClose</tt> at all in this example program.
+      However, it is still a good practice to get into, as later changes to a
+      program could make the call to <tt class="calibre34">hClose</tt>
+      important.</p><p class="calibre37"><table border="0" cellspacing="0" cellpadding="1" width="90%" class="calibre41"><tr class="calibre16"><td class="v3"><table width="100%" border="0" cellspacing="0" cellpadding="6" class="calibre42"><tr class="calibre16"><td width="60" valign="top" class="v3"><img src="warning_yellow.gif" alt="" class="calibre44"/></td><td valign="top" class="v3"><a name="x_eN" class="calibre27" id="x_eN"></a><p class="docText">When using <tt class="calibre34">hGetContents</tt>, it is important to remember
+        that even though you may never again explicitly reference <tt class="calibre34">Handle</tt> directly in the rest of the program,
+        you must not close the <tt class="calibre34">Handle</tt> until
+        you have finished consuming its results via <tt class="calibre34">hGetContents</tt>. Doing so would cause you to
+        miss on some or all of the file's data. Since Haskell is lazy, you
+        generally can assume that you have consumed input only after you have
+        output the result of the computations involving the input.</p></td></tr></table></td></tr></table></p><br class="calibre48"/><a name="io_lazy_readFile" class="calibre27" id="io_lazy_readFile"></a><h4 id="title-IDAM50VD" class="docSection1Title">7.4.2. readFile and writeFile</h4><a name="x_iD" class="calibre27" id="x_iD"></a><p class="docText">Haskell<a name="I_indexterm7_d1e20085" class="calibre27" id="I_indexterm7_d1e20085"></a> programmers use <tt class="calibre34">hGetContents</tt> as<a name="I_indexterm7_d1e20090" class="calibre27" id="I_indexterm7_d1e20090"></a><a name="I_indexterm7_d1e20093" class="calibre27" id="I_indexterm7_d1e20093"></a> a filter quite often. They read from one file, do
+      something to the data, and write the result out elsewhere. This is so
+      common that there are some shortcuts for doing it. <tt class="calibre34">readFile</tt> and <tt class="calibre34">writeFile</tt> are shortcuts for working with files
+      as strings. They handle all the details of opening files, closing files,
+      reading data, and writing data. <tt class="calibre34">readFile</tt> uses <tt class="calibre34">hGetContents</tt> internally.</p><a name="x_jD" class="calibre27" id="x_jD"></a><p class="docText">Can you guess the Haskell types of these functions?
+      Let's check with <i class="docEmphasis">ghci</i>:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type readFile</b>
+readFile :: FilePath -&gt; IO String
+ghci&gt; <b class="calibre40">:type writeFile</b>
+writeFile :: FilePath -&gt; String -&gt; IO ()</pre><a name="x_tp" class="calibre27" id="x_tp"></a><p class="docText">Now, here's an example program that uses <tt class="calibre34">readFile</tt> and <tt class="calibre34">writeFile</tt>:</p><pre class="calibre39">-- file: ch07/toupper-lazy3.hs
+import Data.Char(toUpper)
+
+main = do 
+       inpStr &lt;- readFile "input.txt"
+       writeFile "output.txt" (map toUpper inpStr)</pre><br class="calibre48"/>
+<a name="x_kD" class="calibre27" id="x_kD"></a><p class="docText">Look at that—the guts of the program take up only two
+      lines! <tt class="calibre34">readFile</tt> returned a lazy
+      <tt class="calibre34">String</tt>, which we stored in <tt class="calibre34">inpStr</tt>. We then took that, processed it, and
+      passed it to <tt class="calibre34">writeFile</tt> for
+      writing.</p><a name="x_fN" class="calibre27" id="x_fN"></a><p class="docText">Neither <tt class="calibre34">readFile</tt> nor
+      <tt class="calibre34">writeFile</tt> ever provide a <tt class="calibre34">Handle</tt> for you to work with, so there is
+      nothing to ever <tt class="calibre34">hClose</tt>. <tt class="calibre34">readFile</tt> uses <tt class="calibre34">hGetContents</tt> internally, and the underlying
+      <tt class="calibre34">Handle</tt> will be
+      closed when the returned <tt class="calibre34">String</tt> is
+      garbage-collected or all the input has been consumed. <tt class="calibre34">writeFile</tt> will close its underlying <tt class="calibre34">Handle</tt> when the entire <tt class="calibre34">String</tt> supplied to it has been written.</p><a name="io_lazy_output" class="calibre27" id="io_lazy_output"></a><h4 id="title-IDA4D1VD" class="docSection1Title">7.4.3. A Word on Lazy Output</h4><a name="x_lD" class="calibre27" id="x_lD"></a><p class="docText">By now, you should understand how lazy input works in
+      Haskell. But what about laziness during output?</p><a name="x_mD" class="calibre27" id="x_mD"></a><p class="docText">As you know, nothing in Haskell is evaluated before its
+      value is needed. Since functions such as <tt class="calibre34">writeFile</tt> and <tt class="calibre34">putStr</tt> write out the entire <tt class="calibre34">String</tt> passed to them, that entire <tt class="calibre34">String</tt> must be evaluated. So you are
+      guaranteed that the argument to <tt class="calibre34">putStr</tt> will be evaluated in full.<sup class="docFootnote"><a class="docLink1" href="#x_mDd1e20569">[25]</a></sup></p><blockquote class="calibre30"><p class="docFootnote1"><sup class="calibre50"><a name="x_mDd1e20569" class="calibre5" id="x_mDd1e20569">[25]</a></sup> Excepting I/O errors such as a full disk, of
+          course.</p></blockquote><a name="x_oD" class="calibre27" id="x_oD"></a><p class="docText">But what does that mean for laziness of the input? In
+      the earlier examples, will the <a name="I_indexterm7_d1e20214" class="calibre27" id="I_indexterm7_d1e20214"></a>call to <tt class="calibre34">putStr</tt> or
+      <tt class="calibre34">writeFile</tt> force the entire input
+      string to be loaded into memory at once, just to be written out?</p><a name="x_pD" class="calibre27" id="x_pD"></a><p class="docText">The answer is no. <tt class="calibre34">putStr</tt> (and all the similar output functions)
+      write out data as it becomes available. They also have no need for
+      keeping around data already written, so as long as nothing else in the
+      program needs it, the memory can be freed immediately. In a sense, you
+      can think of the <tt class="calibre34">String</tt> between
+      <tt class="calibre34">readFile</tt> and <tt class="calibre34">writeFile</tt> as a pipe linking the two. Data goes
+      in one end, is transformed some way, and flows back out the
+      other.</p><a name="x_qD" class="calibre27" id="x_qD"></a><p class="docText">You can verify this yourself by generating a large
+      <tt class="calibre34">input.txt</tt> for <tt class="calibre34">toupper-lazy3.hs</tt>. It may take a bit to
+      process, but you should see a constant—and low—memory usage while it is
+      being processed.</p><a name="io_lazy_interact" class="calibre27" id="io_lazy_interact"></a><h4 id="title-IDAQG1VD" class="docSection1Title">7.4.4. interact</h4><a name="x_rD" class="calibre27" id="x_rD"></a><p class="docText">You<a name="ch07-interact" class="calibre27" id="ch07-interact"></a> learned that <tt class="calibre34">readFile</tt>
+      and <tt class="calibre34">writeFile</tt> address the common
+      situation of reading from one file, making a conversion, and writing to
+      a different file. There's a situation that's even more common than that:
+      reading from standard input, making a conversion, and writing the result
+      to standard output. For that situation, there is a function called
+      <tt class="calibre34">interact</tt>. The type of <tt class="calibre34">interact</tt> is <tt class="calibre34">(String
+      -&gt; String) -&gt; IO ()</tt>. That is, it takes one argument: a
+      function of type <tt class="calibre34">String -&gt; String</tt>.
+      That function is passed the result of <tt class="calibre34">getContents</tt>—that is, standard input read
+      lazily. The result of that function is sent to standard output.</p><a name="x_sD" class="calibre27" id="x_sD"></a><p class="docText">We can convert our example program to operate on
+      standard input and standard output by using <tt class="calibre34">interact</tt>. Here's one way to do that:</p><pre class="calibre39">-- file: ch07/toupper-lazy4.hs
+import Data.Char(toUpper)
+
+main = interact (map toUpper)</pre><br class="calibre48"/>
+<a name="x_tD" class="calibre27" id="x_tD"></a><p class="docText">Look at that—<span class="docEmphasis">one</span> line of code to
+      achieve our transformation! To achieve the same effect as with the
+      previous examples, you could run this one like this:</p><pre class="calibre39">$ <b class="calibre40">runghc toupper-lazy4.hs &lt; input.txt &gt; output.txt</b></pre><a name="x_uD" class="calibre27" id="x_uD"></a><p class="docText">Or, if you'd like to see the output printed to the
+      screen, you could type:</p><pre class="calibre39">$ <b class="calibre40">runghc toupper-lazy4.hs &lt; input.txt</b></pre><a name="x_vD" class="calibre27" id="x_vD"></a><p class="docText">If you want to see that Haskell output truly does write
+      out chunks of data as soon as they are received, run <tt class="calibre34">runghc toupper-lazy4.hs</tt> without any other
+      command-line parameters. You should see each character echoed back out
+      as soon as you type it, but in uppercase. Buffering may change this
+      behavior; see <a class="docLink" href="io_buffering.html#io_buffering">Section 7.8</a> for more on buffering. If
+      you see each line echoed as soon as you type it, or even nothing at all
+      for a while, buffering is causing this behavior.</p><a name="x_wD" class="calibre27" id="x_wD"></a><p class="docText">You can also write simple interactive programs using
+      <tt class="calibre34">interact</tt>. Let's start with a simple
+      example—adding a line of text before the uppercase output:</p><pre class="calibre39">-- file: ch07/toupper-lazy5.hs
+import Data.Char(toUpper)
+
+main = interact (map toUpper . (++) "Your data, in uppercase, is:\n\n")</pre><br class="calibre48"/>
+<p class="calibre37"><table border="0" cellspacing="0" cellpadding="1" width="90%" class="calibre41"><tr class="calibre16"><td class="v3"><table width="100%" border="0" cellspacing="0" cellpadding="6" class="calibre42"><tr class="calibre16"><td width="60" valign="top" class="v3"><img src="tip_yellow.gif" alt="" class="calibre43"/></td><td valign="top" class="v3"><a name="x_gN" class="calibre27" id="x_gN"></a><p class="docText">If the use of the <tt class="calibre34">.</tt>
+        operator is confusing, you might wish to refer to <a class="docLink" href="fp_compose.html#fp_compose">Section 4.10</a>.</p></td></tr></table></td></tr></table></p><br class="calibre48"/><a name="x_xD" class="calibre27" id="x_xD"></a><p class="docText">Here we add a string at the beginning of the output. Can
+      you spot the problem, though?</p><a name="x_yD" class="calibre27" id="x_yD"></a><p class="docText">Since we're calling <tt class="calibre34">map</tt> on the <span class="docEmphasis">result</span> of
+      <tt class="calibre34">(++)</tt>, that header itself will appear
+      in uppercase. We can fix that in this way:</p><pre class="calibre39">-- file: ch07/toupper-lazy6.hs
+import Data.Char(toUpper)
+
+main = interact ((++) "Your data, in uppercase, is:\n\n" . 
+                 map toUpper)</pre><br class="calibre48"/>
+<a name="x_zD" class="calibre27" id="x_zD"></a><p class="docText">This moved the header outside of the <tt class="calibre34">map</tt>.</p><a name="io_lazy_interactd1e20702" class="calibre27" id="io_lazy_interactd1e20702"></a><h5 id="title-IDA3K1VD" class="docSection3Title">7.4.4.1. Filters with interact</h5><a name="x_AE" class="calibre27" id="x_AE"></a><p class="docText">Another common use of <tt class="calibre34">interact</tt> is filtering.<a name="I_indexterm7_d1e20352" class="calibre27" id="I_indexterm7_d1e20352"></a> Let's say that you want to write a program that reads a
+        file and prints out every line that contains the character "a". Here's
+        how you might do that with <tt class="calibre34">interact</tt>:</p><pre class="calibre39">-- file: ch07/filter.hs
+main = interact (unlines . filter (elem 'a') . lines)</pre><br class="calibre48"/>
+<a name="x_BE" class="calibre27" id="x_BE"></a><p class="docText">This may have introduced three functions that you
+        aren't familiar with yet. Let's inspect their types with <i class="docEmphasis">ghci</i>:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type lines</b>
+lines :: String -&gt; [String]
+ghci&gt; <b class="calibre40">:type unlines</b>
+unlines :: [String] -&gt; String
+ghci&gt; <b class="calibre40">:type elem</b>
+elem :: (Eq a) =&gt; a -&gt; [a] -&gt; Bool</pre><a name="x_CE" class="calibre27" id="x_CE"></a><p class="docText">Can you guess what these functions do just by looking
+        at their types? If not, you can find them explained in <a class="docLink" href="fp_splitlines.html#fp_splitlines">Section 4.3</a> and <a class="docLink" href="fp_lists_split_000.html#fp_lists_strings">Section 4.5.8</a>.
+        You'll frequently see <tt class="calibre34">lines</tt> and
+        <tt class="calibre34">unlines</tt> used with I/O. Finally,
+        <tt class="calibre34">elem</tt> takes a element and a list and
+        returns <tt class="calibre34">TRue</tt> if that element occurs
+        anywhere in the list.</p><a name="x_EE" class="calibre27" id="x_EE"></a><p class="docText">Try running this over our standard example
+        input:</p><pre class="calibre39">$ <b class="calibre40">runghc filter.hs &lt; input.txt</b>
+I like Haskell
+Haskell is great</pre><a name="x_FE" class="calibre27" id="x_FE"></a><p class="docText">Sure enough, you got back the two lines that contain
+        an "a". Lazy filters are a powerful way to use Haskell. When you think
+        about it, a filter—such as the standard Unix program <i class="docEmphasis">grep</i>—sounds a lot like a function. It takes
+        some input, applies some computation, and generates a predictable
+        output.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="io_example.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="io_monad.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

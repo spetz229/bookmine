@@ -1,0 +1,168 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect128_d1e51989.html
+next: I_sect128_d1e52174.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect128_d1e51989.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect128_d1e52174.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect128_d1e52076" class="calibre27" id="I_sect128_d1e52076"></a><h3 id="title-IDAWQKVD" class="docSection1Title">28.5. Choosing Between Alternatives</h3><a name="x_MM1" class="calibre27" id="x_MM1"></a><p class="docText">We don't always want to restart an <i class="docEmphasis">atomically</i> action if it calls <i class="docEmphasis">retry</i> or fails due to concurrent modification
+    by another thread. For instance, our new <i class="docEmphasis">sellItem</i> function will retry indefinitely as
+    long as we are missing either the item or enough money, but we might
+    prefer to just try the sale once.</p><a name="x_NM1" class="calibre27" id="x_NM1"></a><p class="docText">The <i class="docEmphasis">orElse</i>
+    combinator lets us perform a "backup" action if the main one
+    fails:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type orElse</b>
+orElse :: STM a -&gt; STM a -&gt; STM a
+</pre><a name="x_OM1" class="calibre27" id="x_OM1"></a><p class="docText">If <i class="docEmphasis">sellItem</i> fails,
+    <i class="docEmphasis">orElse</i> will invoke the <tt class="calibre34">return
+    False</tt> action, causing our sale function to return
+    immediately.</p><a name="I_sect128_d1e52076d1e52378" class="calibre27" id="I_sect128_d1e52076d1e52378"></a><h4 id="title-IDAHSKVD" class="docSection1Title">28.5.1. Using Higher Order Code with Transactions</h4><a name="x_PM1" class="calibre27" id="x_PM1"></a><p class="docText">Imagine that we'd like to be a little more ambitious
+      and buy the first item from a list that is both in the possession of the
+      seller and affordable to us, but it does nothing if we cannot afford
+      something right now. We could, of course, write code to do this in a
+      direct manner:</p><pre class="calibre39">-- file: ch28/GameInventory.hs
+crummyList :: [(Item, Gold)] -&gt; Player -&gt; Player
+             -&gt; STM (Maybe (Item, Gold))
+crummyList list buyer seller = go list
+    where go []                         = return Nothing
+          go (this@(item,price) : rest) = do
+              sellItem item price buyer seller
+              return (Just this)
+           `orElse`
+              go rest</pre><br class="calibre48"/>
+<a name="x_QM1" class="calibre27" id="x_QM1"></a><p class="docText">This function suffers from the familiar problem of
+      muddling together what we want to do with how we ought to do it. A
+      little inspection suggests that there are two reusable patterns buried
+      in this code.</p><a name="x_RM1" class="calibre27" id="x_RM1"></a><p class="docText">The first of these is to make a transaction fail
+      immediately instead of retrying:</p><pre class="calibre39">-- file: ch28/GameInventory.hs
+maybeSTM :: STM a -&gt; STM (Maybe a)
+maybeSTM m = (Just `liftM` m) `orElse` return Nothing</pre><br class="calibre48"/>
+<a name="x_SM1" class="calibre27" id="x_SM1"></a><p class="docText">Second, we want to try an action over successive
+      elements of a list, stopping at the first that succeeds or performing a
+      <i class="docEmphasis">retry</i> if every one fails.
+      Conveniently for us, STM is an instance of the
+      MonadPlus typeclass:</p><pre class="calibre39">-- file: ch28/STMPlus.hs
+instance MonadPlus STM where
+  mzero = retry
+  mplus = orElse</pre><br class="calibre48"/>
+<a name="x_TM1" class="calibre27" id="x_TM1"></a><p class="docText">The <tt class="calibre34">Control.Monad</tt> module defines the
+      <i class="docEmphasis">msum</i> function as follows, which is
+      exactly what we need:</p><pre class="calibre39">-- file: ch28/STMPlus.hs
+msum :: MonadPlus m =&gt; [m a] -&gt; m a
+msum =  foldr mplus mzero</pre><br class="calibre48"/>
+<a name="x_UM1" class="calibre27" id="x_UM1"></a><p class="docText">We now have a few key pieces of machinery that will
+      help us write a much clearer version of our function:</p><pre class="calibre39">-- file: ch28/GameInventory.hs
+shoppingList :: [(Item, Gold)] -&gt; Player -&gt; Player
+             -&gt; STM (Maybe (Item, Gold))
+shoppingList list buyer seller = maybeSTM . msum $ map sellOne list
+    where sellOne this@(item,price) = do
+            sellItem item price buyer seller
+            return this</pre><br class="calibre48"/>
+<a name="x_TO1" class="calibre27" id="x_TO1"></a><p class="docText">Since STM is an instance of the
+      MonadPlus typeclass, we can generalize <i class="docEmphasis">maybeSTM</i> to work over any
+      MonadPlus:</p><pre class="calibre39">-- file: ch28/GameInventory.hs
+maybeM :: MonadPlus m =&gt; m a -&gt; m (Maybe a)
+maybeM m = (Just `liftM` m) `mplus` return Nothing</pre><br class="calibre48"/>
+<a name="x_UO1" class="calibre27" id="x_UO1"></a><p class="docText">This gives us a function that is useful in a greater
+      variety of situations.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"><a href="21061538.html" class="calibre2"><img src="btn_next_.gif" alt="Next" border="0" class="calibre31"/></a> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect128_d1e51989.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect128_d1e52174.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

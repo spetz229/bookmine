@@ -1,0 +1,221 @@
+---
+layout: page
+title: "Developing Backbone.js Applications"
+prev: OEBPS/ch02s02.html
+next: OEBPS/ch02s04.html
+book_path: books/developing-backbone-js-applications-addy-osmani--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="The Basics"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="the-basics-1" class="calibre1"></a>The Basics</h1></div></div></div><p class="calibre6">
+    In this section, you’ll learn the essentials of Backbone’s models,
+    views, collections and routers, as well as about using namespacing
+    to organize your code. This isn’t meant as a replacement for the
+    official documentation, but it will help you understand many of the
+    core concepts behind Backbone before you start building applications
+    with it.
+  </p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre6">
+        Models
+      </p></li><li class="listitem"><p class="calibre6">
+        Collections
+      </p></li><li class="listitem"><p class="calibre6">
+        Routers
+      </p></li><li class="listitem"><p class="calibre6">
+        Views
+      </p></li><li class="listitem"><p class="calibre6">
+        Namespacing
+      </p></li></ul></div><div class="book" title="Models"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="models-1" class="calibre1"></a>Models</h2></div></div></div><p class="calibre6">
+      Backbone models contain interactive data for an application as
+      well as the logic around this data. For example, we can use a
+      model to represent the concept of a photo object including its
+      attributes like tags, titles and a location.
+    </p><p class="calibre6">
+      Models can be created by extending
+      <code class="literal">Backbone.Model</code> as follows:
+    </p><pre class="programlistingjavascript"><code class="kd">var</code> <code class="nx">Photo</code> <code class="o">=</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">Model</code><code class="p">.</code><code class="nx">extend</code><code class="p">({</code>
+    <code class="nx">defaults</code><code class="o">:</code> <code class="p">{</code>
+        <code class="nx">src</code><code class="o">:</code> <code class="s">'placeholder.jpg'</code><code class="p">,</code>
+        <code class="nx">title</code><code class="o">:</code> <code class="s">'an image placeholder'</code><code class="p">,</code>
+        <code class="nx">coordinates</code><code class="o">:</code> <code class="p">[</code><code class="mi">0</code><code class="p">,</code><code class="mi">0</code><code class="p">]</code>
+    <code class="p">},</code>
+    <code class="nx">initialize</code><code class="o">:</code> <code class="kd">function</code><code class="p">(){</code>
+        <code class="kd">this</code><code class="p">.</code><code class="nx">on</code><code class="p">(</code><code class="s">"change:src"</code><code class="p">,</code> <code class="kd">function</code><code class="p">(){</code>
+            <code class="kd">var</code> <code class="nx">src</code> <code class="o">=</code> <code class="kd">this</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">"src"</code><code class="p">);</code> 
+            <code class="nx">console</code><code class="p">.</code><code class="nx">log</code><code class="p">(</code><code class="s">'Image source updated to '</code> <code class="o">+</code> <code class="nx">src</code><code class="p">);</code>
+        <code class="p">});</code>
+    <code class="p">},</code>
+    <code class="nx">changeSrc</code><code class="o">:</code> <code class="kd">function</code><code class="p">(</code> <code class="nx">source</code> <code class="p">){</code>
+        <code class="kd">this</code><code class="p">.</code><code class="nx">set</code><code class="p">({</code> <code class="nx">src</code><code class="o">:</code> <code class="nx">source</code> <code class="p">});</code>
+    <code class="p">}</code>
+<code class="p">});</code>
+
+<code class="kd">var</code> <code class="nx">somePhoto</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">Photo</code><code class="p">({</code> <code class="nx">src</code><code class="o">:</code> <code class="s">"test.jpg"</code><code class="p">,</code> <code class="nx">title</code><code class="o">:</code><code class="s">"testing"</code><code class="p">});</code>
+<code class="nx">somePhoto</code><code class="p">.</code><code class="nx">changeSrc</code><code class="p">(</code><code class="s">"magic.jpg"</code><code class="p">);</code> <code class="c">// which triggers "change:src" and logs an update message to the console.</code>
+</pre><div class="book" title="Initialization"><div class="book"><div class="book"><div class="book"><h3 class="title4"><a id="initialization" class="calibre1"></a>Initialization</h3></div></div></div><p class="calibre6">
+        The <code class="literal">initialize()</code> method is called when a new
+        instance of a model is created. Its use is optional, however
+        you’ll see why it’s good practice to use it below.
+      </p><pre class="programlistingjavascript"><code class="kd">var</code> <code class="nx">Photo</code> <code class="o">=</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">Model</code><code class="p">.</code><code class="nx">extend</code><code class="p">({</code>
+    <code class="nx">initialize</code><code class="o">:</code> <code class="kd">function</code><code class="p">(){</code>
+        <code class="nx">console</code><code class="p">.</code><code class="nx">log</code><code class="p">(</code><code class="s">'this model has been initialized'</code><code class="p">);</code>
+    <code class="p">}</code>
+<code class="p">});</code>
+
+<code class="c">// We can then create our own instance of a photo as follows:</code>
+<code class="kd">var</code> <code class="nx">myPhoto</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">Photo</code><code class="p">();</code>
+</pre></div><div class="book" title="Getters &amp; Setters"><div class="book"><div class="book"><div class="book"><h3 class="title4"><a id="getters-setters" class="calibre1"></a>Getters &amp; Setters</h3></div></div></div><p class="calibre6">
+        <span class="firstname"><strong class="calibre8">Model.get()</strong></span>
+      </p><p class="calibre6">
+        <code class="literal">Model.get()</code> provides easy access to a model’s
+        attributes. Attributes which are passed through to the model on
+        instantiation are instantly available for retrieval.
+      </p><pre class="programlistingjavascript"><code class="kd">var</code> <code class="nx">myPhoto</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">Photo</code><code class="p">({</code> <code class="nx">title</code><code class="o">:</code> <code class="s">"My awesome photo"</code><code class="p">,</code> 
+                          <code class="nx">src</code><code class="o">:</code><code class="s">"boston.jpg"</code><code class="p">,</code> 
+                          <code class="nx">location</code><code class="o">:</code> <code class="s">"Boston"</code><code class="p">,</code> 
+                          <code class="nx">tags</code><code class="o">:</code><code class="p">[</code><code class="s">'the big game'</code><code class="p">,</code> <code class="s">'vacation'</code><code class="p">]}),</code>
+
+    <code class="nx">title</code> <code class="o">=</code> <code class="nx">myPhoto</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">"title"</code><code class="p">),</code> <code class="c">//My awesome photo</code>
+    <code class="nx">location</code> <code class="o">=</code> <code class="nx">myPhoto</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">"location"</code><code class="p">),</code> <code class="c">//Boston</code>
+    <code class="nx">tags</code> <code class="o">=</code> <code class="nx">myPhoto</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">"tags"</code><code class="p">),</code> <code class="c">// ['the big game','vacation']</code>
+    <code class="nx">photoSrc</code> <code class="o">=</code> <code class="nx">myPhoto</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">"src"</code><code class="p">);</code> <code class="c">//boston.jpg</code>
+</pre><p class="calibre6">
+        Alternatively, if you wish to directly access all of the
+        attributes in a model’s instance directly, you can achieve this
+        as follows:
+      </p><pre class="programlistingjavascript"><code class="kd">var</code> <code class="nx">myAttributes</code> <code class="o">=</code> <code class="nx">myPhoto</code><code class="p">.</code><code class="nx">attributes</code><code class="p">;</code>
+<code class="nx">console</code><code class="p">.</code><code class="nx">log</code><code class="p">(</code><code class="nx">myAttributes</code><code class="p">);</code>
+</pre><p class="calibre6">
+        It is best practice to use <code class="literal">Model.set()</code> or
+        direct instantiation to set the values of a model’s attributes.
+      </p><p class="calibre6">
+        Accessing <code class="literal">Model.attributes</code> directly is
+        generally discouraged. Instead, should you need to read or clone
+        data, <code class="literal">Model.toJSON()</code> is recommended for this
+        purpose. If you would like to access or copy a model’s
+        attributes for purposes such as JSON stringification (e.g. for
+        serialization prior to being passed to a view), this can be
+        achieved using <code class="literal">Model.toJSON()</code>:
+      </p><pre class="programlistingjavascript"><code class="kd">var</code> <code class="nx">myAttributes</code> <code class="o">=</code> <code class="nx">myPhoto</code><code class="p">.</code><code class="nx">toJSON</code><code class="p">();</code>
+<code class="nx">console</code><code class="p">.</code><code class="nx">log</code><code class="p">(</code><code class="nx">myAttributes</code><code class="p">);</code>
+<code class="c">/* this returns { title: "My awesome photo", </code>
+<code class="c">             src:"boston.jpg", </code>
+<code class="c">             location: "Boston", </code>
+<code class="c">             tags:['the big game', 'vacation']}*/</code>
+</pre></div><div class="book" title="Model.set()"><div class="book"><div class="book"><div class="book"><h3 class="title4"><a id="model.set" class="calibre1"></a>Model.set()</h3></div></div></div><p class="calibre6">
+        <code class="literal">Model.set()</code> allows us to pass attributes into
+        an instance of our model. Attributes can either be set during
+        initialization or at any time afterwards. It’s important to
+        avoid trying to set a Model’s attributes directly (for example
+        Model.caption = <span class="firstname">“<span class="firstname">A new caption</span>”</span>). Backbone uses
+        Model.set() to know when to broadcast that a model’s data has
+        changed.
+      </p><pre class="programlistingjavascript"><code class="kd">var</code> <code class="nx">Photo</code> <code class="o">=</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">Model</code><code class="p">.</code><code class="nx">extend</code><code class="p">({</code>
+    <code class="nx">initialize</code><code class="o">:</code> <code class="kd">function</code><code class="p">(){</code>
+        <code class="nx">console</code><code class="p">.</code><code class="nx">log</code><code class="p">(</code><code class="s">'this model has been initialized'</code><code class="p">);</code>
+    <code class="p">}</code>
+<code class="p">});</code>
+
+<code class="c">// Setting the value of attributes via instantiation</code>
+<code class="kd">var</code> <code class="nx">myPhoto</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">Photo</code><code class="p">({</code> <code class="nx">title</code><code class="o">:</code> <code class="s">'My awesome photo'</code><code class="p">,</code> <code class="nx">location</code><code class="o">:</code> <code class="s">'Boston'</code> <code class="p">});</code>
+
+<code class="kd">var</code> <code class="nx">myPhoto2</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">Photo</code><code class="p">();</code>
+
+<code class="c">// Setting the value of attributes through Model.set()</code>
+<code class="nx">myPhoto2</code><code class="p">.</code><code class="nx">set</code><code class="p">({</code> <code class="nx">title</code><code class="o">:</code><code class="s">'Vacation in Florida'</code><code class="p">,</code> <code class="nx">location</code><code class="o">:</code> <code class="s">'Florida'</code> <code class="p">});</code>
+</pre><p class="calibre6">
+        <span class="firstname"><strong class="calibre8">Default values</strong></span>
+      </p><p class="calibre6">
+        There are times when you want your model to have a set of
+        default values (e.g. in a scenario where a complete set of data
+        isn’t provided by the user). This can be set using a property
+        called <code class="literal">defaults</code> in your model.
+      </p><pre class="programlistingjavascript"><code class="kd">var</code> <code class="nx">Photo</code> <code class="o">=</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">Model</code><code class="p">.</code><code class="nx">extend</code><code class="p">({</code>
+    <code class="nx">defaults</code><code class="o">:</code><code class="p">{</code>
+        <code class="nx">title</code><code class="o">:</code> <code class="s">'Another photo!'</code><code class="p">,</code>
+        <code class="nx">tags</code><code class="o">:</code>  <code class="p">[</code><code class="s">'untagged'</code><code class="p">],</code>
+        <code class="nx">location</code><code class="o">:</code> <code class="s">'home'</code><code class="p">,</code>
+        <code class="nx">src</code><code class="o">:</code> <code class="s">'placeholder.jpg'</code>
+    <code class="p">},</code>
+    <code class="nx">initialize</code><code class="o">:</code> <code class="kd">function</code><code class="p">(){</code>
+    <code class="p">}</code>
+<code class="p">});</code>
+
+<code class="kd">var</code> <code class="nx">myPhoto</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">Photo</code><code class="p">({</code> <code class="nx">location</code><code class="o">:</code> <code class="s">"Boston"</code><code class="p">,</code> 
+                          <code class="nx">tags</code><code class="o">:</code><code class="p">[</code><code class="s">'the big game'</code><code class="p">,</code> <code class="s">'vacation'</code><code class="p">]}),</code>
+    <code class="nx">title</code>   <code class="o">=</code> <code class="nx">myPhoto</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">"title"</code><code class="p">),</code> <code class="c">//Another photo!</code>
+    <code class="nx">location</code> <code class="o">=</code> <code class="nx">myPhoto</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">"location"</code><code class="p">),</code> <code class="c">//Boston</code>
+    <code class="nx">tags</code> <code class="o">=</code> <code class="nx">myPhoto</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">"tags"</code><code class="p">),</code> <code class="c">// ['the big game','vacation']</code>
+    <code class="nx">photoSrc</code> <code class="o">=</code> <code class="nx">myPhoto</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">"src"</code><code class="p">);</code> <code class="c">//placeholder.jpg</code>
+</pre><p class="calibre6">
+        <span class="firstname"><strong class="calibre8">Listening for changes to your
+        model</strong></span>
+      </p><p class="calibre6">
+        Any and all of the attributes in a Backbone model can have
+        listeners bound to them which detect when their values change.
+        Listeners can be added to the <code class="literal">initialize()</code>
+        function:
+      </p><pre class="programlistingjavascript"><code class="kd">this</code><code class="p">.</code><code class="nx">on</code><code class="p">(</code><code class="s">'change'</code><code class="p">,</code> <code class="kd">function</code><code class="p">(){</code>
+    <code class="nx">console</code><code class="p">.</code><code class="nx">log</code><code class="p">(</code><code class="s">'values for this model have changed'</code><code class="p">);</code>
+<code class="p">});</code>
+</pre><p class="calibre6">
+        In the following example, we log a message whenever a specific
+        attribute (the title of our Photo model) is altered.
+      </p><pre class="programlistingjavascript"><code class="kd">var</code> <code class="nx">Photo</code> <code class="o">=</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">Model</code><code class="p">.</code><code class="nx">extend</code><code class="p">({</code>
+    <code class="nx">defaults</code><code class="o">:</code><code class="p">{</code>
+        <code class="nx">title</code><code class="o">:</code> <code class="s">'Another photo!'</code><code class="p">,</code>
+        <code class="nx">tags</code><code class="o">:</code>  <code class="p">[</code><code class="s">'untagged'</code><code class="p">],</code>
+        <code class="nx">location</code><code class="o">:</code> <code class="s">'home'</code><code class="p">,</code>
+        <code class="nx">src</code><code class="o">:</code> <code class="s">'placeholder.jpg'</code>
+    <code class="p">},</code>
+    <code class="nx">initialize</code><code class="o">:</code> <code class="kd">function</code><code class="p">(){</code>
+        <code class="nx">console</code><code class="p">.</code><code class="nx">log</code><code class="p">(</code><code class="s">'this model has been initialized'</code><code class="p">);</code>
+        <code class="kd">this</code><code class="p">.</code><code class="nx">on</code><code class="p">(</code><code class="s">"change:title"</code><code class="p">,</code> <code class="kd">function</code><code class="p">(){</code>
+            <code class="kd">var</code> <code class="nx">title</code> <code class="o">=</code> <code class="kd">this</code><code class="p">.</code><code class="nx">get</code><code class="p">(</code><code class="s">"title"</code><code class="p">);</code>
+            <code class="nx">console</code><code class="p">.</code><code class="nx">log</code><code class="p">(</code><code class="s">"My title has been changed to.. "</code> <code class="o">+</code> <code class="nx">title</code><code class="p">);</code>
+        <code class="p">});</code>
+    <code class="p">},</code>
+
+    <code class="nx">setTitle</code><code class="o">:</code> <code class="kd">function</code><code class="p">(</code><code class="nx">newTitle</code><code class="p">){</code>
+        <code class="kd">this</code><code class="p">.</code><code class="nx">set</code><code class="p">({</code> <code class="nx">title</code><code class="o">:</code> <code class="nx">newTitle</code> <code class="p">});</code>
+    <code class="p">}</code>
+<code class="p">});</code>
+
+<code class="kd">var</code> <code class="nx">myPhoto</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">Photo</code><code class="p">({</code> <code class="nx">title</code><code class="o">:</code><code class="s">"Fishing at the lake"</code><code class="p">,</code> <code class="nx">src</code><code class="o">:</code><code class="s">"fishing.jpg"</code><code class="p">});</code>
+<code class="nx">myPhoto</code><code class="p">.</code><code class="nx">setTitle</code><code class="p">(</code><code class="s">'Fishing at sea'</code><code class="p">);</code> 
+<code class="c">//logs 'My title has been changed to.. Fishing at sea'</code>
+</pre><p class="calibre6">
+        <span class="firstname"><strong class="calibre8">Validation</strong></span>
+      </p><p class="calibre6">
+        Backbone supports model validation through
+        <code class="literal">Model.validate()</code>, which allows checking the
+        attribute values for a model prior to them being set.
+      </p><p class="calibre6">
+        Validation functions can be as simple or complex as necessary.
+        If the attributes provided are valid, nothing should be returned
+        from <code class="literal">.validate()</code>. If they are invalid, a
+        custom error can be returned instead.
+      </p><p class="calibre6">
+        A basic example for validation can be seen below:
+      </p><pre class="programlistingjavascript"><code class="kd">var</code> <code class="nx">Photo</code> <code class="o">=</code> <code class="nx">Backbone</code><code class="p">.</code><code class="nx">Model</code><code class="p">.</code><code class="nx">extend</code><code class="p">({</code>
+    <code class="nx">validate</code><code class="o">:</code> <code class="kd">function</code><code class="p">(</code><code class="nx">attribs</code><code class="p">){</code>
+        <code class="kd">if</code><code class="p">(</code><code class="nx">attribs</code><code class="p">.</code><code class="nx">src</code> <code class="o">===</code> <code class="kd">undefined</code><code class="p">){</code>
+            <code class="kd">return</code> <code class="s">"Remember to set a source for your image!"</code><code class="p">;</code>
+        <code class="p">}</code>
+    <code class="p">},</code>
+
+    <code class="nx">initialize</code><code class="o">:</code> <code class="kd">function</code><code class="p">(){</code>
+        <code class="nx">console</code><code class="p">.</code><code class="nx">log</code><code class="p">(</code><code class="s">'this model has been initialized'</code><code class="p">);</code>
+        <code class="kd">this</code><code class="p">.</code><code class="nx">on</code><code class="p">(</code><code class="s">"error"</code><code class="p">,</code> <code class="kd">function</code><code class="p">(</code><code class="nx">model</code><code class="p">,</code> <code class="nx">error</code><code class="p">){</code>
+            <code class="nx">console</code><code class="p">.</code><code class="nx">log</code><code class="p">(</code><code class="nx">error</code><code class="p">);</code>
+        <code class="p">});</code>
+    <code class="p">}</code>
+<code class="p">});</code>
+
+<code class="kd">var</code> <code class="nx">myPhoto</code> <code class="o">=</code> <code class="kd">new</code> <code class="nx">Photo</code><code class="p">();</code>
+<code class="nx">myPhoto</code><code class="p">.</code><code class="nx">set</code><code class="p">({</code> <code class="nx">title</code><code class="o">:</code> <code class="s">"On the beach"</code> <code class="p">});</code>
+<code class="c">//logs Remember to set a source for your image!</code>
+</pre></div></div></div></div>
+
+{% endraw %}
+

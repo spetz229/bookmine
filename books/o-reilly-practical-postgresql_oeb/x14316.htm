@@ -1,0 +1,290 @@
+---
+layout: page
+title: "Unknown"
+prev: x14110.htm
+next: x15040.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="x14110.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 7. Advanced Features</td><td width="10%" valign="bottom" class="calibre5"><a href="x15040.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="AEN14316" class="calibre8">Automating Common Routines</a></h1><p class="calibre9">As an object-relational DBMS, PostgreSQL has helped pioneer several non-standard SQL extensions. Several of these are
+    designed to aid in the automation of commonly executed database routines.</p><p class="calibre9">This section covers two such extensions: sequences and triggers.</p><div class="NAVHEADER"><h2 class="SECT"><a name="AEN14320" class="calibre8">Sequences</a></h2><p class="calibre9">A <span><i class="EMPHASIS">sequence</i></span> in PostgreSQL is a database object that is essentially an automatically incrementing
+      numeric value. For this reason, sequences are commonly known in other database products as <span><i class="EMPHASIS">auto-increment</i></span>
+      values.  Sequences can be extremely useful in assigning non-random, unique identification numbers to tables that require
+      such values.
+      A sequence consists of a current numeric value, and a set of characteristics that determine how to automatically increment
+      (or alternatively, decrement) that value upon use.</p><p class="calibre9">Along with its current value, a sequence also includes a minimum value, a maximum value, a starting value, and the
+      <span><i class="EMPHASIS">amount</i></span> to increment the sequence by. This increment is usually 1, but may be
+      any whole integer.</p><p class="calibre9">In practice, sequences are not meant to be accessed directly. Instead, they are used through a set of functions built
+      into PostgreSQL which either set, increment, or return the current value of the sequence.</p><div class="NAVHEADER"><h3 class="AUTHOR"><a name="CREATINGASEQUENCE" class="calibre8">Creating a sequence</a></h3><p class="calibre9">Sequences are created with the <tt class="REPLACEABLE">CREATE SEQUENCE</tt> SQL command.  The sequence can be
+        specified to increment or decrement. The syntax for <tt class="REPLACEABLE">CREATE SEQUENCE</tt> is:</p><pre class="SCREEN">  CREATE SEQUENCE <tt class="REPLACEABLE"><i class="EMPHASIS">sequencename</i></tt>
+         [ INCREMENT <tt class="REPLACEABLE"><i class="EMPHASIS">increment</i></tt> ]
+         [ MINVALUE <tt class="REPLACEABLE"><i class="EMPHASIS">minvalue</i></tt> ]
+         [ MAXVALUE <tt class="REPLACEABLE"><i class="EMPHASIS">maxvalue</i></tt> ]
+         [ START <tt class="REPLACEABLE"><i class="EMPHASIS">start</i></tt> ]
+         [ CACHE <tt class="REPLACEABLE"><i class="EMPHASIS">cache</i></tt> ]
+         [ CYCLE ]</pre><p class="calibre9">In this syntax, <tt class="REPLACEABLE"><i class="EMPHASIS">sequencename</i></tt> is the name of the sequence to be created. This is the only
+        required parameter. A sequence uses the integer data type, and it therefore shares its maximum and minimum limitations of
+        2147483647 and –2147483647, respectively.</p><p class="calibre9">The optional <tt class="REPLACEABLE">CREATE SEQUENCE</tt> clauses are as follows:
+        
+        </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">INCREMENT </tt><tt class="REPLACEABLE"><i class="EMPHASIS">increment_val</i></tt></dt><dd class="calibre16"><p class="calibre9">              Sets the numeric quantity with which to modify the sequence's value to <tt class="REPLACEABLE"><i class="EMPHASIS">increment_val</i></tt>.  This is
+              used when the <tt class="REPLACEABLE">nextval()</tt> function is called on the sequence. Setting
+              <tt class="REPLACEABLE"><i class="EMPHASIS">increment_val</i></tt> to a negative number results in a descending sequence. The default value is 1.
+            </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">MINVALUE </tt><tt class="REPLACEABLE"><i class="EMPHASIS">minvalue</i></tt></dt><dd class="calibre16"><p class="calibre9">              Sets the fixed minimum value for the sequence to <tt class="REPLACEABLE"><i class="EMPHASIS">minvalue</i></tt>. Any attempt to lower a
+              sequence below this value will result in an error, or in the value cycling to its maximum value (if
+              the <tt class="REPLACEABLE">CYCLE</tt> keyword was used when the sequence was created).
+            </p><p class="calibre9">              The default value is 1 for ascending sequences, and –2147483647 for descending sequences.
+            </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">MAXVALUE </tt><tt class="REPLACEABLE"><i class="EMPHASIS">maxvalue</i></tt></dt><dd class="calibre16"><p class="calibre9">              Sets the fixed maximum value for the sequence to <tt class="REPLACEABLE"><i class="EMPHASIS">maxvalue</i></tt>. Any attempt to raise
+              a sequence above this value will result in an error, or in the value cycling to its minimum value.
+            </p><p class="calibre9">              The default value is 2147483647 for ascending sequences, and –1 for descending sequences.
+            </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">START </tt><tt class="REPLACEABLE"><i class="EMPHASIS">start_val</i></tt></dt><dd class="calibre16"><p class="calibre9">              Sets the value that the sequence begins at. It may be any integer between the minimum and maximum values. The sequence defaults to start at its minimum value for ascending sequences, and its maximum value for descending
+              sequences.
+            </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">CACHE </tt><tt class="REPLACEABLE"><i class="EMPHASIS">cache</i></tt></dt><dd class="calibre16"><p class="calibre9">              Provides the ability for sequence values to be pre-allocated and stored in memory. This can result
+              in faster access times to highly used sequences. The minimum and default value is 1; a higher
+              value of <tt class="REPLACEABLE"><i class="EMPHASIS">cache</i></tt> results in more values being cached.
+            </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">CYCLE</tt></dt><dd class="calibre16"><p class="calibre9">              Enables the sequence to continue generating new values after it has reached its maximum or minimum value. When the
+              limit is reached, the sequence starts over at the minimum value (for ascending sequences), or at the maximum value (descending
+              sequences).
+            </p></dd></dl></div>
+<p class="calibre9"><a href="x14316.htm#CREATINGASEQUENCEEXAMPLE">Example 7-28</a> creates a simple ascending sequence named
+        <tt class="REPLACEABLE">shipments_ship_id_seq</tt> that starts at a value of 0, and will be
+        incremented by the default increment of 1 until it reaches the default maximum limit of
+        2147483647. By not using the <tt class="REPLACEABLE">CYCLE</tt> keyword, the sequence is
+        guaranteed to always return a unique value.</p><div class="NAVHEADER"><a name="CREATINGASEQUENCEEXAMPLE"></a><p class="calibre9"><b class="calibre10">Example 7-28. Creating a sequence</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">CREATE SEQUENCE shipments_ship_id_seq</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">                MINVALUE 0;</b></tt>
+CREATE</pre></div></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN14406" class="calibre8">Viewing a sequence</a></h3><p class="calibre9">The output from the <tt class="REPLACEABLE">\d</tt> command within <span><i class="EMPHASIS">psql</i></span> shows whether or
+        not a database object is a sequence, table, view or index. More specifically, the <tt class="REPLACEABLE">\ds</tt>
+        command can be used to view all sequences in the currently connected database. For example:</p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">\ds</b></tt>
+             List of relations
+         Name          |   Type   |  Owner
+-----------------------+----------+---------
+ book_ids              | sequence | manager
+ shipments_ship_id_seq | sequence | manager
+ subject_ids           | sequence | manager
+(3 rows)</pre><p class="calibre9">While not often necessary, sequences can be directly queried with <tt class="REPLACEABLE">SELECT</tt>
+        statements, as if they were a table or view.
+        When you query a sentence, you use the attributes of that sequence as columns in your select list.
+        The attributes of a sequence are shown in <a href="x14316.htm#SEQUENCEATTRIBUTES">Table 7-1</a>.</p><div class="NAVHEADER"><a name="SEQUENCEATTRIBUTES"></a><p class="calibre9"><b class="calibre10">Table 7-1. Sequence attributes</b></p><table border="1" class="calibre"><thead class="calibre11"><tr class="calibre12"><th width="6" valign="TOP" class="calibre13"><p class="calibre9">Attribute</p></th><th width="6" valign="TOP" class="calibre13"><p class="calibre9">Type</p></th></tr></thead><tbody class="calibre14"><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">sequence_name</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">name</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">last_value</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">integer</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">increment_by</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">integer</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">max_value</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">integer</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">min_value</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">integer</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">cache_value</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">integer</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">log_cnt</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">integer</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">is_cycled</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">"char"</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">is_called</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">"char"</tt></p></td></tr></tbody></table></div><p class="calibre9"><a href="x14316.htm#VIEWINGASEQUENCE">Example 7-29</a> illustrates a query to the <tt class="REPLACEABLE">shipments_ship_id_seq</tt>
+        sequence. This query selects the <tt class="REPLACEABLE">last_value</tt> attribute, which is the most currently
+        selected value from the sequence, and the <tt class="REPLACEABLE">increment_by</tt> attribute, which is the amount the
+        sequence is to be incremented each time the <tt class="REPLACEABLE">nextval()</tt> function is called.</p><div class="NAVHEADER"><a name="VIEWINGASEQUENCE"></a><p class="calibre9"><b class="calibre10">Example 7-29. Viewing a sequence</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT last_value, increment_by</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       FROM shipments_ship_id_seq;</b></tt>
+ last_value | increment_by
+------------+--------------
+          0 |            1
+(1 row)</pre></div><p class="calibre9">Since the sequence in question has just been created, its <tt class="REPLACEABLE">last_value</tt> is still set to
+        0.</p></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN14505" class="calibre8">Using a sequence</a></h3><p class="calibre9">Sequences are typically not queried directly, but are instead used through functions. There are three functions in
+        PostgreSQL which apply exclusively to sequences:</p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">nextval('</tt><tt class="REPLACEABLE"><i class="EMPHASIS">sequence_name</i></tt>')</dt><dd class="calibre16"><p class="calibre9">              Increments the value of the specified sequence named <tt class="REPLACEABLE"><i class="EMPHASIS">sequence_name</i></tt>, and returns the new value,
+              which is of type <tt class="REPLACEABLE">integer</tt>.
+          </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">currval('</tt><tt class="REPLACEABLE"><i class="EMPHASIS">sequence_name</i></tt>')</dt><dd class="calibre16"><p class="calibre9">              Returns the most recently returned value from <tt class="REPLACEABLE">nextval('</tt><tt class="REPLACEABLE"><i class="EMPHASIS">sequence_name</i></tt><tt class="REPLACEABLE">')</tt>. This value
+              is associated with a PostgreSQL session, and if the <tt class="REPLACEABLE">nextval()</tt> function has not yet
+              been called in the connected session on the specified sequence <tt class="REPLACEABLE"><i class="EMPHASIS">sequence_name</i></tt>, there will be no
+              "current" value returned.
+            </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">setval('</tt><tt class="REPLACEABLE"><i class="EMPHASIS">sequence_name</i></tt>', <tt class="REPLACEABLE"><i class="EMPHASIS">n</i></tt> )</dt><dd class="calibre16"><p class="calibre9">              Sets the current value of the specified sequence to the numeric value <tt class="REPLACEABLE"><i class="EMPHASIS">n</i></tt>.
+              The value returned by the next call to <tt class="REPLACEABLE">nextval()</tt> will return
+              <tt class="REPLACEABLE"><i class="EMPHASIS">n + increment</i></tt>, where <tt class="REPLACEABLE"><i class="EMPHASIS">increment</i></tt> is the amount that the sequence increments
+              by each iteration.
+            </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">setval('</tt><tt class="REPLACEABLE"><i class="EMPHASIS">sequence_name</i></tt>', <tt class="REPLACEABLE"><i class="EMPHASIS">n</i></tt>, <tt class="REPLACEABLE"><i class="EMPHASIS">b</i></tt> )</dt><dd class="calibre16"><p class="calibre9">              Also sets the current value of the specified sequence to the numeric value <tt class="REPLACEABLE"><i class="EMPHASIS">n</i></tt>. However, if
+              <tt class="REPLACEABLE"><i class="EMPHASIS">b</i></tt> (a value of type <tt class="REPLACEABLE">boolean</tt>) is <span><i class="EMPHASIS">false</i></span>,
+              the value returned by the next call to <tt class="REPLACEABLE">nextval()</tt> will be just
+              <tt class="REPLACEABLE"><i class="EMPHASIS">n</i></tt> . If <tt class="REPLACEABLE"><i class="EMPHASIS">b</i></tt> is <span><i class="EMPHASIS">true</i></span>, the next call to
+              <tt class="REPLACEABLE">nextval()</tt> will return <span><i class="EMPHASIS">n + increment</i></span>, as it would without
+              specifying the Boolean argument at all.
+            </p></dd></dl></div><p class="calibre9">The most commonly used sequence function is <tt class="REPLACEABLE">nextval()</tt>. This is the function that
+        actually pushes the increment of the value. It requires the name of the sequence as the argument (bound by single
+        quotes), and returns a value of type <tt class="REPLACEABLE">integer</tt>.</p><p class="calibre9"><a href="x14316.htm#INCREMENTINGASEQUENCE">Example 7-30</a> selects a couple of incremented values from the sequence named 
+        <tt class="REPLACEABLE">shipments_ship_id_seq</tt>.</p><div class="NAVHEADER"><a name="INCREMENTINGASEQUENCE"></a><p class="calibre9"><b class="calibre10">Example 7-30. Incrementing a sequence</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT nextval('shipments_ship_id_seq');</b></tt>
+ nextval
+---------
+       1
+(1 row)
+
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT nextval('shipments_ship_id_seq');</b></tt>
+ nextval
+---------
+       2
+(1 row)</pre></div><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>The first call to <tt class="REPLACEABLE">nextval()</tt> will return the sequence's <span><i class="EMPHASIS">initial</i></span> value
+          (set by the <tt class="REPLACEABLE">START</tt> keyword), since it has not yet been called to increment the starting
+          value. All subsequent calls increment the <tt class="REPLACEABLE">last_value</tt> column.</p></blockquote></div><p class="calibre9">Sequences are commonly used as default values for tables which require unique integer identifiers. The
+        <tt class="REPLACEABLE">shipments</tt> table within the <tt class="REPLACEABLE">booktown</tt> database, shown in
+        <a href="x14316.htm#THESHIPMENTSTABLE">Table 7-2</a>, exemplifies this.</p><div class="NAVHEADER"><a name="THESHIPMENTSTABLE"></a><p class="calibre9"><b class="calibre10">Table 7-2. The shipments table</b></p><table border="1" class="calibre"><thead class="calibre11"><tr class="calibre12"><th width="6" valign="TOP" class="calibre13"><p class="calibre9">Column</p></th><th width="6" valign="TOP" class="calibre13"><p class="calibre9">Type</p></th><th width="7" valign="TOP" class="calibre13"><p class="calibre9">Modifier</p></th></tr></thead><tbody class="calibre14"><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">id</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">integer</tt></p></td><td width="7" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">NOT NULL DEFAULT nextval('shipments_ship_id_seq')</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">customer_id</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">integer</tt></p></td><td width="7" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE"/></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">isbn</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">text</tt></p></td><td width="7" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE"/></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">ship_date</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">timestamp with time zone</tt></p></td><td width="7" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE"/></p></td></tr></tbody></table></div><p class="calibre9">The syntax to create the table in <a href="x14316.htm#THESHIPMENTSTABLE">Table 7-2</a>, with the auto-incrementing
+        <tt class="REPLACEABLE">DEFAULT</tt> and <tt class="REPLACEABLE">PRIMARY KEY</tt> constraint, is:</p><pre class="SCREEN">  CREATE TABLE shipments
+         (id integer DEFAULT nextval('"shipments_ship_id_seq"'::text)
+                     PRIMARY KEY,
+          customer_id integer,
+          isbn text,
+          ship_date timestamp)</pre><p class="calibre9">The default value for the <tt class="REPLACEABLE">id</tt> column in <a href="x14316.htm#THESHIPMENTSTABLE">Table 7-2</a> is set
+        to the <tt class="REPLACEABLE">nextval()</tt>'s result on the <tt class="REPLACEABLE">shipments_ship_id_seq</tt>
+        sequence. Insertion of row data that does not specify a value for <tt class="REPLACEABLE">id</tt>
+        will therefore choose its value from the result of this function call.</p><div class="NAVHEADER"><p class="calibre9"></p><table class="calibre" border="1" width="100%"><tr class="calibre1"><td class="calibre23"><b class="calibre10">Warning</b></td></tr><tr class="calibre1"><td class="calibre15"><p class="calibre9">Merely placing a <tt class="REPLACEABLE">DEFAULT</tt> constraint on the <tt class="REPLACEABLE">id</tt>
+          column does not enforce the use of that default. A user could still manually insert a value, potentially causing a
+          conflict with future sequence values. This can be disallowed with the use of a trigger. See <a href="x14316.htm#TRIGGERS">the Section called <i class="EMPHASIS">Triggers</i></a>"
+          later in this chapter for more information.</p></td></tr></table></div><p class="calibre9">After the <tt class="REPLACEABLE">nextval()</tt> function has been called on a sequence in a given session
+        (a connection to PostgreSQL), the <tt class="REPLACEABLE">currval()</tt> function may be used on that same sequence to
+        return the most recently returned value from the sequence. Note that this function may <span><i class="EMPHASIS">only</i></span> be
+        called on a sequence that has been called through <tt class="REPLACEABLE">nextval()</tt> in the active
+        session.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>Sequences' "current" values are associated with sessions in order to prevent multiple users from running into
+          mistakes by accessing the same sequence at the same time. Two users may access the same sequence from separate
+          sessions, but the <tt class="REPLACEABLE">currval()</tt> function will return only the most recently incremented
+          value of the sequence from within <span><i class="EMPHASIS">the same session</i></span> that calls <tt class="REPLACEABLE">currval()</tt>.
+        </p></blockquote></div><p class="calibre9"><a href="x14316.htm#USINGCURRVAL">Example 7-31</a> inserts a new row into the <tt class="REPLACEABLE">shipments</tt> column, without
+        specifying the value for the <tt class="REPLACEABLE">id</tt> column.  This causes the default value to be used, which
+        (as noted in <a href="x14316.htm#THESHIPMENTSTABLE">Table 7-2</a>) is the result of the
+        <tt class="REPLACEABLE">shipments_ship_id_seq</tt> being incremented by the
+        <tt class="REPLACEABLE">nextval()</tt> function.  The <tt class="REPLACEABLE">currval()</tt> function is then
+        used to access the row that was just inserted.</p><div class="NAVHEADER"><a name="USINGCURRVAL"></a><p class="calibre9"><b class="calibre10">Example 7-31. Using currval( )</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">INSERT INTO shipments (customer_id, isbn, ship_date)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">            VALUES (221, '0394800753', 'now');</b></tt>
+INSERT 3628625 1
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT * FROM shipments</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">         WHERE id = currval('shipments_ship_id_seq');</b></tt>
+  id  | customer_id |    isbn    |       ship_date
+------+-------------+------------+------------------------
+ 1002 |         107 | 0394800753 | 2001-09-22 11:23:28-07
+(1 row)</pre></div><p class="calibre9">Finally, a sequence may also have its <tt class="REPLACEABLE">last_value</tt> attribute reset to an arbitrary
+        numeric value (within its maximum and minimum value range) by using the <tt class="REPLACEABLE">setval()</tt>
+        function. This requires the name of the sequence as a single-quote bound character string for the first argument and an
+        integer constant representing the new value for <tt class="REPLACEABLE">last_value</tt> for the second argument.</p><p class="calibre9">There are two ways to go about this. By default, <tt class="REPLACEABLE">setval()</tt> assumes that the new
+        setting is for an initialized sequence; this means that the next value returned by
+        <tt class="REPLACEABLE">nextval()</tt> will actually be incremented once past the value set by
+        <tt class="REPLACEABLE">setval()</tt>.</p><p class="calibre9">Alternatively, an optional <tt class="REPLACEABLE">false</tt> value of type <tt class="REPLACEABLE">boolean</tt> may be
+        added as the last argument to <tt class="REPLACEABLE">setval()</tt>, de-initializing the sequence. This modifies the
+        sequence so that the next value returned by <tt class="REPLACEABLE">nextval()</tt> will be the same numeric value
+        passed to <tt class="REPLACEABLE">setval()</tt> (though the sequence will of course be incremented on the next call
+        to <tt class="REPLACEABLE">nextval()</tt>).</p><p class="calibre9"><a href="x14316.htm#SETTINGASEQUENCEVALUE">Example 7-32</a> sets the <tt class="REPLACEABLE">shipments_ship_id_seq</tt>'s
+        <tt class="REPLACEABLE">last_value</tt> to 1010 through each method, and selects the
+        <tt class="REPLACEABLE">nextval()</tt> on the same sequence to illustrate the effective result.</p><div class="NAVHEADER"><a name="SETTINGASEQUENCEVALUE"></a><p class="calibre9"><b class="calibre10">Example 7-32. Setting a sequence value</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT setval('shipments_ship_id_seq', 1010);</b></tt>
+ setval
+--------
+   1010
+(1 row)
+
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT nextval('shipments_ship_id_seq');</b></tt>
+ nextval
+---------
+    1011
+(1 row)
+
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT setval('shipments_ship_id_seq', 1010, false);</b></tt>
+ setval
+--------
+   1010
+(1 row)
+
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT nextval('shipments_ship_id_seq');</b></tt>
+ nextval
+---------
+    1010
+(1 row)</pre></div><div class="NAVHEADER"><p class="calibre9"></p><table class="calibre" border="1" width="100%"><tr class="calibre1"><td class="calibre23"><b class="calibre10">Warning</b></td></tr><tr class="calibre1"><td class="calibre15"><p class="calibre9">Sequences are commonly used to ensure unique values in a column. Be sure that you understand the application of a sequence
+          before you reset its <tt class="REPLACEABLE">last_value</tt> attribute.</p></td></tr></table></div></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN14705" class="calibre8">Destroying a sequence</a></h3><p class="calibre9">To destroy a sequence, or several sequences simultaneously, use the <tt class="REPLACEABLE">DROP SEQUENCE</tt>
+        SQL command. Here is the syntax for <tt class="REPLACEABLE">DROP SEQUENCE</tt>:</p><pre class="SCREEN">  DROP SEQUENCE <tt class="REPLACEABLE"><i class="EMPHASIS">sequencename</i></tt> [, ...]</pre><p class="calibre9">In this syntax, <tt class="REPLACEABLE"><i class="EMPHASIS">sequencename</i></tt> is the name of the sequence that you wish to remove. Multiple
+        sequence names may be specified, separated by commas.</p><p class="calibre9"><a href="x14316.htm#REMOVINGASEQUENCE">Example 7-33</a> removes the <tt class="REPLACEABLE">shipments_ship_id_seq</tt>
+        sequence.</p><div class="NAVHEADER"><a name="REMOVINGASEQUENCE"></a><p class="calibre9"><b class="calibre10">Example 7-33. Removing a sequence</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">DROP SEQUENCE shipments_ship_id_seq;</b></tt>
+DROP</pre></div><p class="calibre9">Before destroying a sequence, make sure that the sequence is not used by another table, function, or any other
+        object in the database. If this check is not performed, then other operations that rely on the sequence will fail. The
+        following query will return the name of any relation which relies on a default sequence value, where
+        <tt class="REPLACEABLE">sequence_name</tt> is the name of the sequence you are interesting in finding dependencies for:</p><pre class="SCREEN">  SELECT p.relname, a.adsrc FROM pg_class p 
+         JOIN pg_attrdef a ON (p.relfilenode = a.adrelid)
+         WHERE a.adsrc ~ '"<tt class="REPLACEABLE"><i class="EMPHASIS">sequence_name</i></tt> "';</pre><p class="calibre9"><a href="x14316.htm#CHECKINGSEQUENCEDEPENDENCIES">Example 7-34</a> uses this query to look up the name of any table with a default value
+        involving the <tt class="REPLACEABLE">shipments_ship_id_seq</tt> sequence.</p><div class="NAVHEADER"><a name="CHECKINGSEQUENCEDEPENDENCIES"></a><p class="calibre9"><b class="calibre10">Example 7-34. Checking sequence dependencies</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT p.relname, a.adsrc FROM pg_class p JOIN pg_attrdef a</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">                          ON (p.relfilenode = a.adrelid)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">       WHERE a.adsrc ~ '"shipments_ship_id_seq"';</b></tt>
+  relname  |                  adsrc
+-----------+------------------------------------------
+ shipments | nextval('"shipments_ship_id_seq"'::text)
+(1 row)</pre></div></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="TRIGGERS" class="calibre8">Triggers</a></h2><p class="calibre9">Often, anticipated SQL events should precede or
+      follow a particular action. This action might be a consistency check on a set of values to be inserted, the formatting of supplied data before it is
+      inserted, or a modification to a separate table following the removal or modification of a set of rows. Traditionally, such actions are handled at the programmatic level within an application connected to the
+      database, rather than the database software itself.</p><p class="calibre9">To ease the responsibility of the application's database interaction, PostgreSQL supports a non-standard programmatic
+      extension known as a <span><i class="EMPHASIS">trigger</i></span>. A trigger defines a function which occurs before, or after, another
+      action on a table. A trigger is implemented through C, Pl/pgSQL or any other <span><i class="EMPHASIS">functional language</i></span> (with the exception of SQL) that
+      PostgreSQL can use to define a function (see <a href="x15284.htm">the Section called <i class="EMPHASIS">Extending PostgreSQL</i></a>" later in this
+      chapter for more on creating functions, or <a href="c19610.htm">Chapter 11</a> for more on PL/pgSQL).</p><div class="NAVHEADER"><p class="calibre9"></p><table class="calibre" border="1" width="100%"><tr class="calibre1"><td class="calibre23"><b class="calibre10">Warning</b></td></tr><tr class="calibre1"><td class="calibre15"><p class="calibre9">As triggers are a PostgreSQL-specific extension, be sure not to implement a trigger-based solution when a high
+        degree of portability to other RDBMS systems is important.</p></td></tr></table></div><p class="calibre9">Triggers may affect any of the following SQL events on a table:</p><p class="calibre9"> </p><p class="calibre9"></p><ul class="calibre21"><li class="calibre22"><p class="calibre9"><tt class="REPLACEABLE">INSERT</tt></p></li><li class="calibre22"><p class="calibre9"><tt class="REPLACEABLE">UPDATE</tt></p></li><li class="calibre22"><p class="calibre9"><tt class="REPLACEABLE">DELETE</tt></p></li></ul>
+<div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN14761" class="calibre8">Creating a trigger</a></h3><p class="calibre9">In order to create a trigger, a function must first exist for it to execute. PostgreSQL supports many types of
+        functions, including those defined by SQL, PL/pgSQL, and C. As of PostgreSQL 7.1.x, a trigger may use a
+        function defined in any language, with the exception that the function cannot be defined as a purely SQL function.</p><p class="calibre9">Once a function is defined, a trigger may be defined to call that function either before or after an event
+        on a specified table. Here is the syntax to create a trigger, followed by a description of its syntax:</p><pre class="SCREEN">  CREATE TRIGGER <tt class="REPLACEABLE"><i class="EMPHASIS">name</i></tt> { BEFORE | AFTER } { <tt class="REPLACEABLE"><i class="EMPHASIS">event</i></tt> [ OR <tt class="REPLACEABLE"><i class="EMPHASIS">event</i></tt> ... ] }
+                 ON <tt class="REPLACEABLE"><i class="EMPHASIS">tablename</i></tt>
+                 FOR EACH { ROW | STATEMENT }
+                 EXECUTE PROCEDURE <tt class="REPLACEABLE"><i class="EMPHASIS">functionname</i></tt> ( <tt class="REPLACEABLE"><i class="EMPHASIS">arguments</i></tt> )</pre><p class="calibre9"> </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">CREATE TRIGGER </tt><tt class="REPLACEABLE"><i class="EMPHASIS">name</i></tt></dt><dd class="calibre16"><p class="calibre9"> <tt class="REPLACEABLE"><i class="EMPHASIS">name</i></tt> is any arbitrary name for the new trigger. A trigger may have the same name as an
+                existing trigger in a database provided that it is defined to operate on a different table. Also, like most other
+                non-system database objects, triggers must only have a unique name (and table to operate on) within the database
+                they are created in.
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">{ BEFORE | AFTER }</tt></dt><dd class="calibre16"><p class="calibre9">                The <tt class="REPLACEABLE">BEFORE</tt> keyword instructs the defined function to be executed before the event
+                is attempted, which also precedes any built-in constraint checking on the values involved in the case of an
+                <tt class="REPLACEABLE">INSERT</tt> or <tt class="REPLACEABLE">DELETE</tt> event. Alternatively, the
+                <tt class="REPLACEABLE">AFTER</tt> keyword causes the function to be called only after the attempted action has
+                finished.
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">{ </tt><tt class="REPLACEABLE"><i class="EMPHASIS">event</i></tt> [ OR <tt class="REPLACEABLE"><i class="EMPHASIS">event</i></tt> ... ] }</dt><dd class="calibre16"><p class="calibre9"> <tt class="REPLACEABLE"><i class="EMPHASIS">event</i></tt> is any one of the supported SQL events; multiple events may be listed, separated by the
+                <tt class="REPLACEABLE">OR</tt> keyword.
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">ON </tt><tt class="REPLACEABLE"><i class="EMPHASIS">tablename</i></tt></dt><dd class="calibre16"><p class="calibre9"> <tt class="REPLACEABLE"><i class="EMPHASIS">tablename</i></tt> is the name of the table which, when modified by <tt class="REPLACEABLE"><i class="EMPHASIS">event</i></tt>,
+                initiates this trigger.
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">FOR EACH { ROW | STATEMENT }</tt></dt><dd class="calibre16"><p class="calibre9">                The keyword following the <tt class="REPLACEABLE">FOR EACH</tt> clause determines how many times
+                the function should be called when the defined event is triggered. Use the <tt class="REPLACEABLE">ROW</tt> keyword
+                to specify that the function is to be executed once for <span><i class="EMPHASIS">each affected row</i></span>. Conversely, if the
+                function should be executed only once for the calling statement, the <tt class="REPLACEABLE">STATEMENT</tt> keyword
+                is used.
+              </p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">EXECUTE PROCEDURE </tt><tt class="REPLACEABLE"><i class="EMPHASIS">functionname</i></tt> ( <tt class="REPLACEABLE"><i class="EMPHASIS">arguments</i></tt> )</dt><dd class="calibre16"><p class="calibre9"> <tt class="REPLACEABLE"><i class="EMPHASIS">functionname</i></tt> is the name of the existing function to be executed, with passed
+                <tt class="REPLACEABLE"><i class="EMPHASIS">arguments</i></tt>.
+              </p></dd></dl></div>
+<div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>Only the database object's owner, or a super user, can create a trigger on a database object.</p></blockquote></div><p class="calibre9">While PostgreSQL tables support constraints to perform simple checks against static criteria, sometimes more
+        involved procedures may be needed to validate input values. This is a typical example of where a trigger might be useful.</p><p class="calibre9">A trigger may be used to validate input values by preparing a validation function to be executed
+        <span><i class="EMPHASIS">before</i></span> values are inserted into a table, or before values in a table are updated. The function can
+        then be made responsible for verifying that the values meet a complex set of restrictions, and even return an appropriate
+        error through PostgreSQL's error logging system.</p><p class="calibre9">Suppose that you have written a function in a procedural language that validates attempted
+        <tt class="REPLACEABLE">INSERT</tt> or <tt class="REPLACEABLE">UPDATE</tt> values on the
+        <tt class="REPLACEABLE">shipments</tt> table, and that then performs an update on the
+        <tt class="REPLACEABLE">stock</tt> table to decrement the inventory for the shipment. This function could be written
+        in any language that PostgreSQL supports (with the noted exception of pure SQL). </p><p class="calibre9">Specifically, suppose that this function verifies that both the provided
+        <tt class="REPLACEABLE">customer_id</tt> and <tt class="REPLACEABLE">isbn</tt> exist in their respective
+        <tt class="REPLACEABLE">customers</tt> and <tt class="REPLACEABLE">editions</tt> tables. If at least one is
+        missing, a meaningful error is returned. Otherwise, the SQL statement is allowed to execute, and on a successful
+        <tt class="REPLACEABLE">INSERT</tt> statement, the <tt class="REPLACEABLE">stock</tt> table is automatically
+        decremented to reflect the drop in stock from the shipment.</p><p class="calibre9"><a href="x14316.htm#CREATINGTHECHECKSHIPMENTTRIGGER">Example 7-35</a> creates a trigger to be "fired" immediately before an
+        <tt class="REPLACEABLE">INSERT</tt> or <tt class="REPLACEABLE">UPDATE</tt> statement is processed on the
+        <tt class="REPLACEABLE">shipments</tt> table. The trigger invokes the
+        <tt class="REPLACEABLE">check_shipment_addition()</tt> function once per each modified row.</p><div class="NAVHEADER"><a name="CREATINGTHECHECKSHIPMENTTRIGGER"></a><p class="calibre9"><b class="calibre10">Example 7-35. Creating the check_shipment trigger</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">CREATE TRIGGER check_shipment</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">               BEFORE INSERT OR UPDATE</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">               ON shipments FOR EACH ROW</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">               EXECUTE PROCEDURE check_shipment_addition();</b></tt>
+CREATE</pre></div><p class="calibre9">Since the <tt class="REPLACEABLE">check_shipment</tt> trigger is configured to execute the
+        <tt class="REPLACEABLE">check_shipment_addition()</tt> function for both <tt class="REPLACEABLE">INSERT</tt> and
+        <tt class="REPLACEABLE">UPDATE</tt> statements, the integrity of the <tt class="REPLACEABLE">customer_id</tt> and
+        <tt class="REPLACEABLE">isbn</tt> columns are fairly robustly maintained. Its use of the
+        <tt class="REPLACEABLE">ROW</tt> keyword ensures that each added or modified row will be processed by the
+        <tt class="REPLACEABLE">check_shipment_addition()</tt> validation function.</p><p class="calibre9">No arguments are passed to the <tt class="REPLACEABLE">check_shipment_addition()</tt> function, as it uses
+        internal PL/pgSQL variables to check incoming rows. See <a href="x20655.htm#PLPGSQLTRIGGERFUNCTION">Example 11-53</a>, in <a href="c19610.htm">Chapter 11</a>, for the implementation of the <tt class="REPLACEABLE">check_shipment_addition()</tt> function,
+        written in PL/pgSQL.</p></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN14874" class="calibre8">Viewing a trigger</a></h3><p class="calibre9">Triggers are stored in the <tt class="REPLACEABLE">pg_trigger</tt> PostgreSQL system table, and can have their
+        characteristics queried after creation. The structure of the <tt class="REPLACEABLE">pg_trigger</tt> table is shown in <a href="x14316.htm#THEPGTRIGGERTABLE">Table 7-3</a>.</p><div class="NAVHEADER"><a name="THEPGTRIGGERTABLE"></a><p class="calibre9"><b class="calibre10">Table 7-3. The pg_trigger table</b></p><table border="1" class="calibre"><thead class="calibre11"><tr class="calibre12"><th width="6" valign="TOP" class="calibre13"><p class="calibre9">Column</p></th><th width="6" valign="TOP" class="calibre13"><p class="calibre9">Type</p></th></tr></thead><tbody class="calibre14"><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">tgrelid</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">oid</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">tgname</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">name</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">tgfoid</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">oid</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">tgtype</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">smallint</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">tgenabled</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">boolean</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">tgisconstraint</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">boolean</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">tgconstrname</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">name</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">tgconstrrelid</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">oid</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">tgdeferrable</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">boolean</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">tginitdeferred</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">boolean</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">tgnargs</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">smallint</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">tgattr</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">int2vector</tt></p></td></tr><tr class="calibre12"><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">tgargs</tt></p></td><td width="6" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">bytea</tt></p></td></tr></tbody></table></div><p class="calibre9">Most of the columns in the <a href="x14316.htm#THEPGTRIGGERTABLE">Table 7-3</a> column are unlikely to be useful in a direct query.
+        The most immediately relevant attributes of the <tt class="REPLACEABLE">pg_trigger</tt> system table are
+        <tt class="REPLACEABLE">tgrelid</tt> and <tt class="REPLACEABLE">tgname</tt>.</p><p class="calibre9">The <tt class="REPLACEABLE">tgrelid</tt> value is the trigger's relation identifier number. This value is of type
+        <tt class="REPLACEABLE">oid</tt>, and corresponds to the <tt class="REPLACEABLE">relfilenode</tt> column in the
+        <tt class="REPLACEABLE">pg_class</tt>. The <tt class="REPLACEABLE">tgname</tt> is the identifier which represents
+        the name of the trigger, as specified in the <tt class="REPLACEABLE">CREATE TRIGGER</tt> command when the trigger
+        was created.
+        </p></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN14996" class="calibre8">Removing a trigger</a></h3><p class="calibre9">The <tt class="REPLACEABLE">DROP TRIGGER</tt> command removes a trigger permanently from the database. Similar
+        to the <tt class="REPLACEABLE">CREATE TRIGGER</tt> command, using this command requires you to be either the owner of
+        the trigger, or a superuser.</p><p class="calibre9">Here is the syntax to remove an existing trigger:</p><pre class="SCREEN">  DROP TRIGGER <tt class="REPLACEABLE"><i class="EMPHASIS">name</i></tt> ON <tt class="REPLACEABLE"><i class="EMPHASIS">table</i></tt></pre><p class="calibre9"><a href="x14316.htm#DROPPINGATRIGGER">Example 7-36</a> drops the <tt class="REPLACEABLE">check_shipment</tt> trigger placed on
+        the <tt class="REPLACEABLE">shipments</tt> table.</p><div class="NAVHEADER"><a name="DROPPINGATRIGGER"></a><p class="calibre9"><b class="calibre10">Example 7-36. Dropping a trigger</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">DROP TRIGGER check_shipment ON shipments;</b></tt>
+DROP</pre></div><p class="calibre9">The <tt class="REPLACEABLE">DROP</tt> statement indicates that the trigger was successfully dropped.  Notice
+        that you must specify not only the <tt class="REPLACEABLE"><i class="EMPHASIS">name</i></tt> of the trigger that you wish to remove, but also the 
+        <tt class="REPLACEABLE"><i class="EMPHASIS">table</i></tt> on which it is placed.</p><p class="calibre9">If you are unsure which table a particular trigger is placed on, you can derive this information from
+        PostgreSQL's system tables. For example, you can perform a join between the <tt class="REPLACEABLE">pg_trigger</tt>
+        system table's <tt class="REPLACEABLE">tgrelid</tt> column and the <tt class="REPLACEABLE">pg_class</tt> system
+        table's <tt class="REPLACEABLE">relfilenode</tt> column, comparing the name of the trigger against the
+        <tt class="REPLACEABLE">tgname</tt> column. <a href="x14316.htm#SELECTINGATRIGGERSASSIGNEDTABLE">Example 7-37</a> demonstrates such a
+        query to check the assigned relation (<tt class="REPLACEABLE">relname</tt>) associated with the trigger named
+        <tt class="REPLACEABLE">check_shipment</tt>.</p><div class="NAVHEADER"><a name="SELECTINGATRIGGERSASSIGNEDTABLE"></a><p class="calibre9"><b class="calibre10">Example 7-37. Selecting a trigger's assigned table</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT relname FROM pg_class</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">               INNER JOIN pg_trigger</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">               ON (tgrelid = relfilenode)</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">               WHERE tgname = 'check_shipment';</b></tt>
+  relname
+-----------
+ shipments
+(1 row)</pre></div><div class="NAVHEADER"><p class="calibre9"></p><table class="calibre" border="1" width="100%"><tr class="calibre1"><td class="calibre23"><b class="calibre10">Caution</b></td></tr><tr class="calibre1"><td class="calibre15"><p class="calibre9">If you drop a function that a trigger is defined to use, the trigger will fail, and redefining the function
+          with the same name will not correct the problem. Such a trigger must be recreated after its function is
+          recreated.</p></td></tr></table></div></div></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="x14110.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x15040.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Arrays</td><td width="34%" valign="top" class="calibre4"><a href="c13329.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Transactions and Cursors</td></tr></table></div></div>
+
+{% endraw %}
+

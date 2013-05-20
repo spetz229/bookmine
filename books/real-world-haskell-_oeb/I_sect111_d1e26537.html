@@ -1,0 +1,257 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: testing_split_001.html
+next: quickcheck_indepth.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="testing_split_000.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="quickcheck_indepth.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect111_d1e26537" class="calibre27" id="I_sect111_d1e26537"></a><h3 id="643999-846" class="docSection1Title">11.1. QuickCheck: Type-Based Testing</h3><a name="x_yp" class="calibre27" id="x_yp"></a><p class="docText">To get an<a name="ch11-quickcheck" class="calibre27" id="ch11-quickcheck"></a> overview of how <a name="I_indexterm11_d1e26546" class="calibre27" id="I_indexterm11_d1e26546"></a><a name="I_indexterm11_d1e26549" class="calibre27" id="I_indexterm11_d1e26549"></a>property-based testing works, we'll begin with a simple
+    scenario: you've written a specialized sorting function and want to test
+    its behavior.</p><a name="x_zp" class="calibre27" id="x_zp"></a><p class="docText">First, we import the QuickCheck library,<sup class="docFootnote"><a class="docLink1" href="#x_zpd1e26907">[28]</a></sup> and any other modules we need:</p><blockquote class="calibre30"><p class="docFootnote1"><sup class="calibre50"><a name="x_zpd1e26907" class="calibre5" id="x_zpd1e26907">[28]</a></sup> Throughout this chapter, we'll use QuickCheck 1.0
+        (classic QuickCheck). It should be kept in mind that some functions
+        may differ in later releases of the library.</p></blockquote><pre class="calibre39">-- file: ch11/QC-basics.hs
+import Test.QuickCheck
+import Data.List</pre><br class="calibre48"/>
+<a name="x_Aq" class="calibre27" id="x_Aq"></a><p class="docText">And the function we want to test—a custom sort
+    routine:</p><pre class="calibre39">-- file: ch11/QC-basics.hs
+qsort :: Ord a =&gt; [a] -&gt; [a]
+qsort []     = []
+qsort (x:xs) = qsort lhs ++ [x] ++ qsort rhs
+    where lhs = filter  (&lt; x) xs
+          rhs = filter (&gt;= x) xs</pre><br class="calibre48"/>
+<a name="x_Bq" class="calibre27" id="x_Bq"></a><p class="docText">This is the classic Haskell sort implementation: a study
+    in functional programming elegance, if not efficiency (this isn't an
+    inplace sort). Now, we'd like to check that this function obeys the basic
+    rules a good sort should follow. One useful invariant to start with, and
+    one that comes up in a lot of purely functional code, <a name="I_indexterm11_d1e26567" class="calibre27" id="I_indexterm11_d1e26567"></a>is <span class="docEmphasis">idempotency</span>—applying a function
+    twice has the same result as applying it only once. For our sort routine—a
+    stable sort algorithm—this should certainly be true, or things have gone
+    horribly wrong! This invariant can be encoded as a property simply, as
+    follows:</p><pre class="calibre39">-- file: ch11/QC-basics.hs
+prop_idempotent xs = qsort (qsort xs) == qsort xs</pre><br class="calibre48"/>
+<a name="x_Cq" class="calibre27" id="x_Cq"></a><p class="docText">We'll use the QuickCheck convention of prefixing test
+    properties with <tt class="calibre34">prop_</tt> in order to distinguish them from
+    normal code. This idempotency property is written simply as a Haskell
+    function stating an equality that must hold for any input data that is
+    sorted. We can check this makes sense for a few simple cases by
+    hand:</p><pre class="calibre39">ghci&gt; <b class="calibre40">prop_idempotent []       </b>
+True
+ghci&gt; <b class="calibre40">prop_idempotent [1,1,1,1]  </b>
+True
+ghci&gt; <b class="calibre40">prop_idempotent [1..100]</b>
+True
+ghci&gt; <b class="calibre40">prop_idempotent [1,5,2,1,2,0,9]</b>
+True</pre><a name="x_oy" class="calibre27" id="x_oy"></a><p class="docText">Looks good. However, writing out the input data by hand is
+    tedious and violates the moral code of the efficient functional
+    programmer: let the machine do the work! To automate this, the QuickCheck
+    library comes with a set of data generators for all the basic Haskell data
+    types. QuickCheck uses the Arbitrary typeclass<a name="I_indexterm11_d1e26607" class="calibre27" id="I_indexterm11_d1e26607"></a> to present a uniform interface to (pseudo)random data
+    generation with the type system used to resolve the question of which
+    generator to use. QuickCheck normally hides the data generation plumbing;
+    however, we can also run the generators by hand to get a sense for the
+    distribution of data that QuickCheck produces. For example, to generate a
+    random list of Boolean values:</p><pre class="calibre39">ghci&gt; <b class="calibre40">generate 10 (System.Random.mkStdGen 2) arbitrary :: [Bool]</b>
+[False,False,False,False,False,True]
+</pre><a name="x_py" class="calibre27" id="x_py"></a><p class="docText">QuickCheck generates test data such as this and passes it
+    to the property of our choosing, via the <tt class="calibre34">quickCheck</tt> function.
+    The type of the property itself determines which data generator is used.
+    <tt class="calibre34">quickCheck</tt> then checks that for all the test data produced,
+    the property is satisfied. Now, since our idempotency test is polymorphic
+    in the list element type, we need to pick a particular type for which to
+    generate test data, which we write as a type constraint on the property.
+    To run the test, we just call <tt class="calibre34">quickCheck</tt> with our property
+    function, which is set to the required data type (otherwise, the list
+    element type will default to the uninteresting <tt class="calibre34">()</tt>
+    type):</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type quickCheck</b>
+quickCheck :: (Testable a) =&gt; a -&gt; IO ()
+ghci&gt; <b class="calibre40">quickCheck (prop_idempotent :: [Integer] -&gt; Bool)</b>
+ passed 100 tests.</pre><a name="x_Dq" class="calibre27" id="x_Dq"></a><p class="docText">For the 100 different lists generated, our property
+    held—great! When developing tests, it is often useful to see the actual
+    data generated for each test. To do this, we would replace
+    <tt class="calibre34">quickCheck</tt> with its sibling, <tt class="calibre34">verboseCheck</tt>, to
+    see (verbose) output for each test. Now, let's look at more sophisticated
+    properties that our function might satisfy.</p><a name="I_sect111_d1e26537d1e27003" class="calibre27" id="I_sect111_d1e26537d1e27003"></a><h4 id="title-IDALDOBD" class="docSection1Title">11.1.1. Testing for Properties</h4><a name="x_Eq" class="calibre27" id="x_Eq"></a><p class="docText">Good libraries consist of a set of orthogonal primitives
+      having sensible relationships to each other. We can use QuickCheck to
+      specify the relationships between functions in our code, helping us find
+      a good library interface by developing functions that are interrelated
+      via useful properties. QuickCheck in this way acts as an API "lint"
+      tool—it provides machine support for ensuring that our library API makes
+      sense.</p><a name="x_Fq" class="calibre27" id="x_Fq"></a><p class="docText">The list sorting function should certainly have a number
+      of interesting properties that tie it to other list operations. For
+      example, the first element in a sorted list should always be the
+      smallest element of the input list. We might be tempted to specify this
+      intuition in Haskell, using the <tt class="calibre34">List</tt> library's
+      <tt class="calibre34">minimum</tt> function:</p><pre class="calibre39">-- file: ch11/QC-basics.hs
+prop_minimum xs         = head (qsort xs) == minimum xs</pre><br class="calibre48"/>
+<a name="x_qy" class="calibre27" id="x_qy"></a><p class="docText">Testing this, though, reveals an error:</p><pre class="calibre39">ghci&gt; <b class="calibre40">quickCheck (prop_minimum :: [Integer] -&gt; Bool)</b>
+** Exception: Prelude.head: empty list
+</pre><a name="x_ry" class="calibre27" id="x_ry"></a><p class="docText">The property failed when sorting an empty list, for
+      which <tt class="calibre34">head</tt> and <tt class="calibre34">minimum</tt> aren't defined, as we
+      can see from their definition:</p><pre class="calibre39">-- file: ch11/minimum.hs
+head       :: [a] -&gt; a
+head (x:_) = x
+head []    = error "Prelude.head: empty list"
+
+minimum    :: (Ord a) =&gt; [a] -&gt; a
+minimum [] =  error "Prelude.minimum: empty list"
+minimum xs =  foldl1 min xs</pre><br class="calibre48"/>
+<a name="x_J21" class="calibre27" id="x_J21"></a><p class="docText">So this property will only hold for nonempty lists.
+      QuickCheck, thankfully, comes with a full property writing embedded
+      language, so we can specify more precisely our invariants, filtering out
+      values we don't want to consider. For the empty list case, we really
+      want to say <span class="docEmphasis">if</span> the list is nonempty,
+      <span class="docEmphasis">then</span> the first element of the sorted result is the
+      minimum. This is done using the <tt class="calibre34">(==&gt;)</tt>
+      implication<a name="I_indexterm11_d1e26695" class="calibre27" id="I_indexterm11_d1e26695"></a> function, which filters out invalid data before running
+      the property:</p><pre class="calibre39">-- file: ch11/QC-basics.hs
+prop_minimum' xs         = not (null xs) ==&gt; head (qsort xs) == minimum xs</pre><br class="calibre48"/>
+<a name="x_sy" class="calibre27" id="x_sy"></a><p class="docText">The result is quite clean. By separating out the empty
+      list case, we can now confirm that the property does in fact
+      hold:</p><pre class="calibre39">ghci&gt; <b class="calibre40">quickCheck (prop_minimum' :: [Integer] -&gt; Property)</b>
+ passed 100 tests.
+</pre><a name="x_ty" class="calibre27" id="x_ty"></a><p class="docText">Note that we had to change the type of the property from
+      being a simple Bool result to the more general
+      Property type (the property itself is now a function that
+      filters nonempty lists, before testing them, rather than a simple
+      Boolean constant).</p><a name="x_uy" class="calibre27" id="x_uy"></a><p class="docText">We can now complete the basic property set for the sort
+      function with some other invariants that it should satisfy: the output
+      should be ordered (each element should be smaller than, or equal to, its
+      successor); the output should be a permutation of the input (which we
+      achieve via the list difference function, <tt class="calibre34">(\\)</tt>); <a name="I_indexterm11_d1e26723" class="calibre27" id="I_indexterm11_d1e26723"></a>the last sorted element should be the largest element; and
+      if we find the smallest element of two different lists, that should be
+      the first element if we append and sort those lists. These properties
+      can be stated as:</p><pre class="calibre39">-- file: ch11/QC-basics.hs
+prop_ordered xs = ordered (qsort xs)
+    where ordered []       = True
+          ordered [x]      = True
+          ordered (x:y:xs) = x &lt;= y &amp;&amp; ordered (y:xs)
+
+prop_permutation xs = permutation xs (qsort xs)
+    where permutation xs ys = null (xs \\ ys) &amp;&amp; null (ys \\ xs)
+
+prop_maximum xs         =
+    not (null xs) ==&gt;
+        last (qsort xs) == maximum xs
+
+prop_append xs ys       =
+    not (null xs) ==&gt;
+    not (null ys) ==&gt;
+        head (qsort (xs ++ ys)) == min (minimum xs) (minimum ys)</pre><br class="calibre48"/>
+<a name="I_sect111_d1e26537d1e27081" class="calibre27" id="I_sect111_d1e26537d1e27081"></a><h4 id="title-IDAFGOBD" class="docSection1Title">11.1.2. Testing Against a Model</h4><a name="x_vy" class="calibre27" id="x_vy"></a><p class="docText">Another technique for gaining confidence in some code is
+      to test it against a model implementation. We can tie our implementation
+      of list sort to the reference sort function in the standard list
+      library, and, if they behave the same, we gain confidence that our sort
+      does the right thing:</p><pre class="calibre39">-- file: ch11/QC-basics.hs
+prop_sort_model xs      = sort xs == qsort xs</pre><br class="calibre48"/>
+<a name="x_wy" class="calibre27" id="x_wy"></a><p class="docText">This kind of model-based testing <a name="I_indexterm11_d1e26738" class="calibre27" id="I_indexterm11_d1e26738"></a>is extremely powerful. Often, developers will have a
+      reference implementation or prototype that, while inefficient, is
+      correct. This can then be kept around and used to ensure that optimized
+      production code conforms to the reference. By building a large suite of
+      these model-based tests and running them regularly (on every commit, for
+      example), we can cheaply ensure the precision of our code. Large Haskell
+      projects often come bundled with property suites comparable in size to
+      the project itself, with thousands of invariants tested on every change,
+      keeping the code tied to the specification, and ensuring that it behaves
+      as required.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"><a href="21061538.html" class="calibre2"><img src="btn_next_.gif" alt="Next" border="0" class="calibre31"/></a> 
+           
+          <span class="calibre33"><a target="_self" href="testing_split_000.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="quickcheck_indepth.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

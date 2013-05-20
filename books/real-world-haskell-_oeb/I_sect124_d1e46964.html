@@ -1,0 +1,164 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect124_d1e46934.html
+next: concurrent_hard_split_000.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect124_d1e46934.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="concurrent_hard_split_000.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect124_d1e46964" class="calibre27" id="I_sect124_d1e46964"></a><h3 id="title-IDAZ5MEK" class="docSection1Title">24.6. Useful Things to Know About</h3><a name="concurrent_useful_nonstrict" class="calibre27" id="concurrent_useful_nonstrict"></a><h4 id="title-IDA35MEK" class="docSection1Title">24.6.1. MVar and Chan Are Nonstrict</h4><a name="x_c41" class="calibre27" id="x_c41"></a><p class="docText">Like most <a name="I_indexterm24_d1e46972" class="calibre27" id="I_indexterm24_d1e46972"></a>Haskell container types, both MVar and
+      Chan are nonstrict: neither evaluates its <a name="I_indexterm24_d1e46982" class="calibre27" id="I_indexterm24_d1e46982"></a>contents. We mention this not because it's a problem but
+      because it's a common blind spot. People tend to assume that these types
+      are strict, perhaps because they're used in the IO
+      monad.</p><a name="x_d41" class="calibre27" id="x_d41"></a><p class="docText">As for other container types, the upshot of a mistaken
+      guess about the strictness of an MVar or Chan
+      type is often a space or performance leak. Here's a plausible scenario
+      to consider.</p><a name="x_e41" class="calibre27" id="x_e41"></a><p class="docText">We fork off a thread to perform some expensive
+      computation on another core:</p><pre class="calibre39">-- file: ch24/Expensive.hs
+import Control.Concurrent
+
+notQuiteRight = do
+  mv &lt;- newEmptyMVar
+  forkIO $ expensiveComputation_stricter mv
+  someOtherActivity
+  result &lt;- takeMVar mv
+  print result</pre><br class="calibre48"/>
+<a name="x_f41" class="calibre27" id="x_f41"></a><p class="docText">It <span class="docEmphasis">seems</span> to do something and puts
+      its result back into the MVar:</p><pre class="calibre39">-- file: ch24/Expensive.hs
+expensiveComputation mv = do
+  let a = "this is "
+      b = "not really "
+      c = "all that expensive"
+  putMVar mv (a ++ b ++ c)</pre><br class="calibre48"/>
+<a name="x_g41" class="calibre27" id="x_g41"></a><p class="docText">When we take the result from the MVar in
+      the parent thread and attempt to do something with it, our thread starts
+      computing furiously, because we never forced the computation to actually
+      occur in the other thread!</p><a name="x_h41" class="calibre27" id="x_h41"></a><p class="docText">As usual, the solution is straightforward, once we know
+      there's a potential for a problem: we add strictness to the forked
+      thread, in order to ensure that the computation occurs there. This
+      strictness is best added in one place, in order to avoid the possibility
+      that we might forget to add it:</p><pre class="calibre39">-- file: ch24/ModifyMVarStrict.hs
+{-# LANGUAGE BangPatterns #-}
+
+import Control.Concurrent (MVar, putMVar, takeMVar)
+import Control.Exception (block, catch, throw, unblock)
+import Prelude hiding (catch) -- use Control.Exception's version
+
+modifyMVar_strict :: MVar a -&gt; (a -&gt; IO a) -&gt; IO ()
+modifyMVar_strict m io = block $ do
+  a &lt;- takeMVar m
+  !b &lt;- unblock (io a) `catch` \e -&gt;
+        putMVar m a &gt;&gt; throw e
+  putMVar m b</pre><br class="calibre48"/>
+<p class="calibre37"><table border="0" cellspacing="0" cellpadding="1" width="90%" class="calibre41"><tr class="calibre16"><td class="v3"><table width="100%" border="0" cellspacing="0" cellpadding="6" class="calibre42"><tr class="calibre16"><td width="60" valign="top" class="v3"><img src="tip_yellow.gif" alt="" class="calibre43"/></td><td valign="top" class="v3"><p class="docNormalTitle">It's always worth checking Hackage</p><a name="x_i41" class="calibre27" id="x_i41"></a><p class="docText">In the Hackage package database, you will find a
+        library, <tt class="calibre34">strict-concurrency</tt>, that
+        provides strict versions of the MVar and
+        Chan types.</p></td></tr></table></td></tr></table></p><br class="calibre48"/><a name="x_kJ1" class="calibre27" id="x_kJ1"></a><p class="docText">The <tt class="calibre34">!</tt> pattern in the preceding code is
+      simple to use, but it is not always sufficient to ensure that our data
+      is evaluated. For a more complete approach, see <a class="docLink" href="I_sect124_d1e48019.html#concurrent_strategies">Section 24.10.1</a>.</p><a name="I_sect124_d1e46964d1e47329" class="calibre27" id="I_sect124_d1e46964d1e47329"></a><h4 id="title-IDAVCNEK" class="docSection1Title">24.6.2. Chan Is Unbounded</h4><a name="x_j41" class="calibre27" id="x_j41"></a><p class="docText">Because <i class="docEmphasis">writeChan</i>
+      always<a name="I_indexterm24_d1e47050" class="calibre27" id="I_indexterm24_d1e47050"></a> succeeds immediately, there is a potential risk to using
+      a Chan. If one thread writes to a Chan more
+      often than another thread reads from it, the Chan will grow
+      in an unchecked manner: unread messages will pile up as the reader falls
+      further and further behind.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect124_d1e46934.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="concurrent_hard_split_000.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

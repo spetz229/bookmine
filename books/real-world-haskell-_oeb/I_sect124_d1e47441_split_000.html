@@ -1,0 +1,323 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect124_d1e47262.html
+next: I_sect124_d1e47441_split_001.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect124_d1e47262.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect124_d1e48019.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect124_d1e47441" class="calibre27" id="I_sect124_d1e47441"></a><h3 id="643999-956" class="docSection1Title">24.9. Parallel Programming in Haskell</h3><a name="x_L51" class="calibre27" id="x_L51"></a><p class="docText">We will now switch<a name="ch24-parallelprograms" class="calibre27" id="ch24-parallelprograms"></a> our focus to parallel programming. For many computationally
+    expensive problems, we could calculate a result more quickly if we could
+    divide the solution and evaluate it on many cores at once. Computers with
+    multiple cores are already ubiquitous, but few programs can take advantage
+    of the computing power of even a modern laptop.</p><a name="x_M51" class="calibre27" id="x_M51"></a><p class="docText">In large part, this is because parallel programming is
+    traditionally seen as very difficult. In a typical programming language,
+    we would use the same libraries and constructs that we apply to concurrent
+    programs to develop a parallel program. This forces us to contend with the
+    familiar problems of deadlocks, race conditions, starvation, and sheer
+    complexity.</p><a name="x_N51" class="calibre27" id="x_N51"></a><p class="docText">While we could certainly use Haskell's concurrency
+    features to develop parallel code, there is a much simpler approach
+    available to us. We can take a normal Haskell function, apply a few simple
+    transformations to it, and have it evaluated in parallel.</p><a name="I_sect124_d1e47441d1e47736" class="calibre27" id="I_sect124_d1e47441d1e47736"></a><h4 id="title-IDAKZVTG" class="docSection1Title">24.9.1. Normal Form and Head Normal Form</h4><a name="x_mJ1" class="calibre27" id="x_mJ1"></a><p class="docText">The familiar <i class="docEmphasis">seq</i>
+      function evaluates an expression to what we <a name="I_indexterm24_d1e47462" class="calibre27" id="I_indexterm24_d1e47462"></a><a name="I_indexterm24_d1e47465" class="calibre27" id="I_indexterm24_d1e47465"></a>call <span class="docEmphasis">head normal form</span> (HNF). It stops
+      once it reaches the<a name="I_indexterm24_d1e47472" class="calibre27" id="I_indexterm24_d1e47472"></a> outermost constructor (the <span class="docEmphasis">head</span>).
+      This is distinct from <span class="docEmphasis">normal form</span> (NF),
+      in<a name="I_indexterm24_d1e47483" class="calibre27" id="I_indexterm24_d1e47483"></a> which an expression is completely evaluated.</p><a name="x_nJ1" class="calibre27" id="x_nJ1"></a><p class="docText">You will also hear Haskell programmers refer to
+      <span class="docEmphasis">weak</span> head<a name="I_indexterm24_d1e47492" class="calibre27" id="I_indexterm24_d1e47492"></a><a name="I_indexterm24_d1e47495" class="calibre27" id="I_indexterm24_d1e47495"></a> normal form (WHNF). For normal data, weak head normal
+      form is the same as head normal form. The difference arises only for
+      functions and is too abstruse to concern us here.</p><a name="I_sect124_d1e47441d1e47781" class="calibre27" id="I_sect124_d1e47441d1e47781"></a><h4 id="title-IDA20VTG" class="docSection1Title">24.9.2. Sequential Sorting</h4><a name="x_O51" class="calibre27" id="x_O51"></a><p class="docText">Here is a <a name="I_indexterm24_d1e47504" class="calibre27" id="I_indexterm24_d1e47504"></a>normal Haskell function that sorts a list using a
+      divide-and-conquer approach:</p><pre class="calibre39">-- file: ch24/Sorting.hs
+sort :: (Ord a) =&gt; [a] -&gt; [a]
+sort (x:xs) = lesser ++ x:greater
+    where lesser  = sort [y | y &lt;- xs, y &lt;  x]
+          greater = sort [y | y &lt;- xs, y &gt;= x]
+sort _ = []</pre><br class="calibre48"/>
+<a name="x_P51" class="calibre27" id="x_P51"></a><p class="docText">This function is inspired by the well-known<a name="I_indexterm24_d1e47512" class="calibre27" id="I_indexterm24_d1e47512"></a> Quicksort algorithm, and it is a classic among Haskell
+      programmers. It is often presented as a one-liner early in a Haskell
+      tutorial to tease the reader with an example of Haskell's
+      expressiveness. Here, we've split the code over a few lines, in order to
+      make it easier to compare the serial and parallel versions.</p><a name="x_Q51" class="calibre27" id="x_Q51"></a><p class="docText">Here is a very brief description of<a name="I_indexterm24_d1e47518" class="calibre27" id="I_indexterm24_d1e47518"></a> how <i class="docEmphasis">sort</i>
+      operates:</p><div class="calibre15"><ol class="docList2" type="1"><li class="calibre19"><div class="calibre15"><p class="docText">It chooses an element from the list. This is
+          <a name="I_indexterm24_d1e47529" class="calibre27" id="I_indexterm24_d1e47529"></a>called the <span class="docEmphasis">pivot</span>. Any element
+          would do as the pivot; the first is merely the easiest to pattern
+          match on.</p></div></li><li class="calibre19"><div class="calibre15"><p class="docText">It creates a sublist of all elements less than the
+          pivot and recursively sorts them.</p></div></li><li class="calibre19"><div class="calibre15"><p class="docText">It creates a sublist of all elements greater than
+          or equal to the pivot and recursively sorts them.</p></div></li><li class="calibre19"><div class="calibre15"><p class="docText">It appends the two sorted sublists.</p></div></li></ol></div><a name="I_sect124_d1e47441d1e47827" class="calibre27" id="I_sect124_d1e47441d1e47827"></a><h4 id="title-IDA02VTG" class="docSection1Title">24.9.3. Transforming Our Code into Parallel Code</h4><a name="x_V51" class="calibre27" id="x_V51"></a><p class="docText">The parallel version of the function is only a little
+      more complicated than the initial version:</p><pre class="calibre39">-- file: ch24/Sorting.hs
+module Sorting where
+
+import Control.Parallel (par, pseq)
+
+parSort :: (Ord a) =&gt; [a] -&gt; [a]
+parSort (x:xs)    = force greater `par` (force lesser `pseq`
+                                         (lesser ++ x:greater))
+    where lesser  = parSort [y | y &lt;- xs, y &lt;  x]
+          greater = parSort [y | y &lt;- xs, y &gt;= x]
+parSort _         = []</pre><br class="calibre48"/>
+<a name="x_W51" class="calibre27" id="x_W51"></a><p class="docText">We have barely perturbed the code—all we have added are
+      three functions: <i class="docEmphasis">par</i>, <i class="docEmphasis">pseq</i>, and <i class="docEmphasis">force</i>.</p><a name="x_X51" class="calibre27" id="x_X51"></a><p class="docText">The <i class="docEmphasis">par</i> function
+      is provided by the <tt class="calibre34">Control.Parallel</tt> module.<a name="I_indexterm24_d1e47571" class="calibre27" id="I_indexterm24_d1e47571"></a> It serves a similar purpose to <i class="docEmphasis">seq</i>. It evaluates its left argument to WHNF
+      and returns its right. As its name suggests, <i class="docEmphasis">par</i> can evaluate its left argument in
+      parallel with whatever other evaluations are occurring.</p><a name="x_Y51" class="calibre27" id="x_Y51"></a><p class="docText">As for <i class="docEmphasis">pseq</i>, it is
+      similar to <i class="docEmphasis">seq</i>: it evaluates the
+      expression on the left to WHNF before returning the expression on the
+      right. The difference between the two is subtle but important for
+      parallel programs: the compiler does not <span class="docEmphasis">promise</span> to
+      evaluate the left argument of <i class="docEmphasis">seq</i>
+      if it can see that evaluating the right argument first would improve
+      performance. This flexibility is fine for a program executing on one
+      core, but it is not strong enough for code running on multiple cores. In
+      contrast, the compiler <span class="docEmphasis">guarantees</span> that <i class="docEmphasis">pseq</i> will evaluate its left argument before
+      its right.</p><a name="x_Z51" class="calibre27" id="x_Z51"></a><p class="docText">These changes to our code are remarkable for all the
+      things we have <span class="docEmphasis">not</span> needed to say:</p><ul class="calibre18"><li class="calibre19"><p class="docText">How many cores to use</p></li><li class="calibre19"><p class="docText">What threads do to communicate with each
+          other</p></li><li class="calibre19"><p class="docText">How to divide up work among the available
+          cores</p></li><li class="calibre19"><p class="docText">Which data are shared between threads, and which
+          are private</p></li><li class="calibre19"><p class="docText">How to determine when all the participants are
+          finished</p></li></ul><a name="I_sect124_d1e47441d1e47905" class="calibre27" id="I_sect124_d1e47441d1e47905"></a><h4 id="title-IDA15VTG" class="docSection1Title">24.9.4. Knowing What to Evaluate in Parallel</h4><a name="x_f51" class="calibre27" id="x_f51"></a><p class="docText">The key to getting decent performance out of parallel
+      Haskell code is to find meaningful chunks of work to perform in
+      parallel. Nonstrict evaluation can get in the way of this, which is why
+      we use the <i class="docEmphasis">force</i> function in our
+      parallel sort. To best explain what the <i class="docEmphasis">force</i> function<a name="I_indexterm24_d1e47634" class="calibre27" id="I_indexterm24_d1e47634"></a> is for, we will first look at a mistaken example:</p><pre class="calibre39">-- file: ch24/Sorting.hs
+sillySort (x:xs) = greater `par` (lesser `pseq`
+                                  (lesser ++ x:greater))
+    where lesser   = sillySort [y | y &lt;- xs, y &lt;  x]
+          greater  = sillySort [y | y &lt;- xs, y &gt;= x]
+sillySort _        = []</pre><br class="calibre48"/>
+<a name="x_g51" class="calibre27" id="x_g51"></a><p class="docText">Take a look at the small changes in each use of
+      <i class="docEmphasis">par</i>. Instead of <tt class="calibre34">force
+      lesser</tt> and <tt class="calibre34">force greater</tt>, here we evaluate
+      <tt class="calibre34">lesser</tt> and <tt class="calibre34">greater</tt>.</p><a name="x_h51" class="calibre27" id="x_h51"></a><p class="docText">Remember that evaluation to WHNF computes only enough
+      of an expression to see its <span class="docEmphasis">outermost</span> constructor.
+      In this mistaken example, we evaluate each sorted sublist to WHNF. Since
+      the outermost constructor in each case is just a single list
+      constructor, we are in fact forcing only the evaluation of the first
+      element of each sorted sublist! Every other element of each list remains
+      unevaluated. In other words, we do almost no useful work in parallel:
+      our <i class="docEmphasis">sillySort</i> is nearly completely
+      sequential.</p><a name="x_i51" class="calibre27" id="x_i51"></a><p class="docText">We avoid this with our <i class="docEmphasis">force</i> function by forcing the entire spine of
+      a list to be evaluated before we give back a constructor:</p><pre class="calibre39">-- file: ch24/Sorting.hs
+force :: [a] -&gt; ()
+force xs = go xs `pseq` ()
+    where go (_:xs) = go xs
+          go [] = 1</pre><br class="calibre48"/>
+<a name="x_j51" class="calibre27" id="x_j51"></a><p class="docText">Notice that we don't care what's in the list; we walk
+      down its spine to the end, and then use <i class="docEmphasis">pseq</i> once. There is clearly no magic involved
+      here—we are just using our usual understanding of Haskell's evaluation
+      model. And because we will be using <i class="docEmphasis">force</i> on the lefthand side of <i class="docEmphasis">par</i> or <i class="docEmphasis">pseq</i>, we don't need to return a meaningful
+      value.</p><a name="x_oJ1" class="calibre27" id="x_oJ1"></a><p class="docText">Of course, in many cases, we will need to force the
+      evaluation of individual elements of the list, too. Below, we will
+      discuess a typeclass-based solution to this problem.</p><a name="I_sect124_d1e47441d1e47970" class="calibre27" id="I_sect124_d1e47441d1e47970"></a><h4 id="title-IDAPC2XG" class="docSection1Title">24.9.5. What Promises Does par Make?</h4><a name="x_k51" class="calibre27" id="x_k51"></a><p class="docText">The <i class="docEmphasis">par</i>
+      function<a name="I_indexterm24_d1e47696" class="calibre27" id="I_indexterm24_d1e47696"></a> does not actually promise to evaluate an expression in
+      parallel with another. Instead, it undertakes to do so if it
+      "makes sense." This wishy-washy non-promise is actually
+      more useful than a guarantee to always evaluate an expression in
+      parallel. It gives the runtime system the freedom to act intelligently
+      when it encounters <i class="docEmphasis">par</i>.</p><a name="x_l51" class="calibre27" id="x_l51"></a><p class="docText">For instance, the runtime could decide that an
+      expression is too cheap to be worth evaluating in parallel. Or it might
+      notice that all cores are currently busy so that "sparking"
+      a new parallel evaluation would lead to more runnable threads than there
+      are cores available to execute them.</p><a name="x_m51" class="calibre27" id="x_m51"></a><p class="docText">This lax specification in turn affects how we write
+      parallel code. Since <i class="docEmphasis">par</i> may be
+      somewhat intelligent at runtime, we can use it almost wherever we like,
+      on the assumption that performance will not be bogged down by threads
+      contending for busy cores.</p><a name="I_sect124_d1e47441d1e47998" class="calibre27" id="I_sect124_d1e47441d1e47998"></a><h4 id="title-IDARD2XG" class="docSection1Title">24.9.6. Running Our Code and Measuring Performance</h4><a name="x_n51" class="calibre27" id="x_n51"></a><p class="docText">To try our code out, let's save <i class="docEmphasis">sort</i>, <i class="docEmphasis">parSort</i>, and <i class="docEmphasis">parSort2</i> to a module named
+      <tt class="calibre34">Sorting.hs</tt>. We create a small driver program that we can
+      use to time the performance of one of those sorting functions:</p><pre class="calibre39">-- file: ch24/SortMain.hs
+
+module Main where
+
+import Data.Time.Clock (diffUTCTime, getCurrentTime)
+import System.Environment (getArgs)
+import System.Random (StdGen, getStdGen, randoms)
+
+import Sorting
+
+-- testFunction = sort
+-- testFunction = seqSort
+testFunction = parSort
+-- testFunction = parSort2 2
+
+randomInts :: Int -&gt; StdGen -&gt; [Int]
+randomInts k g = let result = take k (randoms g)
+                 in force result `seq` result
+
+main = do
+  args &lt;- getArgs
+  let count | null args = 500000
+            | otherwise = read (head args)
+  input &lt;- randomInts count `fmap` getStdGen
+  putStrLn $ "We have " ++ show (length input) ++ " elements to sort."
+  start &lt;- getCurrentTime
+  let sorted = testFunction input
+  putStrLn $ "Sorted all " ++ show (length sorted) ++ " elements."
+  end &lt;- getCurrentTime
+  putStrLn $ show (end `diffUTCTime` start) ++ " elapsed."</pre><br class="calibre48"/>
+<a name="x_o51" class="calibre27" id="x_o51"></a><p class="docText">For simplicity, we choose the sorting function to
+      benchmark at compilation time, via the <span class="docMonofont">testFunction</span>
+      variable.</p><a name="x_p51" class="calibre27" id="x_p51"></a><p class="docText">Our program accepts a single, optional command-line
+      argument, the length of the random list to generate.</p><a name="x_q51" class="calibre27" id="x_q51"></a><p class="docText">Nonstrict evaluation can turn performance measurement
+      and analysis into something of a minefield. Here are some potential
+      problems that we specifically work to avoid in our driver
+      program:</p><a name="I_indexterm24_d1e47751" class="calibre27" id="I_indexterm24_d1e47751"></a><a name="I_indexterm24_d1e47754" class="calibre27" id="I_indexterm24_d1e47754"></a><a name="I_indexterm24_d1e47757" class="calibre27" id="I_indexterm24_d1e47757"></a><a name="I_indexterm24_d1e47774" class="calibre27" id="I_indexterm24_d1e47774"></a><dl class="docList1"><dt class="calibre48"><br class="calibre48"/><p class="calibre37"><i class="docEmphasis"><span class="docPubcolor">Measuring several things when we think we are looking at just
+          one</span></i></p></dt><dd class="calibre49"><p class="docText">Haskell's default pseudorandom number generator (PRNG)
+            is<a name="I_indexterm24_d1e47751" class="calibre27" id="I_indexterm24_d1e47751"></a><a name="I_indexterm24_d1e47754" class="calibre27" id="I_indexterm24_d1e47754"></a><a name="I_indexterm24_d1e47757" class="calibre27" id="I_indexterm24_d1e47757"></a> slow, and the <i class="docEmphasis">randoms</i> function generates random
+            numbers on demand.</p><p class="docText">Before we record our starting time, we force every element
+            of the input list to be evaluated, and we print the length of the
+            list. This ensures that we create all of the random numbers that
+            we will need in advance.</p><p class="docText">If we were to omit this step, we would interleave the
+            generation of random numbers with attempts to work with them in
+            parallel. We would thus be measuring both the cost of sorting the
+            numbers and, less obviously, the cost of generating them.</p></dd><dt class="calibre48"><br class="calibre48"/><p class="calibre37"><i class="docEmphasis"><span class="docPubcolor">Invisible data dependencies</span></i></p></dt><dd class="calibre49"><p class="docText">When<a name="I_indexterm24_d1e47774" class="calibre27" id="I_indexterm24_d1e47774"></a> we generate the list of random numbers, simply
+            printing the length of the list would not perform enough
+            evaluation. This would evaluate the <span class="docEmphasis">spine</span> of
+            the list, but not its elements. The actual random numbers would
+            not be evaluated until the sort compares them.</p><p class="docText">This can have serious consequences for performance. The
+            value of a random number depends on the value of the preceding
+            random number in the list, but we have scattered the list elements
+            randomly among our processor cores. If we did not evaluate the
+            list elements prior to sorting, we would suffer a terrible
+            "ping pong" effect: not only would evaluation bounce
+            from one core to another, performance would suffer.</p><p class="docText">Try snipping out the application of <i class="docEmphasis">force</i> from the body of <i class="docEmphasis">main</i>. You should find that the parallel
+            code can easily end up three times <span class="docEmphasis">slower</span>
+            than the nonparallel code.</p></dd><dt class="calibre48"><br class="calibre48"/><p class="calibre37"><i class="docEmphasis"><span class="docPubcolor">Benchmarking a thunk when we believe that the code is
+          performing meaningful work</span></i></p></dt><dd class="calibre49"><p class="docText">To force the sort to take place, we print the length of the
+            result list before we record the ending time. Without <i class="docEmphasis">putStrLn</i> demanding the length of the
+            list in order to print it, the sort would not occur at all.</p></dd></dl><a name="x_y51" class="calibre27" id="x_y51"></a><p class="docText">When we build the program, we enable optimization and
+      <span class="docMonofont"><tt class="calibre34">ghc</tt></span>'s
+      threaded runtime:</p><pre class="calibre39">$<b class="calibre40">ghc -threaded -O2 --make SortMain</b>
+[1 of 2] Compiling Sorting          ( Sorting.hs, Sorting.o )
+[2 of 2] Compiling Main             ( SortMain.hs, SortMain.o )
+Linking SortMain ...</pre><a name="x_z51" class="calibre27" id="x_z51"></a><p class="docText">When we run the program, we must tell <span class="docMonofont"><tt class="calibre34">ghc</tt></span>'s runtime how many
+      cores to use. Initially, we try the original <i class="docEmphasis">sort</i>, in order to establish a performance
+      baseline:</p><pre class="calibre39">$<b class="calibre40">./Sorting +RTS -N1 -RTS 700000</b>
+We have 700000 elements to sort.
+Sorted all 700000 elements.
+3.178941s elapsed.</pre><a name="x_A61" class="calibre27" id="x_A61"></a><p class="docText">Enabling a second core ought to have no effect on
+      performance:</p><pre class="calibre39">$<b class="calibre40">./Sorting +RTS -N2 -RTS 700000</b>
+We have 700000 elements to sort.
+Sorted all 700000 elements.
+3.259869s elapsed.</pre><a name="x_B61" class="calibre27" id="x_B61"></a><p class="docText">If we recompile and test the performance of <i class="docEmphasis">parSort</i>, the results are less than
+      stellar:</p><pre class="calibre39">$<b class="calibre40">./Sorting +RTS -N1 -RTS 700000</b>
+We have 700000 elements to sort.
+Sorted all 700000 elements.
+3.915818s elapsed.
+$ <b class="calibre40">./Sorting +RTS -N2 -RTS 700000</b>
+We have 700000 elements to sort.
+Sorted all 700000 elements.
+4.029781s elapsed.</pre><a name="x_C61" class="calibre27" id="x_C61"></a><p class="docText">We have gained nothing in performance. It seems that
+      this could be due to one of two factors: either <i class="docEmphasis">par</i> is intrinsically expensive or we are
+      using it too much. To help us to distinguish between the two
+      possibilities, here is a sort that is identical to <i class="docEmphasis">parSort</i>, but it uses <i class="docEmphasis">pseq</i> instead of <i class="docEmphasis">par</i>:</p><pre class="calibre39">-- file: ch24/Sorting.hs
+seqSort :: (Ord a) =&gt; [a] -&gt; [a]
+seqSort (x:xs) = lesser `pseq` (greater `pseq`
+                                (lesser ++ x:greater))
+    where lesser  = seqSort [y | y &lt;- xs, y &lt;  x]
+          greater = seqSort [y | y &lt;- xs, y &gt;= x]
+seqSort _ = []</pre><br class="calibre48"/>
+<a name="x_D61" class="calibre27" id="x_D61"></a><p class="docText">We also drop the use of <i class="docEmphasis">force</i>, so compared to our original <i class="docEmphasis">sort</i>, we should only be measuring the cost of
+      using <i class="docEmphasis">pseq</i>. What effect does
+      <i class="docEmphasis">pseq</i> alone have on
+      performance?</p><pre class="calibre39">$<b class="calibre40">./Sorting +RTS -N1 -RTS 700000</b>
+We have 700000 elements to sort.
+Sorted all 700000 elements.
+3.848295s elapsed.</pre><a name="x_E61" class="calibre27" id="x_E61"></a><p class="docText">This suggests that <i class="docEmphasis">par</i> and <i class="docEmphasis">pseq</i> have similar costs. What can we do to
+      improve <span class="docEmphasis">performance</span>?</p><a name="I_sect124_d1e47441d1e48189" class="calibre27" id="I_sect124_d1e47441d1e48189"></a><h4 id="title-IDAXK2XG" class="docSection1Title">24.9.7. Tuning for Performance</h4><a name="x_F61" class="calibre27" id="x_F61"></a><p class="docText">In our <i class="docEmphasis">parSort</i>, we
+      perform twice as many applications of <i class="docEmphasis">par</i> as there are elements to sort. While
+      <i class="docEmphasis">par</i> is <span class="docEmphasis">cheap</span>,
+      as<a name="I_indexterm24_d1e47929" class="calibre27" id="I_indexterm24_d1e47929"></a> we have seen, it is not <span class="docEmphasis">free</span>. When
+      we recursively apply <i class="docEmphasis">parSort</i>, we
+      eventually apply <i class="docEmphasis">par</i> to individual
+      list elements. At this fine granularity, the cost of using <i class="docEmphasis">par</i> outweighs any possible usefulness. To
+      reduce this effect, we switch to our nonparallel <i class="docEmphasis">sort</i> after passing some threshold:</p><pre class="calibre39">-- file: ch24/Sorting.hs
+parSort2 :: (Ord a) =&gt; Int -&gt; [a] -&gt; [a]
+parSort2 d list@(x:xs)
+  | d &lt;= 0     = sort list
+  | otherwise = force greater `par` (force lesser `pseq`
+                                     (lesser ++ x:greater))
+      where lesser      = parSort2 d' [y | y &lt;- xs, y &lt;  x]
+            greater     = parSort2 d' [y | y &lt;- xs, y &gt;= x]
+            d' = d - 1
+parSort2 _ _              = []</pre><br class="calibre48"/>
+<a name="x_G61" class="calibre27" id="x_G61"></a><p class="docText">Here, we stop recursing and sparking new parallel
+      evaluations at a controllable depth. If we knew the size of the data we
+      were dealing with, we could stop subdividing and switch to the
+      nonparallel code once we reached a sufficiently small amount of
+      remaining work:</p><pre class="calibre39">$<b class="calibre40">./Sorting +RTS -N2 -RTS 700000</b>
+We have 700000 elements to sort.
+Sorted all 700000 elements.
+2.947872s elapsed.</pre><a name="x_H61" class="calibre27" id="x_H61"></a><p class="docText">On a dual core system, this gives us roughly a 25%
+      speedup. This is not a huge number, but consider that we had to change
+      only a few annotations in return for this performance
+      improvement.</p><a name="x_I61" class="calibre27" id="x_I61"></a><p class="docText">This sorting function is particularly resistant to good
+      parallel performance. The amount of memory allocation it performs forces
+      the garbage collector to run frequently. We can see the effect by
+      running our program with the <i class="docEmphasis">-sstderr</i> RTS
+      option,<a name="I_indexterm24_d1e47967" class="calibre27" id="I_indexterm24_d1e47967"></a> which prints garbage collection statistics to the screen.
+      This indicates that our program spends roughly 40% of its time
+      collecting garbage. Since the garbage collector in <span class="docMonofont">GHC</span> 6.8 stops all threads and runs on a
+      single core, it acts as a bottleneck.</p><a name="x_J61" class="calibre27" id="x_J61"></a><p class="docText">You can expect more impressive performance improvements
+      from less allocation-heavy code when you use <i class="docEmphasis">par</i> annotations. We have seen some simple
+      numerical benchmarks run 1.8 times faster on a dual core system than
+      with a single core. As of this writing, a parallel garbage collector is
+      under development for <span class="docMonofont">GHC</span>,
+      which should help considerably with the performance of allocation-heavy
+      code on multicore systems.</p><p class="calibre37"><table border="0" cellspacing="0" cellpadding="1" width="90%" class="calibre41"><tr class="calibre16"><td class="v3"><table width="100%" border="0" cellspacing="0" cellpadding="6" class="calibre42"><tr class="calibre16"><td width="60" valign="top" class="v3"><img src="warning_yellow.gif" alt="" class="calibre44"/></td><td valign="top" class="v3"><p class="docCautionsTitle">Beware a GC bug in GHC 6.8.2</p><a name="x_K61" class="calibre27" id="x_K61"></a><p class="docText">The garbage collector in release 6.8.2 of
+        <span class="docMonofont">GHC</span> has a bug that can
+        cause programs using <i class="docEmphasis">par</i> to
+        crash. If you want to use <i class="docEmphasis">par</i> and
+        you are using 6.8.2, we suggest upgrading to at least 6.8.3.</p></td></tr></table></td></tr></table></p><br class="calibre48"/><a name="I_sidebar24_d1e47996" class="calibre27" id="I_sidebar24_d1e47996"></a></td>
+                    </tr>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

@@ -1,0 +1,132 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect128_d1e51835.html
+next: I_sect128_d1e51989.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect128_d1e51835.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect128_d1e51989.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect128_d1e51917" class="calibre27" id="I_sect128_d1e51917"></a><h3 id="643999-984" class="docSection1Title">28.3. STM and Safety</h3><a name="x_zL1" class="calibre27" id="x_zL1"></a><p class="docText">If we are to provide atomic, isolated transactions, it is
+    critical that we cannot either deliberately or accidentally escape from an
+    <i class="docEmphasis">atomically</i> block. Haskell's type
+    system enforces this on our behalf, via the STM monad:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type atomically</b>
+atomically :: STM a -&gt; IO a
+</pre><a name="x_AM1" class="calibre27" id="x_AM1"></a><p class="docText">The <i class="docEmphasis">atomically</i>
+    block<a name="I_indexterm28_d1e51939" class="calibre27" id="I_indexterm28_d1e51939"></a><a name="I_indexterm28_d1e51942" class="calibre27" id="I_indexterm28_d1e51942"></a> takes an action in the STM monad, executes it,
+    and makes its result available to us in the IO monad. This is
+    the monad in which all transactional code executes. For instance, the
+    functions that we have seen for manipulating TVar values
+    operate in the STM monad:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type newTVar</b>
+newTVar :: a -&gt; STM (TVar a)
+ghci&gt; <b class="calibre40">:type readTVar</b>
+readTVar :: TVar a -&gt; STM a
+ghci&gt; <b class="calibre40">:type writeTVar</b>
+writeTVar :: TVar a -&gt; a -&gt; STM ()</pre><a name="x_BM1" class="calibre27" id="x_BM1"></a><p class="docText">This is also true of the transactional functions we
+    defined earlier:</p><pre class="calibre39">-- file: ch28/GameInventory.hs
+basicTransfer :: Gold -&gt; Balance -&gt; Balance -&gt; STM ()
+maybeGiveItem :: Item -&gt; Inventory -&gt; Inventory -&gt; STM Bool</pre><br class="calibre48"/>
+<a name="x_CM1" class="calibre27" id="x_CM1"></a><p class="docText">The STM monad does not let us perform I/O or
+    manipulate nontransactional mutable state, such as MVar
+    values. This lets us avoid operations that might violate the transactional
+    guarantees.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"><a href="21061538.html" class="calibre2"><img src="btn_next_.gif" alt="Next" border="0" class="calibre31"/></a> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect128_d1e51835.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect128_d1e51989.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

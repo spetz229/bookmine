@@ -1,0 +1,196 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0160.html
+next: f_0162.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.spelllang">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 119</td>
+<td class="arr-recipe-name">Use Alternate Spelling Dictionaries</td>
+</tr>
+</table>
+<p id="N1C0B3" class="calibre4">
+<span class="calibre5">
+        Out of the box, Vim’s spell checker supports regional variations of English. Find out how to specify the region and how to obtain spelling dictionaries for other languages.
+    </span>
+</p>
+<p id="N1C0C1" class="calibre4">
+      When we enable Vim’s spell checker, it compares words against an English dictionary by default. We can change this by tweaking the <code class="cf">‘spelllang’</code> option (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">'spelllang'</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/options.html#'spelllang'">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). This isn’t a global setting; <code class="cf">‘spelllang’</code> is always local to the buffer. That means it’s possible to work simultaneously on two or more documents and use a different spell file for each—handy if you’re bilingual.
+    </p>
+<h3 class="calibre22">Specify a Regional Variant of a Language</h3>
+<p id="N1C0D8" class="calibre4">
+        Vim’s spell file supports several regional variations of English. The default <code class="cf">spelllang=en</code> setting will permit a word whose spelling is acceptable in any English-speaking region. No matter whether we write “moustache” (using the British spelling) or “mustache” (the American way), Vim’s spell checker will let it pass.
+      </p>
+<p id="N1C0E3" class="calibre4">
+        We can tell Vim to permit only American spellings:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:set spell</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:set spelllang=en_us</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1C0F8" class="calibre4">
+        With this setting, “moustache” would be flagged as a misspelling, but “mustache” would be permitted. Other supported regions include <code class="cf">en_au</code>, <code class="cf">en_ca</code>, <code class="cf">en_gb</code>, and <code class="cf">en_nz</code>. See <strong xmlns:str="http://exslt.org/strings" class="calibre10">spell-remarks</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/spell.html#spell-remarks">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a> for more details.
+      </p>
+<h3 class="calibre22">Obtain Spell Files for Other Languages</h3>
+<p id="N1C10F" class="calibre4">
+        Vim ships with a spell file for the English language, but spell files are available for dozens of other languages at this URL: <a href="http://ftp.vim.org/vim/runtime/spell/">http://ftp.vim.org/vim/runtime/spell/</a>.</p>
+<p id="N1C115" class="calibre4">If we try to enable a spell file that isn’t available on our system, Vim offers to fetch and install it for us:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:set spell</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:set spellang=fr</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​Cannot find spell file for "fr" in utf-8​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​Do you want me to try downloading it?​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​(Y)es, [N]o:​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">Y</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​Downloading fr.utf-8.spl​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​In which directory do you want to write the file:​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​1. /Users/drew/.vim/spell​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​2. /Applications/MacVim.app/Contents/Resources/vim/runtime/spell​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​[C]ancel, (1), (2):​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1C149" class="calibre4">
+        This functionality is provided by a plugin called <code class="cf">spellfile.vim</code>, which ships with Vim (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">spellfile.vim</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/spell.html#spellfile.vim">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). To make it work, you need to have these two lines in your <code class="cf">vimrc</code> (at the very least):
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">set</strong> nocompatible​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​plugin <strong class="prompt">on</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

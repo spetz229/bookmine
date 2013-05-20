@@ -1,0 +1,138 @@
+---
+layout: page
+title: "Unknown"
+prev: x4636.htm
+next: x5021.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="x4636.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4"/><td width="10%" valign="bottom" class="calibre5"><a href="x5021.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><div class="calibre18"></div><h1 id="calibre_toc_6" class="calibre7"><a name="APPLYINGSQL" class="calibre8">Chapter 4. Using SQL with PostgreSQL</a></h1><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><b class="calibre10">Table of Contents</b></dt><dt class="NAVHEADER"><a href="c4890.htm#AEN4903">Introduction to psql</a></dt><dt class="NAVHEADER"><a href="x5021.htm">Using Tables</a></dt><dt class="NAVHEADER"><a href="x5504.htm">Adding Data with INSERT and COPY</a></dt><dt class="NAVHEADER"><a href="x5802.htm">Retrieving Rows with SELECT</a></dt><dt class="NAVHEADER"><a href="x7050.htm">Modifying Rows with UPDATE</a></dt><dt class="NAVHEADER"><a href="x7234.htm">Removing Rows with DELETE</a></dt><dt class="NAVHEADER"><a href="x7300.htm">Using Sub-Queries</a></dt><dt class="NAVHEADER"><a href="x7379.htm">Using Views</a></dt><dt class="NAVHEADER"><a href="x7543.htm">Further SQL Application</a></dt></dl></div><p class="calibre9">In this chapter we continue to discuss SQL, this time with a practical focus.  We'll address creating tables, populating
+  tables with data, and managing that data via SQL statements. </p><p class="calibre9">Like most network-capable database systems, PostgreSQL fits into a client-server paradigm. The heart of PostgreSQL is the
+  server backend, or the <span><i class="EMPHASIS">postmaster</i></span> process. It is called a "backend" because it is not meant to
+  directly interface with a user; rather, it can be connected to with a variety of clients.</p><p class="calibre9">When you start the PostgreSQL service, the <span><i class="EMPHASIS">postmaster</i></span> process starts running in the
+  background, listening to a specific TCP/IP port for connections from clients. Unless explicitly configured,
+  <span><i class="EMPHASIS">postmaster</i></span> will bind to, and listen on, port 5432.</p><p class="calibre9">There are several interfaces available through which clients may connect to the <span><i class="EMPHASIS">postmaster</i></span> process.
+  The examples in this book use <span><i class="EMPHASIS">psql</i></span>, the most portable and readily accessible
+  client distributed with PostgreSQL.</p><p class="calibre9">This chapter covers <span><i class="EMPHASIS">psql</i></span> basics, how to create and use tables, and how to retrieve
+  and manage data within those tables. It also addresses SQL sub-queries and views.</p><div class="NAVHEADER"><h1 class="calibre7"><a name="AEN4903" class="calibre8">Introduction to psql</a></h1><p class="calibre9">The <span><i class="EMPHASIS">psql</i></span> client is a command-line client distributed with PostgreSQL. It is often called the
+    <span><i class="EMPHASIS">interactive monitor</i></span> or <span><i class="EMPHASIS">interactive terminal</i></span>. With <span><i class="EMPHASIS">psql</i></span>, you
+    get a simple yet powerful tool with which you can directly interface with the PostgreSQL server, and thereby begin
+    exploring SQL.</p><div class="NAVHEADER"><h2 class="SECT"><a name="AEN4915" class="calibre8">Starting psql</a></h2><p class="calibre9">Before starting <span><i class="EMPHASIS">psql</i></span>, be sure that you have either copied the <span><i class="EMPHASIS">psql</i></span> binary
+      into a path in your system <tt class="REPLACEABLE">PATH</tt> variable (e.g.,
+      <span><i class="EMPHASIS">/usr/bin</i></span>), or that you have placed the PostgreSQL binary path (e.g.,
+      <span><i class="EMPHASIS">/usr/local/pgsql/bin</i></span>) within your list of paths in your
+      <tt class="REPLACEABLE">PATH</tt> environment variable (as shown in <a href="c360.htm">Chapter 2</a>).</p><p class="calibre9"> How you set the appropriate <tt class="REPLACEABLE">PATH</tt> variable will depend on your system shell. An
+      example in either bash or ksh might read: </p><pre class="SCREEN">$ <tt class="REPLACEABLE"><b class="calibre10">export PATH=$PATH:/usr/local/pgsql/bin</b></tt></pre><p class="calibre9">An example in either csh or tcsh might read: </p><pre class="SCREEN">$ <tt class="REPLACEABLE"><b class="calibre10">set path=($path /usr/local/pgsql/bin)</b></tt></pre><div class="NAVHEADER"><a name="SETTINGSYSTEMPATHFORPSQL"></a><p class="calibre9"><b class="calibre10">Example 4-1. Setting system path for psql</b></p><pre class="SCREEN">[user@host user]$ <tt class="REPLACEABLE"><b class="calibre10">psql</b></tt>
+bash: psql: command not found
+[user@host user]$ <tt class="REPLACEABLE"><b class="calibre10">echo $PATH</b></tt>
+/bin:/usr/bin:/usr/local/bin:/usr/bin/X11:/usr/X11R6/bin
+[user@host user]$ <tt class="REPLACEABLE"><b class="calibre10">export PATH=$PATH:/usr/local/pgsql/bin</b></tt>
+[user@host user]$ <tt class="REPLACEABLE"><b class="calibre10">psql testdb</b></tt>
+Welcome to psql, the PostgreSQL interactive terminal.
+
+Type:  \copyright for distribution terms
+       \h for help with SQL commands
+       \? for help on internal slash commands
+       \g or terminate with semicolon to execute query
+       \q to quit
+
+testdb=#</pre></div><p class="calibre9">Note that <a href="c4890.htm#SETTINGSYSTEMPATHFORPSQL">Example 4-1</a> takes place within a bash shell.</p><p class="calibre9">Once you have appropriately set your <tt class="REPLACEABLE">PATH</tt> variable,
+      you should be able to type <span><i class="EMPHASIS">psql</i></span>, along with a database name, to start
+      up the PostgreSQL interactive terminal.</p><div class="NAVHEADER"><p class="calibre9"></p><table class="calibre" border="1" width="100%"><tr class="calibre1"><td class="calibre23"><b class="calibre10">Warning</b></td></tr><tr class="calibre1"><td class="calibre15"><p class="calibre9">          Shell environment variables are erased after you have logged
+          out. If you wish for your changes to the <tt class="REPLACEABLE">PATH</tt> variable
+          to be retained upon logging in, you need to enter the appropriate
+          <tt class="REPLACEABLE">PATH</tt> declaration into your shell-specific start-up
+          scripts (e.g., <span><i class="EMPHASIS">~/.bash_ profile</i></span>).
+        </p></td></tr></table></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN4949" class="calibre8">Introduction to psql Syntax</a></h2><p class="calibre9">Upon starting <span><i class="EMPHASIS">psql</i></span>, you are greeted with a brief synopsis of four essential
+      <span><i class="EMPHASIS">psql</i></span> <span><i class="EMPHASIS">slash commands</i></span> : <tt class="REPLACEABLE">\h</tt> for SQL help,
+      <tt class="REPLACEABLE">\?</tt> for help on <span><i class="EMPHASIS">psql</i></span>-specific commands, <tt class="REPLACEABLE">\g</tt> for executing
+      queries and <tt class="REPLACEABLE">\q</tt> for actually exiting <span><i class="EMPHASIS">psql</i></span> once you are done.</p><p class="calibre9">Every <span><i class="EMPHASIS">psql</i></span>-specific command is prefixed by a backslash; hence the term "slash command" used
+      earlier. For a complete list of slash commands and a brief description their functions, type <tt class="REPLACEABLE">\?</tt> into the
+      <span><i class="EMPHASIS">psql</i></span> command line, and press enter.</p><div class="NAVHEADER"><a name="AEN4965"></a><p class="calibre9"><b class="calibre10">Example 4-2. Listing psql slash commands</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">\?</b></tt>
+ \a             toggle between unaligned and aligned mode
+ \c[onnect] [dbname|- [user]]
+                connect to new database (currently 'booktown')
+ \C &lt;title&gt;     table title
+ \copy ...      perform SQL COPY with data stream to the client machine
+ \copyright     show PostgreSQL usage and distribution terms
+ \d &lt;table&gt;     describe table (or view, index, sequence)
+ \d{t|i|s|v}    list tables/indices/sequences/views
+ \d{p|S|l}      list permissions/system tables/lobjects
+ \da            list aggregates
+ \dd [object]   list comment for table, type, function, or operator
+ \df            list functions
+ \do            list operators
+ \dT            list data types
+ \e [file]      edit the current query buffer or [file] with external editor
+ \echo &lt;text&gt;   write text to stdout
+ \encoding &lt;encoding&gt;  set client encoding
+ \f &lt;sep&gt;       change field separator
+ \g [file]      send query to backend (and results in [file] or |pipe)
+ \h [cmd]       help on syntax of sql commands, * for all commands
+ \H             toggle HTML mode (currently off)
+ \i &lt;file&gt;      read and execute queries from &lt;file&gt;
+ \l             list all databases
+ \lo_export, \lo_import, \lo_list, \lo_unlink
+                large object operations
+ \o [file]      send all query results to [file], or |pipe
+ \p             show the content of the current query buffer
+ \pset &lt;opt&gt;    set table output  &lt;opt&gt; = {format|border|expanded|fieldsep|
+                null|recordsep|tuples_only|title|tableattr|pager}
+ \q             quit psql
+ \qecho &lt;text&gt;  write text to query output stream (see \o)
+ \r             reset (clear) the query buffer
+ \s [file]      print history or save it in [file]
+ \set &lt;var&gt; &lt;value&gt;  set internal variable
+ \t             show only rows (currently off)
+ \T &lt;tags&gt;      HTML table tags
+ \unset &lt;var&gt;   unset (delete) internal variable
+ \w &lt;file&gt;      write current query buffer to a &lt;file&gt;
+ \x             toggle expanded output (currently off)
+ \z             list table access permissions
+ \! [cmd]       shell escape or command</pre></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN4969" class="calibre8">Executing Queries</a></h2><p class="calibre9">        Entering and executing queries within <span><i class="EMPHASIS">psql</i></span> can be done two different ways.
+         When using the client in interactive mode, the normal method is to directly enter
+        queries into the prompt (i.e., standard input, or <tt class="REPLACEABLE">stdin</tt>).  However,
+        through the use of <span><i class="EMPHASIS">psql</i></span> 's <tt class="REPLACEABLE">\i</tt> slash command,
+        you can have <span><i class="EMPHASIS">psql</i></span> read and interpret a file on your local
+        filesystem as the query data.
+      </p><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN4977" class="calibre8">Entering queries at the psql prompt</a></h3><p class="calibre9">        To enter queries directly into the prompt, open <span><i class="EMPHASIS">psql</i></span> and make
+        sure you are connected to the correct database (and logged in as the correct user).  You will
+        be presented with a prompt that, by default, is set to display the name of the database you
+        are currently connected to.  The prompt will look like this:
+       <span><i class="EMPHASIS">psql</i></span>:
+       </p><pre class="SCREEN">testdb=#</pre><p class="calibre9">To pass SQL statements to PostgreSQL, simply type them into the prompt.  Anything you
+       type (barring a slash command) will be queued until you terminate the query with a semicolon. This is the case
+       even if you start a new line of type, thus allowing you to spread query statements across multiple lines.
+       Examine <a href="c4890.htm#ENTERINGSTATEMENTSINTOPSQL">Example 4-3</a> to see how this is done.</p><div class="NAVHEADER"><a name="ENTERINGSTATEMENTSINTOPSQL"></a><p class="calibre9"><b class="calibre10">Example 4-3. Entering statements into psql</b></p><pre class="SCREEN">testdb=# <tt class="REPLACEABLE"><b class="calibre10">SELECT * FROM employees</b></tt>
+testdb-# <tt class="REPLACEABLE"><b class="calibre10">         WHERE firstname = 'Michael';</b></tt></pre></div><p class="calibre9">The query entered in <a href="c4890.htm#ENTERINGSTATEMENTSINTOPSQL">Example 4-3</a> will return a table
+       that consists of all employees whose first name is Michael.  The query could be broken up
+       over multiple lines to improve readability, and <span><i class="EMPHASIS">psql</i></span> would not send it
+       to the backend until the terminating semicolon was sent. The prompt will show the end-character of a previous line if the character
+       requires a closing character, such as a parenthesis or a quote (this is not shown in the example).
+       If you were to issue a <tt class="REPLACEABLE">CREATE TABLE</tt> command to start a statement,
+       and then hit enter to begin a new line for readability purposes, you would see a prompt similar to
+       the one displayed in <a href="c4890.htm#LEAVINGENDCHARACTERSOPEN">Example 4-4</a>.
+       </p><div class="NAVHEADER"><a name="LEAVINGENDCHARACTERSOPEN"></a><p class="calibre9"><b class="calibre10">Example 4-4. Leaving end-characters open</b></p><pre class="SCREEN">testdb=# <tt class="REPLACEABLE"><b class="calibre10">CREATE TABLE employees (</b></tt>
+testdb(#</pre></div><p class="calibre9">         At this point you could continue the statement.  The <span><i class="EMPHASIS">psql</i></span> prompt is
+         informing you of the open parenthesis by inserting an open parenthesis symbol into the prompt.
+       </p></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN5001" class="calibre8">Editing the query buffer</a></h3><p class="calibre9">         Use the <tt class="REPLACEABLE">\e</tt> command to edit the current query buffer with the
+         editor that your <tt class="REPLACEABLE">EDITOR</tt> environment variable is set to.
+         Doing so can be very useful when entering queries and statements in <span><i class="EMPHASIS">psql</i></span>,
+         as you can easily view and modify all lines of your query or statement before it is committed.
+         <a href="c4890.htm#SETTINGTHEEDITORVARIABLE">Example 4-5</a> shows how to set the <tt class="REPLACEABLE">EDITOR</tt>
+         variable.  The <span><i class="EMPHASIS">vi</i></span> editor will be used if <tt class="REPLACEABLE">EDITOR</tt>
+         is not set.
+       </p><div class="NAVHEADER"><a name="SETTINGTHEEDITORVARIABLE"></a><p class="calibre9"><b class="calibre10">Example 4-5. Setting the EDITOR variable</b></p><pre class="SCREEN">$ <tt class="REPLACEABLE"><b class="calibre10">set EDITOR='joe'</b></tt>
+$ <tt class="REPLACEABLE"><b class="calibre10">export EDITOR</b></tt></pre></div><p class="calibre9">         You can also use this command to save your current buffer as a file. Issue the
+         <tt class="REPLACEABLE">\e</tt> command to enter editing mode.
+         This will open your editor and load the buffer as if it were a file.  Complete whatever work you
+         wish to do with the buffer, then use your editor's save function to save the buffer and return to
+         <span><i class="EMPHASIS">psql</i></span>.  To save the query as a normal file, use your editor's
+         save-as function and save it as a file other than the <span><i class="EMPHASIS">.tmp</i></span>
+         created by <tt class="REPLACEABLE">\e</tt>.
+       </p></div></div></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="x4636.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x5021.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Tables in PostgreSQL</td><td width="34%" valign="top" class="calibre4"><a href="p1162.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Using Tables</td></tr></table></div></div>
+
+{% endraw %}
+

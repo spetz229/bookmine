@@ -1,0 +1,33 @@
+---
+layout: page
+title: "The Little Book on CoffeeScript"
+prev: OEBPS/ch02s05.html
+next: OEBPS/ch03s02.html
+book_path: books/alex-maccaw-the-little-book-on-coffeescript-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="calibre1"></div><div class="book" title="Chapter 3. CoffeeScript Idioms"><div class="book"><div class="book"><div class="book"><div class="calibre1"></div><h1 class="title1"><a id="I_chapter3_d1e1176" class="calibre2"></a>Chapter 3. CoffeeScript Idioms</h1></div></div></div><p class="calibre8">Every language has a set of idioms and practices, and CoffeeScript is
+  no exception. This chapter will explore those conventions, and show you some
+  JavaScript to CoffeeScript comparisons so you can get a practical sense of
+  the language.</p><div class="book" title="Each"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect13_d1e1181" class="calibre2"></a>Each</h1></div></div></div><p class="calibre8">In JavaScript, to iterate over every item in an array, we could
+    either use the newly added <a class="ulink" href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/array/foreach"><code class="literal">forEach()</code></a> function, or an old C style
+    <code class="literal">for</code> loop. If you’re planning to use
+    some of JavaScript’s latest features
+    introduced in ECMAScript 5, I advise you to also include a <a class="ulink" href="https://github.com/kriskowal/es5-shim">shim</a> in the page to
+    emulate support in older browsers:</p><pre class="screen">for (var i=0; i &lt; array.length; i++)
+  myFunction(array[i]);
+
+array.forEach(function(item, i){
+  myFunction(item)
+});</pre><p class="calibre8">Although the <code class="literal">forEach()</code> syntax is
+    much more succinct and readable, it suffers from the drawback that the
+    callback function will be invoked every iteration of the array, and is
+    therefore much slower than the equivalent <code class="literal">for</code> loop. Let’s see how it looks in CoffeeScript:</p><pre class="screen">myFunction(item) for item in array</pre><p class="calibre8">It’s a readable and concise syntax, I’m sure you’ll agree, and
+    what’s great is that it compiles to a <code class="literal">for</code> loop behind the scenes. In other words,
+    CoffeeScript’s syntax offers the same expressiveness as <code class="literal">forEach()</code>, but without the speed and shimming
+    caveats.</p></div></div></div>
+
+{% endraw %}
+

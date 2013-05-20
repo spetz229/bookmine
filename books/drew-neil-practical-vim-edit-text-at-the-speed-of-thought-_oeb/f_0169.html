@@ -1,0 +1,187 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0168.html
+next: f_0170.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="N1C38A" class="calibre19">A1.1 Change Vim’s Settings on the Fly</h2>
+<p id="N1C38E" class="calibre4">
+      Vim has hundreds of options that let us customize its behavior (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">option-list</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/quickref.html#option-list">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a> for the full list).
+      We can use the <code class="cf">:set</code> command to change them.
+    </p>
+<p id="N1C39D" class="calibre4">
+      Let’s take the <code class="cf">‘ignorecase’</code> setting as an example (as discussed in <a xmlns:str="http://exslt.org/strings" href="f_0105.html#sec.case.sensitivity">Tip 72</a>). This is a boolean option: it can either be on or off. We can enable it by running this:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:set ignorecase</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1C3BA" class="calibre4">
+      To turn this feature off, we prefix the name of the setting with the word “no”:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:set noignorecase</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1C3CA" class="calibre4">
+      If we append a trailing bang symbol after a boolean option, we can toggle the setting:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:set ignorecase!</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1C3E4" class="calibre4">
+      If we append a trailing question mark, we can find out what the option is currently set to:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:set ignorecase?</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​ignorecase​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1C3FD" class="calibre4">
+      We can also append a trailing <code class="cf">&amp;</code> symbol to reset any option to its default value:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:set ignorecase&amp;</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:set ignorecase?</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​noignorecase​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1C41E" class="calibre4">
+      Some of Vim’s settings expect a value either as a string or as a number. For example, the <code class="cf">‘tabstop’</code> setting specifies the number of columns that a tab character should represent (<strong xmlns:str="http://exslt.org/strings" class="calibre10">'tabstop'</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/options.html#'tabstop'">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). We can set the value like this:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:set tabstop=2</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1C435" class="calibre4">
+      We can make multiple assignments with a single set statement:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:set ts=2 sts=2 sw=2 et</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1C44C" class="calibre4">
+      The <code class="cf">‘softtabstop’</code>, <code class="cf">‘shiftwidth’</code>, and <code class="cf">‘expandtab’</code> settings also influence Vim’s treatment of indentation. To find out more, watch the Vimcasts episode about tabs and spaces.<a id="FNPTR-39" href="f_0171.html#FOOTNOTE-39">[39]</a>
+</p>
+<p id="N1C46F" class="calibre4">
+      Most of Vim’s options also have a shorthand version. The <code class="cf">‘ignorecase’</code> setting can be abbreviated to <code class="cf">ic</code>, so we could toggle this feature by running <code class="cf">:se ic!</code> or disable it with <code class="cf">:se noic</code>. I tend to use shorthand option names for convenience when customizing Vim on the fly, but I prefer to use the longhand names in my <code class="cf">vimrc</code> for the sake of readability.
+    </p>
+<p id="N1C487" class="calibre4">
+      Vim’s settings usually apply globally, but some options are scoped to a window or buffer. For example, when we run <code class="cf">:setlocal tabstop=4</code>, it applies to the active buffer only. That means we can open several different files and customize the <code class="cf">‘tabstop’</code> setting for each one individually. If we wanted to apply the same value to all existing buffers, we could run the following:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:bufdo setlocal tabstop=4</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1C49D" class="calibre4">
+      The <code class="cf">‘number’</code> option can be configured on a per window basis. When we run <code class="cf">:setlocal number</code>, it enables line numbering for the active window. If we wanted to enable line numbering for every window, we could run this:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:windo setlocal number</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1C4B9" class="calibre4">
+      The <code class="cf">:setlocal</code> command scopes the change to the current window or buffer (unless the option can only be set globally). If we were to run <code class="cf">:set number</code>, it would enable line numbering for the current window as well as set a new global default. Existing windows would retain their local settings, but new windows would adopt the new global setting.
+    </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

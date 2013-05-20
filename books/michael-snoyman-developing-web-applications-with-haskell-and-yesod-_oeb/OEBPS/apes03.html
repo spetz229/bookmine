@@ -1,0 +1,61 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/apes02.html
+next: OEBPS/apes04.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Request"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect1_d1e11082" class="calibre1"></a>Request</h1></div></div></div><p class="calibre7"></p><p class="calibre7">The easiest way to create a <code class="literal">Request</code> is with the
+        <code class="literal">parseUrl</code> function. This function will return a value in
+      any <code class="literal">Failure</code> monad, such as <code class="literal">Maybe</code> or <code class="literal">IO</code>. The last of those is the most
+      commonly used, and results in a runtime exception whenever an invalid URL is provided.
+      However, you can use a different monad if, for example, you want to validate user
+      input.</p><a id="I_programlisting_d1e11103" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">import</code> <code class="nn">Network.HTTP.Conduit</code>
+<code class="kr">import</code> <code class="nn">System.Environment</code> <code class="p">(</code><code class="nf">getArgs</code><code class="p">)</code>
+<code class="kr">import</code> <code class="kr">qualified</code> <code class="nn">Data.ByteString.Lazy</code> <code class="kr">as</code> <code class="n">L</code>
+<code class="kr">import</code> <code class="nn">Control.Monad.IO.Class</code> <code class="p">(</code><code class="nf">liftIO</code><code class="p">)</code>
+
+<code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="n">args</code> <code class="ow">&lt;-</code> <code class="n">getArgs</code>
+    <code class="kr">case</code> <code class="n">args</code> <code class="kr">of</code>
+        <code class="p">[</code><code class="n">urlString</code><code class="p">]</code> <code class="ow">-&gt;</code>
+            <code class="kr">case</code> <code class="n">parseUrl</code> <code class="n">urlString</code> <code class="kr">of</code>
+                <code class="kt">Nothing</code> <code class="ow">-&gt;</code> <code class="n">putStrLn</code> <code class="s">"Sorry, invalid URL"</code>
+                <code class="kt">Just</code> <code class="n">req</code> <code class="ow">-&gt;</code> <code class="n">withManager</code> <code class="o">$</code> <code class="nf">\</code><code class="n">manager</code> <code class="ow">-&gt;</code> <code class="kr">do</code>
+                    <code class="kt">Response</code> <code class="kr">_</code> <code class="kr">_</code> <code class="n">lbs</code> <code class="ow">&lt;-</code> <code class="n">httpLbs</code> <code class="n">req</code> <code class="n">manager</code>
+                    <code class="n">liftIO</code> <code class="o">$</code> <code class="kt">L</code><code class="o">.</code><code class="n">putStr</code> <code class="n">lbs</code>
+        <code class="kr">_</code> <code class="ow">-&gt;</code> <code class="n">putStrLn</code> <code class="s">"Sorry, please provide exactly one URL"</code>
+</pre><p class="calibre7">The <code class="literal">Request</code> type is abstract so that <code class="literal">http-conduit</code> can add new
+   settings in the future without breaking the API (see the Settings Type
+   chapter for more information). In order to make changes to individual records, you use record
+   notation. For example, a modification to our program that issues <code class="literal">HEAD</code> requests
+   and prints the response headers would be:</p><a id="I_programlisting_d1e11119" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE OverloadedStrings #-}</code>
+<code class="kr">import</code> <code class="nn">Network.HTTP.Conduit</code>
+<code class="kr">import</code> <code class="nn">System.Environment</code> <code class="p">(</code><code class="nf">getArgs</code><code class="p">)</code>
+<code class="kr">import</code> <code class="kr">qualified</code> <code class="nn">Data.ByteString.Lazy</code> <code class="kr">as</code> <code class="n">L</code>
+<code class="kr">import</code> <code class="nn">Control.Monad.IO.Class</code> <code class="p">(</code><code class="nf">liftIO</code><code class="p">)</code>
+
+<code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="n">args</code> <code class="ow">&lt;-</code> <code class="n">getArgs</code>
+    <code class="kr">case</code> <code class="n">args</code> <code class="kr">of</code>
+        <code class="p">[</code><code class="n">urlString</code><code class="p">]</code> <code class="ow">-&gt;</code>
+            <code class="kr">case</code> <code class="n">parseUrl</code> <code class="n">urlString</code> <code class="kr">of</code>
+                <code class="kt">Nothing</code> <code class="ow">-&gt;</code> <code class="n">putStrLn</code> <code class="s">"Sorry, invalid URL"</code>
+                <code class="kt">Just</code> <code class="n">req</code> <code class="ow">-&gt;</code> <code class="n">withManager</code> <code class="o">$</code> <code class="nf">\</code><code class="n">manager</code> <code class="ow">-&gt;</code> <code class="kr">do</code>
+                    <code class="kr">let</code> <code class="n">reqHead</code> <code class="ow">=</code> <code class="n">req</code> <code class="p">{</code> <code class="n">method</code> <code class="ow">=</code> <code class="s">"HEAD"</code> <code class="p">}</code>
+                    <code class="kt">Response</code> <code class="n">status</code> <code class="n">headers</code> <code class="kr">_</code> <code class="ow">&lt;-</code> <code class="n">http</code> <code class="n">reqHead</code> <code class="n">manager</code>
+                    <code class="n">liftIO</code> <code class="o">$</code> <code class="kr">do</code>
+                        <code class="n">print</code> <code class="n">status</code>
+                        <code class="n">mapM_</code> <code class="n">print</code> <code class="n">headers</code>
+        <code class="kr">_</code> <code class="ow">-&gt;</code> <code class="n">putStrLn</code> <code class="s">"Sorry, please provide exactly one URL"</code>
+</pre><p class="calibre7">There are a number of different configuration settings in the API. Some noteworthy ones
+      are:</p><div class="book"><dl class="book"><dt class="calibre9"><span class="firstname">proxy</span></dt><dd class="calibre10"><p class="calibre7">Allows you to pass the request through the given proxy server.</p></dd><dt class="calibre9"><span class="firstname">redirectCount</span></dt><dd class="calibre10"><p class="calibre7">Indicate how many redirects to follow. Default is 10.</p></dd><dt class="calibre9"><span class="firstname">checkStatus</span></dt><dd class="calibre10"><p class="calibre7">Check the status code of the return value. By default, gives an exception for any non-2XX
+     response.</p></dd><dt class="calibre9"><span class="firstname">requestBody</span></dt><dd class="calibre10"><p class="calibre7">The request body to be sent. Be sure to also update the <code class="literal">method</code>. For the common case of URL-encoded data, you can use the <code class="literal">urlEncodedBody</code> function.</p></dd></dl></div></div></div>
+
+{% endraw %}
+

@@ -1,0 +1,131 @@
+---
+layout: page
+title: "Learning GNU Emacs, 3rd Edition"
+prev: OEBPS/ch11s06.html
+next: OEBPS/ch12.html
+book_path: books/learning-gnu-emacs--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h1 class="title"><a id="gnu3-CHP-11-SECT-7" class="calibre1"></a>Building Your Own Lisp Library</h1></div></div></div><p class="copyright">After you have become
+<a id="gnu3-CHP-11-ITERM-2853" class="calibre2"></a>
+            <a id="gnu3-CHP-11-ITERM-2854" class="calibre2"></a>proficient at Emacs Lisp programming,
+you will want a library of Lisp functions and packages that you can
+call up from Emacs at will. Of course, you can define a few small
+functions in your <span><em class="calibre7">.emacs</em></span> file, but if you are
+writing bigger pieces of code for more specialized purposes, you will
+not want to clutter up your <span><em class="calibre7">.emacs</em></span>
+file—nor will you want Emacs to spend all that time evaluating
+the code each time you start it up. The answer is to build your own
+Lisp library, analogous to the Lisp directories that come with Emacs
+and contain all of its built-in Lisp code. After you have created a
+library, you can load whatever Lisp packages you need at a given time
+and not bother with the others.</p><p class="copyright">Creating a library requires two simple steps. First, create a
+directory in which your Lisp code will reside. Most people create a
+<span><em class="calibre7">elisp</em></span> subdirectory of their home directory. Lisp
+files are expected to have names ending in <span><em class="calibre7">.el</em></span>
+(your <span><em class="calibre7">.emacs</em></span> file is an exception). The second
+step is to make your directory known to Emacs so that when you try to
+load a Lisp package, Emacs knows where to find it. Emacs keeps track
+of such directories in the global variable <span><strong class="calibre5">load-path</strong></span>, which is a list of strings that are
+directory names.</p><p class="copyright">The initial value for <span><strong class="calibre5">load-path</strong></span> is
+populated with the names of the Lisp directories that come with
+Emacs, e.g., <span><em class="calibre7">/usr/local/emacs/lisp</em></span>. You will
+need to add the name of your own Lisp directory to <span><strong class="calibre5">load-path</strong></span>. One way to make this addition is to
+use the Lisp function <span><strong class="calibre5">append</strong></span>, which
+concatenates any number of list arguments together. For example, if
+your Lisp directory is <span><em class="calibre7">~&lt;yourname&gt;/lisp</em></span>,
+you would put the following in your <span><em class="calibre7">.emacs</em></span> file:</p><a id="I_11_tt654" class="calibre2"></a><pre class="programlisting">(setq load-path (append load-path (list "~<em class="calibre7"><code class="calibre32">yourname</code></em>/lisp")))</pre><p class="copyright">The function <span><strong class="calibre5">list</strong></span> is necessary
+because all of the arguments to <span><strong class="calibre5">append</strong></span> must be lists. This line of code must
+precede any commands in your <span><em class="calibre7">.emacs</em></span> file that
+load packages from your Lisp directory.</p><p class="copyright">When you load a library, Emacs searches directories in the order in
+which they appear in <span><strong class="calibre5">load-path</strong></span>;
+therefore, in this case, Emacs searches its default Lisp directory
+first. If you want your directory to be searched first, you should
+use the <span><strong class="calibre5">cons</strong></span> function described
+earlier instead of <span><strong class="calibre5">append</strong></span>, as
+follows:</p><a id="I_11_tt655" class="calibre2"></a><pre class="programlisting">(setq load-path (cons "~<em class="calibre7"><code class="calibre32">yourname</code></em>/lisp" load-path))</pre><p class="copyright">This form is useful if you want to replace one of the standard Emacs
+packages with one of your own. For example, you'd
+use this form if you've written your own version of
+C mode and want to use it instead of the standard package. Notice
+that the directory name here is not surrounded by a call to <span><strong class="calibre5">list</strong></span> because <span><strong class="calibre5">cons</strong></span>'s first argument can be
+an atom (a string in this case). This situation is similar to the use
+of <span><strong class="calibre5">cons</strong></span> for pushing values onto
+stacks, as in the calculator mode described earlier.</p><p class="copyright">If you want Emacs to search the directory you happen to be in at any
+given time, simply add <code class="calibre21">nil</code> to <span><strong class="calibre5">load-path</strong></span>, either by prepending it via
+<span><strong class="calibre5">cons</strong></span> or by appending it via
+<span><strong class="calibre5">append</strong></span>. Taking this step is
+analogous to putting . in your Unix PATH
+environment variable.</p><p class="copyright">After you have created a private Lisp library and told Emacs where to
+find it, you're ready to load and use the Lisp
+packages that you've created. There are several ways
+of loading Lisp packages into Emacs. The first of these should be
+familiar from <a class="calibre2" href="ch10.html" title="Chapter 10. Customizing Emacs">Chapter 10</a>:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="copyright">Type <span><strong class="calibre5">M-x load-library Enter</strong></span> as a
+user command; see <a class="calibre2" href="ch10.html" title="Chapter 10. Customizing Emacs">Chapter 10</a>.</p></li><li class="listitem"><p class="copyright">Put the line <code class="calibre21">(load
+</code>"<em class="calibre7"><code class="calibre21">package-name</code></em>"<code class="calibre21">)</code>
+within Lisp code. Putting a line like this into your
+<span><em class="calibre7">.emacs</em></span>
+                  <code class="calibre21"> </code>file makes Emacs
+load the package whenever you start it.</p></li><li class="listitem"><p class="copyright">Invoke Emacs with the command-line option <strong class="calibre5"><code class="calibre21">"-l</code></strong>
+                  <em class="calibre7"><code class="calibre21">package-name</code></em>
+                  <strong class="calibre5"><code class="calibre21">"</code></strong>. This
+action loads the package <em class="calibre7"><code class="calibre21">package-name</code></em>.</p></li><li class="listitem"><p class="copyright">Put the line <code class="calibre21">(autoload</code>
+'<em class="calibre7"><code class="calibre21">function</code></em>
+"<em class="calibre7"><code class="calibre21">filename</code></em>"<code class="calibre21">)</code>
+within Lisp code (typically in your
+<span><em class="calibre7">.emacs</em></span>
+                  <code class="calibre21"> </code>file), as described
+in <a class="calibre2" href="ch10.html" title="Chapter 10. Customizing Emacs">Chapter 10</a>. This action causes Emacs to load
+the package when you execute the given
+<em class="calibre7"><code class="calibre21">function</code></em>.<sup class="calibre6">[<a id="gnu3-CHP-11-FNOTE-12" href="#ftn.gnu3-CHP-11-FNOTE-12" class="calibre2">12</a>]</sup>
+               </p></li></ul></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-11-SECT-7.1" class="calibre1"></a>Byte-Compiling Lisp Files</h2></div></div></div><p class="copyright">After you have created
+<a id="gnu3-CHP-11-ITERM-2855" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2856" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2857" class="calibre2"></a>your Lisp directory, you can make
+loading and running your Lisp files more efficient by
+<span><em class="calibre7">byte-compiling</em></span> them, or translating their code
+into <span><em class="calibre7">byte code</em></span>, a more compact, machine-readable
+form. Byte-compiling the Lisp file <span><em class="calibre7">filename.el</em></span>
+creates the byte code file <span><em class="calibre7">filename.elc</em></span>. Byte
+code files are typically 40 to 75 percent of the size of their
+non-byte-compiled counterparts.</p><p class="copyright">Although byte-compiled files are more efficient, they are not
+strictly necessary. The <span><strong class="calibre5">load-library</strong></span>
+command, when given the argument <em class="calibre7"><code class="calibre21">filename</code></em>,
+first looks for a file called
+<span><em class="calibre7">&lt;filename&gt;.elc</em></span>. If that
+doesn't exist, it tries
+<span><em class="calibre7">&lt;filename&gt;.el</em></span>, that is, the
+non-byte-compiled version. If that doesn't exist, it
+finally tries just <span><em class="calibre7">&lt;filename&gt;</em></span>. Thus, you
+can byte-compile your <span><em class="calibre7">.emacs</em></span> file, which may
+result in faster startup if your
+<span><em class="calibre7">.emacs</em></span>
+               <code class="calibre21"> </code>is large.</p><p class="copyright">You can byte-compile a single function in a buffer of Lisp code by
+placing your cursor anywhere in the function and typing <span><strong class="calibre5">M-x compile-defun</strong></span>. You can byte-compile an
+entire file of Lisp by invoking <span><strong class="calibre5">M-x
+byte-compile-file Enter</strong></span> and supplying the filename. If you
+omit the <span><em class="calibre7">.el</em></span> suffix, Emacs appends it and asks
+for confirmation. If you have changed the file but have not saved it,
+Emacs offers to save it first.</p><p class="copyright">Then you will see an entertaining little display in the minibuffer as
+the byte-compiler does its work: the names of functions being
+compiled flash by. The byte-compiler creates a file with the same
+name as the original Lisp file but with <code class="calibre21">c</code>
+appended; thus, <span><em class="calibre7">&lt;filename&gt;.el</em></span> becomes
+<span><em class="calibre7">&lt;filename&gt;.elc</em></span>, and
+<span><em class="calibre7">.emacs</em></span> becomes <span><em class="calibre7">.emacs.elc</em></span>.</p><p class="copyright">Finally, if you develop a directory with several Lisp files, and you
+make changes to some of them, you can use the <span><strong class="calibre5">byte-recompile-directory</strong></span> command to recompile
+only those Lisp files that have been changed since being
+byte-compiled (analogously to the Unix <span><strong class="calibre5">make</strong></span> utility). Just type <span><strong class="calibre5">M-x byte-recompile-directory</strong></span> 
+               <span><strong class="calibre5">Enter</strong></span> and supply the name of the Lisp
+directory or just press <span><strong class="calibre5">Enter</strong></span> for
+the default, which is the current directory.</p></div><div class="book"><br class="book"/><hr class="calibre4"/><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-11-FNOTE-12" href="#gnu3-CHP-11-FNOTE-12" class="calibre2">12</a>] </sup>There is also
+the option <strong class="calibre5"><code class="calibre21">"-f</code></strong>
+                        <em class="calibre7"><code class="calibre21">function-name</code></em>
+                        <strong class="calibre5"><code class="calibre21">"</code></strong>
+which causes Emacs to run the function
+<em class="calibre7"><code class="calibre21">function-name</code></em> at startup, with no
+arguments.</p></div></div></div></div>
+
+{% endraw %}
+

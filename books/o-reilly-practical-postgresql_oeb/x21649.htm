@@ -1,0 +1,52 @@
+---
+layout: page
+title: "Unknown"
+prev: x21491.htm
+next: x21718.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="x21491.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 13. LXP</td><td width="10%" valign="bottom" class="calibre5"><a href="x21718.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="AEN21649" class="calibre8">Using Cookies with LXP</a></h1><p class="calibre9">LXP has the ability to both set and retrieve cookie values. The LXP tag to set a cookie is
+    <tt class="REPLACEABLE">&lt;setcookie&gt;</tt>, and the LXP tag to display a cookie value is
+    <tt class="REPLACEABLE">&lt;putcookie&gt;</tt>.</p><div class="NAVHEADER"><h2 class="SECT"><a name="AEN21657" class="calibre8">Setting Cookies</a></h2><p class="calibre9">The setting of a cookie must happen <span><i class="EMPHASIS">before</i></span> any content is sent from the Apache server. This is
+      because the cookie is included in the headers that precede the actual output of the requested document.</p><p class="calibre9">A special construct exists for this type of scenario, called the <span><i class="EMPHASIS">initialization dock</i></span>, which is
+      defined with <tt class="REPLACEABLE">&lt;dock type="init"&gt;</tt>. This tag must be the first LXP tag following the
+      <tt class="REPLACEABLE">&lt;lxp&gt;</tt> tag in your document. Within it, you may use the
+      <tt class="REPLACEABLE">&lt;setcookie&gt;</tt> tag. Here is the syntax for opening an initialization dock:</p><pre class="SCREEN">&lt;lxp&gt;
+  &lt;dock type="init"&gt;</pre><p class="calibre9">Once the dock is open, you may set cookies with the following syntax:</p><pre class="SCREEN">  &lt;setcookie name="<tt class="REPLACEABLE"><i class="EMPHASIS">cookie_name</i></tt>" value="<tt class="REPLACEABLE"><i class="EMPHASIS">cookie_value</i></tt>"
+             domain="<tt class="REPLACEABLE"><i class="EMPHASIS">cookie_domain</i></tt>" path="<tt class="REPLACEABLE"><i class="EMPHASIS">cookie_path</i></tt>"
+             expires="<tt class="REPLACEABLE"><i class="EMPHASIS">cookie_expiration</i></tt>" /&gt;</pre><p class="calibre9">When the dock is closed with <tt class="REPLACEABLE">&lt;/dock&gt;</tt>, the cookies will be set, and content
+      following the closing dock tag will be sent to the client.</p><p class="calibre9">Only the <tt class="REPLACEABLE">name</tt> and <tt class="REPLACEABLE">value</tt> attributes are required to
+      set a cookie.  Supplying an empty value has the effect of deleting the cookie.</p><p class="calibre9">Setting an explicit domain is helpful in specifying the detail of a domain the cookie should be accepted for (e.g.,
+      <span><i class="EMPHASIS">www.thelinuxreview.com</i></span>, versus <span><i class="EMPHASIS">.thelinuxreview.com</i></span> for all subdomains).
+      Similarly, the <tt class="REPLACEABLE">path</tt> attribute specifies a URI path to maintain the cookie for (e.g.,
+      <tt class="REPLACEABLE">path="/app/"</tt>).</p><p class="calibre9">If the <tt class="REPLACEABLE">expires</tt> attribute is omitted, the cookie is set as a
+      <span><i class="EMPHASIS">session</i></span> cookie, and it will expire when the browser is closed. Otherwise, the value represents either
+      the number of hours in which the cookie should expire, or the complete <span><i class="EMPHASIS">epoch</i></span> value (the number of
+      seconds since 1970 to the moment the cookie should expire). If the value is larger than one million, it is implied that it
+      is describing the latter.</p><p class="calibre9">Note that, unlike some web languages, LXP documents will be immediately aware of any cookies that you have set within
+      the same request that sets the cookie. This awareness is handled through logic internal to LXP, and included documents of
+      other types (such as PHP) will not be aware of a cookie that has been set until a request following the one which sets the
+      cookie is submitted. This is due to the client-side nature of cookies.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>An initialization dock is also a good region in which to perform any general initialization for a document, as no
+        comments or newlines in an initialization dock will be sent to the browser. You can include an external LXP file from
+        within the dock.</p></blockquote></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN21698" class="calibre8">Accessing Cookie Values</a></h2><p class="calibre9">Unlike some other web-languages, such as PHP, cookies are not implicitly treated as variables. Instead, LXP maintains
+      a separate list of cookies in addition to its list of variables. This is done to ensure that methods that should apply to
+      cookies always do, and to prevent the collision of variable names and cookie names. </p><p class="calibre9">Therefore, to display a cookie, use the <tt class="REPLACEABLE">&lt;putcookie&gt;</tt> tag, as shown in <a href="x21649.htm#DISPLAYINGACOOKIEVALUE">Example 13-7</a>.</p><div class="NAVHEADER"><a name="DISPLAYINGACOOKIEVALUE"></a><p class="calibre9"><b class="calibre10">Example 13-7. Displaying a cookie value</b></p><pre class="SCREEN">&lt;lxp&gt;
+  Your cookie "user" is set to: &lt;putcookie name="user" /&gt;
+&lt;/lxp&gt;</pre></div><p class="calibre9">If you wish to substitute the value of a cookie into an LXP attribute, you might think you could do so with the same
+      dollar sign notation used to substitute variable values. However, this introduces a point of ambiguity between cookie
+      values and variable values. Therefore, cookie values may be accessed through the special
+      <tt class="REPLACEABLE">cookies</tt> LXP object.</p><div class="NAVHEADER"><a name="SUBSTITUTINGCOOKIEVALUES"></a><p class="calibre9"><b class="calibre10">Example 13-8. Substituting cookie values</b></p><pre class="SCREEN">&lt;lxp&gt;
+  &lt;setvar welcome_msg="Welcome, @cookies.user!" /&gt;
+  
+  &lt;if cookies.user&gt;
+    &lt;putvar name="welcome_msg" /&gt;
+  &lt;/if&gt;
+&lt;/lxp&gt;</pre></div><p class="calibre9">As of LXP 0.8, for backwards compatibility, if a variable is not found with a specified substitution name (e.g.,
+      <tt class="REPLACEABLE">$my_cookie</tt>), LXP will search the list of cookies for a cookie with that name. This
+      behavior is scheduled to either be removed (or be made configurable) in future versions of LXP, however.</p></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="x21491.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x21718.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">LXP Variables and Objects</td><td width="34%" valign="top" class="calibre4"><a href="lxp.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Tag Parsing</td></tr></table></div></div>
+
+{% endraw %}
+

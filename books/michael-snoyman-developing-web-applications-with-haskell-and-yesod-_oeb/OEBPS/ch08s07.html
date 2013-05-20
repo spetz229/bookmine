@@ -1,0 +1,73 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch08s06.html
+next: OEBPS/ch08s08.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="More Sophisticated Fields"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect18_d1e4178" class="calibre1"></a>More Sophisticated Fields</h1></div></div></div><p class="calibre7">Our color entry field is nice, but it’s not exactly user-friendly. What we really want is
+      a drop-down list.</p><div class="example"><a id="more-sophiticated-fields-x2" class="firstname"></a><p class="title6">Example 8-4. Drop-down lists</p><div class="book"><pre class="programlistinghaskell"><code class="kr">data</code> <code class="kt">Car</code> <code class="ow">=</code> <code class="kt">Car</code>
+    <code class="p">{</code> <code class="n">carModel</code> <code class="ow">::</code> <code class="kt">Text</code>
+    <code class="p">,</code> <code class="n">carYear</code> <code class="ow">::</code> <code class="kt">Int</code>
+    <code class="p">,</code> <code class="n">carColor</code> <code class="ow">::</code> <code class="kt">Maybe</code> <code class="kt">Color</code>
+    <code class="p">}</code>
+  <code class="kr">deriving</code> <code class="kt">Show</code>
+
+<code class="kr">data</code> <code class="kt">Color</code> <code class="ow">=</code> <code class="kt">Red</code> <code class="o">|</code> <code class="kt">Blue</code> <code class="o">|</code> <code class="kt">Gray</code> <code class="o">|</code> <code class="kt">Black</code>
+    <code class="kr">deriving</code> <code class="p">(</code><code class="kt">Show</code><code class="p">,</code> <code class="kt">Eq</code><code class="p">,</code> <code class="kt">Enum</code><code class="p">,</code> <code class="kt">Bounded</code><code class="p">)</code>
+
+<code class="nf">carAForm</code> <code class="ow">::</code> <code class="kt">Maybe</code> <code class="kt">Car</code> <code class="ow">-&gt;</code> <code class="kt">AForm</code> <code class="kt">Synopsis</code> <code class="kt">Synopsis</code> <code class="kt">Car</code>
+<code class="nf">carAForm</code> <code class="n">mcar</code> <code class="ow">=</code> <code class="kt">Car</code>
+    <code class="o">&lt;$&gt;</code> <code class="n">areq</code> <code class="n">textField</code> <code class="s">"Model"</code> <code class="p">(</code><code class="n">carModel</code> <code class="o">&lt;$&gt;</code> <code class="n">mcar</code><code class="p">)</code>
+    <code class="o">&lt;*&gt;</code> <code class="n">areq</code> <code class="n">carYearField</code> <code class="s">"Year"</code> <code class="p">(</code><code class="n">carYear</code> <code class="o">&lt;$&gt;</code> <code class="n">mcar</code><code class="p">)</code>
+    <code class="o">&lt;*&gt;</code> <code class="n">aopt</code> <code class="p">(</code><code class="n">selectFieldList</code> <code class="n">colors</code><code class="p">)</code> <code class="s">"Color"</code> <code class="p">(</code><code class="n">carColor</code> <code class="o">&lt;$&gt;</code> <code class="n">mcar</code><code class="p">)</code>
+  <code class="kr">where</code>
+    <code class="n">colors</code> <code class="ow">::</code> <code class="p">[(</code><code class="kt">Text</code><code class="p">,</code> <code class="kt">Color</code><code class="p">)]</code>
+    <code class="n">colors</code> <code class="ow">=</code> <code class="p">[(</code><code class="s">"Red"</code><code class="p">,</code> <code class="kt">Red</code><code class="p">),</code> <code class="p">(</code><code class="s">"Blue"</code><code class="p">,</code> <code class="kt">Blue</code><code class="p">),</code> <code class="p">(</code><code class="s">"Gray"</code><code class="p">,</code> <code class="kt">Gray</code><code class="p">),</code> <code class="p">(</code><code class="s">"Black"</code><code class="p">,</code> <code class="kt">Black</code><code class="p">)]</code>
+</pre></div></div><p class="calibre7"><code class="literal">selectFieldList</code> takes a list of pairs. The first item in the pair is
+            the text displayed to the user in the drop-down list, and the second item is the actual
+            Haskell value. Of course, the code above looks really repetitive; we can get the same
+            result using the Enum and Bounded instance GHC automatically derives for us.</p><div class="example"><a id="more-sophiticated-fields-x6" class="firstname"></a><p class="title6">Example 8-5. Uses Enum and Bounded</p><div class="book"><pre class="programlistinghaskell"><code class="kr">data</code> <code class="kt">Car</code> <code class="ow">=</code> <code class="kt">Car</code>
+    <code class="p">{</code> <code class="n">carModel</code> <code class="ow">::</code> <code class="kt">Text</code>
+    <code class="p">,</code> <code class="n">carYear</code> <code class="ow">::</code> <code class="kt">Int</code>
+    <code class="p">,</code> <code class="n">carColor</code> <code class="ow">::</code> <code class="kt">Maybe</code> <code class="kt">Color</code>
+    <code class="p">}</code>
+  <code class="kr">deriving</code> <code class="kt">Show</code>
+
+<code class="kr">data</code> <code class="kt">Color</code> <code class="ow">=</code> <code class="kt">Red</code> <code class="o">|</code> <code class="kt">Blue</code> <code class="o">|</code> <code class="kt">Gray</code> <code class="o">|</code> <code class="kt">Black</code>
+    <code class="kr">deriving</code> <code class="p">(</code><code class="kt">Show</code><code class="p">,</code> <code class="kt">Eq</code><code class="p">,</code> <code class="kt">Enum</code><code class="p">,</code> <code class="kt">Bounded</code><code class="p">)</code>
+
+<code class="nf">carAForm</code> <code class="ow">::</code> <code class="kt">Maybe</code> <code class="kt">Car</code> <code class="ow">-&gt;</code> <code class="kt">AForm</code> <code class="kt">Synopsis</code> <code class="kt">Synopsis</code> <code class="kt">Car</code>
+<code class="nf">carAForm</code> <code class="n">mcar</code> <code class="ow">=</code> <code class="kt">Car</code>
+    <code class="o">&lt;$&gt;</code> <code class="n">areq</code> <code class="n">textField</code> <code class="s">"Model"</code> <code class="p">(</code><code class="n">carModel</code> <code class="o">&lt;$&gt;</code> <code class="n">mcar</code><code class="p">)</code>
+    <code class="o">&lt;*&gt;</code> <code class="n">areq</code> <code class="n">carYearField</code> <code class="s">"Year"</code> <code class="p">(</code><code class="n">carYear</code> <code class="o">&lt;$&gt;</code> <code class="n">mcar</code><code class="p">)</code>
+    <code class="o">&lt;*&gt;</code> <code class="n">aopt</code> <code class="p">(</code><code class="n">selectFieldList</code> <code class="n">colors</code><code class="p">)</code> <code class="s">"Color"</code> <code class="p">(</code><code class="n">carColor</code> <code class="o">&lt;$&gt;</code> <code class="n">mcar</code><code class="p">)</code>
+  <code class="kr">where</code>
+    <code class="n">colors</code> <code class="ow">=</code> <code class="n">map</code> <code class="p">(</code><code class="n">pack</code> <code class="o">.</code> <code class="n">show</code> <code class="o">&amp;&amp;&amp;</code> <code class="n">id</code><code class="p">)</code> <code class="o">$</code> <code class="p">[</code><code class="n">minBound</code><code class="o">..</code><code class="n">maxBound</code><code class="p">]</code>
+</pre></div></div><p class="calibre7"><code class="literal">[minBound..maxBound]</code> gives us a list of all the
+      different <code class="literal">Color</code> values. We then apply a <code class="literal">map</code> and <code class="literal">&amp;&amp;&amp;</code>
+      (a.k.a., the fan-out operator) to turn that into a list of pairs.</p><p class="calibre7">Some people prefer radio buttons to drop-down lists. Fortunately, this is just a one-word
+      change. For example, see Radio buttons:</p><div class="example"><a id="more-sophiticated-fields-radio-buttons" class="firstname"></a><p class="title6">Example 8-6. Radio buttons</p><div class="book"><pre class="programlistinghaskell"><code class="kr">data</code> <code class="kt">Car</code> <code class="ow">=</code> <code class="kt">Car</code>
+    <code class="p">{</code> <code class="n">carModel</code> <code class="ow">::</code> <code class="kt">Text</code>
+    <code class="p">,</code> <code class="n">carYear</code> <code class="ow">::</code> <code class="kt">Int</code>
+    <code class="p">,</code> <code class="n">carColor</code> <code class="ow">::</code> <code class="kt">Maybe</code> <code class="kt">Color</code>
+    <code class="p">}</code>
+  <code class="kr">deriving</code> <code class="kt">Show</code>
+
+<code class="kr">data</code> <code class="kt">Color</code> <code class="ow">=</code> <code class="kt">Red</code> <code class="o">|</code> <code class="kt">Blue</code> <code class="o">|</code> <code class="kt">Gray</code> <code class="o">|</code> <code class="kt">Black</code>
+    <code class="kr">deriving</code> <code class="p">(</code><code class="kt">Show</code><code class="p">,</code> <code class="kt">Eq</code><code class="p">,</code> <code class="kt">Enum</code><code class="p">,</code> <code class="kt">Bounded</code><code class="p">)</code>
+
+<code class="nf">carAForm</code> <code class="ow">::</code> <code class="kt">Maybe</code> <code class="kt">Car</code> <code class="ow">-&gt;</code> <code class="kt">AForm</code> <code class="kt">Synopsis</code> <code class="kt">Synopsis</code> <code class="kt">Car</code>
+<code class="nf">carAForm</code> <code class="n">mcar</code> <code class="ow">=</code> <code class="kt">Car</code>
+    <code class="o">&lt;$&gt;</code> <code class="n">areq</code> <code class="n">textField</code> <code class="s">"Model"</code> <code class="p">(</code><code class="n">carModel</code> <code class="o">&lt;$&gt;</code> <code class="n">mcar</code><code class="p">)</code>
+    <code class="o">&lt;*&gt;</code> <code class="n">areq</code> <code class="n">carYearField</code> <code class="s">"Year"</code> <code class="p">(</code><code class="n">carYear</code> <code class="o">&lt;$&gt;</code> <code class="n">mcar</code><code class="p">)</code>
+    <code class="o">&lt;*&gt;</code> <code class="n">aopt</code> <code class="p">(</code><code class="n">radioFieldList</code> <code class="n">colors</code><code class="p">)</code> <code class="s">"Color"</code> <code class="p">(</code><code class="n">carColor</code> <code class="o">&lt;$&gt;</code> <code class="n">mcar</code><code class="p">)</code>
+  <code class="kr">where</code>
+    <code class="n">colors</code> <code class="ow">=</code> <code class="n">map</code> <code class="p">(</code><code class="n">pack</code> <code class="o">.</code> <code class="n">show</code> <code class="o">&amp;&amp;&amp;</code> <code class="n">id</code><code class="p">)</code> <code class="o">$</code> <code class="p">[</code><code class="n">minBound</code><code class="o">..</code><code class="n">maxBound</code><code class="p">]</code>
+</pre></div></div></div></div>
+
+{% endraw %}
+

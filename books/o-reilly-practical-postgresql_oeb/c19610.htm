@@ -1,0 +1,60 @@
+---
+layout: page
+title: "Unknown"
+prev: p19608.htm
+next: x19712.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="p19608.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4"/><td width="10%" valign="bottom" class="calibre5"><a href="x19712.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><div class="calibre18"></div><h1 id="calibre_toc_12" class="calibre7"><a name="PLPGSQL" class="calibre8">Chapter 11. PL/pgSQL</a></h1><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><b class="calibre10">Table of Contents</b></dt><dt class="NAVHEADER"><a href="c19610.htm#ADDINGPLPGSQLTOYOURDATABASE">Adding PL/pgSQL to your Database</a></dt><dt class="NAVHEADER"><a href="x19712.htm">Language Structure</a></dt><dt class="NAVHEADER"><a href="x19832.htm">Using Variables</a></dt><dt class="NAVHEADER"><a href="x20238.htm">Controlling Program Flow</a></dt><dt class="NAVHEADER"><a href="x20655.htm">PL/pgSQL and Triggers</a></dt></dl></div><p class="calibre9">PL/pgSQL is a loadable, <span><i class="EMPHASIS">procedural language</i></span>, similar to the Oracle procedural language, PL/SQL.  A
+  procedural language is a programming language used to specify a sequence of steps that are followed to produce an intended
+  programmatic result.</p><p class="calibre9">You can use PL/pgSQL to group sequences of SQL and programmatic statements together within a database server, reducing
+  network and communications overhead incurred by client applications having to constantly request data from the database and
+  perform logic operations upon that data from a remote location.</p><p class="calibre9">You have access to all PostgreSQL data types, operators, and functions within PL/pgSQL code.  The "SQL" in PL/pgSQL is
+  indicative of the fact that you are allowed to directly use the SQL language from within PL/pgSQL code.  The use of SQL within
+  PL/pgSQL code can increase the power, flexibility, and performance of your programs.  If multiple SQL statements are executed
+  from a PL/pgSQL code block, the statements are processed at one time, instead of the normal behavior of processing a single
+  statement at a time.</p><p class="calibre9">Another important aspect of using PL/pgSQL is its portability; its functions are compatible with all platforms that can
+  operate the PostgreSQL database system.</p><p class="calibre9">The following sections describe how to make PL/pgSQL available as a procedural language in your database.</p><div class="NAVHEADER"><h1 class="calibre7"><a name="ADDINGPLPGSQLTOYOURDATABASE" class="calibre8">Adding PL/pgSQL to your Database</a></h1><p class="calibre9">Programming languages are made available to databases by being created as a database object. You will therefore need to
+    add the PL/pgSQL language to your database before you can use it (it is installed with PostgreSQL by default). The following
+    steps demonstrate how to add PL/pgSQL to an existing database.</p><div class="NAVHEADER"><h2 class="SECT"><a name="AEN19629" class="calibre8">Adding PL/pgSQL to your Database</a></h2><p class="calibre9">To add PL/pgSQL to your PostgreSQL database, you can either use the <span><i class="EMPHASIS">createlang</i></span>
+      application from the command line, or the <tt class="REPLACEABLE">CREATE LANGUAGE</tt> SQL command from within a
+      database client such as <span><i class="EMPHASIS">psql</i></span>. The use of the <tt class="REPLACEABLE">CREATE LANGUAGE</tt> command
+      first requires the creation of the PL/pgSQL <span><i class="EMPHASIS">call handler</i></span>, which is the function that actually
+      processes and interprets the PL/pgSQL code.</p><p class="calibre9">Though the <span><i class="EMPHASIS">createlang</i></span> utility is simpler to use, as it abstracts the creation of the
+      call handler and the language away from the user, the following sections document both methods.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>Installing PL/pgSQL in the <tt class="REPLACEABLE">template1</tt> database causes all subsequent databases that
+        are created with <tt class="REPLACEABLE">template1</tt> as their template (which is the default) to also have PL/pgSQL
+        installed.</p></blockquote></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN19643" class="calibre8">Using psql to add PL/pgSQL</a></h3><p class="calibre9"><tt class="REPLACEABLE">CREATE LANGUAGE</tt> is the SQL command which adds procedural languages to the
+        currently connected database. Before it can be used, however, the <tt class="REPLACEABLE">CREATE FUNCTION</tt>
+        command must first be used to create the procedural call handler.</p><p class="calibre9">Here is the syntax to create a PL/pgSQL call handler with <tt class="REPLACEABLE">CREATE FUNCTION</tt>:</p><pre class="SCREEN">  CREATE FUNCTION plpgsql_call_handler()
+         RETURNS OPAQUE AS '/<tt class="REPLACEABLE"><i class="EMPHASIS">postgres_library_path</i></tt>/plpgsql.so' LANGUAGE 'C'</pre><p class="calibre9">In this syntax, <tt class="REPLACEABLE"><i class="EMPHASIS">postgres_library_path</i></tt> is the absolute system path to the installed PostgreSQL
+        library files. This path, by default, is <span><i class="EMPHASIS">/usr/local/pgsql/lib</i></span>. <a href="c19610.htm#CREATINGTHEPLPGSQLCALLHANDLER">Example 11-1</a> uses the <tt class="REPLACEABLE">CREATE FUNCTION</tt> command to create the
+        PL/pgSQL call handler, assuming the <span><i class="EMPHASIS">plpgsql.so</i></span> file is in the default location.</p><div class="NAVHEADER"><a name="CREATINGTHEPLPGSQLCALLHANDLER"></a><p class="calibre9"><b class="calibre10">Example 11-1. Creating the PL/pgSQL call handler</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">CREATE FUNCTION plpgsql_call_handler ()</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">                RETURNS OPAQUE</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">                AS '/usr/local/pgsql/lib/plpgsql.so'</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">                LANGUAGE 'C';</b></tt>
+CREATE</pre></div><p class="calibre9"><a href="c19610.htm#CREATINGTHEPLPGSQLCALLHANDLER">Example 11-1</a> only creates the function handler; the language itself must also be
+        added with the <tt class="REPLACEABLE">CREATE LANGUAGE</tt> command. Here is the syntax to add PL/pgSQL to a database:</p><pre class="SCREEN">  CREATE LANGUAGE 'plpgsql' HANDLER plpgsql_call_handler
+                            LANCOMPILER 'PL/pgSQL'</pre><p class="calibre9">In this syntax, <span><i class="EMPHASIS">plpgsql</i></span> is the name of the language to be created, the
+        <tt class="REPLACEABLE">plpgsql_call_handler</tt> is the name of the call handler function (e.g., the one created in
+        <a href="c19610.htm#CREATINGTHEPLPGSQLCALLHANDLER">Example 11-1</a>), and the <span><i class="EMPHASIS">PL/pgSQL</i></span> string constant
+        following the <tt class="REPLACEABLE">LANCOMPILER</tt> keyword is an arbitrary descriptive note.</p><p class="calibre9"><a href="c19610.htm#ADDINGPLPGSQLWITHCREATELANGUAGE">Example 11-2</a> adds PL/pgSQL to the <tt class="REPLACEABLE">booktown</tt>
+        database with the <tt class="REPLACEABLE">CREATE LANGUAGE</tt> command.</p><div class="NAVHEADER"><a name="ADDINGPLPGSQLWITHCREATELANGUAGE"></a><p class="calibre9"><b class="calibre10">Example 11-2. Adding PL/pgSQL with CREATE LANGUAGE</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">CREATE LANGUAGE 'plpgsql' HANDLER plpgsql_call_handler</b></tt>
+booktown-# <tt class="REPLACEABLE"><b class="calibre10">                          LANCOMPILER 'PL/pgSQL';</b></tt>
+CREATE</pre></div><p class="calibre9">The name following the <tt class="REPLACEABLE">HANDLER</tt> keyword should be the same name which is used to
+        create the call handler. Since <a href="c19610.htm#CREATINGTHEPLPGSQLCALLHANDLER">Example 11-1</a> created a call handler named
+        <tt class="REPLACEABLE">plpgsql_call_handler</tt>, <a href="c19610.htm#ADDINGPLPGSQLWITHCREATELANGUAGE">Example 11-2</a> uses the same
+        name.</p><p class="calibre9">The string following the <tt class="REPLACEABLE">LANCOMPILER</tt> keyword is an outdated legacy clause, and its value is not
+        consequential. Even so, as of PostgreSQL 7.1.x, it is a required clause. It is commonly used as a comment space to
+        describe the language.</p></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN19691" class="calibre8">Using createlang to add PL/pgSQL</a></h3><p class="calibre9">To execute <span><i class="EMPHASIS">createlang</i></span> you will first need to be at the command prompt.  If the
+        operating system username you are currently logged into is the same as that of a database superuser account on the target
+        database, you can call <span><i class="EMPHASIS">createlang</i></span> with the command shown in <a href="c19610.htm#CALLINGCREATELANGASASUPERUSER">Example 11-3</a> (you will be asked for a password if the database requires one).  Otherwise, to
+        pass the username of a database superuser to <span><i class="EMPHASIS">createlang</i></span>, use the
+        <span><i class="EMPHASIS">-U</i></span> flag as shown in <a href="c19610.htm#PASSINGSUPERUSERACCOUNTNAMETOCREATELANG">Example 11-4</a>.</p><div class="NAVHEADER"><a name="CALLINGCREATELANGASASUPERUSER"></a><p class="calibre9"><b class="calibre10">Example 11-3. Using createlang as a database superuser</b></p><pre class="SCREEN">$ <tt class="REPLACEABLE"><b class="calibre10">cd /usr/local/pgsql/bin</b></tt>
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">createlang plpgsql booktown</b></tt></pre></div><div class="NAVHEADER"><a name="PASSINGSUPERUSERACCOUNTNAMETOCREATELANG"></a><p class="calibre9"><b class="calibre10">Example 11-4. Explicitly passing a superuser account name to createlang</b></p><pre class="SCREEN">$ <tt class="REPLACEABLE"><b class="calibre10">cd /usr/local/pgsql/bin/</b></tt>
+$ <tt class="REPLACEABLE"><b class="calibre10">createlang plpgsql -U manager booktown</b></tt></pre></div><p class="calibre9">The <span><i class="EMPHASIS">createlang</i></span> program will return you to a shell prompt upon successful execution.</p></div></div></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="p19608.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x19712.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Programming with PostgreSQL</td><td width="34%" valign="top" class="calibre4"><a href="p19608.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Language Structure</td></tr></table></div></div>
+
+{% endraw %}
+

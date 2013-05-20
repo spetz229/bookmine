@@ -1,0 +1,150 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: deftypes_case.html
+next: deftypes_guard_split_000.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="deftypes_case.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="deftypes_guard_split_000.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="deftypes_pattern_limits" class="calibre27" id="deftypes_pattern_limits"></a><h3 id="643999-855" class="docSection1Title">3.12. Common Beginner Mistakes with Patterns</h3><a name="x_NL" class="calibre27" id="x_NL"></a><p class="docText">There are a few ways in which new Haskell programmers can
+    misunderstand or misuse patterns. The following are some attempts at
+    pattern matching gone awry. Depending on what you expect one of these
+    examples to do, there may be some surprises.</p><a name="deftypes_pattern_limitsd1e8229" class="calibre27" id="deftypes_pattern_limitsd1e8229"></a><h4 id="title-IDANVJVC" class="docSection1Title">3.12.1. Incorrectly Matching Against a Variable</h4><p class="docText">Take a look at the following code:</p><pre class="calibre39">-- file: ch03/BogusPattern.hs
+data Fruit = Apple | Orange
+
+apple = "apple"
+
+orange = "orange"        
+
+whichFruit :: String -&gt; Fruit
+
+whichFruit f = case f of
+                 apple  -&gt; Apple
+                 orange -&gt; Orange</pre><br class="calibre48"/>
+<a name="x_w5" class="calibre27" id="x_w5"></a><p class="docText">A naive glance suggests that this code is trying to
+      check the value <i class="docEmphasis">f</i> to see whether it
+      matches the value <span class="docMonofont">apple</span> or
+      <span class="docMonofont">orange</span>.</p><a name="x_DC1" class="calibre27" id="x_DC1"></a><p class="docText">It is easier to spot the mistake if we rewrite the code
+      in an equational style:</p><pre class="calibre39">-- file: ch03/BogusPattern.hs
+equational apple = Apple
+equational orange = Orange</pre><br class="calibre48"/>
+<a name="x_EC1" class="calibre27" id="x_EC1"></a><p class="docText">Now can you see the problem? Here, it is more obvious
+      <span class="docMonofont">apple</span> does not refer to the top-level value named
+      <span class="docMonofont">apple</span>—it is a local pattern variable.</p><a name="idd1e8259" class="calibre27" id="idd1e8259"></a><div class="docNote"><p class="docNormalTitle">NOTE</p><p class="calibre37"><a name="x_y5" class="calibre27" id="x_y5"></a></p><p class="docText">We refer to a pattern that always succeeds as
+        irrefutable. Plain variable names and the wild card <tt class="calibre34">_</tt>
+        (underscore) are examples of irrefutable <span class="docEmphasis">patterns</span>.</p></div><a name="x_Ih" class="calibre27" id="x_Ih"></a><p class="docText">Here's a corrected version of this function:</p><pre class="calibre39">-- file: ch03/BogusPattern.hs
+betterFruit f = case f of
+                  "apple"  -&gt; Apple
+                  "orange" -&gt; Orange</pre><br class="calibre48"/>
+<a name="x_Jh" class="calibre27" id="x_Jh"></a><p class="docText">We fixed the problem by matching against the literal
+      values <tt class="calibre34">"apple"</tt> and <tt class="calibre34">"orange"</tt>.</p><a name="deftypes_pattern_limitsd1e8284" class="calibre27" id="deftypes_pattern_limitsd1e8284"></a><h4 id="title-IDAKXJVC" class="docSection1Title">3.12.2. Incorrectly Trying to Compare for Equality</h4><a name="x_Kh" class="calibre27" id="x_Kh"></a><p class="docText">What if we want to compare the values stored in two
+      nodes of type <tt class="calibre34">tree</tt>, and then return one of them if they're
+      equal? Here's an attempt:</p><pre class="calibre39">-- file: ch03/BadTree.hs
+bad_nodesAreSame (Node a _ _) (Node a _ _) = Just a
+bad_nodesAreSame _            _            = Nothing</pre><br class="calibre48"/>
+<a name="x_A6" class="calibre27" id="x_A6"></a><p class="docText">A name can appear only once in a set of pattern
+      bindings. We cannot place a variable in multiple positions to express
+      the notion "this value and that should be identical."
+      Instead, we'll solve this problem<a name="I_indexterm3_d1e8232" class="calibre27" id="I_indexterm3_d1e8232"></a> using <span class="docEmphasis">guards</span>, another invaluable
+      Haskell feature.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"><a href="21061538.html" class="calibre2"><img src="btn_next_.gif" alt="Next" border="0" class="calibre31"/></a> 
+           
+          <span class="calibre33"><a target="_self" href="deftypes_case.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="deftypes_guard_split_000.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

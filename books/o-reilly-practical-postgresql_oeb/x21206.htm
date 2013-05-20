@@ -1,0 +1,165 @@
+---
+layout: page
+title: "Unknown"
+prev: x21164.htm
+next: x21430.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="x21164.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 13. LXP</td><td width="10%" valign="bottom" class="calibre5"><a href="x21430.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="AEN21206" class="calibre8">Installing and Configuring LXP</a></h1><p class="calibre9">To install LXP, you must have the Apache web server installed and configured to support <span><i class="EMPHASIS">mod_so</i></span>.
+    This is the Apache Shared Object module. If you have not built Apache with this module, you will need to reconfigure it,
+    making sure to include the <span><i class="EMPHASIS">- -enable-module=so</i></span> configuration option before compiling.</p><div class="NAVHEADER"><p class="calibre9"></p><table class="calibre" border="1" width="100%"><tr class="calibre1"><td class="calibre23"><b class="calibre10">Warning</b></td></tr><tr class="calibre1"><td class="calibre15"><p class="calibre9">If you choose to manually compile Apache, be sure that you remove any existing Apache RPMs first. You can
+      usually identify these with the <span><i class="EMPHASIS">rpm -qa |grep apache</i></span> command.</p></td></tr></table></div><p class="calibre9">If Apache is installed, and the Shared Object module is enabled, you may insert the CD included with this book, mount
+    it, and proceed with the installation. You will need to be logged in as <span><i class="EMPHASIS">root</i></span> in order to successfully
+    install LXP, since it requires access to system-level files and directories.</p><div class="NAVHEADER"><h2 class="SECT"><a name="INSTALLINGLXP" class="calibre8">Installing LXP</a></h2><p class="calibre9">There are two ways to install LXP as of Version 0.8; you may use the <span><i class="EMPHASIS">lxpinstall.sh</i></span>
+      script, found in the <span><i class="EMPHASIS">lxp</i></span> directory on the CD, or you may install it manually. The
+      <span><i class="EMPHASIS">lxpinstall.sh</i></span> script is intended to both install the required LXP files and to configure
+      your <span><i class="EMPHASIS">httpd.conf</i></span> file to load and enable the LXP module.</p><p class="calibre9">If you encounter any errors during the installation from <span><i class="EMPHASIS">lxpinstall.sh</i></span>, see the following
+      section about manual configuration.</p><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN21228" class="calibre8">Using lxpinstall.sh</a></h3><p class="calibre9">The <span><i class="EMPHASIS">lxpinstall.sh</i></span> script is extremely straightforward. On a fresh system, the only
+        option you should be prompted to respond to is at the end of the script, when it asks you whether or not to automatically
+        restart Apache (as must be done, to enable LXP). You may run it again afterward in case something goes wrong, though it
+        will prompt you whether or not certain files should be overwritten.</p><p class="calibre9"><a href="x21206.htm#INSTALLINGLXPWITHLXPINSTALLSH">Example 13-1</a> changes to the <span><i class="EMPHASIS">lxp</i></span> directory on the CD (mounted
+        in <span><i class="EMPHASIS">/mnt/cdrom</i></span>, in this case), and runs the <span><i class="EMPHASIS">lxpinstall.sh</i></span> file.</p><div class="NAVHEADER"><a name="INSTALLINGLXPWITHLXPINSTALLSH"></a><p class="calibre9"><b class="calibre10">Example 13-1. Installing LXP with lxpinstall.sh</b></p><pre class="SCREEN">[root@host root]# <tt class="REPLACEABLE"><b class="calibre10">cd /mnt/cdrom/lxp</b></tt>
+[root@host lxp]# <tt class="REPLACEABLE"><b class="calibre10">./lxpinstall.sh</b></tt>
+===================================================================
+Thank you for installing Command Prompt LXP, 0.8.0.
+Copyright (c) 1999-2001, Command Prompt, Inc.
+See the LICENSE file for licensing restrictions.
+==================================================================
+[cmd] Checking for PostgreSQL libs (this may take a moment) ...
+[cmd] Found PostgreSQL libpq library.
+[cmd] Using apxs: '/usr/local/apache/bin/apxs'
+[cmd] Using '/usr/local/apache/libexec/' for shared object file
+ 
+==================================================================
+[cmd] Installing 'liblxp.so'
+[activating module `lxp' in /usr/local/apache/conf/httpd.conf]
+cp lib/liblxp.so /usr/local/apache/libexec/liblxp.so
+chmod 755 /usr/local/apache/libexec/liblxp.so
+cp /usr/local/apache/conf/httpd.conf /usr/local/apache/conf/httpd.conf.bak
+cp /usr/local/apache/conf/httpd.conf.new /usr/local/apache/conf/httpd.conf
+rm /usr/local/apache/conf/httpd.conf.new
+ 
+==================================================================
+[cmd] Using '/usr/local/apache/conf/httpd.conf' for configuration
+[cmd] Backing up original configuration file...
+/usr/local/apache/conf/httpd.conf -&gt; /usr/local/apache/conf/httpd.conf.lxp_backup
+[cmd] Backing up original configuration file...
+/usr/local/apache/conf/srm.conf -&gt; /usr/local/apache/conf/srm.conf.lxp_backup
+[cmd] Adding LXP directives to httpd.conf...
+ 
+==================================================================
+[cmd] Installing 'lxp.conf' into /usr/local/cmd/etc ...
+conf/lxp.conf-dist -&gt; /usr/local/cmd/etc/lxp.conf
+ 
+==================================================================
+[cmd] Re-start Apache with '/usr/local/apache/bin/apachectl'? (y/n) <tt class="REPLACEABLE"><b class="calibre10">y</b></tt>
+/usr/local/apache/bin/apachectl stop: httpd stopped 
+/usr/local/apache/bin/apachectl start: httpd started
+[cmd] Command Prompt LXP 0.8.0 successfully installed.</pre></div><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>In case there is a problem with your <span><i class="EMPHASIS">httpd.conf</i></span> reconfiguration, remember that LXP creates a
+        backup of your original configuration called <span><i class="EMPHASIS">httpd.conf.lxp_backup</i></span> in the same directory as your
+        <span><i class="EMPHASIS">httpd.conf</i></span> before making any modifications.</p></blockquote></div><p class="calibre9">You may receive the following error when running the <span><i class="EMPHASIS">lxpinstall.sh</i></span> script:</p><pre class="SCREEN">[cmd] ERROR: LXP requires Apache be configured with Shared Object support,
+[cmd] but we couldn't find Apache's apxs script.
+[cmd] Please make sure it is in your path, if you know mod_so is enabled.
+[cmd] exit error 1</pre><p class="calibre9">This error indicates that <span><i class="EMPHASIS">apxs</i></span>, the Apache Extension tool, could not be found on
+        your system. It is typically found in <span><i class="EMPHASIS">/usr/local/apache/bin</i></span>, though it may be missing if your Apache
+        web server was not built with <span><i class="EMPHASIS">mod_so</i></span> support enabled, or if you have not installed the
+        <span><i class="EMPHASIS">apache-devel</i></span> RPM for your system. If you know it is installed, be sure that the
+        directory it resides within is in your <tt class="REPLACEABLE">PATH</tt> environment variable.</p><p class="calibre9">Alternatively, you may get an error message similar to the following:</p><pre class="SCREEN">[cmd] ERROR: apxs couldn't find your configuration file
+[cmd] (Tried /usr/local/apache/conf/httpd.conf)
+[cmd] exit error 3</pre><p class="calibre9">If you are not using a configuration file with a standard name (i.e., <span><i class="EMPHASIS">httpd.conf</i></span> ), you
+        will need to manually configure it. See the next section instructions.</p></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN21265" class="calibre8">Manual installation</a></h3><p class="calibre9">This section describes how to manually install LXP if the <span><i class="EMPHASIS">lxpinstall.sh</i></span> script
+        does not work for you. If you've already installed LXP successfully through this script, you may skip this
+        section.</p><p class="calibre9">There are three steps to manually installing LXP:</p><p class="calibre9"> </p><p class="calibre9"></p><ul class="calibre21"><li class="calibre22"><p class="calibre9">Installing the LXP shared-object file</p></li><li class="calibre22"><p class="calibre9">Installing the LXP configuration file</p></li><li class="calibre22"><p class="calibre9">Configuring Apache's <span><i class="EMPHASIS">httpd.conf</i></span> file</p></li></ul>
+<p class="calibre9">The <span><i class="EMPHASIS">liblxp.so</i></span> file (located in the <span><i class="EMPHASIS">/lxp/lib</i></span> directory on the CD) must be
+        copied to the directory that your Apache web server is configured to load external modules from. This is typically
+        <span><i class="EMPHASIS">/usr/local/apache/libexec</i></span> for manual installations of Apache, and
+        <span><i class="EMPHASIS">/etc/httpd/modules</i></span> for RPM installations. Note that this directory varies wildly, and may be
+        different in your distribution. You should be able to install into this directory through the use of
+        <span><i class="EMPHASIS">apxs</i></span>, however, with the following syntax:</p><pre class="SCREEN">apxs -i -n <tt class="REPLACEABLE"><i class="EMPHASIS">module</i></tt> -a <tt class="REPLACEABLE"><i class="EMPHASIS">shared_object</i></tt></pre><p class="calibre9"><a href="x21206.htm#MANUALLYINSTALLINGLIBLXPSO">Example 13-2</a> demonstrates using the <span><i class="EMPHASIS">apxs</i></span> script to install and
+        configure the <span><i class="EMPHASIS">liblxp.so</i></span> file directly into Apache's module directory.</p><div class="NAVHEADER"><a name="MANUALLYINSTALLINGLIBLXPSO"></a><p class="calibre9"><b class="calibre10">Example 13-2. Manually installing liblxp.so</b></p><pre class="SCREEN">[root@host lib]# <tt class="REPLACEABLE"><b class="calibre10">apxs -i -n "lxp" -a lib/liblxp.so</b></tt>
+cp lib/liblxp.so /usr/local/apache/libexec/liblxp.so
+chmod 755 /usr/local/apache/libexec/liblxp.so
+[activating module `lxp' in /usr/local/apache/conf/httpd.conf]</pre></div><p class="calibre9">If you do not have PostgreSQL installed, the <span><i class="EMPHASIS">libpq.so.2.2</i></span> file (also located in the
+        <span><i class="EMPHASIS">/lxp/lib</i></span> directory on the CD) should be copied to the <span><i class="EMPHASIS">/usr/local/cmd/lib</i></span>
+        directory. A symbolic link named <span><i class="EMPHASIS">libpq.so.2</i></span> should also be created to point to this file. If you
+        have not run <span><i class="EMPHASIS">lxpinstall.sh</i></span>, you may need to create this directory. <a href="x21206.htm#MANUALLYINSTALLINGLIBPQSO">Example 13-3</a> demonstrates this process.</p><div class="NAVHEADER"><a name="MANUALLYINSTALLINGLIBPQSO"></a><p class="calibre9"><b class="calibre10">Example 13-3. Manually installing libpq.so.2.2</b></p><pre class="SCREEN">[root@host lib]# <tt class="REPLACEABLE"><b class="calibre10">mkdir -p /usr/local/cmd/lib</b></tt>
+[root@host lib]# <tt class="REPLACEABLE"><b class="calibre10">cp -iv libpq.so.2.2 /usr/local/cmd/lib/</b></tt>
+libpq.so.2.2 -&gt; /usr/local/cmd/lib/libpq.so.2.2
+[root@host lib]# <tt class="REPLACEABLE"><b class="calibre10">ln -s /usr/local/cmd/lib/libpq.so.2.2 /usr/local/cmd/lib/libpq.so.2</b></tt></pre></div><p class="calibre9">Next, the <span><i class="EMPHASIS">lxp.conf</i></span> file must be installed in the <span><i class="EMPHASIS">/usr/local/cmd/etc</i></span>
+        directory. This is the configuration file for LXP 0.8, discussed in detail in the next section. The distributed
+        configuration file is found in the <span><i class="EMPHASIS">lxp/conf</i></span> directory on the CD, and is named
+        <span><i class="EMPHASIS">lxp.conf-dist</i></span>.  Copy this file to <span><i class="EMPHASIS">/usr/local/cmd/etc</i></span> from the
+        <span><i class="EMPHASIS">lxp/conf</i></span> directory on the CD, as shown in <a href="x21206.htm#MANUALLYINSTALLINGLXPCONF">Example 13-4</a>. If you have
+        not run <span><i class="EMPHASIS">lxpinstall.sh</i></span> at all, you may need to create this directory. Be sure to rename it from
+        <span><i class="EMPHASIS">lxp.conf-dist</i></span> to <span><i class="EMPHASIS">lxp.conf</i></span>  !</p><div class="NAVHEADER"><a name="MANUALLYINSTALLINGLXPCONF"></a><p class="calibre9"><b class="calibre10">Example 13-4. Manually installing lxp.conf</b></p><pre class="SCREEN">[root@host lxp]# <tt class="REPLACEABLE"><b class="calibre10">mkdir -p /usr/local/cmd/etc</b></tt>
+[root@host lxp]# <tt class="REPLACEABLE"><b class="calibre10">cp -v conf/lxp.conf-dist /usr/local/cmd/etc/lxp.conf</b></tt>
+conf/lxp.conf-dist -&gt; /usr/local/cmd/etc/lxp.conf
+[root@host lxp]#</pre></div><p class="calibre9">Finally, Apache's <span><i class="EMPHASIS">httpd.conf</i></span> file must be configured for the LXP content type.</p><div class="NAVHEADER"><p class="calibre9"></p><table class="calibre" border="1" width="100%"><tr class="calibre1"><td class="calibre23"><b class="calibre10">Warning</b></td></tr><tr class="calibre1"><td class="calibre15"><p class="calibre9">In some circumstances, <span><i class="EMPHASIS">httpd.conf</i></span> may have been renamed to something else (such as
+          <span><i class="EMPHASIS">httpsd.conf</i></span>, in the case of ApacheSSL).</p></td></tr></table></div><p class="calibre9">There are two lines that must be added to this file for LXP to be configured. These are shown in <a href="x21206.htm#CONFIGURINGHTTPDCONFFORLXP">Example 13-5</a>.</p><div class="NAVHEADER"><a name="CONFIGURINGHTTPDCONFFORLXP"></a><p class="calibre9"><b class="calibre10">Example 13-5. Configuring httpd.conf for LXP</b></p><pre class="SCREEN">DirectoryIndex index.html index.lxp
+AddType application/x-httpd-lxp .lxp</pre></div><p class="calibre9">A line similar to the first line in <a href="x21206.htm#CONFIGURINGHTTPDCONFFORLXP">Example 13-5</a> should already exist in your
+        <span><i class="EMPHASIS">httpd.conf</i></span> file. You must add <tt class="REPLACEABLE">index.lxp</tt> as a value to this
+        directive if you wish for Apache to automatically look for an LXP index in a directory request.</p><p class="calibre9">The second line must be added from scratch. This <tt class="REPLACEABLE">AddType</tt> directive should be
+        entered exactly as it is shown in <a href="x21206.htm#CONFIGURINGHTTPDCONFFORLXP">Example 13-5</a>. This line enables the LXP module to
+        process files ending in <span><i class="EMPHASIS">.lxp</i></span>.</p><p class="calibre9">It is generally not important where you put these last two directives within the <span><i class="EMPHASIS">httpd.conf</i></span>
+        file, though you may wish to place them with similarly named directives that already exist, to keep the configuration
+        file organized.</p><p class="calibre9">Once you have finished, you must restart Apache for the changes to take effect. This is typically done with either
+        the <span><i class="EMPHASIS">apachectl</i></span> command, or the <span><i class="EMPHASIS">httpd</i></span> service script.</p></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="LXPCONF" class="calibre8">Nuts and Bolts: Configuring lxp.conf</a></h2><p class="calibre9">After installing LXP, you will find the <span><i class="EMPHASIS">lxp.conf</i></span> file in the
+      <span><i class="EMPHASIS">/usr/local/cmd/etc</i></span> directory. This file defines the database settings with which LXP connects to the
+      PostgreSQL database for persistent connections. The file also contains a pair of debugging options.</p><p class="calibre9">The <span><i class="EMPHASIS">lxp.conf</i></span> file is a simple configuration file using common conventions. The format of this
+      file can consist of <span><i class="EMPHASIS">comments</i></span>, <span><i class="EMPHASIS">directives</i></span>, and associated
+      <span><i class="EMPHASIS">values</i></span> for each directive.</p><p class="calibre9">Comments are always prefixed with a hash mark (<tt class="REPLACEABLE">#</tt>). They can be at the beginning of a
+      line, or follow a directive and value. They are totally ignored by LXP when the configuration is loaded, and are only
+      useful for remembering notes on why directives are set and what possible options there may be. You can add your own
+      comments without harming the functionality of LXP as long as you remember to precede the comment with a hash mark
+      (<tt class="REPLACEABLE">#</tt>).</p><p class="calibre9">Directives have a very basic affect upon the functionality of LXP. They typically start at the beginning of a line,
+      have a name (without spaces), and are followed by their associated value. The directive name defines a behavior to affect,
+      while the value sets how to affect that behavior. Some directives accept multiple values, which are separated by either
+      tabs or spaces. Here is example syntax:</p><pre class="SCREEN"># Here's an example directive.
+
+MyDirective	SomeValue	# MyDirective defines some arbitrary value.</pre><p class="calibre9">You may never need to make serious alterations in your <span><i class="EMPHASIS">lxp.conf</i></span> file, but it's a good idea to
+      know what it is, and what it does, in case you ever need to change one of these basic behaviors. As of LXP 0.8, the
+      <span><i class="EMPHASIS">lxp.conf</i></span> file is broken up into two sections; general settings and database settings.</p><div class="NAVHEADER"><h3 class="AUTHOR"><a name="LXPCONFGENERALSETTINGS" class="calibre8">General settings</a></h3><p class="calibre9">The first two directives under the General settings section are <tt class="REPLACEABLE">Debug</tt> and <tt class="REPLACEABLE">MaxIncludeDepth</tt>:</p><pre class="SCREEN">#######################
+# General LXP settings.
+#######################
+
+Debug            No  # (Yes|No)
+MaxIncludeDepth  15  # (Number)</pre><p class="calibre9">Setting the <tt class="REPLACEABLE">Debug</tt> directive to <tt class="REPLACEABLE">Yes</tt> adds a
+        debugging-header to the top of all LXP documents. This can be useful for tracking down unexplained behavior of LXP files
+        and included scripts. The debug header includes the name of the LXP document requested, any cookies found for the given
+        domain, any GET/POST variables that are passed, and <span><i class="EMPHASIS">maximum depth inclusion</i></span>.</p><p class="calibre9">The maximum depth inclusion is the highest number of includes LXP will traverse
+        down before stopping and displaying an error. This is used to prevent accidental infinite
+        includes (e.g., <span><i class="EMPHASIS">a.lxp</i></span> includes <span><i class="EMPHASIS">b.lxp</i></span>, which
+        includes <span><i class="EMPHASIS">a.lxp</i></span>). Set this value with the <tt class="REPLACEABLE">MaxIncludeDepth</tt> directive. 
+        The default value is 15.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>The value assigned to <tt class="REPLACEABLE">MaxIncludeDepth</tt> does not limit the total number of files
+          that can be included within a document. It describes only the <span><i class="EMPHASIS">deepest</i></span> level LXP can go in
+          <span><i class="EMPHASIS">sub-inclusions</i></span> (e.g., <span><i class="EMPHASIS">a.lxp</i></span> includes <span><i class="EMPHASIS">b.lxp</i></span>, which
+          includes <span><i class="EMPHASIS">c.lxp</i></span>, which includes <span><i class="EMPHASIS">d.lxp</i></span>, etc).</p></blockquote></div></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="DATABASESETTINGS" class="calibre8">Database settings</a></h3><p class="calibre9">The next six directives pertain to database connectivity with PostgreSQL. Most of the default options are usable on
+        most systems, but you may wish to modify these if you have special needs for your PostgreSQL installation:</p><pre class="SCREEN">#############################################
+# PostgreSQL persistent connectivity options.
+#############################################
+
+UseDb   No        # (Yes|No) Set to Yes if you wish to connect to the database.
+
+DbName  template1 # The database to use. By default, "template1".
+DbHost  localhost # The database host to use. By default, "localhost".
+DbPort  5432      # The port to connect to PostgreSQL on.
+DbUser  postgres  # The username to connect with. By default, "postgres".
+DbPass            # The password to connect with. By default, empty</pre><p class="calibre9">If you wish to enable LXP's persistent connections to a database, set <tt class="REPLACEABLE">UseDb</tt> to
+        <tt class="REPLACEABLE">Yes</tt>. If set to <tt class="REPLACEABLE">No</tt>, you will still be able to use the
+        Direct SQL Interface to dynamically open up connections (see <a href="x22143.htm#DIRECTSQL">the Section called <i class="EMPHASIS">Including SQL Content</i></a>"), but you will incur the cost of
+        a new PostgreSQL backend connection for <span><i class="EMPHASIS">each</i></span> connection request.</p><p class="calibre9">The remaining options—<tt class="REPLACEABLE">DbName</tt>, <tt class="REPLACEABLE">DbHost</tt>,
+        <tt class="REPLACEABLE">DbPort</tt>, <tt class="REPLACEABLE">DbUser</tt>, and
+        <tt class="REPLACEABLE">DbPass</tt>—should be familiar to anyone with experience connecting to PostgreSQL. The
+        defaults will usually work fine, but you might wish to change them if you have special needs (for example, if you wish to
+        store your data on a separate database server, you would change <tt class="REPLACEABLE">DbHost</tt> to point to the
+        appropriate machine).</p><div class="NAVHEADER"><p class="calibre9"></p><table class="calibre" border="1" width="100%"><tr class="calibre1"><td class="calibre23"><b class="calibre10">Warning</b></td></tr><tr class="calibre1"><td class="calibre15"><p class="calibre9">When utilizing the persistent connections between Apache and LXP's PostgreSQL database, it is important to
+          recognize that there will be a separate <span><i class="EMPHASIS">postmaster</i></span> binary running for each
+          <span><i class="EMPHASIS">httpd</i></span> process. Be sure that your system is configured to be capable of loading as many
+          PostgreSQL <span><i class="EMPHASIS">postmaster</i></span> backends as Apache requires (i.e., the number defined by the
+          <tt class="REPLACEABLE">MaxClients</tt> directive in Apache's <span><i class="EMPHASIS">httpd.conf</i></span> ) file.</p></td></tr></table></div></div></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="x21164.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x21430.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Core Features</td><td width="34%" valign="top" class="calibre4"><a href="lxp.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Understanding LXP Mark-Up</td></tr></table></div></div>
+
+{% endraw %}
+

@@ -1,0 +1,117 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch07s04.html
+next: OEBPS/ch08s02.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="calibre8"></div><div class="book" title="Chapter 8. Forms"><div class="book"><div class="book"><div class="book"><div class="calibre8"></div><h1 class="title1"><a id="I_chapter8_d1e3693" class="calibre1"></a>Chapter 8. Forms</h1></div></div></div><p class="calibre7">I’ve mentioned the boundary issue already: whenever data enters or leaves an
+    application, we need to validate it. Probably the most difficult place this occurs is forms.
+    Coding forms is complex; in an ideal world, we’d like a solution that addresses the following
+    problems:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">Ensure data is valid.</p></li><li class="listitem"><p class="calibre7">Marshal string data in the form submission to Haskell data types.</p></li><li class="listitem"><p class="calibre7">Generate HTML code for displaying the form.</p></li><li class="listitem"><p class="calibre7">Generate JavaScript to do clientside validation and provide more user-friendly widgets,
+        such as date pickers.</p></li><li class="listitem"><p class="calibre7">Build up more complex forms by combining together simpler forms.</p></li><li class="listitem"><p class="calibre7">Automatically assign names to our fields that are guaranteed to be unique.</p></li></ul></div><p class="calibre7">The <code class="function">yesod-form</code> package provides all these features in a
+    simple, declarative API. It builds on top of Yesod’s widgets to simplify styling of forms and
+    applying JavaScript appropriately. And like the rest of Yesod, it uses Haskell’s type system to
+    make sure everything is working correctly.</p><div class="book" title="Synopsis"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect18_d1e3728" class="calibre1"></a>Synopsis</h1></div></div></div><a id="I_programlisting8_d1e3731" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE QuasiQuotes, TemplateHaskell, MultiParamTypeClasses,</code>
+<code class="cm">    OverloadedStrings, TypeFamilies #-}</code>
+<code class="kr">import</code> <code class="nn">Yesod</code>
+<code class="kr">import</code> <code class="nn">Yesod.Form.Jquery</code>
+<code class="kr">import</code> <code class="nn">Data.Time</code> <code class="p">(</code><code class="kt">Day</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Data.Text</code> <code class="p">(</code><code class="kt">Text</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Control.Applicative</code> <code class="p">((</code><code class="o">&lt;$&gt;</code><code class="p">),</code> <code class="p">(</code><code class="o">&lt;*&gt;</code><code class="p">))</code>
+
+<code class="kr">data</code> <code class="kt">Synopsis</code> <code class="ow">=</code> <code class="kt">Synopsis</code>
+
+<code class="nf">mkYesod</code> <code class="s">"Synopsis"</code> <code class="p">[</code><code class="n">parseRoutes</code><code class="o">|</code>
+<code class="o">/</code> <code class="kt">RootR</code> <code class="kt">GET</code>
+<code class="o">/</code><code class="n">person</code> <code class="kt">PersonR</code> <code class="kt">POST</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="kr">instance</code> <code class="kt">Yesod</code> <code class="kt">Synopsis</code>
+
+<code class="cm">-- Tells our application to use the standard English messages.</code>
+<code class="cm">-- If you want i18n, then you can supply a translating function instead.</code>
+<code class="kr">instance</code> <code class="kt">RenderMessage</code> <code class="kt">Synopsis</code> <code class="kt">FormMessage</code> <code class="kr">where</code>
+    <code class="n">renderMessage</code> <code class="kr">_</code> <code class="kr">_</code> <code class="ow">=</code> <code class="n">defaultFormMessage</code>
+
+<code class="cm">-- And tell us where to find the jQuery libraries. We'll just use the defaults,</code>
+<code class="cm">-- which point to the Google CDN.</code>
+<code class="kr">instance</code> <code class="kt">YesodJquery</code> <code class="kt">Synopsis</code>
+
+<code class="cm">-- The data type we wish to receive from the form</code>
+<code class="kr">data</code> <code class="kt">Person</code> <code class="ow">=</code> <code class="kt">Person</code>
+    <code class="p">{</code> <code class="n">personName</code> <code class="ow">::</code> <code class="kt">Text</code>
+    <code class="p">,</code> <code class="n">personBirthday</code> <code class="ow">::</code> <code class="kt">Day</code>
+    <code class="p">,</code> <code class="n">personFavoriteColor</code> <code class="ow">::</code> <code class="kt">Maybe</code> <code class="kt">Text</code>
+    <code class="p">,</code> <code class="n">personEmail</code> <code class="ow">::</code> <code class="kt">Text</code>
+    <code class="p">,</code> <code class="n">personWebsite</code> <code class="ow">::</code> <code class="kt">Maybe</code> <code class="kt">Text</code>
+    <code class="p">}</code>
+  <code class="kr">deriving</code> <code class="kt">Show</code>
+
+<code class="cm">-- Declare the form. The type signature is a bit intimidating, but here's the</code>
+<code class="cm">-- overview:</code>
+<code class="cm">--</code>
+<code class="cm">-- * The Html parameter is used for encoding some extra information. See the</code>
+<code class="cm">-- discussion regarding runFormGet and runFormPost below for further</code>
+<code class="cm">-- explanation.</code>
+<code class="cm">--</code>
+<code class="cm">-- * We have the sub and master site types, as usual.</code>
+<code class="cm">--</code>
+<code class="cm">-- * FormResult can be in three states: FormMissing (no data available),</code>
+<code class="cm">-- FormFailure (invalid data) and FormSuccess</code>
+<code class="cm">--</code>
+<code class="cm">-- * The Widget is the viewable form to place into the web page.</code>
+<code class="cm">--</code>
+<code class="cm">-- Note that the scaffolded site provides a convenient Form type synonym,</code>
+<code class="cm">-- so that our signature could be written as:</code>
+<code class="cm">--</code>
+<code class="cm">-- &gt; personForm :: Form Person</code>
+<code class="cm">--</code>
+<code class="cm">-- For our purposes, it's good to see the long version.</code>
+<code class="nf">personForm</code> <code class="ow">::</code> <code class="kt">Html</code> <code class="ow">-&gt;</code> <code class="kt">MForm</code> <code class="kt">Synopsis</code> <code class="kt">Synopsis</code> <code class="p">(</code><code class="kt">FormResult</code> <code class="kt">Person</code><code class="p">,</code> <code class="kt">Widget</code><code class="p">)</code>
+<code class="nf">personForm</code> <code class="ow">=</code> <code class="n">renderDivs</code> <code class="o">$</code> <code class="kt">Person</code>
+    <code class="o">&lt;$&gt;</code> <code class="n">areq</code> <code class="n">textField</code> <code class="s">"Name"</code> <code class="kt">Nothing</code>
+    <code class="o">&lt;*&gt;</code> <code class="n">areq</code> <code class="p">(</code><code class="n">jqueryDayField</code> <code class="n">def</code>
+        <code class="p">{</code> <code class="n">jdsChangeYear</code> <code class="ow">=</code> <code class="kt">True</code> <code class="cm">-- give a year dropdown</code>
+        <code class="p">,</code> <code class="n">jdsYearRange</code> <code class="ow">=</code> <code class="s">"1900:-5"</code> <code class="cm">-- 1900 till five years ago</code>
+        <code class="p">})</code> <code class="s">"Birthday"</code> <code class="kt">Nothing</code>
+    <code class="o">&lt;*&gt;</code> <code class="n">aopt</code> <code class="n">textField</code> <code class="s">"Favorite color"</code> <code class="kt">Nothing</code>
+    <code class="o">&lt;*&gt;</code> <code class="n">areq</code> <code class="n">emailField</code> <code class="s">"Email address"</code> <code class="kt">Nothing</code>
+    <code class="o">&lt;*&gt;</code> <code class="n">aopt</code> <code class="n">urlField</code> <code class="s">"Website"</code> <code class="kt">Nothing</code>
+
+<code class="cm">-- The GET handler displays the form</code>
+<code class="nf">getRootR</code> <code class="ow">::</code> <code class="kt">Handler</code> <code class="kt">RepHtml</code>
+<code class="nf">getRootR</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="cm">-- Generate the form to be displayed</code>
+    <code class="p">((</code><code class="kr">_</code><code class="p">,</code> <code class="n">widget</code><code class="p">),</code> <code class="n">enctype</code><code class="p">)</code> <code class="ow">&lt;-</code> <code class="n">generateFormPost</code> <code class="n">personForm</code>
+    <code class="n">defaultLayout</code> <code class="p">[</code><code class="n">whamlet</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code><code class="kt">The</code> <code class="n">widget</code> <code class="n">generated</code> <code class="n">contains</code> <code class="n">only</code> <code class="n">the</code> <code class="n">contents</code> <code class="kr">of</code> <code class="n">the</code> <code class="n">form</code><code class="p">,</code> <code class="n">not</code> <code class="n">the</code> <code class="n">form</code> <code class="n">tag</code> <code class="n">itself</code><code class="o">.</code> <code class="kt">So</code><code class="o">...</code>
+<code class="o">&lt;</code><code class="n">form</code> <code class="n">method</code><code class="ow">=</code><code class="n">post</code> <code class="n">action</code><code class="o">=@</code><code class="p">{</code><code class="kt">PersonR</code><code class="p">}</code> <code class="n">enctype</code><code class="o">=#</code><code class="p">{</code><code class="n">enctype</code><code class="p">}</code><code class="o">&gt;</code>
+    <code class="o">^</code><code class="p">{</code><code class="n">widget</code><code class="p">}</code>
+    <code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code><code class="kt">It</code> <code class="n">also</code> <code class="n">doesn't</code> <code class="n">include</code> <code class="n">the</code> <code class="n">submit</code> <code class="n">button</code><code class="o">.</code>
+    <code class="o">&lt;</code><code class="n">input</code> <code class="kr">type</code><code class="ow">=</code><code class="n">submit</code><code class="o">&gt;</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="cm">-- The POST handler processes the form. If it is successful, it displays the</code>
+<code class="cm">-- parsed person. Otherwise, it displays the form again with error messages.</code>
+<code class="nf">postPersonR</code> <code class="ow">::</code> <code class="kt">Handler</code> <code class="kt">RepHtml</code>
+<code class="nf">postPersonR</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="p">((</code><code class="n">result</code><code class="p">,</code> <code class="n">widget</code><code class="p">),</code> <code class="n">enctype</code><code class="p">)</code> <code class="ow">&lt;-</code> <code class="n">runFormPost</code> <code class="n">personForm</code>
+    <code class="kr">case</code> <code class="n">result</code> <code class="kr">of</code>
+        <code class="kt">FormSuccess</code> <code class="n">person</code> <code class="ow">-&gt;</code> <code class="n">defaultLayout</code> <code class="p">[</code><code class="n">whamlet</code><code class="o">|&lt;</code><code class="n">p</code><code class="o">&gt;#</code><code class="p">{</code><code class="n">show</code> <code class="n">person</code><code class="p">}</code><code class="o">|</code><code class="p">]</code>
+        <code class="kr">_</code> <code class="ow">-&gt;</code> <code class="n">defaultLayout</code> <code class="p">[</code><code class="n">whamlet</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code><code class="kt">Invalid</code> <code class="n">input</code><code class="p">,</code> <code class="n">let's</code> <code class="n">try</code> <code class="n">again</code><code class="o">.</code>
+<code class="o">&lt;</code><code class="n">form</code> <code class="n">method</code><code class="ow">=</code><code class="n">post</code> <code class="n">action</code><code class="o">=@</code><code class="p">{</code><code class="kt">PersonR</code><code class="p">}</code> <code class="n">enctype</code><code class="o">=#</code><code class="p">{</code><code class="n">enctype</code><code class="p">}</code><code class="o">&gt;</code>
+    <code class="o">^</code><code class="p">{</code><code class="n">widget</code><code class="p">}</code>
+    <code class="o">&lt;</code><code class="n">input</code> <code class="kr">type</code><code class="ow">=</code><code class="n">submit</code><code class="o">&gt;</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">warpDebug</code> <code class="mi">3000</code> <code class="kt">Synopsis</code>
+</pre></div></div></div>
+
+{% endraw %}
+

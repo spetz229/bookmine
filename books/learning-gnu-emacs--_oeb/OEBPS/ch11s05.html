@@ -1,0 +1,407 @@
+---
+layout: page
+title: "Learning GNU Emacs, 3rd Edition"
+prev: OEBPS/ch11s04.html
+next: OEBPS/ch11s06.html
+book_path: books/learning-gnu-emacs--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h1 class="title"><a id="gnu3-CHP-11-SECT-5" class="calibre1"></a>Programming a Major Mode</h1></div></div></div><p class="copyright">After you get comfortable <a id="gnu3-CHP-11-ITERM-2826" class="calibre2"></a>
+            <a id="gnu3-CHP-11-ITERM-2827" class="calibre2"></a>
+            <a id="gnu3-CHP-11-ITERM-2828" class="calibre2"></a>with
+Emacs Lisp programming, you may find that that
+"little extra something" you want
+Emacs to do takes the form of a major mode. In previous chapters, we
+covered major modes for text entry, word processor input, and
+programming languages. Many of these modes are quite complicated to
+program, so we'll provide a simple example of a
+major mode, from which you can learn the concepts needed to program
+your own. Then, in the following section, you will learn how you can
+customize existing major modes without changing any of the Lisp code
+that implements them.</p><p class="copyright">We'll develop Calculator mode, a major mode for a
+calculator whose functionality will be familiar to you if you have
+used the Unix <span><em class="calibre7">dc</em></span> (desk calculator) command. It
+is a Reverse Polish (stack-based) calculator of the type made popular
+by Hewlett-Packard. After explaining some of the principal components
+of major modes and some interesting features of the calculator mode,
+we will give the mode's complete Lisp code.</p><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-11-SECT-5.1" class="calibre1"></a>Components of a Major Mode</h2></div></div></div><p class="copyright">A major mode has various
+<a id="gnu3-CHP-11-ITERM-2829" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2830" class="calibre2"></a>components
+that integrate it into Emacs. Some are:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="copyright">The <span><em class="calibre7">symbol</em></span> that is the name of
+<a id="gnu3-CHP-11-ITERM-2831" class="calibre2"></a>
+                     <a id="gnu3-CHP-11-ITERM-2832" class="calibre2"></a>
+                     <a id="gnu3-CHP-11-ITERM-2833" class="calibre2"></a>
+                     <a id="gnu3-CHP-11-ITERM-2834" class="calibre2"></a>
+                     <a id="gnu3-CHP-11-ITERM-2835" class="calibre2"></a>
+                     <a id="gnu3-CHP-11-ITERM-2836" class="calibre2"></a>the function that implements the mode</p></li><li class="listitem"><p class="copyright">The <span><em class="calibre7">name</em></span> of the mode that appears in the mode
+line in parentheses</p></li><li class="listitem"><p class="copyright">The <span><em class="calibre7">local</em></span> 
+                     <code class="calibre21">keymap</code> that
+defines key bindings for commands in the mode</p></li><li class="listitem"><p class="copyright">
+                     <span><em class="calibre7">Variables</em></span> and <span><em class="calibre7">constants</em></span>
+known only within the Lisp code for the mode</p></li><li class="listitem"><p class="copyright">The special <span><em class="calibre7">buffer</em></span> the mode may use</p></li></ul></div><p class="copyright">Let's deal with these in order. The mode symbol is
+set by assigning the name of the function that implements the mode to
+the global variable <span><strong class="calibre5">major-mode</strong></span>, as
+in:</p><a id="I_11_tt619" class="calibre2"></a><pre class="programlisting">(setq major-mode 'calc-mode)</pre><p class="copyright">Similarly, the mode name is set by assigning an appropriate string to
+the global variable <code class="calibre21">mode-name</code>, as in:</p><a id="I_11_tt620" class="calibre2"></a><pre class="programlisting">(setq mode-name "Calculator")</pre><p class="copyright">The local keymap is defined using functions discussed in <a class="calibre2" href="ch10.html" title="Chapter 10. Customizing Emacs">Chapter 10</a>. In the case of the calculator mode, there
+is only one key sequence to bind (<span><strong class="calibre5">C-j</strong></span>), so we use a special form of the
+<span><strong class="calibre5">make-keymap</strong></span> command called <span><strong class="calibre5">make-sparse-keymap</strong></span> that is more efficient with
+a small number of key bindings. To use a keymap as the local map of a
+mode, we call the function <span><strong class="calibre5">use-local-map</strong></span>, as in:</p><a id="I_11_tt621" class="calibre2"></a><pre class="programlisting">(use-local-map calc-mode-map)</pre><p class="copyright">As we just saw, variables can be defined by using
+<code class="calibre21">setq</code> to assign a value to them, or by using
+<span><strong class="calibre5">let</strong></span> to define local variables within
+a function. The more "official" way
+to define variables is the <span><strong class="calibre5">defvar</strong></span>
+function, which allows documentation for the variable to be
+integrated into online help facilities such as <span><strong class="calibre5">C-h v</strong></span> (for <span><strong class="calibre5">describe-variable</strong></span>). The format is the
+following:</p><a id="I_11_tt622" class="calibre2"></a><pre class="programlisting">(defvar <em class="calibre7"><code class="calibre32">varname initial-value</code></em> "<em class="calibre7"><code class="calibre32">description of the variable</code></em>")</pre><p class="copyright">A variation on this is <code class="calibre21">defconst</code>, with which you
+can define constant values (that never change). For example:</p><a id="I_11_tt623" class="calibre2"></a><pre class="programlisting">(defconst calc-operator-regexp "[-+*/%]"
+  "Regular expression for recognizing operators.")</pre><p class="copyright">defines the regular expression to be used in searching for arithmetic
+operators. As you will see, we use the <span><strong class="calibre5">calc-</strong></span> as a prefix for the names of all
+functions, variables, and constants that we define for the calculator
+mode. Other modes use this convention; for example, all names in C++
+mode begin with <code class="calibre21">c++-</code>. Using this convention is a
+good idea because it helps avoid potential name clashes with the
+thousands of other functions, variables, and so on in Emacs.</p><p class="copyright">Making variables local to the mode is also desirable so that they are
+known only within a buffer that is running the mode.<sup class="calibre6">[<a id="gnu3-CHP-11-FNOTE-8" href="#ftn.gnu3-CHP-11-FNOTE-8" class="calibre2">8</a>]</sup> To do this,
+use the <span><strong class="calibre5">make-local-variable</strong></span>
+function, as in:</p><a id="I_11_tt624" class="calibre2"></a><pre class="programlisting">(make-local-variable 'calc-stack)</pre><p class="copyright">Notice that the name of the variable, not its value, is needed;
+therefore a single quote precedes the variable name, turning it into
+a symbol.</p><p class="copyright">Finally, various major modes use special buffers that are not
+attached to files. For example, the <span><strong class="calibre5">C-x
+C-b</strong></span> (for <span><strong class="calibre5">list-buffers</strong></span>)
+command creates a buffer called <code class="calibre21">*Buffer</code>
+               <code class="calibre21">List*</code>. To create a buffer in a new window, use the
+<span><strong class="calibre5">pop-to-buffer</strong></span> function, as in:</p><a id="I_11_tt625" class="calibre2"></a><pre class="programlisting">(pop-to-buffer "*Calc*")</pre><p class="copyright">There are a couple of useful variations on <span><strong class="calibre5">pop-to-buffer</strong></span>. We won't use
+them in our mode example, but they are handy in other circumstances.</p><div class="book"><dl class="copyright"><dt class="book"><span>
+                     <span><strong class="calibre5">switch-to-buffer</strong></span>
+                  </span></dt><dd class="calibre20"><p class="copyright">Same as the <span><strong class="calibre5">C-x b</strong></span> command covered in
+<a class="calibre2" href="ch04.html" title="Chapter 4. Using Buffers, Windows, and Frames">Chapter 4</a>; can also be used with a buffer name
+argument in Lisp.</p></dd><dt class="book"><span>
+                     <span><strong class="calibre5">set-buffer</strong></span>
+                  </span></dt><dd class="calibre20"><p class="copyright">Used only within Lisp code to designate the buffer used for editing;
+the best function to use for creating a temporary
+"work" buffer within a Lisp
+function.</p></dd></dl></div></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-11-SECT-5.2" class="calibre1"></a>More Lisp Basics: Lists</h2></div></div></div><p class="copyright">A Reverse Polish Notation
+<a id="gnu3-CHP-11-ITERM-2837" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2838" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2839" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2840" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2841" class="calibre2"></a>calculator uses a
+data structure called a <span><em class="calibre7">stack</em></span>. Think of a stack
+as being similar to a spring-loaded dish stack in a cafeteria. When
+you enter a number into a RPN calculator, you
+<span><em class="calibre7">push</em></span> it onto the stack. When you apply an
+operator such as plus or minus, you <span><em class="calibre7">pop</em></span> the top
+two numbers off the stack, add or subtract them, and push the result
+back on the stack.</p><p class="copyright">The <span><em class="calibre7">list</em></span>, a fundamental concept of Lisp, is a
+natural for implementing stacks. The list is the main concept that
+sets Lisp apart from other programming languages. It is a data
+structure that has two parts: the <span><em class="calibre7">head</em></span> and
+<span><em class="calibre7">tail</em></span>. These are known in Lisp jargon, for purely
+historical reasons, as <span><strong class="calibre5">car</strong></span> and
+<span><strong class="calibre5">cdr</strong></span> respectively. Think of these
+terms as "the first thing in the
+list" and "the rest of the
+list." The functions <span><strong class="calibre5">car</strong></span> and <span><strong class="calibre5">cdr</strong></span>,
+when given a list argument, return the head and tail of it,
+respectively.<sup class="calibre6">[<a id="gnu3-CHP-11-FNOTE-9" href="#ftn.gnu3-CHP-11-FNOTE-9" class="calibre2">9</a>]</sup> Two functions are often used for making lists. <span><strong class="calibre5">cons</strong></span> (construct) takes two arguments, which
+become the head and tail of the list respectively. <span><strong class="calibre5">list</strong></span> takes a list of elements and makes them
+into a list. For example, this:</p><a id="I_11_tt626" class="calibre2"></a><pre class="programlisting">(list 2 3 4 5)</pre><p class="copyright">makes a list of the numbers from 2 to 5, and this:</p><a id="I_11_tt627" class="calibre2"></a><pre class="programlisting">(cons 1 (list 2 3 4 5))</pre><p class="copyright">makes a list of the numbers from 1 to 5. <span><strong class="calibre5">car</strong></span> applied to that list would return
+<code class="calibre21">1</code>, while <span><strong class="calibre5">cdr</strong></span>
+would return the list <code class="calibre21">(2 3 4 5)</code>.</p><p class="copyright">These concepts are important because stacks, such as that used in the
+calculator mode, are easily implemented as lists. To push the value
+of <code class="calibre21">x</code> onto the stack <span><strong class="calibre5">calc-stack</strong></span>, we can just say this:</p><a id="I_11_tt628" class="calibre2"></a><pre class="programlisting">(setq calc-stack (cons x calc-stack))</pre><p class="copyright">If we want to get at the value at the top of the stack, the following
+returns that value:</p><a id="I_11_tt629" class="calibre2"></a><pre class="programlisting">(car calc-stack)</pre><p class="copyright">To pop the top value off the stack, we say this:</p><a id="I_11_tt630" class="calibre2"></a><pre class="programlisting">(setq calc-stack (cdr calc-stack))</pre><p class="copyright">Bear in mind that the elements of a list can be anything, including
+other lists. (This is why a list is called a
+<span><em class="calibre7">recursive</em></span> data structure.) In fact (ready to be
+confused?) just about everything in Lisp that is not an atom is a
+list. This includes functions, which are basically lists of function
+name, arguments, and expressions to be evaluated. The idea of
+functions as lists will come in handy very soon.</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-11-SECT-5.3" class="calibre1"></a>The Calculator Mode</h2></div></div></div><p class="copyright">The complete Lisp code for the
+<a id="gnu3-CHP-11-ITERM-2842" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2843" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2844" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2845" class="calibre2"></a>calculator mode appears at the end of this
+section; you should refer to it while reading the following
+explanation. If you download or type the code in, you can use the
+calculator by typing <span><strong class="calibre5">M-x calc-mode
+Enter</strong></span>. You will be put in the buffer
+<code class="calibre21">*Calc*</code>. You can type a line of numbers and
+operators and then type <span><strong class="calibre5">C-j</strong></span> to
+evaluate the line. <a class="calibre2" href="ch11s05.html#gnu3-CHP-11-TABLE-7" title="Table 11-7. Calculator mode commands">Table 11-7</a> lists the three
+commands in calculator mode</p><div class="book"><a id="gnu3-CHP-11-TABLE-7" class="calibre2"></a><p class="title2"><b class="calibre25">Table 11-7. Calculator mode commands</b></p><div class="table-contents"><table summary="Calculator mode commands" class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/></colgroup><thead class="calibre11"><tr class="calibre12"><th class="calibre26">
+                           <p class="copyright">Command</p>
+                        </th><th class="calibre27">
+                           <p class="copyright">Action</p>
+                        </th></tr></thead><tbody class="calibre15"><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <code class="calibre21">=</code>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Print the value at the top of the stack.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre28">
+                           <p class="copyright">
+                              <code class="calibre21">p</code>
+                           </p>
+                        </td><td class="calibre29">
+                           <p class="copyright">Print the entire stack contents.</p>
+                        </td></tr><tr class="calibre12"><td class="calibre30">
+                           <p class="copyright">
+                              <code class="calibre21">c</code>
+                           </p>
+                        </td><td class="calibre31">
+                           <p class="copyright">Clear the stack.</p>
+                        </td></tr></tbody></table></div></div><br class="book"/><p class="copyright">Blank spaces are not necessary, except to separate numbers. For
+example, typing this:</p><a id="I_11_tt631" class="calibre2"></a><pre class="programlisting">4 17*6-=</pre><p class="copyright">followed by <span><strong class="calibre5">C-j</strong></span>, evaluates (4 * 17)
+- 6 and causes the result, 62, to be printed.</p><p class="copyright">The heart of the code for the calculator mode is the functions
+<span><strong class="calibre5">calc-eval</strong></span> and <span><strong class="calibre5">calc-next-token</strong></span>. (See the code at the end of
+this section for these.) <span><strong class="calibre5">calc-eval</strong></span>
+is bound to <span><strong class="calibre5">C-j</strong></span> in Calculator mode.
+Starting at the beginning of the line preceding <span><strong class="calibre5">C-j</strong></span>, it calls <span><strong class="calibre5">calc-next-token</strong></span> to grab each
+<span><em class="calibre7">token</em></span> (number, operator, or command letter) in
+the line and evaluate it.</p><p class="copyright">
+               <span><strong class="calibre5">calc-next-token</strong></span> uses a <span><strong class="calibre5">cond</strong></span> construct to see if there is a number,
+operator, or command letter at point by using the regular expressions
+<span><strong class="calibre5">calc-number-regexp</strong></span>, <span><strong class="calibre5">calc-operator-regexp</strong></span>, and <span><strong class="calibre5">calc-command-regexp</strong></span>. According to which
+regular expression was matched, it sets the variable <span><strong class="calibre5">calc-proc-fun</strong></span> to the name (symbol) of the
+function that should be run (either <span><strong class="calibre5">calc-push-number</strong></span>, <span><strong class="calibre5">calc-operate</strong></span>, or <span><strong class="calibre5">calc-command</strong></span>), and it sets
+<code class="calibre21">tok</code> to the result of the regular expression match.</p><p class="copyright">In <span><strong class="calibre5">calc-eval</strong></span>, we see where the idea
+of a function as a list comes in. The <span><strong class="calibre5">funcall</strong></span> function reflects the fact that there
+is little difference between code and data in Lisp. We can put
+together a list consisting of a symbol and a bunch of expressions and
+evaluate it as a function, using the symbol as the function name and
+the expressions as arguments; this is what <span><strong class="calibre5">funcall</strong></span> does. In this case, the following:</p><a id="I_11_tt632" class="calibre2"></a><pre class="programlisting">(funcall calc-proc-fun tok)</pre><p class="copyright">treats the symbol value of <span><strong class="calibre5">calc-proc-fun</strong></span> as the name of the function to
+be called and calls it with the argument <code class="calibre21">tok</code>. Then
+the function does one of three things:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="copyright">If the token is a number, <span><strong class="calibre5">calc-push-number</strong></span> pushes the number onto the
+stack.</p></li><li class="listitem"><p class="copyright">If the token is an operator, <span><strong class="calibre5">calc-operate</strong></span> performs the operation on the top
+two numbers on the stack (see below).</p></li><li class="listitem"><p class="copyright">If the token is a command, <span><strong class="calibre5">calc-command</strong></span> performs the appropriate command.</p></li></ul></div><p class="copyright">The function <span><strong class="calibre5">calc-operate</strong></span> takes the
+idea of functions as lists of data a step further by converting the
+token from the user directly into a function (an arithmetic
+operator). This step is accomplished by the function <span><strong class="calibre5">read</strong></span>, which takes a character string and
+converts it into a symbol. Thus, <span><strong class="calibre5">calc-operate</strong></span> uses <span><strong class="calibre5">funcall</strong></span> and <span><strong class="calibre5">read</strong></span> in combination as follows:</p><a id="I_11_tt633" class="calibre2"></a><pre class="programlisting">(defun calc-operate (tok)
+  (let ((op1 (calc-pop))
+        (op2 (calc-pop)))
+    (calc-push (funcall (read tok) op2 op1))))</pre><p class="copyright">This function takes the name of an arithmetic operator (as a string)
+as its argument. As we saw earlier, the string <code class="calibre21">tok</code>
+is a token extracted from the <code class="calibre21">*Calc*</code> buffer, in
+this case, an arithmetic operator such as <code class="calibre21">+</code> or
+<code class="calibre21">*</code>. The <span><strong class="calibre5">calc-operate</strong></span> function pops the top two
+arguments off the stack by using the <span><strong class="calibre5">pop</strong></span> function, which is similar to the use of
+<code class="calibre21">cdr</code> earlier. <span><strong class="calibre5">read</strong></span>
+converts the token to a symbol, and thus to the name of an arithmetic
+function. So, if the operator is <code class="calibre21">+</code>, then <span><strong class="calibre5">funcall</strong></span> is called as here:</p><a id="I_11_tt634" class="calibre2"></a><pre class="programlisting">(funcall '+ op2 op1)</pre><p class="copyright">Thus, the function <span><strong class="calibre5">+</strong></span> is called with
+the two arguments, which is exactly equivalent to simply <span><strong class="calibre5">(+ op2 op1)</strong></span>. Finally, the result of the
+function is pushed back onto the stack.</p><p class="copyright">All this voodoo is necessary so that, for example, the user can type
+a plus sign and Lisp automatically converts it into a plus function.
+We could have done the same thing less elegantly—and less
+efficiently—by writing <span><strong class="calibre5">calc-operate</strong></span> with a <span><strong class="calibre5">cond</strong></span> construct (as in <span><strong class="calibre5">calc-next-token</strong></span>), which would look like this:</p><a id="I_11_tt635" class="calibre2"></a><pre class="programlisting">(defun calc-operate (tok)
+  (let ((op1 (calc-pop))
+        (op2 (calc-pop)))
+    (cond ((equal tok "+")
+           (+ op2 op1))
+          ((equal tok "-")
+           (- op2 op1))
+          ((equal tok "*")
+           (* op2 op1))
+          ((equal tok "/")
+           (/ op2 op1))
+          (t      
+           (% op2 op1)))))</pre><p class="copyright">The final thing to notice in the calculator mode code is the function
+<span><strong class="calibre5">calc-mode</strong></span>, which starts the mode. It
+creates (and pops to) the <code class="calibre21">*Calc*</code> buffer. Then it
+kills all existing local variables in the buffer, initializes the
+stack to <code class="calibre21">nil</code> (empty), and creates the local
+variable <span><strong class="calibre5">calc-proc-fun</strong></span> (see the
+earlier discussion). Finally it sets Calculator mode as the major
+mode, sets the mode name, and activates the local keymap.</p></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-11-SECT-5.4" class="calibre1"></a>Lisp Code for the Calculator Mode</h2></div></div></div><p class="copyright">Now you should be able
+<a id="gnu3-CHP-11-ITERM-2846" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2847" class="calibre2"></a>to
+understand all of the code for the calculator mode. You will notice
+that there really isn't that much code at all! This
+is testimony to the power of Lisp and the versatility of built-in
+Emacs functions. Once you understand how this mode works, you should
+be ready to start rolling your own. Without any further ado, here is
+the code:</p><a id="I_11_tt636" class="calibre2"></a><pre class="programlisting">;;    Calculator mode.
+;;    
+;;    Supports the operators +, -, *, /, and % (remainder).
+;;    Commands:
+;;    c       clear the stack
+;;    =       print the value at the top of the stack
+;;    p       print the entire stack contents
+;;
+
+(defvar calc-mode-map nil
+  "Local keymap for calculator mode buffers.")
+
+; set up the calculator mode keymap with 
+; C-j (linefeed) as "eval" key
+(if calc-mode-map
+    nil
+  (setq calc-mode-map (make-sparse-keymap))
+  (define-key calc-mode-map "\C-j" 'calc-eval))
+
+(defconst calc-number-regexp 
+  "-?\\([0-9]+\\.?\\|\\.\\)[0-9]*\\(e[0-9]+\\)?"
+  "Regular expression for recognizing numbers.")
+
+(defconst calc-operator-regexp "[-+*/%]"
+  "Regular expression for recognizing operators.")
+
+(defconst calc-command-regexp "[c=ps]"
+  "Regular expression for recognizing commands.")
+
+(defconst calc-whitespace "[ \t]"
+  "Regular expression for recognizing whitespace.")
+
+;; stack functions
+(defun calc-push (num)
+  (if (numberp num)
+      (setq calc-stack (cons num calc-stack))))
+
+(defun calc-top ( )
+  (if (not calc-stack)
+      (error "stack empty.")
+    (car calc-stack)))
+      
+(defun calc-pop ( )
+  (let ((val (calc-top)))
+    (if val
+      (setq calc-stack (cdr calc-stack)))
+    val))
+      
+;; functions for user commands:
+(defun calc-print-stack ( )
+  "Print entire contents of stack, from top to bottom."
+  (if calc-stack
+      (progn
+        (insert "\n")
+        (let ((stk calc-stack))
+          (while calc-stack
+            (insert (number-to-string (calc-pop)) " "))
+          (setq calc-stack stk)))
+    (error "stack empty.")))
+
+(defun calc-clear-stack ( )
+  "Clear the stack."
+  (setq calc-stack nil)
+  (message "stack cleared."))
+
+
+(defun calc-command (tok)
+  "Given a command token, perform the appropriate action."
+  (cond ((equal tok "c")
+         (calc-clear-stack))
+        ((equal tok "=")
+         (insert "\n" (number-to-string (calc-top))))
+        ((equal tok "p")
+         (calc-print-stack))
+        (t
+         (message (concat "invalid command: " tok)))))
+
+(defun calc-operate (tok)
+  "Given an arithmetic operator (as string), pop two numbers 
+off the stack, perform operation tok (given as string), push
+the result onto the stack."
+  (let ((op1 (calc-pop))
+        (op2 (calc-pop)))
+    (calc-push (funcall (read tok) op2 op1))))
+
+(defun calc-push-number (tok)
+  "Given a number (as string), push it (as number) 
+onto the stack."
+  (calc-push (string-to-number tok)))
+
+
+(defun calc-invalid-tok (tok)
+  (error (concat "Invalid token: " tok))
+
+(defun calc-next-token ( )
+  "Pick up the next token, based on regexp search.
+As side effects, advance point one past the token, 
+and set name of function to use to process the token."
+  (let (tok)
+    (cond ((looking-at calc-number-regexp)
+           (goto-char (match-end 0))
+           (setq calc-proc-fun 'calc-push-number))
+          ((looking-at calc-operator-regexp)
+           (forward-char 1)
+           (setq calc-proc-fun 'calc-operate))
+          ((looking-at calc-command-regexp)
+           (forward-char 1)
+           (setq calc-proc-fun 'calc-command))
+          ((looking-at ".")
+                  (forward-char 1)
+
+           (setq calc-proc-fun 'calc-invalid-tok)))
+    ;; pick up token and advance past it (and past whitespace)
+    (setq tok (buffer-substring (match-beginning 0) (point)))
+    (if (looking-at calc-whitespace)
+      (goto-char (match-end 0)))
+    tok))
+    
+
+(defun calc-eval ( )
+  "Main evaluation function for calculator mode.
+Process all tokens on an input line."
+  (interactive)
+  (beginning-of-line)
+  (while (not (eolp))
+    (let ((tok (calc-next-token)))
+      (funcall calc-proc-fun tok)))
+  (insert "\n"))
+
+(defun calc-mode ( )
+  "Calculator mode, using H-P style postfix notation.
+Understands the arithmetic operators +, -, *, / and %, 
+plus the following commands:
+    c   clear stack
+    =   print top of stack
+    p   print entire stack contents (top to bottom)
+Linefeed (C-j) is bound to an evaluation function that 
+will evaluate everything on the current line. No 
+whitespace is necessary, except to separate numbers."
+  (interactive)
+  (pop-to-buffer "*Calc*" nil)
+  (kill-all-local-variables)
+  (make-local-variable 'calc-stack)
+  (setq calc-stack nil)
+  (make-local-variable 'calc-proc-fun)
+  (setq major-mode 'calc-mode)
+  (setq mode-name "Calculator")
+  (use-local-map calc-mode-map))</pre><p class="copyright">The following are some possible extensions to the calculator mode,
+offered as exercises. If you try them, you will increase your
+understanding of the mode's code and Emacs Lisp
+programming in general.</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="copyright">Add an operator <code class="calibre21">^</code> for
+"power" (<strong class="calibre5"><code class="calibre21">4 5
+^</code></strong> evaluates to <code class="calibre21">1024</code>). There is no
+built-in power function in Emacs Lisp, but you can use the built-in
+function <code class="calibre21">expt</code>.</p></li><li class="listitem"><p class="copyright">Add support for octal (base 8) and/or hexadecimal (base 16) numbers.
+An octal number has a leading "0,"
+and a hexadecimal has a leading
+"0x"; thus, 017 equals decimal 15,
+and 0x17 equals decimal 23.</p></li><li class="listitem"><p class="copyright">Add operators <code class="calibre21">\+</code> and <code class="calibre21">\*</code> to
+add/multiply <span><em class="calibre7">all</em></span> of the numbers on the stack,
+not just the top two (e.g., <strong class="calibre5"><code class="calibre21">4 5 6 \+</code></strong> evaluates
+to <code class="calibre21">15</code>, and <strong class="calibre5"><code class="calibre21">4 5 6 \*</code></strong>
+evaluates to <code class="calibre21">120</code>).<sup class="calibre6">[<a id="gnu3-CHP-11-FNOTE-10" href="#ftn.gnu3-CHP-11-FNOTE-10" class="calibre2">10</a>]</sup>
+                  </p></li><li class="listitem"><p class="copyright">As an additional test of your knowledge of list handling in Lisp,
+complete the example (Example 5) from earlier in this chapter that
+searches <span><strong class="calibre5">compilation-error-regexp-alist</strong></span> for a match to
+a compiler error message. (Hint: make a copy of the list, then pick
+off the top <a id="gnu3-CHP-11-ITERM-2848" class="calibre2"></a>element repeatedly until either a match
+is found or the list is exhausted.)</p></li></ul></div></div><div class="book"><br class="book"/><hr class="calibre4"/><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-11-FNOTE-8" href="#gnu3-CHP-11-FNOTE-8" class="calibre2">8</a>] </sup>Unfortunately, because such variables are defined before they
+are made local to the mode, there is still a problem with name
+clashes with global variables. Therefore, it is still important to
+use names that aren't already used for global
+variables. A good strategy for avoiding this is to use variable names
+that start with the name of the mode.</p></div><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-11-FNOTE-9" href="#gnu3-CHP-11-FNOTE-9" class="calibre2">9</a>] </sup>Experienced Lisp programmers should
+note that Emacs Lisp does not supply standard contractions like
+<code class="calibre21">cadr</code>, <code class="calibre21">cdar</code>, and so on.</p></div><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-11-FNOTE-10" href="#gnu3-CHP-11-FNOTE-10" class="calibre2">10</a>] </sup>APL programmers
+will recognize these as variations of that
+language's "scan"
+operators.</p></div></div></div></div>
+
+{% endraw %}
+

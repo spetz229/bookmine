@@ -1,0 +1,297 @@
+---
+layout: page
+title: "Learning GNU Emacs, 3rd Edition"
+prev: OEBPS/ch11.html
+next: OEBPS/ch11s03.html
+book_path: books/learning-gnu-emacs--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h1 class="title"><a id="gnu3-CHP-11-SECT-2" class="calibre1"></a>Lisp Primitive Functions</h1></div></div></div><p class="copyright">Now that you've seen how to
+<a id="gnu3-CHP-11-ITERM-2769" class="calibre2"></a>
+            <a id="gnu3-CHP-11-ITERM-2770" class="calibre2"></a>
+            <a id="gnu3-CHP-11-ITERM-2771" class="calibre2"></a>write a working command,
+we'll discuss Lisp's primitive
+functions. These are the building blocks from which
+you'll build your functions. As mentioned above,
+Lisp uses functions where other languages would use operators, that
+is, for arithmetic, comparison, and logic. <a class="calibre2" href="ch11s02.html#gnu3-CHP-11-TABLE-3" title="Table 11-3. Lisp primitive functions">Table 11-3</a> shows some Lisp primitive functions that are
+equivalent to these operators.</p><div class="book"><a id="gnu3-CHP-11-TABLE-3" class="calibre2"></a><p class="title2"><b class="calibre25">Table 11-3. Lisp primitive functions</b></p><div class="table-contents"><table summary="Lisp primitive functions" class="calibre8"><colgroup class="calibre9"><col class="calibre10"/><col class="calibre10"/></colgroup><tbody class="calibre15"><tr class="calibre12"><td class="calibre28">
+                        <p class="copyright">
+                           <span><strong class="calibre5">Arithmetic</strong></span>
+                        </p>
+                     </td><td class="calibre29">
+                        <p class="copyright">
+                           <code class="calibre21">+</code>, <code class="calibre21">-</code>, <code class="calibre21">*</code>,
+<code class="calibre21">/</code>
+                        </p>
+                     </td></tr><tr class="calibre12"><td class="calibre28">
+</td><td class="calibre29">
+                        <p class="copyright">
+                           <code class="calibre21">%</code> (remainder)</p>
+                     </td></tr><tr class="calibre12"><td class="calibre28">
+</td><td class="calibre29">
+                        <p class="copyright">
+                           <code class="calibre21">1+</code> (increment)</p>
+                     </td></tr><tr class="calibre12"><td class="calibre28">
+</td><td class="calibre29">
+                        <p class="copyright">
+                           <code class="calibre21">1-</code> (decrement)</p>
+                     </td></tr><tr class="calibre12"><td class="calibre28">
+</td><td class="calibre29">
+                        <p class="copyright">
+                           <code class="calibre21">max</code>, <code class="calibre21">min</code>
+                        </p>
+                     </td></tr><tr class="calibre12"><td class="calibre28">
+                        <p class="copyright">
+                           <span><strong class="calibre5">Comparison</strong></span>
+                        </p>
+                     </td><td class="calibre29">
+                        <p class="copyright">
+                           <code class="calibre21">&gt;</code>, <code class="calibre21">&lt;</code>,
+<code class="calibre21">&gt;=</code>, <code class="calibre21">&lt;=</code>
+                        </p>
+                     </td></tr><tr class="calibre12"><td class="calibre28">
+</td><td class="calibre29">
+                        <p class="copyright">
+                           <code class="calibre21">/=</code> (not equal)</p>
+                     </td></tr><tr class="calibre12"><td class="calibre28">
+</td><td class="calibre29">
+                        <p class="copyright">
+                           <code class="calibre21">=</code> (for numbers and characters)</p>
+                     </td></tr><tr class="calibre12"><td class="calibre28">
+</td><td class="calibre29">
+                        <p class="copyright">
+                           <code class="calibre21">equal</code> (for strings and other complex objects)</p>
+                     </td></tr><tr class="calibre12"><td class="calibre30">
+                        <p class="copyright">
+                           <span><strong class="calibre5">Logic</strong></span>
+                        </p>
+                     </td><td class="calibre31">
+                        <p class="copyright">
+                           <code class="calibre21">and</code>, <code class="calibre21">or</code>, <code class="calibre21">not</code>
+                        </p>
+                     </td></tr></tbody></table></div></div><br class="book"/><p class="copyright">All the arithmetic functions except <code class="calibre21">1+</code>,
+<code class="calibre21">1-</code>, and <code class="calibre21">%</code> can take arbitrarily
+many arguments, as can <code class="calibre21">and</code> and
+<code class="calibre21">or</code>. An arithmetic function returns floating point
+values only if at least one argument is a floating point number, so
+for example, <code class="calibre21">(/ 7.0 4)</code> returns 1.75, and
+<code class="calibre21">(/ 7 4)</code> returns 1. Notice that integer division
+truncates the remainder.</p><p class="copyright">It may seem inefficient or syntactically ugly to use functions for
+everything. However, one of the main merits of Lisp is that the core
+of the language is small and easy to interpret efficiently. In
+addition, the syntax is not as much of a problem if you have support
+tools such as Emacs's Lisp modes to help you.</p><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-11-SECT-2.1" class="calibre1"></a>Statement Blocks</h2></div></div></div><p class="copyright">We have seen that a
+<a id="gnu3-CHP-11-ITERM-2772" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2773" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2774" class="calibre2"></a>statement block can be defined
+using the <span><strong class="calibre5">let</strong></span> function. We also saw
+that <span><strong class="calibre5">while</strong></span> and <span><strong class="calibre5">save-excursion</strong></span> include statement blocks. Other
+important constructs also define statement blocks: <span><strong class="calibre5">progn</strong></span> and other forms of <span><strong class="calibre5">let</strong></span>.</p><p class="copyright">
+               <span><strong class="calibre5">progn</strong></span>, the most basic, has the form:</p><a id="I_11_tt585" class="calibre2"></a><pre class="programlisting">   (progn
+     <em class="calibre7"><code class="calibre32">statement-block</code></em>)</pre><p class="copyright">
+               <span><strong class="calibre5">progn</strong></span> is a simple way of making a
+block of statements look like a single one, somewhat like the curly
+braces of Java or the <code class="calibre21">begin</code> and
+<code class="calibre21">end</code> of Pascal. The value returned by <span><strong class="calibre5">progn</strong></span> is the value returned by the last
+statement in the block. <span><strong class="calibre5">progn</strong></span> is
+especially useful with control structures like <span><strong class="calibre5">if</strong></span> (see the following discussion) that, unlike
+<span><strong class="calibre5">while</strong></span>, do not include statement
+blocks.</p><p class="copyright">The <span><strong class="calibre5">let</strong></span> function has other forms as
+well. The simplest is:</p><a id="I_11_tt586" class="calibre2"></a><pre class="programlisting">   (let (<em class="calibre7"><code class="calibre32">var1 var2</code></em> 
+               <span><strong class="calibre5">..</strong></span>.)
+     <em class="calibre7"><code class="calibre32">statement-block</code></em>)</pre><p class="copyright">In this case, instead of a list of
+<code class="calibre21">(</code>
+               <em class="calibre7"><code class="calibre21">var
+value</code></em>
+               <code class="calibre21">)</code> pairs, there is simply a list
+of variable names. As with the other form of let, these become local
+variables accessible in the statement block. However, instead of
+initializing them to given values, they are all just initialized to
+<strong class="calibre5"><code class="calibre21">nil</code></strong>. You can actually mix both forms within
+the same <span><strong class="calibre5">let</strong></span> statement, for example:</p><a id="I_11_tt587" class="calibre2"></a><pre class="programlisting">   (let (<em class="calibre7"><code class="calibre32">var1</code></em> (var2 value2) var3 ...)
+     <em class="calibre7"><code class="calibre32">statement-block</code></em>)</pre><p class="copyright">In the form of <span><strong class="calibre5">let</strong></span> we saw first, the
+initial values for the local variables can be function calls
+(remember that all functions return values). All such functions are
+evaluated before any values are assigned to variables. However, there
+may be cases in which you want the values of some local variables to
+be available for computing the values of others. This is where
+<span><strong class="calibre5">let*</strong></span>, the final version of <span><strong class="calibre5">let</strong></span>, comes in. <span><strong class="calibre5">let*</strong></span> steps through its assignments in order,
+assigning each local variable a value before moving on to the next.</p><p class="copyright">For example, let's say we want to write a function
+<span><strong class="calibre5">goto-percent</strong></span> that allows you to go
+to a place in the current buffer expressed as a percentage of the
+text in the buffer. Here is one way to write this function:</p><a id="I_11_tt588" class="calibre2"></a><pre class="programlisting">(defun goto-percent (pct)
+  (interactive "nGoto percent: ")
+  (let* ((size (point-max))
+        (charpos (/ (* size pct) 100)))
+    (goto-char charpos)))</pre><p class="copyright">As we saw earlier, the <span><strong class="calibre5">interactive</strong></span>
+function is used to prompt users for values of arguments. In this
+case, it prompts for the integer value of the argument <span><strong class="calibre5">pct</strong></span>. Then the <span><strong class="calibre5">let*</strong></span> function initializes <span><strong class="calibre5">size</strong></span> to the size of the buffer in characters,
+then uses that value to compute the character position <span><strong class="calibre5">charpos</strong></span> that is <span><strong class="calibre5">pct</strong></span> (percent) of the buffer's
+size. Finally, the call of <span><strong class="calibre5">goto-char</strong></span>
+causes point to be moved to that character position in the current
+window.</p><p class="copyright">The important thing to notice is that if we had used <span><strong class="calibre5">let</strong></span> instead of <span><strong class="calibre5">let*</strong></span>, the value of <span><strong class="calibre5">size</strong></span> would not be available when computing the
+value of <span><strong class="calibre5">charpos</strong></span>. <span><strong class="calibre5">let*</strong></span> can also be used in the
+<code class="calibre21">(</code>
+               <em class="calibre7"><code class="calibre21">var1 var2
+...</code></em>
+               <code class="calibre21">)</code> format, just like <span><strong class="calibre5">let</strong></span>, but there wouldn't be
+any point in doing so.</p><p class="copyright">We should also note that a more efficient way to write <span><strong class="calibre5">goto-percent</strong></span> is this:</p><a id="I_11_tt589" class="calibre2"></a><pre class="programlisting">(defun goto-percent (pct)
+  (interactive "nPercent: ")
+  (goto-char (/ (* pct (point-max)) 100)))</pre></div><div class="book" xml:lang="en"><div class="book"><div class="book"><div class="book"><h2 class="title1"><a id="gnu3-CHP-11-SECT-2.2" class="calibre1"></a>Control Structures</h2></div></div></div><p class="copyright">We already saw that the <span><strong class="calibre5">while</strong></span>
+function
+<a id="gnu3-CHP-11-ITERM-2775" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2776" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2777" class="calibre2"></a>acts as a control
+structure like similar statements in other languages. There are two
+other important control structures in Lisp: <span><strong class="calibre5">if</strong></span> and <span><strong class="calibre5">cond</strong></span>.</p><p class="copyright">The <span><strong class="calibre5">if</strong></span> function has the form:</p><a id="I_11_tt590" class="calibre2"></a><pre class="programlisting">   (if <em class="calibre7"><code class="calibre32">condition</code></em> 
+               <em class="calibre7"><code class="calibre32">true-case</code></em> 
+               <em class="calibre7"><code class="calibre32">false-block</code></em>)</pre><p class="copyright">Here, the condition is evaluated; if it is non-<span><strong class="calibre5">nil</strong></span>, <em class="calibre7"><code class="calibre21">true-case</code></em> is
+evaluated; if <span><strong class="calibre5">nil</strong></span>,
+<em class="calibre7"><code class="calibre21">false-block</code></em> is evaluated. Note that
+<em class="calibre7"><code class="calibre21">true-case</code></em> is a single statement whereas
+<em class="calibre7"><code class="calibre21">false-block</code></em> is a statement block;
+<em class="calibre7"><code class="calibre21">false-block</code></em> is optional.</p><p class="copyright">As an example, let's suppose we're
+writing a function that performs some complicated series of edits to
+a buffer and then reports how many changes it made.
+We're perfectionists, so we want the status report
+to be properly pluralized, that is to say "made 53
+changes" or "made 1
+change." This is a common enough programming need
+that we decide to write a general-purpose function to do it so that
+we can use it in other projects too.</p><p class="copyright">The function takes two arguments: the word to be pluralized (if
+necessary) and the count to be displayed (which determines whether
+it's necessary).</p><a id="I_11_tt591" class="calibre2"></a><pre class="programlisting">(defun pluralize (word count)
+  (if (= count 1)
+      word
+    (concat word "s")))</pre><p class="copyright">The condition in the <span><strong class="calibre5">if</strong></span> clause tests
+to see if <span><strong class="calibre5">count</strong></span> is equal to 1. If
+so, the first statement gets executed. Remember that the
+"true" part of the <span><strong class="calibre5">if</strong></span> function is only one statement, so
+<span><strong class="calibre5">progn</strong></span> would be necessary to make a
+statement block if we wanted to do more than one thing. In this case,
+we have the opposite extreme; our
+"true" part is a single variable,
+<span><strong class="calibre5">word</strong></span>. Although this looks strange,
+it is actually a very common Lisp idiom and worth getting used to.
+When the condition block is true, the value of <span><strong class="calibre5">word</strong></span> is evaluated, and this value becomes the
+value of the entire <span><strong class="calibre5">if</strong></span> statement.
+Because that's the last statement in our function,
+it is the value returned by <span><strong class="calibre5">pluralize</strong></span>. Note that this is exactly the
+result we want when <span><strong class="calibre5">count</strong></span> is 1: the
+value of <span><strong class="calibre5">word</strong></span> is returned unchanged.</p><p class="copyright">The remaining portion of the <span><strong class="calibre5">if</strong></span>
+statement is evaluated when the condition is false, which is to say,
+when <span><strong class="calibre5">count</strong></span> has a value other than 1.
+This results in a call to the built-in <span><strong class="calibre5">concat</strong></span> function, which concatenates all its
+arguments into a single string. In this case it adds an
+"s" at the end of the word
+we've passed in. Again, the result of this
+concatenation becomes the result of the <span><strong class="calibre5">if</strong></span> statement and the result of our <span><strong class="calibre5">pluralize</strong></span> function.</p><p class="copyright">If you type it in and try it out, you'll see results
+like this:</p><a id="I_11_tt592" class="calibre2"></a><pre class="programlisting">               <strong class="calibre5"><code class="calibre32">(pluralize "goat" 5)</code></strong>
+"goats"
+
+<strong class="calibre5"><code class="calibre32">(pluralize "change" 1)</code></strong>
+"change"</pre><p class="copyright">Of course, this function can be tripped up easily enough. You may
+have tried something like this already:</p><a id="I_11_tt593" class="calibre2"></a><pre class="programlisting">               <strong class="calibre5"><code class="calibre32">(pluralize "mouse" 5)</code></strong>
+"mouses"</pre><p class="copyright">To fix this, we'd need to be able to tell the
+function to use an alternate plural form for tricky words. But it
+would be nice if the simple cases could remain as simple as they are
+now. This is a good opportunity to use an optional parameter. If
+necessary, we supply the plural form to use; if we
+don't supply one, the function acts as it did in its
+first incarnation. Here's how we'd
+achieve that:</p><a id="I_11_tt594" class="calibre2"></a><pre class="programlisting">(defun pluralize (word count &amp;optional plural)
+  (if (= count 1)
+      word
+    (if (null plural)
+        (concat word "s")
+      plural)))</pre><p class="copyright">The "else" part of our code has
+become another <span><strong class="calibre5">if</strong></span> statement. It uses
+the <span><strong class="calibre5">null</strong></span> function to check whether
+we were given the <span><strong class="calibre5">plural</strong></span> parameter
+or not. If <span><strong class="calibre5">plural</strong></span> was omitted, it
+has the value <span><strong class="calibre5">nil</strong></span> and the <span><strong class="calibre5">null</strong></span> function returns <span><strong class="calibre5">t</strong></span> if its argument is <span><strong class="calibre5">nil</strong></span>. So this logic reads "if
+<span><strong class="calibre5">b</strong></span> was missing, just add an <span><strong class="calibre5">s</strong></span> to <span><strong class="calibre5">word</strong></span>;
+otherwise return the special <span><strong class="calibre5">plural</strong></span>
+value we were given."</p><p class="copyright">This gives us results like this:</p><a id="I_11_tt595" class="calibre2"></a><pre class="programlisting">               <strong class="calibre5"><code class="calibre32">(pluralize "mouse" 5)</code></strong>
+"mouses"
+<strong class="calibre5"><code class="calibre32">(pluralize "mouse" 5 "mice")</code></strong>
+"mice"
+<strong class="calibre5"><code class="calibre32">(pluralize "mouse" 1 "mice")</code></strong>
+"mouse"</pre><p class="copyright">A more general conditional control structure is the <span><strong class="calibre5">cond</strong></span> function, which has the following form:</p><a id="I_11_tt596" class="calibre2"></a><pre class="programlisting">   (cond
+    (<em class="calibre7"><code class="calibre32">condition1</code></em>     
+               <em class="calibre7"><code class="calibre32">statement-block1</code></em>)
+    (<em class="calibre7"><code class="calibre32">condition2</code></em>     
+               <em class="calibre7"><code class="calibre32">statement-block2</code></em>)
+    <span><strong class="calibre5">..</strong></span>.)</pre><p class="copyright">Java and Perl programmers can think of this as a sequence of
+<span><em class="calibre7">if then else if then else if</em></span> . . . , or as a
+kind of generalized switch statement. The conditions are evaluated in
+order, and when one of them evaluates to non-<code class="calibre21">nil</code>,
+the corresponding statement block is executed; the <span><strong class="calibre5">cond</strong></span> function terminates and returns the last
+value in that statement block.<sup class="calibre6">[<a id="gnu3-CHP-11-FNOTE-5" href="#ftn.gnu3-CHP-11-FNOTE-5" class="calibre2">5</a>]</sup>
+            </p><p class="copyright">We can use <span><strong class="calibre5">cond</strong></span> to give a more
+folksy feel to our hypothetical status reporter now that
+it's pluralizing nicely. Instead of reporting an
+actual numeric value for the number of changes, we could have it say
+<span><em class="calibre7">no</em></span>, <span><em class="calibre7">one</em></span>,
+<span><em class="calibre7">two</em></span>, or <span><em class="calibre7">many</em></span> as
+appropriate. Again we'll write a general function to
+do this:</p><a id="I_11_tt597" class="calibre2"></a><pre class="programlisting">(defun how-many (count)
+  (cond ((zerop count) "no")
+        ((= count 1) "one")
+        ((= count 2) "two")
+        (t "many")))</pre><p class="copyright">The first conditional
+<a id="gnu3-CHP-11-ITERM-2778" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2779" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2780" class="calibre2"></a>
+               <a id="gnu3-CHP-11-ITERM-2781" class="calibre2"></a>expression introduces a new
+primitive Lisp function, <span><strong class="calibre5">zerop</strong></span>. It
+checks whether its argument is zero, and returns <code class="calibre21">t</code>
+(true) when it is. So when <span><strong class="calibre5">count</strong></span> is
+zero, the <span><strong class="calibre5">cond</strong></span> statement takes this
+first branch, and our function returns the value <span><strong class="calibre5">no</strong></span>. This strange function name bears a little
+explanation. It is pronounced
+"zero-pee" and is short for
+"zero predicate." In the realm of
+mathematical logic from which Lisp evolved, a predicate is a function
+that returns true or false based on some attribute of its argument.
+Lisp has a wide variety of similar predicate functions, with
+structurally related names. When you run into the next one,
+you'll understand it. (Of course, you might now
+expect the <span><strong class="calibre5">null</strong></span> function we
+introduced in the previous example to be called
+"<span><strong class="calibre5">nilp</strong></span>" instead.
+Nobody's perfectly consistent.)</p><p class="copyright">The next two conditional expressions in the <span><strong class="calibre5">cond</strong></span> statement check if <span><strong class="calibre5">count</strong></span> is 1 or 2 and cause it to return
+"one" or
+"two" as appropriate. We could have
+written the first one using the same structure, but then
+we'd have missed out on an opportunity for a
+digression into Lisp trivia!</p><p class="copyright">The last conditional expression is simply the atom <span><strong class="calibre5">t</strong></span> (true), which means its body is executed
+whenever all the preceding expressions failed. It returns the value
+<span><strong class="calibre5">many</strong></span>. Executing this function gives
+us results like these:</p><a id="I_11_tt598" class="calibre2"></a><pre class="programlisting">               <strong class="calibre5"><code class="calibre32">(how-many 1)</code></strong>
+"one"
+<strong class="calibre5"><code class="calibre32">(how-many 0)</code></strong>
+"no"
+<strong class="calibre5"><code class="calibre32">(how-many 3)</code></strong>
+"many"</pre><p class="copyright">Combining these two helper functions into a mechanism to report the
+change count for our fancy command is easy.</p><a id="I_11_tt599" class="calibre2"></a><pre class="programlisting">(defun report-change-count (count)
+  (message "Made %s %s." (how-many count) (pluralize "change" count)))</pre><p class="copyright">We get results like these:</p><a id="I_11_tt600" class="calibre2"></a><pre class="programlisting">               <strong class="calibre5"><code class="calibre32">(report-change-count 0)</code></strong>
+"Made no changes."
+<strong class="calibre5"><code class="calibre32">(report-change-count 1)</code></strong>
+"Made one change."
+<strong class="calibre5"><code class="calibre32">(report-change-count 1329)</code></strong>
+"Made many changes."</pre></div><div class="book"><br class="book"/><hr class="calibre4"/><div class="book"><p class="copyright"><sup class="calibre6">[<a id="ftn.gnu3-CHP-11-FNOTE-5" href="#gnu3-CHP-11-FNOTE-5" class="calibre2">5</a>] </sup>Statement blocks are
+actually optional; some programmers like to omit the final statement
+block, leaving the final
+"condition" as an
+"otherwise" clause to be executed
+if all of the preceding conditions evaluate to
+<code class="calibre21">nil</code>. If the statement block is omitted, the value
+returned by <code class="calibre21">cond</code> is simply the value of the
+condition.</p></div></div></div></div>
+
+{% endraw %}
+

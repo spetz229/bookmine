@@ -1,0 +1,54 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch09s02.html
+next: OEBPS/ch09s04.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Session Operations"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect19_d1e4665" class="calibre1"></a>Session Operations</h1></div></div></div><p class="calibre7">Like most frameworks, a session in Yesod is a key-value store. The base session API boils
+            down to four functions: <code class="literal">lookupSession</code> gets a value for a key
+            (if available), <code class="literal">getSession</code> returns all of the key/value pairs, <code class="literal">setSession</code> sets a value for a key, and <code class="literal">deleteSession</code> clears a value for a key.</p><a id="I_programlisting9_d1e4682" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE TypeFamilies, QuasiQuotes, TemplateHaskell, MultiParamTypeClasses, OverloadedStrings #-}</code>
+<code class="kr">import</code> <code class="nn">Yesod</code>
+<code class="kr">import</code> <code class="nn">Control.Applicative</code> <code class="p">((</code><code class="o">&lt;$&gt;</code><code class="p">),</code> <code class="p">(</code><code class="o">&lt;*&gt;</code><code class="p">))</code>
+
+<code class="kr">data</code> <code class="kt">SessionExample</code> <code class="ow">=</code> <code class="kt">SessionExample</code>
+
+<code class="nf">mkYesod</code> <code class="s">"SessionExample"</code> <code class="p">[</code><code class="n">parseRoutes</code><code class="o">|</code>
+<code class="o">/</code> <code class="kt">Root</code> <code class="kt">GET</code> <code class="kt">POST</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">getRoot</code> <code class="ow">::</code> <code class="kt">Handler</code> <code class="kt">RepHtml</code>
+<code class="nf">getRoot</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="n">sess</code> <code class="ow">&lt;-</code> <code class="n">getSession</code>
+    <code class="n">hamletToRepHtml</code> <code class="p">[</code><code class="n">hamlet</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">form</code> <code class="n">method</code><code class="ow">=</code><code class="n">post</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">input</code> <code class="kr">type</code><code class="ow">=</code><code class="n">text</code> <code class="n">name</code><code class="ow">=</code><code class="n">key</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">input</code> <code class="kr">type</code><code class="ow">=</code><code class="n">text</code> <code class="n">name</code><code class="ow">=</code><code class="n">val</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">input</code> <code class="kr">type</code><code class="ow">=</code><code class="n">submit</code><code class="o">&gt;</code>
+<code class="o">&lt;</code><code class="n">h1</code><code class="o">&gt;#</code><code class="p">{</code><code class="n">show</code> <code class="n">sess</code><code class="p">}</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">postRoot</code> <code class="ow">::</code> <code class="kt">Handler</code> <code class="nb">()</code>
+<code class="nf">postRoot</code> <code class="ow">=</code> <code class="kr">do</code>
+    <code class="p">(</code><code class="n">key</code><code class="p">,</code> <code class="n">mval</code><code class="p">)</code> <code class="ow">&lt;-</code> <code class="n">runInputPost</code> <code class="o">$</code> <code class="p">(,)</code> <code class="o">&lt;$&gt;</code> <code class="n">ireq</code> <code class="n">textField</code> <code class="s">"key"</code> <code class="o">&lt;*&gt;</code> <code class="n">iopt</code> <code class="n">textField</code> <code class="s">"val"</code>
+    <code class="kr">case</code> <code class="n">mval</code> <code class="kr">of</code>
+        <code class="kt">Nothing</code> <code class="ow">-&gt;</code> <code class="n">deleteSession</code> <code class="n">key</code>
+        <code class="kt">Just</code> <code class="n">val</code> <code class="ow">-&gt;</code> <code class="n">setSession</code> <code class="n">key</code> <code class="n">val</code>
+    <code class="n">liftIO</code> <code class="o">$</code> <code class="n">print</code> <code class="p">(</code><code class="n">key</code><code class="p">,</code> <code class="n">mval</code><code class="p">)</code>
+    <code class="n">redirect</code> <code class="kt">Root</code>
+
+<code class="kr">instance</code> <code class="kt">Yesod</code> <code class="kt">SessionExample</code> <code class="kr">where</code>
+    <code class="n">clientSessionDuration</code> <code class="kr">_</code> <code class="ow">=</code> <code class="mi">1</code>
+
+<code class="kr">instance</code> <code class="kt">RenderMessage</code> <code class="kt">SessionExample</code> <code class="kt">FormMessage</code> <code class="kr">where</code>
+    <code class="n">renderMessage</code> <code class="kr">_</code> <code class="kr">_</code> <code class="ow">=</code> <code class="n">defaultFormMessage</code>
+
+<code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">warpDebug</code> <code class="mi">3000</code> <code class="kt">SessionExample</code>
+</pre></div></div>
+
+{% endraw %}
+

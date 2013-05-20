@@ -1,0 +1,436 @@
+---
+layout: page
+title: "Эффективное использование C++. 55 верных способов улучшить структуру и код ваших программ"
+prev: OEBPS/section70.xhtml
+next: OEBPS/section72.xhtml
+book_path: books/effektivnoe-ispoljzovanie-c--vernih-sposobov-uluchshitj-strukturu-i-kod-vashih-programm_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <div class="calibre">
+      <div class="title1">
+        <h2 class="calibre3">Правило 40: Продумывайте подход к использованию множественного наследования</h2>
+      </div>
+      <p class="calibre2">Когда речь заходит о множественном наследовании (multiple inheritance – MI), сообщество разработчиков на C++ разделяется на два больших лагеря. Одни полагают, что раз одиночное исследование (SI) – это хорошо, то множественное наследование должно быть еще лучше. Другие говорят, что одиночное наследование – это на самом деле хорошо, а множественное не стоит хлопот. В этом правиле мы постараемся разобраться в обеих точках зрения.</p>
+      <p class="calibre2">Первое, что нужно уяснить для себя о множественном наследовании, – это появляющаяся возможность унаследовать одно и то же имя (функции, typedef и т. п.) от нескольких базовых классов. Это может стать причиной неоднозначности. Например:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class BorrowableItem { // нечто, что можно позаимствовать</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// из библиотеки</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void checkOut();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class ElectronicGadget {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">private:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">bool checkOut() const; // выполняет самотестирование, возвращает</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">... // признак успешности теста</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class MP3Player: // здесь множественное наследование (в некоторых</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public BorrowableItem, // библиотеках реализована функциональность,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public ElectronicGadget // необходимая для MP3-плееров)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{...} // определение класса не важно</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">MP3Player mp;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">mp.checkout(); // неоднозначность! какой checkOut?</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Отметим, что в этом примере вызов функции checkOut неоднозначен, несмотря на то что доступна лишь одна из двух функций. (checkOut открыта в классе Borrowableltem и закрыта в классе ElectronicGadget.) И это согласуется с правилами разрешения имен перегруженных функций в C++: прежде чем проверять права доступа, C++ находит функцию, которая наиболее соответствует вызову. И только потом проверяется, доступна ли наиболее подходящая функция. В данном случае оба варианта функции checkOut одинаково хорошо соответствуют вызову, то есть ни одна из них не подходит лучше, чем другая. А стало быть, до проверки доступности ElectronicGadget::checkOut дело не доходит.</p>
+      <p class="calibre2">Чтобы разрешить неоднозначность, вы можете указать имя базового класса, чью функцию нужно вызвать:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">mp.BorrowableItem::checkOut(); // вот какая checkOut мне нужна!</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Вы, конечно, также можете попытаться явно вызвать ElectronicGadget::check-Out, но тогда вместо ошибки неоднозначности получите другую: «вы пытаетесь вызвать закрытую функцию-член».</p>
+      <p class="calibre2">Множественное наследование просто означает наследование более, чем от одного базового класса, но вполне может возникать также и в иерархиях, содержащих более двух уровней. Это может привести к «ромбовидному наследованию»:</p>
+      <div class="sectionimage">
+        <img alt="" src="images/i_010.png" class="calibre8"/>
+      </div>
+      <p class="calibre2">
+        <code class="calibre7">class File {...};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class InputFile: public File {...};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class OutputFile: public File {...};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class IOFile: public InputFile,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public OutputFile</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{...};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Всякий раз, когда вы строите иерархию наследования, в которой от базового класса к производному ведет более одного пути (как в приведенном примере: от File к IOFile можно пройти как через InputFile, так и через OutputFile), вам приходится сталкиваться с вопросом о том, должны ли данные-члены базового класса дублироваться в объекте подкласса столько раз, сколько имеется путей. Например, предположим, что в классе File есть член filename. Сколько копий этого поля должно быть в классе IOFile? С одной стороны, он наследует по одной копии от каждого из своих базовых классов, следовательно, всего будет два члена данных с именем fileName. С другой стороны, простая логика подсказывает, что объект IOFile имеет только одно имя файла, поэтому поле fileName, наследуемое от двух базовых классов, не должно дублироваться.</p>
+      <p class="calibre2">C++ не принимает ничью сторону в этом споре. Он успешно поддерживает оба варианта, хотя по умолчанию предполагается дублирование. Если это не то, что вам нужно, сделайте класс, содержащий данные (то есть File), <em class="calibre5">виртуальным базовым классом.</em> Для этого все непосредственные потомки должны использовать <em class="calibre5">виртуальное наследование:</em></p>
+      <div class="sectionimage">
+        <img alt="" src="images/i_011.png" class="calibre8"/>
+      </div>
+      <p class="calibre2">
+        <code class="calibre7">class File {...};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class InputFile: virtual public File {...};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class OutputFile: virtual public File {...};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class IOFile: public InputFile,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public OutputFile</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{...};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">В стандартной библиотеке C++ есть похожая иерархия, только классы в ней являются шаблонными и называются basic_ios, basic_istream, basic_ostream и basic_iostream, в не File, InputFile, OutputFile и IOFile.</p>
+      <p class="calibre2">С точки зрения корректности, открытое наследование всегда должно быть виртуальным. Если бы это была единственная точка зрения, то правило было бы простым: всякий раз при открытом наследовании используйте <em class="calibre5">виртуальное</em> открытое наследование. К сожалению, корректность – не единственное, что нужно принимать во внимание. Чтобы избежать дублирования унаследованных членов, компилятору приходится прибегать к нетривиальным трюкам, из-за чего размер объектов классов, использующих множественное виртуальное наследование, обычно оказывается больше по сравнению со случаем, когда виртуальное наследование не используется. Доступ к данным-членам виртуальных базовых классов также медленнее, чем к данным невиртуальных базовых классов. Детали реализации зависят от компилятора, но суть остается неизменной: виртуальное наследование требует затрат.</p>
+      <p class="calibre2">Оно обходится не бесплатно еще и по другой причине. Правила, определяющие инициализацию виртуальных базовых классов, сложнее и интуитивно не так понятны, как правила для невиртуальных базовых классов. Ответственность за инициализацию виртуального базового класса ложится на <em class="calibre5">самый дальний производный класс</em> в иерархии. Отсюда следует, что: (1) классы, наследующие виртуальному базовому и требующие инициализации, должны знать обо всех своих виртуальных базовых классах, независимо от того, как далеко они от них находятся в иерархии, и (2) когда в иерархию добавляется новый производный класс, он должен принять на себя ответственность за инициализацию виртуальных предков (как прямых, так и непрямых).</p>
+      <p class="calibre2">Мой совет относительно виртуальных базовых классов (то есть виртуального наследования) прост. Во-первых, не применяйте виртуальных базовых классов до тех пор, пока в этом не возникнет настоятельная потребность. По умолчанию используйте невиртуальное наследование. Во-вторых, если все же избежать виртуальных базовых классов не удается, старайтесь не размещать в них данных. Тогда можно будет забыть о странностях правил инициализации (да, кстати, и присваивания) таких классов. Неспроста интерфейсы Java и. NET, которые во многом подобны виртуальным базовым классам C++, не могут содержать никаких данных.</p>
+      <p class="calibre2">Теперь рассмотрим следующий интерфейсный класс C++ (см. правило 31) для моделирования физических лиц:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class IPerson {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual ~IPerson();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual std::string name() const = 0;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual std::string birthDate() const = 0;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Пользователи IPerson должны программировать в терминах указателей и ссылок на IPerson, поскольку создавать объекты абстрактных классов запрещено. Для создания объектов, которыми можно манипулировать как объектами IPerson, используются функции-фабрики (опять же см. правило 31), которые порождают объекты конкретных классов, производных от IPerson:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">// функция-фабрика для создания объекта Person по уникальному</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// идентификатору из базы данных; см. в правиле 18,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// почему возвращаемый тип – не обычный указатель</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::tr1::shared_ptr&lt;IPerson&gt; makePerson(DatabaseID personIdentifier);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// функция для запроса идентификатора у пользователя</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">DatabaseID askUserForDtabaseID();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">DatabaseID id(askUserForDtabaseID());</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::tr1::shared_ptr&lt;IPerson&gt; pp(makePerson(id)); // создать объект,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// поддерживающий</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// интерфейс IPerson</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">... // манипулировать *pp</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// через функции-члены</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// IPerson</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Но как makePerson создает объекты, на которые возвращает указатель? Ясно, что должен быть какой-то конкретный класс, унаследованный от IPerson, который makePerson может инстанцировать.</p>
+      <p class="calibre2">Предположим, этот класс называется CPerson. Будучи конкретным классом, CPerson должен предоставлять реализацию чисто виртуальных функций, унаследованных от IPerson. Можно написать его «с нуля», но лучше воспользоваться уже готовыми компонентами, которые делают большую часть работы. Например, предположим, что старый, ориентированный только на базы данных класс Person-Info предоставляет почти все необходимое CPerson:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class PersonInfo {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">explicit PersonInfo(DatabaseID pid)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual ~PersonInfo();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual const char *theName() const;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual const char *theBirthDate() const;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">private:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual const char *valeDelimOpen() const; // ñì. íèæå</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual const char *valeDelimClose() const;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Понять, что этот класс старый, можно хотя бы потому, что функции-члены возвращают const char* вместо объектов string. Но если ботинки подходят, почему бы не носить их? Имена функций-членов класса наводят на мысль, что результат может оказаться вполне удовлетворительным.</p>
+      <p class="calibre2">Вскоре вы приходите к выводу, что класс PersonInfo был спроектирован для печати полей базы данных в различных форматах, с выделением начала и конца каждого поля специальными строками-разделителями. По умолчанию открывающим и закрывающим разделителями служат квадратные скобки, поэтому значение поля «Ring-tailed Lemur» будет отформатировано так:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">[Ring-tailed Lemur]</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Учитывая тот факт, что квадратные скобки не всегда приемлемы для пользователей PersonInfo, в классе предусмотрены виртуальные функции valeDelimOpen и valeDelimClose, позволяющие производным классам задать другие открывающие и закрывающие строки-разделители. Функции-члены PersonInfo вызывают эти виртуальные функции для добавления разделителей к возвращаемым значениям. Так, функция PersonInfo::theName могла бы выглядеть следующим образом:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">const char *PersonInfo::valueDelimOpen() const</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">return “[“; // открывающий разделитель по умолчанию</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const char *PersonInfo::valueDelimClose() const</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">return “]“; // закрывающий разделитель по умолчанию</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const char * PersonInfo::theName() const</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// резервирование буфера для возвращаемого значения; поскольку он</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// статический, автоматически инициализируется нулями</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">static char value[Max_Formatted_Field_Value_Length];</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// скопировать открывающий разделитель</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::strcpy(value, valueDelimOpen());</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">
+          <em class="calibre5">добавить к строке value значение из поля name объекта (будьте осторожны –</em>
+        </code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">
+          <em class="calibre5">избегайте переполнения буфера!)</em>
+        </code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// скопировать закрывающий разделитель</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::strcpy(value, valueDelimClose());</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">return value;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Кто-то может посетовать на устаревший подход к реализации PersonInfo::theName (особенно это касается использования статического буфера фиксированного размера, опасного возможностью переполнения и потенциальными проблемами в многопоточной среде – см. правило 21), но оставим этот вопрос в стороне и сосредоточимся вот на чем: функция theName вызывает valueDelimOpen для получения открывающего разделителя, вставляемого в возвращаемую строку, затем дописывает имя и в конце вызывает valueDelimClose.</p>
+      <p class="calibre2">Поскольку valueDelimOpen и valueDelimClose – виртуальные функции, возвращаемый результат theName зависит не только от PersonInfo, но и от классов, производных от него.</p>
+      <p class="calibre2">Для разработчика CPerson это хорошая новость, потому что, внимательно просматривая документацию по функциям печати из класса IPerson, вы обнаруживаете, что функции name и birthDate должны возвращать неформатированные значения, то есть без добавления разделителей. Другими словами, если человека зовут Homer, то вызов функции name должен возвращать «Homer», а не «[Homer]».</p>
+      <p class="calibre2">Взаимосвязь между CPerson и PersonInfo можно описать так: PersonInfo упрощает реализацию некоторых функций CPerson. И это все! Стало быть, речь идет об отношении «реализован посредством», и, как мы знаем, такое отношение можно представить двумя способами: с помощью композиции (см. правило 38) или закрытого наследования (см. правило 39). В правиле 39 отмечено, что композиция в общем случае более предпочтительна, но если нужно переопределять виртуальные функции, то требуется наследование. В данном случае CPerson должен переопределить valueDelimOpen и valueDelimClose – задача, которая с помощью композиции не решается. Самое очевидное решение – применить закрытое наследование CPerson от PersonInfo, хотя, как объясняется в правиле 39, это потребует несколько больше работы. Можно также при реализации CPerson воспользоваться сочетанием композиции и наследования с целью переопределения виртуальных функций PersonInfo. Но мы остановимся просто на закрытом наследовании.</p>
+      <p class="calibre2">Однако CPerson также должен реализовать интерфейс IPerson, а для этого требуется открытое наследование. Вот мы и пришли к множественному наследованию: сочетанию открытого наследования интерфейса с закрытым наследованием реализации:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class IPerson { // класс описывает интерфейс,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public: // который должен быть реализован</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual ~IPerson();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual std::string name() const = 0;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual std::string birthDate() const = 0;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class DatabaseID {...}; // используется далее;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// детали не существенны</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class PersonInfo { // в этом классе имеет функции,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public: // помогающие при реализации</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">explicit PersonInfo(DatabaseID pid) // интерфейса IPerson</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual ~PersonInfo();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual const char *theName() const;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual const char *theBirthDate() const;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual const char *valeDelimOpen() const;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual const char *valeDelimClose() const;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class CPerson: public IPerson, private PersonInfo { // используется</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public: // множественное</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">explicit CPerson(DatabaseID pid): PersonInfo(pid) {} // наследование</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual std::string name() const // реализации</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{ return PersonInfo::theName();} // функций-членов</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// из интерфейса</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// IPerson</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual std::string birthDate() const</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{ return PersonInfo::theBirthDate();}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">private: // переопределения</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const char * valeDelimOpen() const { return “”;} // унаследованных</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">const char * valeDelimClose() const { return “”;} // виртуальных</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}; // функций,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// возвращающих</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// строки-разделители</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">В нотации UML это решение выглядит так:</p>
+      <div class="sectionimage">
+        <img alt="" src="images/i_012.png" class="calibre8"/>
+      </div>
+      <p class="calibre2">Рассмотренный пример показывает, что множественное наследование может быть и удобным, и понятным.</p>
+      <p class="calibre2">Замечу, что множественное наследование – просто еще один инструмент в объектно-ориентированном инструментарии. По сравнению с одиночным наследованием оно несколько труднее для понимания и применения, поэтому если вы можете спроектировать программу с одним лишь одиночным наследованием, который более или менее эквивалентен варианту с множественным наследованием, то, скорее всего, предпочтение следует отдать первому подходу. Если вам кажется, что единственно возможный вариант дизайна требует применения множественного наследования, то рекомендую как следует подумать – почти наверняка найдется способ обойтись одиночным. В то же время иногда множественное наследование – это самый ясный, простой для сопровождения и разумный способ достижения цели. В таких случаях не бойтесь применять его. Просто делайте это, тщательно обдумав все последствия.</p>
+      <div class="subtitle">
+        <p class="subtitle1">
+          <strong class="calibre4">
+            <em class="calibre5">Что следует помнить</em>
+          </strong>
+        </p>
+      </div>
+      <p class="calibre2">• Множественное наследование сложнее одиночного. Оно может привести к неоднозначности и необходимости применять виртуальное наследование.</p>
+      <p class="calibre2">• Цена виртуального наследования – дополнительные затраты памяти, снижение быстродействия и усложнение операций инициализации и присваивания. На практике его разумно применять, когда виртуальные базовые классы не содержат данных.</p>
+      <p class="calibre2">• Множественное наследование вполне законно. Один из сценариев включает комбинацию открытого наследования интерфейсного класса и закрытого наследования класса, помогающего в реализации.</p>
+    </div>
+  </div>
+
+{% endraw %}
+

@@ -1,0 +1,79 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch10s02.html
+next: OEBPS/ch10s04.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Migrations"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect110_d1e5064" class="calibre1"></a>Migrations</h1></div></div></div><p class="calibre7">I’m sorry to tell you, but so far I have lied to you a bit: the example from the previous
+      section does not actually work. If you try to run it, you will get an error message about a
+      missing table.</p><p class="calibre7">For SQL databases, one of the major pains can be managing schema changes. Instead of
+      leaving this to the user, Persistent steps in to help, but you have to
+        <span class="firstname"><em class="calibre4">ask</em></span> it to help. Let’s see what this looks like:</p><a id="I_programlisting10_d1e5074" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE QuasiQuotes, TypeFamilies, GeneralizedNewtypeDeriving, TemplateHaskell,</code>
+<code class="cm">             OverloadedStrings, GADTs, FlexibleContexts #-}</code>
+<code class="kr">import</code> <code class="nn">Database.Persist</code>
+<code class="kr">import</code> <code class="nn">Database.Persist.TH</code>
+<code class="kr">import</code> <code class="nn">Database.Persist.Sqlite</code>
+<code class="kr">import</code> <code class="nn">Control.Monad.IO.Class</code> <code class="p">(</code><code class="nf">liftIO</code><code class="p">)</code>
+
+<code class="nf">share</code> <code class="p">[</code><code class="n">mkPersist</code> <code class="n">sqlSettings</code><code class="p">,</code> <code class="n">mkSave</code> <code class="s">"entityDefs"</code><code class="p">]</code> <code class="p">[</code><code class="n">persist</code><code class="o">|</code>
+<code class="kt">Person</code>
+    <code class="n">name</code> <code class="kt">String</code>
+    <code class="n">age</code> <code class="kt">Int</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">withSqliteConn</code> <code class="s">":memory:"</code> <code class="o">$</code> <code class="n">runSqlConn</code> <code class="o">$</code> <code class="kr">do</code>
+    <code class="n">runMigration</code> <code class="o">$</code> <code class="n">migrate</code> <code class="n">entityDefs</code> <code class="p">(</code><code class="n">undefined</code> <code class="ow">::</code> <code class="kt">Person</code><code class="p">)</code> <code class="cm">-- this line added: that's it!</code>
+    <code class="n">michaelId</code> <code class="ow">&lt;-</code> <code class="n">insert</code> <code class="o">$</code> <code class="kt">Person</code> <code class="s">"Michael"</code> <code class="mi">26</code>
+    <code class="n">michael</code> <code class="ow">&lt;-</code> <code class="n">get</code> <code class="n">michaelId</code>
+    <code class="n">liftIO</code> <code class="o">$</code> <code class="n">print</code> <code class="n">michael</code>
+</pre><p class="calibre7">With this one little code change, Persistent will automatically create your
+                <code class="literal">Person</code> table for you. This split between
+                <code class="literal">runMigration</code> and <code class="literal">migrate</code> allows you to migrate
+            multiple tables simultaneously.</p><p class="calibre7">This works when dealing with just a few entities, but can quickly get tiresome once we
+            are dealing with a dozen entities. Instead of repeating yourself, Persistent provides a
+            helper function, <code class="literal">mkMigrate</code>:</p><a id="I_programlisting10_d1e5092" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE QuasiQuotes, TypeFamilies, GeneralizedNewtypeDeriving, TemplateHaskell,</code>
+<code class="cm">             OverloadedStrings, GADTs, FlexibleContexts #-}</code>
+<code class="kr">import</code> <code class="nn">Database.Persist</code>
+<code class="kr">import</code> <code class="nn">Database.Persist.Sqlite</code>
+<code class="kr">import</code> <code class="nn">Database.Persist.TH</code>
+
+<code class="nf">share</code> <code class="p">[</code><code class="n">mkPersist</code> <code class="n">sqlSettings</code><code class="p">,</code> <code class="n">mkMigrate</code> <code class="s">"migrateAll"</code><code class="p">]</code> <code class="p">[</code><code class="n">persist</code><code class="o">|</code>
+<code class="kt">Person</code>
+    <code class="n">name</code> <code class="kt">String</code>
+    <code class="n">age</code> <code class="kt">Int</code>
+<code class="kt">Car</code>
+    <code class="n">color</code> <code class="kt">String</code>
+    <code class="n">make</code> <code class="kt">String</code>
+    <code class="n">model</code> <code class="kt">String</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">withSqliteConn</code> <code class="s">":memory:"</code> <code class="o">$</code> <code class="n">runSqlConn</code> <code class="o">$</code> <code class="kr">do</code>
+    <code class="n">runMigration</code> <code class="n">migrateAll</code>
+</pre><p class="calibre7"><code class="literal">mkMigrate</code> is a Template Haskell function that creates a
+      new function that will automatically call <code class="literal">migrate</code> on all
+      entities defined in the <code class="literal">persist</code> block. The <code class="literal">share</code> function is just a little helper that passes the information
+      from the persist block to each Template Haskell function and concatenates the results.</p><p class="calibre7">Persistent has very conservative rules about what it will do during a migration. It
+            starts by loading up table information from the database, complete with all defined SQL
+            data types. It then compares that against the entity definition given in the code. For
+            the following cases, it will automatically alter the schema:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">The data type of a field changed. However, the database may object to this modification if the data cannot be translated.</p></li><li class="listitem"><p class="calibre7">A field was added. However, if the field is not null, no default value is supplied
+          (we’ll discuss defaults later) and there is already data in the database, the database
+          will not allow this to happen.</p></li><li class="listitem"><p class="calibre7">A field is converted from not null to null. In the opposite case, Persistent will attempt the conversion, contingent upon the database’s approval.</p></li><li class="listitem"><p class="calibre7">A brand new entity is added.</p></li></ul></div><p class="calibre7">However, there are some cases that Persistent will not handle:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">Field or entity renames: Persistent has no way of knowing that “name” has now been renamed to “fullName”: all it sees is an old field called name and a new field called fullName.</p></li><li class="listitem"><p class="calibre7">Field removals: since this can result in data loss, Persistent by default will refuse
+                to perform the action (you can force the issue by using
+                    <code class="literal">runMigrationUnsafe</code> instead of <code class="literal">runMigration</code>,
+                though it is <span class="bold"><strong class="bold">not</strong></span> recommended).</p></li></ul></div><p class="calibre7"><code class="literal">runMigration</code> will print out the migrations it is running on
+                <code class="literal">stderr</code> (you can bypass this by using
+                <code class="literal">runMigrationSilent</code>). Whenever possible, it uses <code class="literal">ALTER
+                TABLE</code> calls. However, in SQLite, <code class="literal">ALTER TABLE</code> has very
+            limited abilities, and therefore Persistent must resort to copying the data from one
+            table to another.</p><p class="calibre7">Finally, if instead of <span class="firstname"><em class="calibre4">performing</em></span> a migration, you want Persistent to
+      give you hints about what migrations are necessary, use the <code class="literal">printMigration</code> function. This function will print out the migrations that
+        <code class="literal">runMigration</code> would perform for you. This may be useful
+      for performing migrations that Persistent is not capable of, for adding arbitrary SQL to a
+      migration, or just to log what migrations occurred.</p></div></div>
+
+{% endraw %}
+

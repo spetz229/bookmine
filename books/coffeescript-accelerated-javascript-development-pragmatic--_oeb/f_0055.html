@@ -1,0 +1,121 @@
+---
+layout: page
+title: "CoffeeScript (for jay muratore)"
+prev: f_0054.html
+next: f_0056.html
+book_path: books/coffeescript-accelerated-javascript-development-pragmatic--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 id="sec.nodeExports" class="calibre13">6.2 Modularizing Code with ’exports’ and ’require’</h2>
+<p id="N13B36" class="calibre5">
+      In past chapters, we’ve used <code class="cf">global</code> to put variables in an application-wide namespace. While <code class="cf">global</code> has its place, Noders generally prefer to keep their code nice and modular, with each file having its own namespace. How, then, do you share objects from one file with another?
+    </p>
+<p id="N13B4C" class="calibre5">
+      The answer is a special object called <code class="cf">exports</code>, which is part of the CommonJS module standard. A file’s <code class="cf">exports</code> object is returned when another file calls <code class="cf">require</code> on it. So, for instance, let’s say that I have two files:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/Nodejs/app.coffee" class="calibre23">Nodejs/app.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">util = require <em class="string">'./util'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16"></code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console.log util.square(5)</code>
+</td>
+</tr>
+</table>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/Nodejs/util.coffee" class="calibre23">Nodejs/util.coffee</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console.log <em class="string">'Now generating utility functions...'</em>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">exports.square = (x) <strong class="prompt">-&gt;</strong> x * x</code>
+</td>
+</tr>
+</table>
+<p id="N13B84" class="calibre5">
+      When you run <code class="cf">coffee app.coffee</code>,  <code class="cf">require ’./util’</code> executes <code class="cf">util.coffee</code> and then returns its <code class="cf">exports</code> object, giving you the following:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">Now generating utility functions...</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">25</code>
+</td>
+</tr>
+</table>
+<p id="N13BA1" class="calibre5">
+      You might be wondering why we didn’t need to specify a file extension. A <code class="cf">js</code> file extension is always optional under Node.js. <code class="cf">coffee</code> is also optional but only if the running application has loaded the <code class="cf">coffee-script</code> library, which is always implicitly done when we use <code class="cf">coffee</code> to run a file. <code class="cf">coffee-script</code> also tells Node how to handle CoffeeScript files. So if we compiled <code class="cf">app</code> to JavaScript but not <code class="cf">util</code>, then we’d have to write this:
+    </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td colspan="2" class="calibre22">
+<a href="http://media.pragprog.com/titles/tbcoffee/code/Nodejs/app.js" class="calibre23">Nodejs/app.js</a>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">require(<em class="string">'coffee-script'</em>);</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">var</strong> util = require(<em class="string">'./util'</em>);</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console.log(util.square(5));</code>
+</td>
+</tr>
+</table>
+<p id="N13BD3" class="calibre5">
+      When a library’s name isn’t prefixed with <code class="cf">.</code> or <code class="cf">/</code>, Node looks for a matching file in one of its library paths, which you can see by looking at <code class="cf">require.paths</code>.
+    </p>
+<p id="N13BDF" class="calibre5">
+      By convention, a library’s name for <code class="cf">require</code> is the same as its name for <code class="cf">npm</code>. Recall, for instance, that we used <code class="cf">npm install -g coffee-script</code> to install CoffeeScript. That gave us the <code class="cf">coffee</code> binary, but also the <code class="cf">coffee-script</code> library. We’ll be using npm to install some more libraries for our project at the end of this chapter.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

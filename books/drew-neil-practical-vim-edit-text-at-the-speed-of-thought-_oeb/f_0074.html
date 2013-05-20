@@ -1,0 +1,216 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0073.html
+next: f_0075.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.real.display.lines">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 47</td>
+<td class="arr-recipe-name">Distinguish Between Real Lines and Display Lines</td>
+</tr>
+</table>
+<p id="N14BA8" class="calibre4">
+<span class="calibre5">
+        Avoid frustration by learning the difference between real lines and display lines. Vim lets us operate on both.
+    </span>
+</p>
+<p id="N14BB2" class="calibre4">
+      Unlike many text editors, Vim makes a distinction between <span class="calibre5">real lines</span> and <span class="calibre5">display lines</span>. When the <code class="cf">‘wrap’</code> setting is enabled (and it’s on by default), each line of text that exceeds the width of the window will display as wrapped, ensuring that no text is truncated from view. As a result, a single line in the file may be represented by multiple lines on the display.
+    </p>
+<p id="N14BC4" class="calibre4">
+      The easiest way to tell the difference between real lines and display lines is by enabling the <code class="cf">‘number’</code> setting. Lines that begin with a number correspond to the real lines, which may span one or more display lines. Each time a line is wrapped to fit inside the window, it begins without a line number. This screenshot shows a Vim buffer containing three real lines (numbered) and nine display lines:
+    </p>
+<div xmlns:str="http://exslt.org/strings" class="calibre1">
+<img src="images/lorem-ipsum-wrapped.png" alt="images/lorem-ipsum-wrapped.png" class="calibre21"/>
+</div>
+<p id="N14BDC" class="calibre4">
+      Understanding the difference between real and display lines is important because Vim provides motions for interacting with both kinds. The <span class="calibre17">j</span> and <span class="calibre17">k</span> commands move down and up by real lines, whereas the <span class="calibre17">gj</span> and <span class="calibre17">gk</span> commands move down and up by display lines.
+    </p>
+<p id="N14BF5" class="calibre4">
+      Consider our screenshot. Suppose that we wanted to move the cursor upward to position it on the word “vehicula.” Our target is one display line above the cursor, so we could get where we want to go by pressing <span class="calibre17">gk</span>. The <span class="calibre17">k</span> key would move up by a real line, placing our cursor on the word “ac,” which is not what we want in this case.
+    </p>
+<p id="N14BFE" class="calibre4">
+      Vim also provides commands for jumping directly to the first or last character of a line. This table summarizes the commands for interacting with real and display lines:
+    </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Command</th>
+<th class="hlines">Move Cursor</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">j</span>
+</p>
+</td>
+<td class="calibre24">
+<p class="last-para-in-cell">Down one real line</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">gj</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Down one display line</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">k</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Up one real line</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">gk</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Up one display line</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">0</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">To first character of real line</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">g0</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">To first character of display line</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">^</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">To first nonblank character of real line</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">g^</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">To first nonblank character of display line</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">$</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">To end of real line</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">g$</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">To end of display line</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N14C89" class="calibre4">
+      Note the pattern: <span class="calibre17">j</span>, <span class="calibre17">k</span>, <span class="calibre17">0</span>, and <span class="calibre17">$</span> all interact with real lines, while prefixing any of these with <span class="calibre17">g</span> tells Vim to act on display lines instead.
+    </p>
+<p id="N14C9B" class="calibre4">
+      Most other text editors have no notion of the concept of real lines, and they provide the means to interact with display lines only. When you start out, it can be frustrating to discover that Vim seems to treat lines differently. When you learn to use the <span class="calibre17">gj</span> and <span class="calibre17">gk</span> commands, you’ll appreciate that <span class="calibre17">j</span> and <span class="calibre17">k</span> may let you cover more distance with fewer keystrokes.
+    </p>
+<div class="sidebar">
+<div class="sidebar-title">Remap Line Motion Commands</div>
+<div class="calibre1">
+<p id="N14CB1" class="calibre4">
+      If you would prefer to have the <span class="calibre17">j</span> and <span class="calibre17">k</span> keys operate on display lines rather than on real lines, you can always remap them. Try putting these lines into your <code class="cf1">vimrc</code> file:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre40">
+<a href="http://media.pragprog.com/titles/dnvim/code/motions/cursor-maps.vim">motions/cursor-maps.vim</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix4" valign="top">
+<span> </span>
+</td>
+<td class="codeline4" valign="top">
+<div class="calibre38">
+​<code class="calibre39">​<strong class="prompt">nnoremap</strong> k gk​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix4" valign="top">
+<span> </span>
+</td>
+<td class="codeline4" valign="top">
+<div class="calibre38">
+​<code class="calibre39">​<strong class="prompt">nnoremap</strong> gk k​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix4" valign="top">
+<span> </span>
+</td>
+<td class="codeline4" valign="top">
+<div class="calibre38">
+​<code class="calibre39">​<strong class="prompt">nnoremap</strong> j gj​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix4" valign="top">
+<span> </span>
+</td>
+<td class="codeline4" valign="top">
+<div class="calibre38">
+​<code class="calibre39">​<strong class="prompt">nnoremap</strong> gj j​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14CE5" class="calibre4">
+      These mappings make <span class="calibre17">j</span> and <span class="calibre17">k</span> move down and up by display lines, while <span class="calibre17">gj</span> and <span class="calibre17">gk</span> would move down and up by real lines (the opposite of Vim’s default behavior). I wouldn’t recommend using these mappings if you have to work with Vim on many different machines. In that case, getting used to Vim’s default behavior would be better.
+    </p>
+</div>
+</div>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

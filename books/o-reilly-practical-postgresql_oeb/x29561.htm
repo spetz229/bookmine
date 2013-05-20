@@ -1,0 +1,25 @@
+---
+layout: page
+title: "Unknown"
+prev: r28944.htm
+next: x29593.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="a29525.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Appendix C. Binary COPY Format</td><td width="10%" valign="bottom" class="calibre5"><a href="x29593.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="AEN29561" class="calibre8">Tuples</a></h1><p class="calibre9">The structure of tuples within the binary file is as follows: a 16-bit integer count of the fields within the tuple
+    (this is the same within every tuple), a 16-bit integer <span><i class="EMPHASIS">typlen</i></span> word, and the field data for each field. 
+    The available options for the <span><i class="EMPHASIS">typlen</i></span> field are as follow:
+      
+      </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER">0</dt><dd class="calibre16"><p class="calibre9"><tt class="REPLACEABLE">NULL</tt>; this field contains no data.</p></dd><dt class="NAVHEADER">&gt;0</dt><dd class="calibre16"><p class="calibre9">A fixed-length data type. The specified number bytes of data follow the <span><i class="EMPHASIS">typlen</i></span> word.</p></dd><dt class="NAVHEADER">-1</dt><dd class="calibre16"><p class="calibre9">A <span><i class="EMPHASIS">varlena</i></span> data type. The next four bytes are the <span><i class="EMPHASIS">varlena</i></span> header,
+            consisting of the value's total length (including the length of the header).</p></dd><dt class="NAVHEADER">&lt;-1</dt><dd class="calibre16"><p class="calibre9">Reserved for possible future use.</p></dd></dl></div>
+<p class="calibre9">To create a convenient way for an application reading this format to check the integrity of incoming binary data, all
+    non-<tt class="REPLACEABLE">NULL</tt> fields have a <span><i class="EMPHASIS">typlen</i></span> value, which can be compared against the
+    <span><i class="EMPHASIS">typlen</i></span> of the destination column before attempting to insert or update data within PostgreSQL.</p><p class="calibre9">A few formatting options were left un-implemented to improve the portability of binary file dumps.  Primarily, extra
+    data between fields is not possible (e.g., alignment padding), and there is no distinguishment between data types based on
+    passes by reference, or passes by value.</p><p class="calibre9">If OIDs are included in a PostgreSQL binary file, they immediately follow the field count word. OIDs are not
+    included in the field count.</p></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="a29525.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x29593.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Binary COPY Format</td><td width="34%" valign="top" class="calibre4"><a href="a29525.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Trailer</td></tr></table></div></div>
+
+{% endraw %}
+

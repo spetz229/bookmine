@@ -1,0 +1,420 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0060.html
+next: f_0062.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.args">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 37</td>
+<td class="arr-recipe-name">Group Buffers into a Collection with the Argument List</td>
+</tr>
+</table>
+<p id="N13B4D" class="calibre4">
+<span class="calibre5">
+        The argument list is easily managed and can be useful for grouping together a collection of files for easy navigation. We can run an Ex command on each item in the argument list using the <code class="cf">:argdo</code> command.
+    </span>
+</p>
+<p id="N13B71" class="calibre4">
+      Let’s start by opening a handful of files in Vim:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ cd code/files/letters</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ vim *.txt</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​5 files to edit​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N13B8A" class="calibre4">
+      In <a xmlns:str="http://exslt.org/strings" href="f_0060.html#sec.buffer.list">Tip 36</a>, we saw that the <code class="cf">:ls</code> command provides a listing of buffers. Now let’s examine the argument list:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:args</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​[a.txt] b.txt c.txt. d.txt e.txt​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N13BAC" class="calibre4">
+      The argument list represents the list of files that was passed as an argument when we ran the <code class="cf">vim</code> command. In our case, we provided a single argument, <code class="cf">*.txt</code>, but our shell expanded the <code class="cf">*</code> wildcard, matching the five files that we see in our argument list. The <code class="cf">[]</code> characters indicate which of the files in the argument list is active.
+    </p>
+<p id="N13BC2" class="calibre4">
+      Compared to the listing provided by the <code class="cf">:ls</code> command, the output from running <code class="cf">:args</code> looks crude. It should come as no surprise to learn that the argument list was a feature of <code class="cf">vi</code>, whereas the buffer list is an enhancement introduced by Vim. But give the argument list a chance, and you’ll see that it makes a fine complement to the buffer list.
+    </p>
+<p id="N13BCE" class="calibre4">
+      Like many features in Vim, the functionality of the argument list has been enhanced, while the original name has stuck. We can change the contents of the argument list at any time, which means that the <code class="cf">:args</code> listing doesn’t necessarily reflect the values that were passed to the <code class="cf">vim</code> command when we launched the editor. Don’t take the name literally! (Also, see <a xmlns:str="http://exslt.org/strings" href="f_0146.html#sidebar.make.compile">​<em class="calibre5">‘:compiler’ and ‘:make’ Are Not Just for Compiled Languages</em>​</a>.)
+    </p>
+<h3 id="sec.populate.args" class="calibre22">Populate the Argument List</h3>
+<p id="N13BE0" class="calibre4">
+        When the <code class="cf">:args</code> Ex command is run without arguments, it prints the contents of the argument list. We can also set the contents of the argument list using this form (<strong xmlns:str="http://exslt.org/strings" class="calibre10">:args_f</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/editing.html#:args_f">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>):
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​:args {arglist}​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N13C01" class="calibre4">
+        The <code class="cf">{arglist}</code> can include filenames, wildcards, or even the output from a shell command. To demonstrate, we’ll use the <code class="cf">files/mvc</code> directory, which you can find in the source files that come distributed with this book. If you want to follow along, switch to that directory and launch Vim:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ cd code/files/mvc</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">$ vim</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N13C1C" class="calibre4">
+        For an overview of the directory tree, refer to the <a href="f_0066.html#code.mvc.tree">code listing</a>.
+      </p>
+<h4 class="calibre20">Specify Files by Name</h4>
+<p id="N13C27" class="calibre4">
+          The simplest way of populating the argument list is by specifying filenames one by one:
+        </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:args index.html app.js</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:args</strong>​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>&lt;= </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​[index.html] app.js​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N13C45" class="calibre4">
+          This technique works fine if we only want to add a handful of buffers to our set. It has the advantage that we can specify the order, but doing it by hand can be laborious. If we want to add a lot of files to the argument list, we can get the job done faster by using wildcards.
+        </p>
+<h4 class="calibre20">Specify Files by Glob</h4>
+<p id="N13C4C" class="calibre4">
+          Wildcards are placeholders that can stand in for characters in the name of a file or directory. The <code class="cf">*</code> symbol will match zero or more characters, but only in the scope of the specified directory (<strong xmlns:str="http://exslt.org/strings" class="calibre10">wildcard</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/editing.html#wildcard">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). The <code class="cf">**</code> wildcard also matches zero or more characters, but it can recurse downward into directories below the specified directory (<strong xmlns:str="http://exslt.org/strings" class="calibre10">starstar-wildcard</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/editing.html#starstar-wildcard">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>).
+        </p>
+<p id="N13C67" class="calibre4">
+          We can combine these wildcards and use partial filenames or directories to form patterns, also known as <span class="calibre5">globs</span>, that match the set of files we’re interested in. This table shows a representative summary of some (but not all) of the files in the <code class="cf">files/mvc</code> directory that are matched by the specified globs.
+        </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Glob</th>
+<th class="hlines">Files Matching the Expansion</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">:args *.*</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​index.html​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​app.js​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">:args **/*.js</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​app.js​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​lib/framework.js​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​app/controllers/Mailer.js​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​...etc​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<code class="cf">:args **/*.*</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​app.js​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​index.js​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​lib/framework.js​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​lib/theme.css​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​app/controllers/Mailer.js​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​...etc​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N13CCD" class="calibre4">
+          Just as we can use more than one filename in the <code class="cf">{arglist}</code>, we can also supply more than one glob. If we wanted to build an argument list containing all <code class="cf">js</code> and <code class="cf">css</code> files but not other file types, we could use these globs:
+        </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:args **/*.js **/*.css</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<h4 class="calibre20">Specify Files by Backtick Expansion</h4>
+<p id="N13CEA" class="calibre4">
+          As I wrote this book, I sometimes wanted to populate the argument list with the chapters in the same order that they appear in the table of contents. For this purpose, I maintained a plain-text file that contains one filename per line. Here’s an excerpt from it:
+        </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/files/.chapters">files/.chapters</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​the_vim_way.pml​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​normal_mode.pml​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​insert_mode.pml​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​visual_mode.pml​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N13D08" class="calibre4">
+          I can populate the argument list from this file by running this:
+        </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span>=&gt; </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​<strong class="prompt">:args `cat .chapters`</strong>​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N13D18" class="calibre4">
+          Vim executes the text inside the backtick characters in the shell, using the output from the <code class="cf">cat</code> command as the argument for the <code class="cf">:args</code> command. Here, we’ve used the <code class="cf">cat</code> command to get the contents of the <code class="cf">.chapters</code> file, but we could use any command that’s available in the shell. This feature is not available on all systems. See <strong xmlns:str="http://exslt.org/strings" class="calibre10">backtick-expansion</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/editing.html#backtick-expansion">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a> for more details.
+        </p>
+<h3 class="calibre22">Use the Argument List</h3>
+<p id="N13D42" class="calibre4">
+        The argument list is simpler to manage than the buffer list, making it the ideal place to group our buffers into a collection. With the <code class="cf">:args {arglist}</code> command, we can clear the argument list and then repopulate it from scratch with a single command. We can traverse the files in the argument list using <code class="cf">:next</code> and <code class="cf">:prev</code> commands. Or we can use <code class="cf">:argdo</code> to execute the same command on each buffer in the set.
+      </p>
+<p id="N13D5B" class="calibre4">
+        The way I see it, the buffer list is like my desktop: it’s always messy. The argument list is like a separate workspace that I always keep tidy, just in case I need space to stretch out. We’ll see a few examples of how the argument list can be used in other tips, such as <a xmlns:str="http://exslt.org/strings" href="f_0100.html#sec.macro.files">Tip 69</a>, and <a xmlns:str="http://exslt.org/strings" href="f_0131.html#sec.substitute.in.project">Tip 96</a>.
+		</p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

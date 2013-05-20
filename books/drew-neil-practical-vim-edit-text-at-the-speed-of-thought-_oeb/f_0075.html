@@ -1,0 +1,433 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0074.html
+next: f_0076.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.words.and.words">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 48</td>
+<td class="arr-recipe-name">Move Word-Wise</td>
+</tr>
+</table>
+<p id="N14CFB" class="calibre4">
+<span class="calibre5">
+        Vim has two speeds for moving backward and forward word-wise. Both allow for a more rapid traversal than moving by one column at a time.
+    </span>
+</p>
+<p id="N14D0B" class="calibre4">
+      Vim provides a handful of motions that let us move the cursor forward and backward by one word at a time (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">word-motions</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/motion.html#word-motions">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). They’re summarized in this table:
+    </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Command</th>
+<th class="hlines">Move Cursor</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">w</span>
+</p>
+</td>
+<td class="calibre24">
+<p class="last-para-in-cell">
+		Forward to start of next word</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">b</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Backward to start of current/previous word</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">e</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+		Forward to end of current/next word</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">ge</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Backward to end of previous word</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N14D59" class="calibre4">
+      We can think of these motions as coming in pairs: the <span class="calibre17">w</span> and <span class="calibre17">b</span> commands both target the start of a word, while the <span class="calibre17">e</span> and <span class="calibre17">ge</span> commands target the end of a word. <span class="calibre17">w</span> and <span class="calibre17">e</span> both advance the cursor forward, while <span class="calibre17">b</span> and <span class="calibre17">ge</span> move the cursor backward. This matrix of word-wise motions is illustrated here:
+    </p>
+<div xmlns:str="http://exslt.org/strings" class="calibre1">
+<img src="images/wordmotions.png" alt="images/wordmotions.png" class="calibre21"/>
+</div>
+<p id="N14D79" class="calibre4">
+      Trying to memorize all four of these commands isn’t easy, and I wouldn’t recommend it. Start off by using the <span class="calibre17">w</span> and <span class="calibre17">b</span> commands (think of them as (for-)<span class="calibre5">word</span> and <span class="calibre5">back</span>-word if you need a mnemonic). You should find that moving back and forward a word at a time is considerably faster than using <span class="calibre17">h</span> and <span class="calibre17">l</span> to move a column at a time.
+    </p>
+<p id="N14D8E" class="calibre4">
+      The <span class="calibre17">e</span> and <span class="calibre17">ge</span> commands complete the set, but you can get by without them at first. Eventually you’ll notice that sometimes it would be useful to go directly to the end of the current word in a single move. For example, suppose that we want to turn the word “fast” into “faster” in this excerpt:
+    </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">{start}</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Go <span class="shade-fg-white">f</span>ast.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">ea</span>
+<code class="cf">er&lt;Esc&gt;</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Go faste<span class="shade-fg-white">r</span>.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N14DD2" class="calibre4">
+      Taken together, the <span class="calibre17">ea</span> commands can be read as “Append at the end of the current word.” I use <span class="calibre17">ea</span> often enough that it feels to me like a single command. Occasionally useful, the <span class="calibre17">gea</span> command can be read as “append at the end of the previous word.”
+    </p>
+<h3 class="calibre22">Know Your Words from Your WORDS</h3>
+<p id="N14DE3" class="calibre4">
+	  We’ve been talking a lot about words, but so far we haven’t pinned down what a word actually is. Vim provides two definitions and distinguishes between them by calling one a “word” and the other a “WORD.” Each word-wise motion we met earlier has a WORD-wise equivalent, including <span class="calibre17">W</span>, <span class="calibre17">B</span>, <span class="calibre17">E</span>, and <span class="calibre17">gE</span>.
+      </p>
+<p id="N14DF7" class="calibre4">
+        A word consists of a sequence of letters, digits, and underscores, or as a sequence of other nonblank characters separated with whitespace (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">word</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/motion.html#word">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). The definition of a WORD is simpler: it consists of a sequence of nonblank characters separated with whitespace (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">WORD</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/motion.html#WORD">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>).
+      </p>
+<p id="N14E02" class="calibre4">
+        Ok, but what does that actually mean? The details we can leave to Vim’s implementors. As users, we can think of them in simpler terms: WORDS are bigger than words! Look at this text and quickly count the number of words:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​e.g. we're going too slow​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N14E10" class="calibre4">
+        Did you count five or ten (or something in between)? That example contains five WORDS and ten words. The periods and apostrophes count as words, so if we try to advance through this text with the <span class="calibre17">w</span> command, it’ll be slow going:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">{start}</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">e</span>.g. we're going too slow​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">wwww</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​e.g. <span class="shade-fg-white">w</span>e're going too slow​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">www</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​e.g. we're <span class="shade-fg-white">g</span>oing too slow​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N14E65" class="calibre4">
+        If we move WORD-wise instead, we make progress with fewer keystrokes:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">{start}</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">e</span>.g. we're going too slow​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">W</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​e.g. <span class="shade-fg-white">w</span>e're going too slow​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">W</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​e.g. we're <span class="shade-fg-white">g</span>oing too slow​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N14EB7" class="calibre4">
+        In this example, the WORD-wise motions appear to be the better choice, but that won’t be true every time. Sometimes we’ll want to act on “we” as a word. For example, if we wanted it to read “you” instead, we would do this:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">{start}</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​e.g. <span class="shade-fg-white">w</span>e're going too slow​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">cw</span>
+<code class="cf">you&lt;Esc&gt;</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​e.g. yo<span class="shade-fg-white">u</span>'re going too slow​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N14EF5" class="calibre4">
+        Other times, we might prefer to treat “we’re” as a WORD. For example, if we wanted to change it to read “it’s” instead, we would do this:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">{start}</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​e.g. <span class="shade-fg-white">w</span>e're going too slow​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">cW</span>
+<code class="cf">it’s&lt;Esc&gt;</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​e.g. it'<span class="shade-fg-white">s</span> going too slow​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N14F33" class="calibre4">
+        Use WORD-wise motions if you want to move faster, and use word-wise motions if you want a more fine-grained traversal. Play around with them, and you’ll get a feel for when to use words and when to use WORDS. You can develop an intuition for these things without fully understanding the implementation details.
+      </p>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

@@ -1,0 +1,253 @@
+---
+layout: page
+title: "CoffeeScript (for jay muratore)"
+prev: f_0061.html
+next: f_0063.html
+book_path: books/coffeescript-accelerated-javascript-development-pragmatic--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+<h2 class="calibre13">A1.2 Collections and Iteration</h2>
+<p id="N14484" class="calibre5">Answers to Section 3.9, <a href="f_0036.html#sec.collectionsExercises">​<em class="emph">Exercises</em>​</a>:</p>
+<ol class="calibre24">
+<li class="calibre3">
+<p id="N1448D" class="calibre5">
+          When you use <code class="cf">slice</code>, the result is a new array containing some or all of the items from the original array; adding, removing, or replacing items in the new array will not affect the original. That’s why you’ll see <code class="cf">arr.slice[0..]</code> in a lot in functions—when someone passes you an array and you want to modify it for your own purposes, working with a copy is just common courtesy.
+        </p>
+</li>
+<li class="calibre3">
+<p id="N14497" class="calibre5">
+          In the following code it’s important to realize that <code class="cf">once</code> is only called, well, <code class="cf">once()</code>:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">once = <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">if</strong> once.hasRun</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    <strong class="prompt">null</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">else</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    once.hasRun = <strong class="prompt">true</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    [1, 2, 3]</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console.log x <strong class="prompt">for</strong> x <strong class="prompt">in</strong> once()</code>
+</td>
+</tr>
+</table>
+<p id="N144CE" class="calibre5">
+           That last line is equivalent to this:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">onceResult = once()</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">console.log x <strong class="prompt">for</strong> x <strong class="prompt">in</strong> onceResult</code>
+</td>
+</tr>
+</table>
+<p id="N144E5" class="calibre5">
+          In short, CoffeeScript takes care of caching the function result automatically in a <code class="cf">for</code> loop. If you want to call a function on each loop iteration, you should use <code class="cf">while</code> or <code class="cf">until</code>.
+        </p>
+</li>
+<li class="calibre3">
+<p id="N144F2" class="calibre5">Look at this section:</p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">for</strong> x <strong class="prompt">in</strong> [1, 2]</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  setTimeout (<strong class="prompt">-&gt;</strong> console.log x), 50</code>
+</td>
+</tr>
+</table>
+<p id="N1450B" class="calibre5">
+          This gives the following output:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">2</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">2</code>
+</td>
+</tr>
+</table>
+<p id="N1451C" class="calibre5">
+          What’s going on? The key here is that there’s only one <code class="cf">x</code> variable. The timeout is invoked after the loop has finished and <code class="cf">x</code> has been set to <code class="cf">2</code>; it doesn’t matter what the value of <code class="cf">x</code> was when the function was declared.
+        </p>
+<p id="N1452B" class="calibre5">
+          Changing the timeout to <code class="cf">0</code> has no effect because <code class="cf">setTimeout</code> always adds its target to the “event queue,” which isn’t invoked until after all other code has run.
+        </p>
+<p id="N14534" class="calibre5">
+          The easiest solution is to use <code class="cf">do</code> to capture the value of <code class="cf">x</code> in each loop iteration:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">
+<strong class="prompt">for</strong> x <strong class="prompt">in</strong> [1, 2]</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">do</strong> (x) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    setTimeout (<strong class="prompt">-&gt;</strong> console.log x), 50</code>
+</td>
+</tr>
+</table>
+</li>
+<li class="calibre3">
+<p id="N1455C" class="calibre5">
+          Here’s a function that checks whether a particular value is attached to the given object:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">objContains = (obj, match) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">for</strong> k, v <strong class="prompt">of</strong> obj</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">    <strong class="prompt">if</strong> v is match</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">      <strong class="prompt">return</strong> <strong class="prompt">true</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  <strong class="prompt">false</strong>
+</code>
+</td>
+</tr>
+</table>
+<p id="N14588" class="calibre5">
+          Note that <code class="cf">k</code> is unused but necessary; the <code class="cf">of</code> syntax always goes in the order <code class="cf">key, value</code>, and we want that value.
+        </p>
+<p id="N14594" class="calibre5">
+          In practice, you should be writing your code so that this sort of loop is unnecessary. The whole point of the hash structure is that fetching values is fast when you know the corresponding key. If you’re frequently checking whether a value is in a hash or not, you should be using a different data structure.
+        </p>
+</li>
+<li class="calibre3">
+<p id="N14598" class="calibre5">
+          To run a function once and then repeat it until a condition is called, we can write this:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">doAndRepeatUntil = (func, condition) <strong class="prompt">-&gt;</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  func.call <strong class="prompt">this</strong>
+</code>
+</td>
+</tr>
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">  func.call <strong class="prompt">this</strong> <strong class="prompt">until</strong> condition()</code>
+</td>
+</tr>
+</table>
+</li>
+<li class="calibre3">
+<p id="N145B7" class="calibre5">
+          To get the length of the shortest string in our <code class="cf">wordList</code> array, we can write the following:
+        </p>
+<table class="processedcode">
+<tr class="calibre15">
+<td class="codeprefix"> </td>
+<td class="codeline">
+<code class="calibre16">Math.min.apply Math, (w.length <strong class="prompt">for</strong> w <strong class="prompt">in</strong> wordList)</code>
+</td>
+</tr>
+</table>
+<p id="N145CE" class="calibre5">
+          The comprehension <code class="cf">(w.length for w in wordList)</code> generates a list of the length of each word in <code class="cf">wordList</code>. Using <code class="cf">apply</code> passes it to <code class="cf">Math.min</code> as an enormous list of arguments. (The first argument to <code class="cf">apply</code> ensures that <code class="cf">Math.min</code> runs in the <code class="cf">Math</code> context, just as it would if we called <code class="cf">Math.min</code> directly.) This isn’t the most efficient approach, but it’s very succinct.
+        </p>
+</li>
+</ol>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

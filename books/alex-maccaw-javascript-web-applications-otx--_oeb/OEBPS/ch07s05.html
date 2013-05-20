@@ -1,0 +1,91 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch07s04.html
+next: OEBPS/ch07s06.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Copy and Paste"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect17_d1e6588" class="calibre1"></a>Copy and Paste</h1></div></div></div><p class="calibre3"><a id="index-550C052UU6J" class="calibre1"></a><a id="index-053V387BR0S" class="calibre1"></a>In addition to drag-and-drop desktop integration, some
+    browsers have support for copying and pasting. The API hasn’t been
+    standardized, and it isn’t part of the HTML5 spec, so you’ll need to
+    determine how to cater to the various browsers.<a id="I_indexterm7_d1e6601" class="calibre1"></a></p><p class="calibre3">Again, funnily enough, IE is the pioneer here, with support dating
+    back to IE 5.0. WebKit <a id="I_indexterm7_d1e6608" class="calibre1"></a>has taken Microsoft’s API and improved it somewhat, bringing
+    it inline with the drag-and-drop API. Both are virtually identical, except
+    for the different objects: <code class="literal">clipboardData</code> rather than <code class="literal">dataTransfer</code>.</p><p class="calibre3">Firefox has no support yet, and although it has a proprietary API
+    for accessing the clipboard, it’s unwieldy to say the least. WebKit
+    (Safari/Chrome) has good support, and I imagine the W3C will eventually
+    standardize its take on clipboard APIs. Browser support is as
+    follows:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre3">Safari &gt;= 6.0</p></li><li class="listitem"><p class="calibre3">Chrome (only pasting)</p></li><li class="listitem"><p class="calibre3">Firefox: no support</p></li><li class="listitem"><p class="calibre3">IE &gt;= 5.0 (different API)</p></li></ul></div><div class="book" title="Copying"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2924899" class="calibre12"></a>Copying</h2></div></div></div><p class="calibre3">There are two events <a id="I_indexterm7_d1e6638" class="calibre1"></a>associated with copying, and two events with
+      cutting:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre3"><span class="calibre1"><em class="calibre4">beforecopy</em></span></p></li><li class="listitem"><p class="calibre3"><span class="calibre1"><em class="calibre4">copy</em></span></p></li><li class="listitem"><p class="calibre3"><span class="calibre1"><em class="calibre4">beforecut</em></span></p></li><li class="listitem"><p class="calibre3"><span class="calibre1"><em class="calibre4">cut</em></span></p></li></ul></div><p class="calibre3">As the name suggests, <span class="calibre1"><em class="calibre4">beforecopy</em></span><a id="I_indexterm7_d1e6665" class="calibre1"></a> and <span class="calibre1"><em class="calibre4">beforecut</em></span><a id="I_indexterm7_d1e6671" class="calibre1"></a> are triggered before any clipboard operations, allowing
+      you to cancel them if necessary. When the user copies some selected
+      text, the <span class="calibre1"><em class="calibre4">copy</em></span> event <a id="I_indexterm7_d1e6678" class="calibre1"></a>fires, giving you a <code class="literal">clipboardData</code> object <a id="I_indexterm7_d1e6686" class="calibre1"></a><a id="I_indexterm7_d1e6689" class="calibre1"></a>that can be used to set custom clipboard data. Like the
+      <code class="literal">dataTransfer</code> object, <code class="literal">clipboardData</code> has a <code class="literal">setData()</code> function, which takes a mime format
+      and string value. If you’re planning on calling <span class="calibre1">this function</span>, you should cancel the
+      original <span class="calibre1"><em class="calibre4">copy</em></span> event, preventing the default
+      action.</p><p class="calibre3">Rather than on the event, IE sets the <code class="literal">clipboardData</code> object on <code class="literal">window</code>. You’ll need to check to see whether
+      the object is present on the event, and if not, whether it’s present on
+      the window.</p><p class="calibre3">Firefox will actually fire the <span class="calibre1"><em class="calibre4">copy</em></span> event,
+      but it won’t give you access to the <code class="literal">clipboardData</code> object. Chrome will give you the
+      object, but it will ignore any data you set on it.</p><pre class="screen">$("textarea").bind("copy", function(event){
+  event.stopPropagation();
+  event.preventDefault();
+
+  var cd = event.originalEvent.clipboardData;
+
+  // For IE
+  if ( !cd ) cd = window.clipboardData;
+
+  // For Firefox
+  if ( !cd ) return;
+
+  cd.setData("text/plain", $(this).text());
+});</pre><p class="calibre3">At the rate browsers are innovating, it's quite likely support
+      will be standardized soon. If you want to add copy/paste support to your
+      application, you should take a look at the current situation
+      yourself.</p></div><div class="book" title="Pasting"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2925082" class="calibre12"></a>Pasting</h2></div></div></div><p class="calibre3"><a id="I_indexterm7_d1e6735" class="calibre1"></a>There are two events <a id="I_indexterm7_d1e6739" class="calibre1"></a>associated with pasting,
+      <span class="calibre1"><em class="calibre4">beforepaste</em></span><a id="I_indexterm7_d1e6747" class="calibre1"></a> and <span class="calibre1"><em class="calibre4">paste</em></span>. The
+      <span class="calibre1"><em class="calibre4">paste</em></span> event is triggered when the user initiates a
+      paste, but before any data has been pasted. Again, different browsers
+      have different implementations. Chrome triggers the event, even if no
+      element has focus. Both IE and Safari require an actively focused
+      element.</p><p class="calibre3">The API is very similar to the <span class="calibre1"><em class="calibre4">drop</em></span> event
+      API. The event has a <code class="literal">clipboardData</code>
+      property,<a id="I_indexterm7_d1e6765" class="calibre1"></a><a id="I_indexterm7_d1e6768" class="calibre1"></a> which gives you access to the pasted data using the
+      <code class="literal">getData()</code> function,<a id="I_indexterm7_d1e6777" class="calibre1"></a><a id="I_indexterm7_d1e6781" class="calibre1"></a> passing in a mime format. Unfortunately, from my tests,
+      the <code class="literal">types</code> property is always <code class="literal">null</code>, so you can’t see which mime types are
+      available on the clipboard data. Unless you cancel the event, the paste
+      process will carry on as normal, and the data will be pasted into the
+      focused element:</p><pre class="screen">$("textarea").bind("paste", function(event){
+  event.stopPropagation();
+  event.preventDefault();
+
+  event = event.originalEvent;
+
+  var cd = event.clipboardData;
+
+  // For IE
+  if ( !cd ) cd = window.clipboardData;
+
+  // For Firefox
+  if ( !cd ) return;
+
+  $("#result").text(cd.getData("text/plain"));
+
+  // Safari event support file pasting
+  var files = cd.files;
+});</pre><p class="calibre3">The <a class="ulink" href="http://nightly.webkit.org">nightly versions of
+      WebKit</a> give you access to a <code class="literal">files</code> property on <code class="literal">clipboardData</code>, allowing you to support file
+      pasting into your application. I expect other browsers will follow suit
+      once the specification is standardized.</p><p class="calibre3">So, is there any possibility of getting this to work
+      cross-browser? Well, yes, there are actually a few workarounds. <a class="ulink" href="http://cappuccino.org">Cappuccino</a><a id="I_indexterm7_d1e6810" class="calibre1"></a>, for example, bypasses the <span class="calibre1"><em class="calibre4">oncopy</em></span>
+      family of events completely, and simply captures key inputs. When the
+      key combination Command/Ctrl + v is detected, it then focuses a hidden
+      input field, which gets filled with the pasted data. This works in every
+      browser, but obviously for pastes initiated by the keyboard only—not the
+      menu.<a id="I_indexterm7_d1e6817" class="calibre1"></a><a id="I_indexterm7_d1e6818" class="calibre1"></a></p></div></div></div>
+
+{% endraw %}
+

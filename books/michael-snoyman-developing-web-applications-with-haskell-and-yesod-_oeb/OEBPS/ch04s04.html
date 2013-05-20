@@ -1,0 +1,179 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch04s03.html
+next: OEBPS/ch04s05.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Calling Shakespeare"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect14_d1e1707" class="calibre1"></a>Calling Shakespeare</h1></div></div></div><p class="calibre7">The question of course arises at some point: how do I actually use this stuff? There are three
+   different ways to call out to Shakespeare from your Haskell code:</p><div class="book"><dl class="book"><dt class="calibre9"><span class="firstname">Quasiquotes</span></dt><dd class="calibre10"><p class="calibre7">Quasiquotes allow you to embed arbitrary content within your Haskell, and for it to be
+     converted into Haskell code at compile time.</p></dd><dt class="calibre9"><span class="firstname">External file</span></dt><dd class="calibre10"><p class="calibre7">In this case, the template code is in a separate file which is referenced via Template
+     Haskell.</p></dd><dt class="calibre9"><span class="firstname">Reload mode</span></dt><dd class="calibre10"><p class="calibre7">Both of the above modes require a full recompile to see any changes. In reload
+     mode, your template is kept in a separate file and referenced via Template Haskell. But at
+     runtime, the external file is reparsed from scratch each time.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">Reload mode is not available for Hamlet, only for Cassius, Lucius, and Julius. There are too
+                many sophisticated features in Hamlet that rely directly on the Haskell compiler and
+                could not feasibly be reimplemented at runtime.</p></div></dd></dl></div><p class="calibre7">One of the first two approaches should be used in production. They both embed the entirety of
+   the template in the final executable, simplifying deployment and increasing performance. The
+   advantage of the quasiquoter is the simplicity: everything stays in a single file. For short
+   templates, this can be a very good fit. However, in general, the external file approach is
+   recommended because:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">It follows nicely in the tradition of separate logic from presentation.</p></li><li class="listitem"><p class="calibre7">You can easily switch between external file and debug mode with some simple CPP macros,
+     meaning you can keep rapid development and still achieve high performance in production.</p></li></ul></div><p class="calibre7">Since these are special QuasiQuoters and Template Haskell functions, you need to be sure
+      to enable the appropriate language extensions and use correct syntax. You can see a simple
+      example of each in the examples.</p><div class="example"><a id="calling-shakespeare-x17" class="firstname"></a><p class="title6">Example 4-1. Quasiquoter</p><div class="book"><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE OverloadedStrings #-}</code> <code class="cm">-- we're using Text below</code>
+<code class="cm">{-# LANGUAGE QuasiQuotes #-}</code>
+<code class="kr">import</code> <code class="nn">Text.Hamlet</code> <code class="p">(</code><code class="kt">HtmlUrl</code><code class="p">,</code> <code class="nf">hamlet</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Data.Text</code> <code class="p">(</code><code class="kt">Text</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Text.Blaze.Renderer.String</code> <code class="p">(</code><code class="nf">renderHtml</code><code class="p">)</code>
+
+<code class="kr">data</code> <code class="kt">MyRoute</code> <code class="ow">=</code> <code class="kt">Home</code> <code class="o">|</code> <code class="kt">Time</code> <code class="o">|</code> <code class="kt">Stylesheet</code>
+
+<code class="nf">render</code> <code class="ow">::</code> <code class="kt">MyRoute</code> <code class="ow">-&gt;</code> <code class="p">[(</code><code class="kt">Text</code><code class="p">,</code> <code class="kt">Text</code><code class="p">)]</code> <code class="ow">-&gt;</code> <code class="kt">Text</code>
+<code class="nf">render</code> <code class="kt">Home</code> <code class="kr">_</code> <code class="ow">=</code> <code class="s">"/home"</code>
+<code class="nf">render</code> <code class="kt">Time</code> <code class="kr">_</code> <code class="ow">=</code> <code class="s">"/time"</code>
+<code class="nf">render</code> <code class="kt">Stylesheet</code> <code class="kr">_</code> <code class="ow">=</code> <code class="s">"/style.css"</code>
+
+<code class="nf">template</code> <code class="ow">::</code> <code class="kt">Text</code> <code class="ow">-&gt;</code> <code class="kt">HtmlUrl</code> <code class="kt">MyRoute</code>
+<code class="nf">template</code> <code class="n">title</code> <code class="ow">=</code> <code class="p">[</code><code class="n">hamlet</code><code class="o">|</code>
+<code class="o">$</code><code class="n">doctype</code> <code class="mi">5</code>
+<code class="o">&lt;</code><code class="n">html</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">head</code><code class="o">&gt;</code>
+        <code class="o">&lt;</code><code class="n">title</code><code class="o">&gt;#</code><code class="p">{</code><code class="n">title</code><code class="p">}</code>
+        <code class="o">&lt;</code><code class="n">link</code> <code class="n">rel</code><code class="ow">=</code><code class="n">stylesheet</code> <code class="n">href</code><code class="o">=@</code><code class="p">{</code><code class="kt">Stylesheet</code><code class="p">}</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">body</code><code class="o">&gt;</code>
+        <code class="o">&lt;</code><code class="n">h1</code><code class="o">&gt;#</code><code class="p">{</code><code class="n">title</code><code class="p">}</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">putStrLn</code> <code class="o">$</code> <code class="n">renderHtml</code> <code class="o">$</code> <code class="n">template</code> <code class="s">"My Title"</code> <code class="n">render</code>
+</pre></div></div><div class="example"><a id="calling-shakespeare-x20" class="firstname"></a><p class="title6">Example 4-2. External file</p><div class="book"><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE OverloadedStrings #-}</code> <code class="cm">-- we're using Text below</code>
+<code class="cm">{-# LANGUAGE TemplateHaskell #-}</code>
+<code class="cm">{-# LANGUAGE CPP #-}</code> <code class="cm">-- to control production versus debug</code>
+<code class="kr">import</code> <code class="nn">Text.Lucius</code> <code class="p">(</code><code class="kt">CssUrl</code><code class="p">,</code> <code class="nf">luciusFile</code><code class="p">,</code> <code class="nf">luciusFileDebug</code><code class="p">,</code> <code class="nf">renderCss</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Data.Text</code> <code class="p">(</code><code class="kt">Text</code><code class="p">)</code>
+<code class="kr">import</code> <code class="kr">qualified</code> <code class="nn">Data.Text.Lazy.IO</code> <code class="kr">as</code> <code class="n">TLIO</code>
+
+<code class="kr">data</code> <code class="kt">MyRoute</code> <code class="ow">=</code> <code class="kt">Home</code> <code class="o">|</code> <code class="kt">Time</code> <code class="o">|</code> <code class="kt">Stylesheet</code>
+
+<code class="nf">render</code> <code class="ow">::</code> <code class="kt">MyRoute</code> <code class="ow">-&gt;</code> <code class="p">[(</code><code class="kt">Text</code><code class="p">,</code> <code class="kt">Text</code><code class="p">)]</code> <code class="ow">-&gt;</code> <code class="kt">Text</code>
+<code class="nf">render</code> <code class="kt">Home</code> <code class="kr">_</code> <code class="ow">=</code> <code class="s">"/home"</code>
+<code class="nf">render</code> <code class="kt">Time</code> <code class="kr">_</code> <code class="ow">=</code> <code class="s">"/time"</code>
+<code class="nf">render</code> <code class="kt">Stylesheet</code> <code class="kr">_</code> <code class="ow">=</code> <code class="s">"/style.css"</code>
+
+<code class="nf">template</code> <code class="ow">::</code> <code class="kt">CssUrl</code> <code class="kt">MyRoute</code>
+<code class="o">#</code><code class="kr">if</code> <code class="kt">PRODUCTION</code>
+<code class="nf">template</code> <code class="ow">=</code> <code class="o">$</code><code class="p">(</code><code class="n">luciusFile</code> <code class="s">"template.lucius"</code><code class="p">)</code>
+<code class="o">#</code><code class="kr">else</code>
+<code class="nf">template</code> <code class="ow">=</code> <code class="o">$</code><code class="p">(</code><code class="n">luciusFileDebug</code> <code class="s">"template.lucius"</code><code class="p">)</code>
+<code class="o">#</code><code class="n">endif</code>
+
+<code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code> <code class="kt">TLIO</code><code class="o">.</code><code class="n">putStrLn</code> <code class="o">$</code> <code class="n">renderCss</code> <code class="o">$</code> <code class="n">template</code> <code class="n">render</code>
+</pre><pre class="programlisting1">-- @template.lucius
+foo { bar: baz }</pre></div></div><p class="calibre7">The naming scheme for the functions is very consistent.</p><div class="informaltable"><table class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th class="calibre19">Language</th><th class="calibre19">Quasiquoter</th><th class="calibre19">External file</th><th class="calibre20">Reload</th></tr></thead><tbody class="calibre21"><tr class="calibre18"><td class="calibre22">Hamlet</td><td class="calibre22">
+              <code class="function">hamlet</code>
+            </td><td class="calibre22">
+              <code class="literal">hamletFile</code>
+            </td><td class="calibre23">
+              <span class="firstname"><em class="calibre4">N/A</em></span>
+            </td></tr><tr class="calibre24"><td class="calibre22">Cassius</td><td class="calibre22">
+              <code class="literal">cassius</code>
+            </td><td class="calibre22">
+              <code class="literal">cassiusFile</code>
+            </td><td class="calibre23">
+              <code class="literal">cassiusFileReload</code>
+            </td></tr><tr class="calibre18"><td class="calibre22">Lucius</td><td class="calibre22">
+              <code class="literal">lucius</code>
+            </td><td class="calibre22">
+              <code class="literal">luciusFile</code>
+            </td><td class="calibre23">
+              <code class="literal">luciusFileReload</code>
+            </td></tr><tr class="calibre24"><td class="calibre25">Julius</td><td class="calibre25">
+              <code class="literal">julius</code>
+            </td><td class="calibre25">
+              <code class="literal">juliusFile</code>
+            </td><td class="calibre26">
+              <code class="literal">juliusFileReload</code>
+            </td></tr></tbody></table></div><div class="book" title="Alternate Hamlet Types"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3064358" class="calibre1"></a>Alternate Hamlet Types</h2></div></div></div><p class="calibre7">So far, we’ve seen how to generate an <code class="literal">HtmlUrl</code> value
+        from Hamlet, which is a piece of HTML with embedded type-safe URLs. There are currently
+        three other values we can generate using Hamlet: plain HTML, HTML with URLs <span class="bold"><strong class="bold">and</strong></span> internationalized messages, and widgets. That last one will be
+        covered in the widgets chapter.</p><p class="calibre7">To generate plain HTML without any embedded URLs, we use “simplified
+        Hamlet”. There are a few changes:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">We use a different set of functions, prefixed with an “s”. So the
+              quasiquoter is <code class="literal">shamlet</code> and the external file
+              function is <code class="literal">shamletFile</code>. How we pronounce those is
+              still up for debate.</p></li><li class="listitem"><p class="calibre7">No URL interpolation is allowed. Doing so will result in a compile-time
+              error.</p></li><li class="listitem"><p class="calibre7">Embedding (the caret-interpolator) no longer allows arbitrary <code class="literal">HtmlUrl</code> values. The rule is that the embedded value must
+              have the same type as the template itself, so in this case it must be <code class="literal">Html</code>. That means that for <code class="literal">shamlet</code>, embedding can be completely replaced with normal variable
+              interpolation (with a hash).</p></li></ul></div><p class="calibre7">Dealing with internationalization (i18n) in Hamlet is a bit complicated. Hamlet supports
+        i18n via a message data type, very similar in concept and implementation to a type-safe URL.
+        As a motivating example, let’s say we want to have an application that tells you hello and
+        how many apples you have eaten. We could represent those messages with a data
+        type.<a id="I_programlisting4_d1e1890" class="firstname"></a></p><pre class="programlistinghaskell"><code class="kr">data</code> <code class="kt">Msg</code> <code class="ow">=</code> <code class="kt">Hello</code> <code class="o">|</code> <code class="kt">Apples</code> <code class="kt">Int</code>
+</pre><p class="calibre7">Next,
+        we would want to be able to convert that into something human-readable, so we define some
+        render
+        functions:<a id="I_programlisting4_d1e1893" class="firstname"></a></p><pre class="programlistinghaskell"><code class="nf">renderEnglish</code> <code class="ow">::</code> <code class="kt">Msg</code> <code class="ow">-&gt;</code> <code class="kt">Text</code>
+<code class="nf">renderEnglish</code> <code class="kt">Hello</code> <code class="ow">=</code> <code class="s">"Hello"</code>
+<code class="nf">renderEnglish</code> <code class="p">(</code><code class="kt">Apples</code> <code class="mi">0</code><code class="p">)</code> <code class="ow">=</code> <code class="s">"You did not buy any apples."</code>
+<code class="nf">renderEnglish</code> <code class="p">(</code><code class="kt">Apples</code> <code class="mi">1</code><code class="p">)</code> <code class="ow">=</code> <code class="s">"You bought 1 apple."</code>
+<code class="nf">renderEnglish</code> <code class="p">(</code><code class="kt">Apples</code> <code class="n">i</code><code class="p">)</code> <code class="ow">=</code> <code class="kt">T</code><code class="o">.</code><code class="n">concat</code> <code class="p">[</code><code class="s">"You bought "</code><code class="p">,</code> <code class="kt">T</code><code class="o">.</code><code class="n">pack</code> <code class="o">$</code> <code class="n">show</code> <code class="n">i</code><code class="p">,</code> <code class="s">" apples."</code><code class="p">]</code>
+</pre><p class="calibre7">Now
+        we want to interpolate those Msg values directly in the template. For that, we use
+        underscore
+        interpolation.<a id="I_programlisting4_d1e1896" class="firstname"></a></p><pre class="programlistinghaskell">$doctype 5
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;title&gt;i18n
+    &lt;body&gt;
+        &lt;h1&gt;_{Hello}
+        &lt;p&gt;_{Apples count}</pre><p class="calibre7">This kind of a template now needs some way to turn those values into HTML. So just
+   like type-safe URLs, we pass in a render function. To represent this, we define a new type
+   synonym:<a id="I_programlisting4_d1e1900" class="firstname"></a></p><pre class="programlistinghaskell"><code class="kr">type</code> <code class="kt">Render</code> <code class="n">url</code> <code class="ow">=</code> <code class="n">url</code> <code class="ow">-&gt;</code> <code class="p">[(</code><code class="kt">Text</code><code class="p">,</code> <code class="kt">Text</code><code class="p">)]</code> <code class="ow">-&gt;</code> <code class="kt">Text</code>
+<code class="kr">type</code> <code class="kt">Translate</code> <code class="n">msg</code> <code class="ow">=</code> <code class="n">msg</code> <code class="ow">-&gt;</code> <code class="kt">Html</code>
+<code class="kr">type</code> <code class="kt">HtmlUrlI18n</code> <code class="n">msg</code> <code class="n">url</code> <code class="ow">=</code> <code class="kt">Translate</code> <code class="n">msg</code> <code class="ow">-&gt;</code> <code class="kt">Render</code> <code class="n">url</code> <code class="ow">-&gt;</code> <code class="kt">Html</code>
+</pre><p class="calibre7">At
+   this point, you can pass <code class="literal">renderEnglish</code>, <code class="literal">renderSpanish</code>, or <code class="literal">renderKlingon</code> to this template, and it
+   will generate nicely translated output (depending, of course, on the quality of your
+   translators). The complete program is:</p><a id="I_programlisting4_d1e1912" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE QuasiQuotes #-}</code>
+<code class="cm">{-# LANGUAGE OverloadedStrings #-}</code>
+<code class="kr">import</code> <code class="nn">Data.Text</code> <code class="p">(</code><code class="kt">Text</code><code class="p">)</code>
+<code class="kr">import</code> <code class="kr">qualified</code> <code class="nn">Data.Text</code> <code class="kr">as</code> <code class="n">T</code>
+<code class="kr">import</code> <code class="nn">Text.Hamlet</code> <code class="p">(</code><code class="kt">HtmlUrlI18n</code><code class="p">,</code> <code class="nf">ihamlet</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Text.Blaze</code> <code class="p">(</code><code class="nf">toHtml</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Text.Blaze.Renderer.String</code> <code class="p">(</code><code class="nf">renderHtml</code><code class="p">)</code>
+
+<code class="kr">data</code> <code class="kt">MyRoute</code> <code class="ow">=</code> <code class="kt">Home</code> <code class="o">|</code> <code class="kt">Time</code> <code class="o">|</code> <code class="kt">Stylesheet</code>
+
+<code class="nf">renderUrl</code> <code class="ow">::</code> <code class="kt">MyRoute</code> <code class="ow">-&gt;</code> <code class="p">[(</code><code class="kt">Text</code><code class="p">,</code> <code class="kt">Text</code><code class="p">)]</code> <code class="ow">-&gt;</code> <code class="kt">Text</code>
+<code class="nf">renderUrl</code> <code class="kt">Home</code> <code class="kr">_</code> <code class="ow">=</code> <code class="s">"/home"</code>
+<code class="nf">renderUrl</code> <code class="kt">Time</code> <code class="kr">_</code> <code class="ow">=</code> <code class="s">"/time"</code>
+<code class="nf">renderUrl</code> <code class="kt">Stylesheet</code> <code class="kr">_</code> <code class="ow">=</code> <code class="s">"/style.css"</code>
+
+<code class="kr">data</code> <code class="kt">Msg</code> <code class="ow">=</code> <code class="kt">Hello</code> <code class="o">|</code> <code class="kt">Apples</code> <code class="kt">Int</code>
+
+<code class="nf">renderEnglish</code> <code class="ow">::</code> <code class="kt">Msg</code> <code class="ow">-&gt;</code> <code class="kt">Text</code>
+<code class="nf">renderEnglish</code> <code class="kt">Hello</code> <code class="ow">=</code> <code class="s">"Hello"</code>
+<code class="nf">renderEnglish</code> <code class="p">(</code><code class="kt">Apples</code> <code class="mi">0</code><code class="p">)</code> <code class="ow">=</code> <code class="s">"You did not buy any apples."</code>
+<code class="nf">renderEnglish</code> <code class="p">(</code><code class="kt">Apples</code> <code class="mi">1</code><code class="p">)</code> <code class="ow">=</code> <code class="s">"You bought 1 apple."</code>
+<code class="nf">renderEnglish</code> <code class="p">(</code><code class="kt">Apples</code> <code class="n">i</code><code class="p">)</code> <code class="ow">=</code> <code class="kt">T</code><code class="o">.</code><code class="n">concat</code> <code class="p">[</code><code class="s">"You bought "</code><code class="p">,</code> <code class="kt">T</code><code class="o">.</code><code class="n">pack</code> <code class="o">$</code> <code class="n">show</code> <code class="n">i</code><code class="p">,</code> <code class="s">" apples."</code><code class="p">]</code>
+
+<code class="nf">template</code> <code class="ow">::</code> <code class="kt">Int</code> <code class="ow">-&gt;</code> <code class="kt">HtmlUrlI18n</code> <code class="kt">Msg</code> <code class="kt">MyRoute</code>
+<code class="nf">template</code> <code class="n">count</code> <code class="ow">=</code> <code class="p">[</code><code class="n">ihamlet</code><code class="o">|</code>
+<code class="o">$</code><code class="n">doctype</code> <code class="mi">5</code>
+<code class="o">&lt;</code><code class="n">html</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">head</code><code class="o">&gt;</code>
+        <code class="o">&lt;</code><code class="n">title</code><code class="o">&gt;</code><code class="n">i18n</code>
+    <code class="o">&lt;</code><code class="n">body</code><code class="o">&gt;</code>
+        <code class="o">&lt;</code><code class="n">h1</code><code class="o">&gt;</code><code class="kr">_</code><code class="p">{</code><code class="kt">Hello</code><code class="p">}</code>
+        <code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code><code class="kr">_</code><code class="p">{</code><code class="kt">Apples</code> <code class="n">count</code><code class="p">}</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">putStrLn</code> <code class="o">$</code> <code class="n">renderHtml</code>
+     <code class="o">$</code> <code class="p">(</code><code class="n">template</code> <code class="mi">5</code><code class="p">)</code> <code class="p">(</code><code class="n">toHtml</code> <code class="o">.</code> <code class="n">renderEnglish</code><code class="p">)</code> <code class="n">renderUrl</code>
+</pre></div></div></div>
+
+{% endraw %}
+

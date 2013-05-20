@@ -1,0 +1,158 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect124_d1e46302.html
+next: I_sect124_d1e46438.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"><a href="21061538.html" class="calibre13"><img src="btn_next_.gif" alt="Next" border="0" class="calibre26"/></a> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect124_d1e46302.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect124_d1e46438.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect124_d1e46331" class="calibre27" id="I_sect124_d1e46331"></a><h3 id="title-IDAV4CTE" class="docSection1Title">24.2. Concurrent Programming with Threads</h3><a name="x_d31" class="calibre27" id="x_d31"></a><p class="docText">As a building<a name="I_indexterm24_d1e46336" class="calibre27" id="I_indexterm24_d1e46336"></a> block for concurrent programs, most programming languages
+    provide a way of creating multiple independent <span class="docEmphasis">threads of
+    control</span>. Haskell is no exception, though programming with
+    threads in Haskell looks somewhat different than in other <span class="docEmphasis">languages</span>.</p><a name="x_e31" class="calibre27" id="x_e31"></a><p class="docText">In Haskell, a thread is an IO action that
+    executes independently from other threads. To create a thread, we import
+    the <tt class="calibre34">Control.Concurrent</tt> module<a name="I_indexterm24_d1e46354" class="calibre27" id="I_indexterm24_d1e46354"></a> and use the <i class="docEmphasis">forkIO</i>
+<span class="docEmphasis">function</span>:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:m +Control.Concurrent</b>ghci&gt; <b class="calibre40">:t forkIO</b>
+forkIO :: IO () -&gt; IO ThreadId
+ghci&gt; <b class="calibre40">:m +System.Directory</b>
+ghci&gt; <b class="calibre40">forkIO (writeFile "xyzzy" "seo craic nua!") &gt;&gt; doesFileExist "xyzzy"</b>
+False</pre><a name="x_f31" class="calibre27" id="x_f31"></a><p class="docText">The new thread starts to execute almost immediately, and
+    the thread that created it continues to execute concurrently. The thread
+    will stop executing when it reaches the end of its IO
+    action.</p><a name="I_sect124_d1e46331d1e46681" class="calibre27" id="I_sect124_d1e46331d1e46681"></a><h4 id="title-IDAYADTE" class="docSection1Title">24.2.1. Threads Are Nondeterministic</h4><a name="x_g31" class="calibre27" id="x_g31"></a><p class="docText">The runtime component of <span class="docMonofont">GHC</span> does not specify an order in which it
+      executes threads. As a result, in the preceding example, the file
+      <i class="docEmphasis">xyzzy</i> created by the new thread
+      <span class="docEmphasis">may or may not</span> have been created by the time the
+      original thread checks for its existence. If we try this example once,
+      and then remove <i class="docEmphasis">xyzzy</i> and try
+      again, we may get a different result the second time.</p><a name="I_sect124_d1e46331d1e46698" class="calibre27" id="I_sect124_d1e46331d1e46698"></a><h4 id="title-IDANBDTE" class="docSection1Title">24.2.2. Hiding Latency</h4><a name="x_h31" class="calibre27" id="x_h31"></a><p class="docText">Suppose<a name="I_indexterm24_d1e46414" class="calibre27" id="I_indexterm24_d1e46414"></a><a name="I_indexterm24_d1e46417" class="calibre27" id="I_indexterm24_d1e46417"></a> we have a large file to compress and write to disk, but
+      we want to handle a user's input quickly enough that she will perceive
+      our program as responding immediately. If we use <i class="docEmphasis">forkIO</i> to write the file out in a separate
+      thread, we can do both simultaneously:</p><pre class="calibre39">-- file: ch24/Compressor.hs
+import Control.Concurrent (forkIO)
+import Control.Exception (handle)
+import Control.Monad (forever)
+import qualified Data.ByteString.Lazy as L
+import System.Console.Readline (readline)
+
+-- Provided by the 'zlib' package on http://hackage.haskell.org/
+import Codec.Compression.GZip (compress)
+
+main = do
+    maybeLine &lt;- readline "Enter a file to compress&gt; "
+    case maybeLine of
+      Nothing -&gt; return ()      -- user entered EOF
+      Just "" -&gt; return ()      -- treat no name as "want to quit"
+      Just name -&gt; do
+           handle print $ do
+             content &lt;- L.readFile name
+             forkIO (compressFile name content)
+             return ()
+           main
+  where compressFile path = L.writeFile (path ++ ".gz") . compress</pre><br class="calibre48"/>
+<a name="x_i31" class="calibre27" id="x_i31"></a><p class="docText">Because we're using lazy ByteString I/O
+      here, all we really do in the main thread is open the file. The actual
+      reading occurs on demand in the other thread.</p><a name="x_j31" class="calibre27" id="x_j31"></a><p class="docText">The use of <tt class="calibre34">handle print</tt> gives us a cheap
+      way to print an error message if the user enters the name of a file that
+      does not exist.</p>
+<ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"><a href="21061538.html" class="calibre2"><img src="btn_next_.gif" alt="Next" border="0" class="calibre31"/></a> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect124_d1e46302.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect124_d1e46438.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

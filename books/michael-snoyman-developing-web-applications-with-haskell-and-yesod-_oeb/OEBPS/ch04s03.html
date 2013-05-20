@@ -1,0 +1,193 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch04s02.html
+next: OEBPS/ch04s04.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Syntax"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect14_d1e1452" class="calibre1"></a>Syntax</h1></div></div></div><p class="calibre7">All Shakespearean languages share the same interpolation syntax, and are able to utilize
+      type-safe URLs. They differ in the syntax specific for their target language (HTML, CSS, or
+      JavaScript).</p><div class="book" title="Hamlet Syntax"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3044490" class="calibre1"></a>Hamlet Syntax</h2></div></div></div><p class="calibre7">Hamlet is the most sophisticated of the languages. Not only does it provide
+            syntax for generating HTML, it also allows for basic control structures: conditionals,
+            looping, and maybes.</p><div class="book" title="Tags"><div class="book"><div class="book"><div class="book"><h3 class="title5"><a id="id3044499" class="calibre1"></a>Tags</h3></div></div></div><p class="calibre7">Obviously tags will play an important part of any HTML template language. In Hamlet, we try to
+   stick very close to existing HTML syntax to make the language more comfortable. However, instead
+   of using closing tags to denote nesting, we use indentation. So something like this in
+   HTML:<a id="I_programlisting4_d1e1470" class="firstname"></a></p><pre class="programlistinghaskell">&lt;body&gt;
+&lt;p&gt;Some paragraph.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Item 1&lt;/li&gt;
+&lt;li&gt;Item 2&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/body&gt;</pre><p class="calibre7">would
+   be<a id="I_programlisting4_d1e1473" class="firstname"></a></p><pre class="programlistinghaskell">&lt;body&gt;
+    &lt;p&gt;Some paragraph.
+    &lt;ul&gt;
+        &lt;li&gt;Item 1
+        &lt;li&gt;Item 2</pre><p class="calibre7">In general, we find this to be easier to follow than HTML once you get accustomed to
+          it. The only tricky part comes with dealing with whitespace before and after tags. For
+          example, let’s say you want to create the
+          HTML<a id="I_programlisting4_d1e1477" class="firstname"></a></p><pre class="programlistinghaskell">&lt;p&gt;Paragraph &lt;i&gt;italic&lt;/i&gt; end.&lt;/p&gt;</pre><p class="calibre7">We
+          want to make sure that there is a whitespace preserved after the word
+          “Paragraph” and before the word “end”. To do so, we use two simple
+          escape
+          characters:<a id="I_programlisting4_d1e1480" class="firstname"></a></p><pre class="programlistinghaskell">&lt;p&gt;
+    Paragraph #
+    &lt;i&gt;italic
+    \ end.</pre><p class="calibre7">The
+          whitespace escape rules are actually very simple:</p><div class="book"><ol class="orderedlist"><li class="listitem"><p class="calibre7">If the first non-space character in a line is a backslash, the backslash is
+                ignored.</p></li><li class="listitem"><p class="calibre7">If the last character in a line is a hash, it is ignored.</p></li></ol></div><p class="calibre7">One other thing. Hamlet does <span class="bold"><strong class="bold">not</strong></span> escape entities
+          within its content. This is done on purpose to allow existing HTML to be more easily
+          copied in. So the example above could also be written
+          as:<a id="I_programlisting4_d1e1495" class="firstname"></a></p><pre class="programlistinghaskell">&lt;p&gt;Paragraph &lt;i&gt;italic&lt;/i&gt; end.</pre><p class="calibre7">Notice
+          that the first tag will be automatically closed by Hamlet, while the inner “i”
+          tag will not. You are free to use whichever approach you want, there is no penalty for
+          either choice. Be aware, however, that the <span class="bold"><strong class="bold">only</strong></span> time you
+          use closing tags in Hamlet is for such inline tags; normal tags are not closed.</p></div><div class="book" title="Interpolation"><div class="book"><div class="book"><div class="book"><h3 class="title5"><a id="id3044621" class="calibre1"></a>Interpolation</h3></div></div></div><p class="calibre7">What we have so far is a nice, simplified HTML, but it doesn’t let us interact with
+          our Haskell code at all. How do we pass in variables? Simple: with
+          interpolation:<a id="I_programlisting4_d1e1506" class="firstname"></a></p><pre class="programlistinghaskell">&lt;head&gt;
+    &lt;title&gt;#{title}</pre><p class="calibre7">The
+          hash followed by a pair of braces denotes <span class="bold"><strong class="bold">variable
+            interpolation</strong></span>. In the case above, the <code class="literal">title</code> variable from the scope in which the template was called will be used.
+          Let me state that again: Hamlet automatically has access to the variables in scope when
+          it’s called. There is no need to specifically pass variables in.</p><p class="calibre7">You can apply functions within an interpolation. You can use string and numeric
+   literals in an interpolation. You can use qualified modules. Both parentheses and the dollar sign
+   can be used to group statements together. And at the end, the <code class="literal">toHtml</code>
+   function is applied to the result, meaning <span class="firstname"><em class="calibre4">any</em></span> instance of <code class="literal">ToHtml</code> can be interpolated. Take, for instance, the following code.</p><a id="I_programlisting4_d1e1526" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">-- Just ignore the quasiquote stuff for now, and that shamlet thing.</code>
+<code class="cm">-- It will be explained later.</code>
+<code class="cm">{-# LANGUAGE QuasiQuotes #-}</code>
+<code class="kr">import</code> <code class="nn">Text.Hamlet</code> <code class="p">(</code><code class="nf">shamlet</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Text.Blaze.Renderer.String</code> <code class="p">(</code><code class="nf">renderHtml</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Data.Char</code> <code class="p">(</code><code class="nf">toLower</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Data.List</code> <code class="p">(</code><code class="nf">sort</code><code class="p">)</code>
+
+<code class="kr">data</code> <code class="kt">Person</code> <code class="ow">=</code> <code class="kt">Person</code>
+    <code class="p">{</code> <code class="n">name</code> <code class="ow">::</code> <code class="kt">String</code>
+    <code class="p">,</code> <code class="n">age</code>  <code class="ow">::</code> <code class="kt">Int</code>
+    <code class="p">}</code>
+
+<code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">putStrLn</code> <code class="o">$</code> <code class="n">renderHtml</code> <code class="p">[</code><code class="n">shamlet</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code><code class="kt">Hello</code><code class="p">,</code> <code class="n">my</code> <code class="n">name</code> <code class="n">is</code> <code class="o">#</code><code class="p">{</code><code class="n">name</code> <code class="n">person</code><code class="p">}</code> <code class="n">and</code> <code class="kt">I</code> <code class="n">am</code> <code class="o">#</code><code class="p">{</code><code class="n">show</code> <code class="o">$</code> <code class="n">age</code> <code class="n">person</code><code class="p">}</code><code class="o">.</code>
+<code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code>
+    <code class="kt">Let's</code> <code class="kr">do</code> <code class="n">some</code> <code class="n">funny</code> <code class="n">stuff</code> <code class="n">with</code> <code class="n">my</code> <code class="n">name</code><code class="kt">:</code> <code class="o">#</code>
+    <code class="o">&lt;</code><code class="n">b</code><code class="o">&gt;#</code><code class="p">{</code><code class="n">sort</code> <code class="o">$</code> <code class="n">map</code> <code class="n">toLower</code> <code class="p">(</code><code class="n">name</code> <code class="n">person</code><code class="p">)}</code>
+<code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code><code class="kt">Oh</code><code class="p">,</code> <code class="n">and</code> <code class="kr">in</code> <code class="mi">5</code> <code class="n">years</code> <code class="kt">I'll</code> <code class="n">be</code> <code class="o">#</code><code class="p">{</code><code class="n">show</code> <code class="p">(</code><code class="mi">5</code> <code class="o">+</code> <code class="p">(</code><code class="n">age</code> <code class="n">person</code><code class="p">))}</code> <code class="n">years</code> <code class="n">old</code><code class="o">.</code>
+<code class="o">|</code><code class="p">]</code>
+  <code class="kr">where</code>
+    <code class="n">person</code> <code class="ow">=</code> <code class="kt">Person</code> <code class="s">"Michael"</code> <code class="mi">26</code>
+</pre><p class="calibre7">What about our much-touted type-safe URLs? They are almost identical to variable
+   interpolation in every way, except they start with an at-sign (@) instead. In addition, there is
+   embedding via a caret (^) which allows you to embed another template of the same type. The next
+   code sample demonstrates both of these.</p><a id="I_programlisting4_d1e1530" class="firstname"></a><pre class="programlistinghaskell"><code class="cm">{-# LANGUAGE QuasiQuotes #-}</code>
+<code class="cm">{-# LANGUAGE OverloadedStrings #-}</code>
+<code class="kr">import</code> <code class="nn">Text.Hamlet</code> <code class="p">(</code><code class="kt">HtmlUrl</code><code class="p">,</code> <code class="nf">hamlet</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Text.Blaze.Renderer.String</code> <code class="p">(</code><code class="nf">renderHtml</code><code class="p">)</code>
+<code class="kr">import</code> <code class="nn">Data.Text</code> <code class="p">(</code><code class="kt">Text</code><code class="p">)</code>
+
+<code class="kr">data</code> <code class="kt">MyRoute</code> <code class="ow">=</code> <code class="kt">Home</code>
+
+<code class="nf">render</code> <code class="ow">::</code> <code class="kt">MyRoute</code> <code class="ow">-&gt;</code> <code class="p">[(</code><code class="kt">Text</code><code class="p">,</code> <code class="kt">Text</code><code class="p">)]</code> <code class="ow">-&gt;</code> <code class="kt">Text</code>
+<code class="nf">render</code> <code class="kt">Home</code> <code class="kr">_</code> <code class="ow">=</code> <code class="s">"/home"</code>
+
+<code class="nf">footer</code> <code class="ow">::</code> <code class="kt">HtmlUrl</code> <code class="kt">MyRoute</code>
+<code class="nf">footer</code> <code class="ow">=</code> <code class="p">[</code><code class="n">hamlet</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">footer</code><code class="o">&gt;</code>
+    <code class="kt">Return</code> <code class="n">to</code> <code class="o">#</code>
+    <code class="o">&lt;</code><code class="n">a</code> <code class="n">href</code><code class="o">=@</code><code class="p">{</code><code class="kt">Home</code><code class="p">}</code><code class="o">&gt;</code><code class="kt">Homepage</code>
+    <code class="o">.</code>
+<code class="o">|</code><code class="p">]</code>
+
+<code class="nf">main</code> <code class="ow">::</code> <code class="kt">IO</code> <code class="nb">()</code>
+<code class="nf">main</code> <code class="ow">=</code> <code class="n">putStrLn</code> <code class="o">$</code> <code class="n">renderHtml</code> <code class="o">$</code> <code class="p">[</code><code class="n">hamlet</code><code class="o">|</code>
+<code class="o">&lt;</code><code class="n">body</code><code class="o">&gt;</code>
+    <code class="o">&lt;</code><code class="n">p</code><code class="o">&gt;</code><code class="kt">This</code> <code class="n">is</code> <code class="n">my</code> <code class="n">page</code><code class="o">.</code>
+    <code class="o">^</code><code class="p">{</code><code class="n">footer</code><code class="p">}</code>
+<code class="o">|</code><code class="p">]</code> <code class="n">render</code>
+</pre></div><div class="book" title="Attributes"><div class="book"><div class="book"><div class="book"><h3 class="title5"><a id="id3044736" class="calibre1"></a>Attributes</h3></div></div></div><p class="calibre7">In that last example, we put an href attribute on the “a” tag. Let’s
+          elaborate on the syntax:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">You can have interpolations within the attribute value.</p></li><li class="listitem"><p class="calibre7">The equals sign and value for an attribute are optional, just like in HTML. So
+                  <code class="literal">&lt;input type=checkbox checked&gt;</code> is
+                perfectly valid.</p></li><li class="listitem"><p class="calibre7">There are two convenience attributes: for id, you can use the hash, and for
+                classes, the period. In other words, <code class="literal">&lt;p #paragraphid
+                  .class1 .class2&gt;</code>.</p></li><li class="listitem"><p class="calibre7">While quotes around the attribute value are optional, they are required if you
+                want to embed spaces.</p></li><li class="listitem"><p class="calibre7">You can add an attribute optionally by using colons. To make a checkbox only
+                checked if the variable isChecked is True, you would write <code class="literal">&lt;input type=checkbox :isChecked:checked&gt;</code>. To have a paragraph be
+                optionally red, you could use <code class="literal">&lt;p
+                  :isRed:style="color:red"&gt;</code>.</p></li></ul></div></div><div class="book" title="Conditionals"><div class="book"><div class="book"><div class="book"><h3 class="title5"><a id="id3044798" class="calibre1"></a>Conditionals</h3></div></div></div><p class="calibre7">Eventually, you’ll want to put some logic in your page. The goal of Hamlet is to make
+          the logic as minimalistic as possible, pushing the heavy lifting into Haskell. As such,
+          our logical statements are very basic…so basic, that it’s <code class="literal">if</code>, <code class="literal">elseif</code>, and <code class="literal">else</code>.<a id="I_programlisting4_d1e1579" class="firstname"></a></p><pre class="programlistinghaskell">$if isAdmin
+    &lt;p&gt;Welcome to the admin section.
+$elseif isLoggedIn
+    &lt;p&gt;You are not the administrator.
+$else
+    &lt;p&gt;I don't know who you are. Please log in so I can decide if you get access.</pre><p class="calibre7">All
+          the same rules of normal interpolation apply to the content of the conditionals.</p></div><div class="book" title="Maybe"><div class="book"><div class="book"><div class="book"><h3 class="title5"><a id="id3044846" class="calibre1"></a>Maybe</h3></div></div></div><p class="calibre7">Similarly, we have a special construct for dealing with Maybe values. This could
+          technically be dealt with using <code class="literal">if</code>, <code class="literal">isJust</code>, and <code class="literal">fromJust</code>, but
+          this is more convenient and avoids partial
+          functions.<a id="I_programlisting4_d1e1599" class="firstname"></a></p><pre class="programlistinghaskell">$maybe name &lt;- maybeName
+    &lt;p&gt;Your name is #{name}
+$nothing
+    &lt;p&gt;I don't know your name.</pre><p class="calibre7">In
+          addition to simple identifiers, you can use a few other, more complicated values on the
+          left-hand side, such as constructors and tuples.</p><a id="I_programlisting4_d1e1602" class="firstname"></a><pre class="programlistinghaskell">$maybe Person firstName lastName &lt;- maybePerson
+    &lt;p&gt;Your name is #{firstName} #{lastName}</pre><p class="calibre7">The right-hand side follows the same rules as interpolations, allow variables,
+          function application, and so on.</p></div><div class="book" title="Forall"><div class="book"><div class="book"><div class="book"><h3 class="title5"><a id="id3044904" class="calibre1"></a>Forall</h3></div></div></div><p class="calibre7">And what about looping over lists? We have you covered there
+   too:<a id="I_programlisting4_d1e1611" class="firstname"></a></p><pre class="programlistinghaskell">$if null people
+    &lt;p&gt;No people.
+$else
+    &lt;ul&gt;
+        $forall person &lt;- people
+            &lt;li&gt;#{person}</pre></div><div class="book" title="Case"><div class="book"><div class="book"><div class="book"><h3 class="title5"><a id="id3044920" class="calibre1"></a>Case</h3></div></div></div><p class="calibre7">Pattern matching is one of the great strengths of Haskell. Sum types let you cleanly model many
+   real-world types, and <code class="literal">case</code> statements let you safely match, letting the compiler
+   warn you if you missed a case. Hamlet gives you the same power.</p><a id="I_programlisting4_d1e1621" class="firstname"></a><pre class="programlistinghaskell">$case foo
+    $of Left bar
+        &lt;p&gt;It was left: #{bar}
+    $of Right baz
+        &lt;p&gt;It was right: #{baz}</pre></div><div class="book" title="With"><div class="book"><div class="book"><div class="book"><h3 class="title5"><a id="id3044945" class="calibre1"></a>With</h3></div></div></div><p class="calibre7">Rounding out our statements, we have <code class="literal">with</code>. It’s
+          basically just a convenience for declaring a synonym for a long
+          expression.<a id="I_programlisting4_d1e1631" class="firstname"></a></p><pre class="programlistinghaskell">$with foo &lt;- some very (long ugly) expression that $ should only $ happen once
+    &lt;p&gt;But I'm going to use #{foo} multiple times. #{foo}</pre></div><div class="book" title="Doctype"><div class="book"><div class="book"><div class="book"><h3 class="title5"><a id="id3044970" class="calibre1"></a>Doctype</h3></div></div></div><p class="calibre7">Last bit of syntactic sugar: the doctype statement. We have support for a number of
+            different versions of a <code class="literal">doctype</code>, though we recommend <code class="literal">$doctype
+                5</code> for modern web applications, which generates <code class="literal">&lt;!DOCTYPE
+                html&gt;</code>.<a id="I_programlisting4_d1e1647" class="firstname"></a></p><pre class="programlistinghaskell">$doctype 5
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;title&gt;Hamlet is Awesome
+    &lt;body&gt;
+        &lt;p&gt;All done.</pre><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">There
+                is an older and still supported syntax: three exclamation points
+                    (<code class="literal">!!!</code>). You may still see this in code out there. We have no
+                plans to remove support for this, but in general find the <code class="literal">$doctype</code>
+                approach easier to read.</p></div></div></div><div class="book" title="Cassius Syntax"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3045022" class="calibre1"></a>Cassius Syntax</h2></div></div></div><p class="calibre7">Cassius is the original CSS template language. It uses simple whitespace rules to delimit
+   blocks, making braces and semicolons unnecessary. It supports both variable and URL
+   interpolation, but not embedding. The syntax is very
+   straightforward:<a id="I_programlisting4_d1e1663" class="firstname"></a></p><pre class="programlistinghaskell">#banner
+    border: 1px solid #{bannerColor}
+    background-image: url(@{BannerImageR})</pre></div><div class="book" title="Lucius Syntax"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3045040" class="calibre1"></a>Lucius Syntax</h2></div></div></div><p class="calibre7">While Cassius uses a modified, whitespace-sensitive syntax for CSS, Lucius is true to
+   the original. You can take any CSS file out there and it will be a valid Lucius file. There are,
+   however, a few additions to Lucius:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">Like Cassius, we allow both variable and URL interpolation.</p></li><li class="listitem"><p class="calibre7">CSS blocks are allowed to nest.</p></li><li class="listitem"><p class="calibre7">You can declare variables in your templates.</p></li></ul></div><p class="calibre7">Starting with the second point: let’s say you want to have some special styling for some
+        tags within your <code class="literal">article</code>. In plain ol’ CSS, you’d have to
+        write:<a id="I_programlisting4_d1e1685" class="firstname"></a></p><pre class="programlistinghaskell">article code { background-color: grey; }
+article p { text-indent: 2em; }
+article a { text-decoration: none; }</pre><p class="calibre7">In
+        this case, there aren’t that many clauses, but having to type out article each time is still
+        a bit of a nuisance. Imagine if you had a dozen or so of these. Not the worst thing in the
+        world, but a bit of an annoyance. Lucius helps you out
+        here:<a id="I_programlisting4_d1e1688" class="firstname"></a></p><pre class="programlistinghaskell">article {
+    code { background-color: grey; }
+    p { text-indent: 2em; }
+    a { text-decoration: none; }
+}</pre><p class="calibre7">Having Lucius variables allows you to avoid repeating yourself. A simple example would be to
+   define a commonly used color:</p><a id="I_programlisting4_d1e1692" class="firstname"></a><pre class="programlistinghaskell">@textcolor: #ccc; /* just because we hate our users */
+body { color: #{textcolor} }
+a:link, a:visited { color: #{textcolor} }</pre><p class="calibre7">Other than that, Lucius is identical to CSS.</p></div><div class="book" title="Julius Syntax"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3064076" class="calibre1"></a>Julius Syntax</h2></div></div></div><p class="calibre7">Julius is the simplest of the languages discussed here. In fact, some might even say
+        it’s really just JavaScript. Julius allows the three forms of interpolation we’ve mentioned
+        so far, and otherwise applies no transformations to your content.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">If you use Julius with the scaffolded Yesod site, you may notice that your
+            JavaScript is automatically minified. This is not a feature of Julius; instead, Yesod
+            uses the <code class="function">hjsmin</code> package to minify Julius
+            output.</p></div></div></div></div>
+
+{% endraw %}
+

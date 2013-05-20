@@ -1,0 +1,101 @@
+---
+layout: page
+title: "Understanding the Linux Kernel, 3rd Edition"
+prev: understandlk-CHP-7-SECT-5.html
+next: understandlk-CHP-8.html
+book_path: books/understanding-the-linux-kernel-rd-edition_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a name="understandlk-CHP-7-SECT-6"></a>
+<h3 class="docSection1Title">7.6. System Calls Related to Scheduling</h3><a name="IDX-CHP-7-1935"></a>
+<a name="IDX-CHP-7-1936"></a>
+<a name="IDX-CHP-7-1937"></a>
+<a name="IDX-CHP-7-1938"></a>
+<a name="IDX-CHP-7-1939"></a>
+<p class="docText1">Several system calls have been introduced to allow processes to change their priorities and scheduling policies. As a general rule, users are always allowed to lower the priorities of their processes. However, if they want to modify the priorities of processes belonging to some other user or if they want to increase the priorities of their own processes, they must have superuser privileges.</p>
+<a name="understandlk-CHP-7-SECT-6.1"></a>
+<h4 class="docSection2Title">7.6.1. The nice( ) System Call</h4>
+<p class="docText1">The <tt class="calibre25">nice( )<sup class="docFootnote3"><a class="pcalibre5 docLink pcalibre1" href="#understandlk-CHP-7-FN3">[*]</a></sup></tt> system call allows processes to change their base priority. The integer value contained in the <tt class="calibre25">increment</tt> parameter is used to modify the <tt class="calibre25">nice</tt> field of the process descriptor. The <i class="docEmphasis">nice</i> Unix command, which allows users to run programs with modified scheduling priority, is based on this system call.</p><blockquote class="calibre22"><p class="docFootnote1"><sup class="calibre24"><a name="understandlk-CHP-7-FN3">[*]</a></sup> Because this system call is usually invoked to lower the priority of a process, users who invoke it for their processes are "nice" to other users.</p></blockquote>
+<p class="docText1">The <tt class="calibre25">sys_nice( )</tt> service routine handles the <tt class="calibre25">nice( )</tt> system call. Although the <tt class="calibre25">increment</tt> parameter may have any value, absolute values larger than 40 are trimmed down to 40. Traditionally, negative values correspond to requests for priority increments and require superuser privileges, while positive ones correspond to requests for priority decreases. In the case of a negative increment, the function invokes the <tt class="calibre25">capable( )</tt> function to verify whether the process has a <tt class="calibre25">CAP_SYS_NICE</tt> capability. Moreover, the function invokes the <tt class="calibre25">security_task_setnice( )</tt> security hook. We discuss that function in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-20.html#understandlk-CHP-20">Chapter 20</a>. If the user turns out to have the privilege required to change priorities, <tt class="calibre25">sys_nice( )</tt> converts <tt class="calibre25">current-&gt;static_prio</tt> to the range of nice values, adds the value of <tt class="calibre25">increment</tt>, and invokes the <tt class="calibre25">set_user_nice( )</tt> function. In turn, the latter function gets the local runqueue lock, updates the static priority of <tt class="calibre25">current</tt>, invokes the <tt class="calibre25">resched_task( )</tt> function to allow other processes to preempt <tt class="calibre25">current</tt>, and release the runqueue lock.</p>
+<p class="docText1">The <tt class="calibre25">nice( )</tt> system call is maintained for backward compatibility only; it has been replaced by the <tt class="calibre25">setpriority( )</tt><a name="IDX-CHP-7-1940"></a> 
+ system call described next.</p>
+<a name="understandlk-CHP-7-SECT-6.2"></a>
+<h4 class="docSection2Title">7.6.2. The getpriority( ) and setpriority( ) System Calls</h4>
+<p class="docText1">The <tt class="calibre25">nice( )</tt> system call affects only the process that invokes it. Two other system calls, denoted as <tt class="calibre25">getpriority( )</tt> and <tt class="calibre25">setpriority( )</tt>, act on the base priorities of all processes in a given group. <tt class="calibre25">getpriority( )</tt> returns 20 minus the lowest <tt class="calibre25">nice</tt> field value among all processes in a given groupthat is, the highest priority among those processes; <tt class="calibre25">setpriority( )</tt> sets the base priority of all processes in a given group to a given value.</p>
+<p class="docText1">The kernel implements these system calls by means of the <tt class="calibre25">sys_getpriority( )</tt> and <tt class="calibre25">sys_setpriority( )</tt> service routines. Both of them act essentially on the same group of parameters:</p>
+<dl class="docText1"><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">which</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">The value that identifies the group of processes; it can assume one of the following:</p>
+<dl class="docList5"><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">PRIO_PROCESS</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">Selects the processes according to their process ID (<tt class="calibre25">pid</tt> field of the process descriptor).</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">PRIO_PGRP</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">Selects the processes according to their group ID (<tt class="calibre25">pgrp</tt> field of the process descriptor).</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">PRIO_USER</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">Selects the processes according to their user ID (<tt class="calibre25">uid</tt> field of the process descriptor).</p></dd></dl></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">who</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">The value of the <tt class="calibre25">pid</tt>, <tt class="calibre25">pgrp</tt>, or <tt class="calibre25">uid</tt> field (depending on the value of <tt class="calibre25">which</tt>) to be used for selecting the processes. If <tt class="calibre25">who</tt> is 0, its value is set to that of the corresponding field of the <tt class="calibre25">current</tt> process.</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docPubcolor"><span class="docMonofont">niceval</span></span></span></p></dt>
+<dd class="calibre20"><p class="docList">The new base priority value (needed only by <tt class="calibre25">sys_setpriority( )</tt>). It should range between - 20 (highest priority) and + 19 (lowest priority).</p></dd></dl>
+<p class="docText1">As stated before, only processes with a <tt class="calibre25">CAP_SYS_NICE</tt> capability are allowed to increase their own base priority or to modify that of other processes.</p>
+<p class="docText1">As we will see in <a class="pcalibre5 docLink pcalibre1" href="understandlk-CHP-10.html#understandlk-CHP-10">Chapter 10</a>, system calls return a negative value only if some error occurred. For this reason, <tt class="calibre25">getpriority( )</tt> does not return a normal nice value ranging between - 20 and + 19, but rather a nonnegative value ranging between 1 and 40.</p>
+<a name="understandlk-CHP-7-SECT-6.3"></a>
+<h4 class="docSection2Title">7.6.3. The sched_getaffinity( ) and sched_setaffinity( ) System Calls</h4><a name="IDX-CHP-7-1941"></a>
+<a name="IDX-CHP-7-1942"></a>
+<a name="IDX-CHP-7-1943"></a>
+<a name="IDX-CHP-7-1944"></a>
+<a name="IDX-CHP-7-1945"></a>
+<a name="IDX-CHP-7-1946"></a>
+<a name="IDX-CHP-7-1947"></a>
+<a name="IDX-CHP-7-1948"></a>
+<p class="docText1">The <tt class="calibre25">sched_getaffinity( )</tt> and <tt class="calibre25">sched_setaffinity( )</tt> system calls respectively return and set up the CPU affinity mask of a processthe bit mask of the CPUs that are allowed to execute the process. This mask is stored in the <tt class="calibre25">cpus_allowed</tt> field of the process descriptor.</p>
+<p class="docText1">The <tt class="calibre25">sys_sched_getaffinity( )</tt> system call service routine looks up the process descriptor by invoking <tt class="calibre25">find_task_by_pid( )</tt>, and then returns the value of the corresponding <tt class="calibre25">cpus_allowed</tt> field ANDed with the bitmap of the available CPUs.</p>
+<p class="docText1">The <tt class="calibre25">sys_sched_setaffinity( )</tt> system call is a bit more complicated. Besides looking for the descriptor of the target process and updating the <tt class="calibre25">cpus_allowed</tt> field, this function has to check whether the process is included in a runqueue of a CPU that is no longer present in the new affinity mask. In the worst case, the process has to be moved from one runqueue to another one. To avoid problems due to deadlocks and race conditions, this job is done by the <span class="docEmphasis">migration</span><a name="IDX-CHP-7-1949"></a> 
+ kernel threads (there is one thread per CPU). Whenever a process has to be moved from a runqueue <tt class="calibre25">rq1</tt> to another runqueue <tt class="calibre25">rq2</tt>, the system call awakes the migration thread of <tt class="calibre25">rq1</tt> (<tt class="calibre25">rq1-&gt;migration_thread</tt>), which in turn removes the process from <tt class="calibre25">rq1</tt> and inserts it into <tt class="calibre25">rq2</tt>.</p>
+<a name="understandlk-CHP-7-SECT-6.4"></a>
+<h4 class="docSection2Title">7.6.4. System Calls Related to Real-Time Processes</h4><a name="IDX-CHP-7-1950"></a>
+<a name="IDX-CHP-7-1951"></a>
+<a name="IDX-CHP-7-1952"></a>
+<a name="IDX-CHP-7-1953"></a>
+<a name="IDX-CHP-7-1954"></a>
+<a name="IDX-CHP-7-1955"></a>
+<a name="IDX-CHP-7-1956"></a>
+<a name="IDX-CHP-7-1957"></a>
+<p class="docText1">We now introduce a group of system calls that allow processes to change their scheduling discipline and, in particular, to become real-time processes. As usual, a process must have a <tt class="calibre25">CAP_SYS_NICE</tt> capability to modify the values of the <tt class="calibre25">rt_priority</tt> and <tt class="calibre25">policy</tt> process descriptor fields of any process, including itself.</p>
+<a name="understandlk-CHP-7-SECT-6.4.1"></a>
+<h5 class="docSection3Title">7.6.4.1. The sched_getscheduler( ) and sched_setscheduler( ) system calls</h5>
+<p class="docText1">The <tt class="calibre25">sched_getscheduler( )</tt> system call queries the scheduling policy currently applied to the process identified by the <tt class="calibre25">pid</tt> parameter. If <tt class="calibre25">pid</tt> equals 0, the policy of the calling process is retrieved. On success, the system call returns the policy for the process: <tt class="calibre25">SCHED_FIFO</tt>, <tt class="calibre25">SCHED_RR</tt>, or <tt class="calibre25">SCHED_NORMAL</tt> (the latter is also called <tt class="calibre25">SCHED_OTHER</tt>). The corresponding <tt class="calibre25">sys_sched_getscheduler( )</tt> service routine invokes <tt class="calibre25">find_process_by_pid( )</tt>, which locates the process descriptor corresponding to the given <tt class="calibre25">pid</tt> and returns the value of its <tt class="calibre25">policy</tt> field.</p>
+<p class="docText1">The <tt class="calibre25">sched_setscheduler( )</tt> system call sets both the scheduling policy and the associated parameters for the process identified by the parameter <tt class="calibre25">pid</tt>. If <tt class="calibre25">pid</tt> is equal to 0, the scheduler parameters of the calling process will be set.</p>
+<p class="docText1">The corresponding <tt class="calibre25">sys_sched_setscheduler( )</tt> system call service routine simply invokes <tt class="calibre25">do_sched_setscheduler( )</tt>. The latter function checks whether the scheduling policy specified by the <tt class="calibre25">policy</tt> parameter and the new priority specified by the <tt class="calibre25">param-&gt;sched_priority</tt> parameter are valid. It also checks whether the process has <tt class="calibre25">CAP_SYS_NICE</tt> capability or whether its owner has superuser rights. If everything is OK, it removes the process from its runqueue (if it is runnable); updates the static, real-time, and dynamic priorities of the process; inserts the process back in the runqueue; and finally invokes, if necessary, the <tt class="calibre25">resched_task( )</tt> function to preempt the current process of the runqueue.</p>
+<a name="understandlk-CHP-7-SECT-6.4.2"></a>
+<h5 class="docSection3Title">7.6.4.2. The sched_ getparam( ) and sched_setparam( ) system calls</h5>
+<p class="docText1">The <tt class="calibre25">sched_getparam( )</tt> system call retrieves the scheduling parameters for the process identified by <tt class="calibre25">pid</tt>. If <tt class="calibre25">pid</tt> is 0, the parameters of the <tt class="calibre25">current</tt> process are retrieved. The corresponding <tt class="calibre25">sys_sched_getparam( )</tt> service routine, as one would expect, finds the process descriptor pointer associated with <tt class="calibre25">pid</tt>, stores its <tt class="calibre25">rt_priority</tt> field in a local variable of type <tt class="calibre25">sched_param</tt>, and invokes <tt class="calibre25">copy_to_user( )</tt> to copy it into the process address space at the address specified by the <tt class="calibre25">param</tt> parameter.</p>
+<p class="docText1">The <tt class="calibre25">sched_setparam( )</tt> system call is similar to <tt class="calibre25">sched_setscheduler( )</tt>. The difference is that <tt class="calibre25">sched_setparam( )</tt> does not let the caller set the <tt class="calibre25">policy</tt> field's value.<sup class="docFootnote"><a class="pcalibre5 docLink pcalibre1" href="#understandlk-CHP-7-FN4">[*]</a></sup> The corresponding <tt class="calibre25">sys_sched_setparam( )</tt> service routine invokes <tt class="calibre25">do_sched_setscheduler( )</tt>, with almost the same parameters as <tt class="calibre25">sys_sched_setscheduler( )</tt>.</p><blockquote class="calibre22"><p class="docFootnote1"><sup class="calibre24"><a name="understandlk-CHP-7-FN4">[*]</a></sup> This anomaly is caused by a specific requirement of the POSIX standard.</p></blockquote>
+<a name="understandlk-CHP-7-SECT-6.4.3"></a>
+<h5 class="docSection3Title">7.6.4.3. The sched_ yield( ) system call</h5><a name="IDX-CHP-7-1958"></a>
+<a name="IDX-CHP-7-1959"></a>
+<a name="IDX-CHP-7-1960"></a>
+<a name="IDX-CHP-7-1961"></a>
+<a name="IDX-CHP-7-1962"></a>
+<a name="IDX-CHP-7-1963"></a>
+<a name="IDX-CHP-7-1964"></a>
+<a name="IDX-CHP-7-1965"></a>
+<a name="IDX-CHP-7-1966"></a>
+<a name="IDX-CHP-7-1967"></a>
+<a name="IDX-CHP-7-1968"></a>
+<a name="IDX-CHP-7-1969"></a>
+<p class="docText1">The <tt class="calibre25">sched_yield( )</tt> system call allows a process to relinquish the CPU voluntarily without being suspended; the process remains in a <tt class="calibre25">TASK_RUNNING</tt> state, but the scheduler puts it either in the expired set of the runqueue (if the process is a conventional one), or at the end of the runqueue list (if the process is a real-time one). The <tt class="calibre25">schedule( )</tt> function is then invoked. In this way, other processes that have the same dynamic priority have a chance to run. The call is used mainly by <tt class="calibre25">SCHED_FIFO</tt> real-time processes.</p>
+<a name="understandlk-CHP-7-SECT-6.4.4"></a>
+<h5 class="docSection3Title">7.6.4.4. The sched_ get_priority_min( ) and sched_ get_priority_max( ) system calls</h5>
+<p class="docText1">The <tt class="calibre25">sched_get_priority_min( )</tt> and <tt class="calibre25">sched_get_priority_max( )</tt> system calls return, respectively, the minimum and the maximum real-time static priority value that can be used with the scheduling policy identified by the <tt class="calibre25">policy</tt> parameter.</p>
+<p class="docText1">The <tt class="calibre25">sys_sched_get_priority_min( )</tt> service routine returns 1 if <tt class="calibre25">current</tt> is a real-time process, 0 otherwise.</p>
+<p class="docText1">The <tt class="calibre25">sys_sched_get_priority_max( )</tt> service routine returns 99 (the highest priority) if <tt class="calibre25">current</tt> is a real-time process, 0 otherwise.</p>
+<a name="understandlk-CHP-7-SECT-6.4.5"></a>
+<h5 class="docSection3Title">7.6.4.5. The sched_rr_ get_interval( ) system call</h5>
+<p class="docText1">The <tt class="calibre25">sched_rr_get_interval( )</tt> system call writes into a structure stored in the User Mode address space the Round Robin time quantum for the real-time process identified by the <tt class="calibre25">pid</tt> parameter. If <tt class="calibre25">pid</tt> is zero, the system call writes the time quantum of the current process.</p>
+<p class="docText1">The corresponding <tt class="calibre25">sys_sched_rr_get_interval( )</tt> service routine invokes, as usual, <tt class="calibre25">find_process_by_pid( )</tt> to retrieve the process descriptor associated with <tt class="calibre25">pid</tt>. It then converts the base time quantum of the selected process into seconds and nanoseconds and copies the numbers into the User Mode structure. Conventionally, the time quantum of a FIFO real-time process is equal to zero.</p>
+
+<br class="calibre7"/>
+
+</div>
+
+{% endraw %}
+

@@ -1,0 +1,23 @@
+---
+layout: page
+title: "Unknown"
+prev: r27893.htm
+next: r28031.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="r27893.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4"/><td width="10%" valign="bottom" class="calibre5"><a href="r28031.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><h1 class="calibre7"><a name="SQL-ROLLBACK" class="calibre8">ROLLBACK</a></h1><div class="NAVHEADER"><a name="AEN27991"></a><h2 class="SECT">Name</h2>ROLLBACK -- Aborts the current transaction block and abandons any modifications it would have made.</div><div class="NAVHEADER"><a name="AEN27994"></a><h2 class="SECT">Synopsis</h2><pre class="SCREEN">ROLLBACK [ WORK | TRANSACTION ]</pre><div class="NAVHEADER"><a name="R2-SQL-ROLLBACK-1"></a><h3 class="AUTHOR">Parameters</h3><p class="calibre9"> </p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">WORK | TRANSACTION</tt></dt><dd class="calibre16"><p class="calibre9">A pair of optional noise keywords. They can be ignored, or used to make your SQL more readable.</p></dd></dl></div>
+</div><div class="NAVHEADER"><a name="R2-SQL-ROLLBACK-2"></a><h3 class="AUTHOR">Results</h3><p class="calibre9">
+</p><p class="calibre9"></p><div class="NAVHEADER"><dl class="calibre9"><dt class="NAVHEADER"><tt class="REPLACEABLE">ABORT</tt></dt><dd class="calibre16"><p class="calibre9">The message returned when a transaction is aborted successfully.</p></dd><dt class="NAVHEADER"><tt class="REPLACEABLE">NOTICE:  ROLLBACK: no transaction in progress</tt></dt><dd class="calibre16"><p class="calibre9">The notice returned if there is not a transaction in progress to rollback.</p></dd></dl></div>
+</div></div><div class="NAVHEADER"><a name="R1-SQL-ROLLBACK-1"></a><h2 class="SECT">Description</h2><p class="calibre9">    Use <tt class="REPLACEABLE">ROLLBACK</tt> to abort a transaction in progress and discard all changes either already made or queued to be made on <tt class="REPLACEABLE">COMMIT</tt>.
+  </p></div><div class="NAVHEADER"><a name="R1-SQL-ROLLBACK-2"></a><h2 class="SECT">Example</h2><p class="calibre9">The following example demonstrates how to rollback an accidental delete performed within a transaction block:</p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">BEGIN WORK;</b></tt>
+BEGIN
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">DELETE FROM shipments;</b></tt>
+DELETE 36
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">ROLLBACK WORK;</b></tt>
+ROLLBACK</pre></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="r27893.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="r28031.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">REVOKE</td><td width="34%" valign="top" class="calibre4"><a href="c22759.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">SELECT</td></tr></table></div></div>
+
+{% endraw %}
+

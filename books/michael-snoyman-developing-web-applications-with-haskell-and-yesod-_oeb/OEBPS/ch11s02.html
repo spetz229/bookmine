@@ -1,0 +1,81 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch11.html
+next: OEBPS/ch11s03.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="Warp"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect111_d1e6012" class="calibre1"></a>Warp</h1></div></div></div><p class="calibre7">As we have mentioned before, Yesod is built on the Web Application Interface (WAI), allowing it to run on any WAI backend. At the time of writing, the following backends are available:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">Warp</p></li><li class="listitem"><p class="calibre7">FastCGI</p></li><li class="listitem"><p class="calibre7">SCGI</p></li><li class="listitem"><p class="calibre7">CGI</p></li><li class="listitem"><p class="calibre7">Webkit</p></li><li class="listitem"><p class="calibre7">Development server</p></li></ul></div><p class="calibre7">The last two are not intended for production deployments. Of the remaining four, all
+            can be used for production deployment in theory. In practice, a CGI backend will likely
+            be horribly inefficient, since a new process must be spawned for each connection. And
+            SCGI is not nearly as well supported by frontend web servers as Warp (via reverse
+            proxying) or FastCGI.</p><p class="calibre7">So between the two remaining choices, Warp gets a very strong recommendation because:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">It is significantly faster.</p></li><li class="listitem"><p class="calibre7">Like FastCGI, it can run behind a frontend server like Nginx, using reverse HTTP proxy.</p></li><li class="listitem"><p class="calibre7">In addition, it is a fully capable server of its own accord, and can therefore be used without any frontend server.</p></li></ul></div><p class="calibre7">So that leaves one last question: should Warp run on its own, or via reverse proxy behind
+            a frontend server? For most use cases, I recommend the latter, because:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">As fast as Warp is, it is still optimized as an application server, not a static
+                file server.</p></li><li class="listitem"><p class="calibre7">Using Nginx, you can set up virtual hosting to serve your static contents from a
+          separate domain. (It’s possible to do this with Warp, but a bit more involved).</p></li><li class="listitem"><p class="calibre7">You can use Nginx as either a load balancer or a SSL proxy. (Though with <code class="function">warp-tls</code> it’s entirely possible to run an https site on Warp
+          alone.)</p></li></ul></div><p class="calibre7">So my final recommendation is: set up Nginx to reverse proxy to Warp.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">A number of people in the Yesod community disagree with me here, and believe that the
+        increased performance and decreased complexity of skipping the Nginx step make standalone
+        Warp a better choice. Feel free to follow either approach; they are both perfectly
+        valid.</p></div><div class="book" title="Configuration"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3088964" class="calibre1"></a>Configuration</h2></div></div></div><p class="calibre7">In general, Nginx will listen on port 80 and your Yesod/Warp app will listen on some
+        unprivileged port (lets say 4321). You will then need to provide a <span class="firstname">nginx.conf</span> file, such as:</p><a id="I_programlisting11_d1e6078" class="firstname"></a><pre class="programlistinghaskell">daemon off; # Don't run nginx in the background, good for monitoring apps
+events {
+    worker_connections 4096;
+}
+
+http {
+    server {
+        listen 80; # Incoming port for Nginx
+        server_name www.myserver.com;
+        location / {
+            proxy_pass http://127.0.0.1:4321; # Reverse proxy to your Yesod app
+        }
+    }
+}</pre><p class="calibre7">You can add as many server blocks as you like. A common addition is to ensure that users
+        always access your pages with the www prefix on the domain name, ensuring the RESTful
+        principle of canonical URLs. (You could just as easily do the opposite and always strip the
+        www, just make sure that your choice is reflected in both the nginx config and the approot
+        of your site.) In this case, we would add the block:</p><a id="I_programlisting11_d1e6082" class="firstname"></a><pre class="programlistinghaskell">server {
+    listen 80;
+    server_name myserver.com;
+    rewrite ^/(.*) http://www.myserver.com/$1 permanent;
+}</pre><p class="calibre7">A highly recommended optimization is to serve static files from a separate domain
+            name, therefore bypassing the cookie transfer overhead. Assuming that our static files
+            are stored in the <code class="literal">static</code> folder within our site folder, and the
+            site folder is located at <code class="literal">/home/michael/sites/mysite</code>, this
+            would look like:</p><a id="I_programlisting11_d1e6092" class="firstname"></a><pre class="programlistinghaskell">server {
+    listen 80;
+    server_name static.myserver.com;
+    root /home/michael/sites/mysite/static;
+    # Since yesod-static appends a content hash in the query string,
+    # we are free to set expiration dates far in the future without
+    # concerns of stale content.
+    expires max;
+}</pre><p class="calibre7">In order for this to work, your site must properly rewrite static URLs to this alternate
+        domain name. The scaffolded site is set up to make this fairly simple via the <code class="literal">Settings.staticRoot</code> function and the definition of <code class="literal">urlRenderOverride</code>. However, if you just want to get the benefit
+        of nginx’s faster static file serving without dealing with separate domain names, you can
+        instead modify your original server block like so:</p><a id="I_programlisting11_d1e6102" class="firstname"></a><pre class="programlistinghaskell">server {
+    listen 80; # Incoming port for Nginx
+    server_name www.myserver.com;
+    location / {
+        proxy_pass http://127.0.0.1:4321; # Reverse proxy to your Yesod app
+    }
+    location /static {
+        root /home/michael/sites/mysite; # Notice that we do *not* include /static
+        expires max;
+    }
+}</pre></div><div class="book" title="Server Process"><div class="book"><div class="book"><div class="book"><h2 class="title4"><a id="id3089080" class="calibre1"></a>Server Process</h2></div></div></div><p class="calibre7">Many people are familiar with an Apache/mod_php or Lighttpd/FastCGI kind of setup, where
+        the web server automatically spawns the web application. With nginx, either for reverse
+        proxying or FastCGI, this is not the case: you are responsible for running your own process.
+        I strongly recommend a monitoring utility that will automatically restart your application
+        in case it crashes. There are many great options out there, such as <code class="function">angel</code> or daemontools.</p><p class="calibre7">To give a concrete example, here is an Upstart config file. The file must be placed in <code class="literal">/etc/init/mysite.conf</code>:</p><a id="I_programlisting11_d1e6118" class="firstname"></a><pre class="programlistinghaskell">description "My awesome Yesod application"
+start on runlevel [2345];
+stop on runlevel [!2345];
+respawn
+chdir /home/michael/sites/mysite
+exec /home/michael/sites/mysite/dist/build/mysite/mysite</pre><p class="calibre7">Once this is in place, bringing up your application is as simple as <code class="literal">sudo start mysite</code>.</p></div></div></div>
+
+{% endraw %}
+

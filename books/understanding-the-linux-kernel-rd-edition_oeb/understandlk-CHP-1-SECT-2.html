@@ -1,0 +1,52 @@
+---
+layout: page
+title: "Understanding the Linux Kernel, 3rd Edition"
+prev: understandlk-CHP-1-SECT-1.html
+next: understandlk-CHP-1-SECT-3.html
+book_path: books/understanding-the-linux-kernel-rd-edition_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<a name="understandlk-CHP-1-SECT-2"></a>
+<h3 class="docSection1Title">1.2. Hardware Dependency</h3><a name="IDX-CHP-1-0136"></a>
+<p class="docText1">Linux tries to maintain a neat distinction between hardware-dependent and hardware-independent source code. To that end, both the <i class="docEmphasis">arch</i> and the <i class="docEmphasis">include</i> directories include 23 subdirectories that correspond to the different types of hardware platforms supported. The standard names of the platforms are:</p>
+<a name="IDX-CHP-1-0137"></a><a name="IDX-CHP-1-0138"></a><a name="IDX-CHP-1-0139"></a><a name="IDX-CHP-1-0140"></a><a name="IDX-CHP-1-0141"></a><a name="IDX-CHP-1-0142"></a><a name="IDX-CHP-1-0143"></a><dl class="docText1">
+<dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">alpha</span></span></p></dt>
+<dd class="calibre20"><p class="docList">Hewlett-Packard's Alpha workstations (originally Digital, then Compaq; no longer manufactured)</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">arm</span>, arm26</span></p></dt>
+<dd class="calibre20"><p class="docList">ARM<a name="IDX-CHP-1-0137"></a> 
+ processor-based computers such as PDAs and embedded devices</p></dd>
+<dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">cris</span></span></p></dt>
+<dd class="calibre20"><p class="docList">"Code Reduced Instruction Set" CPUs used by Axis in its thin-servers, such as web cameras or development boards</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">frv</span></span></p></dt>
+<dd class="calibre20"><p class="docList">Embedded systems based on microprocessors of the Fujitsu's FR-V family</p></dd>
+<dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">h8300</span></span></p></dt>
+<dd class="calibre20"><p class="docList">Hitachi h8/300 and h8S RISC 8/16-bit microprocessors</p></dd>
+<dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">i386</span></span></p></dt>
+<dd class="calibre20"><p class="docList">IBM-compatible personal computers based on 80x86 microprocessors</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">ia64</span></span></p></dt>
+<dd class="calibre20"><p class="docList">Workstations based on the Intel 64-bit Itanium<a name="IDX-CHP-1-0138"></a> 
+ microprocessor</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">m32r</span></span></p></dt>
+<dd class="calibre20"><p class="docList">Computers based on the Renesas M32R family of microprocessors</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">m68k, m68knommu</span></span></p></dt>
+<dd class="calibre20"><p class="docList">Personal computers based on Motorola MC680x0 microprocessors</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">mips</span></span></p></dt>
+<dd class="calibre20"><p class="docList">Workstations based on MIPS<a name="IDX-CHP-1-0139"></a> 
+ microprocessors, such as those marketed by Silicon Graphics</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">parisc</span></span></p></dt>
+<dd class="calibre20"><p class="docList">Workstations based on Hewlett Packard HP 9000 PA-RISC microprocessors</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">ppc, ppc64</span></span></p></dt>
+<dd class="calibre20"><p class="docList">Workstations based on the 32-bit and 64-bit Motorola-IBM PowerPC<a name="IDX-CHP-1-0140"></a> 
+ microprocessors</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">s390</span></span></p></dt>
+<dd class="calibre20"><p class="docList">IBM ESA/390 and zSeries mainframes</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">sh, sh64</span></span></p></dt>
+<dd class="calibre20"><p class="docList">Embedded systems based on SuperH microprocessors developed by Hitachi and STMicroelectronics</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">sparc, sparc64</span></span></p></dt>
+<dd class="calibre20"><p class="docList">Workstations based on Sun Microsystems SPARC and 64-bit Ultra SPARC microprocessors</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">um</span></span></p></dt>
+<dd class="calibre20"><p class="docList">User Mode Linux, a virtual platform that allows developers to run a kernel in User Mode</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">v850</span></span></p></dt>
+<dd class="calibre20"><p class="docList">NEC V850 microcontrollers that incorporate a 32-bit RISC core based on the Harvard architecture</p></dd><dt class="calibre7"><br class="calibre7"/><p class="calibre14"><span class="docPubcolor"><span class="docEmphasis">x86_64</span></span></p></dt>
+<dd class="calibre20"><p class="docList">Workstations based on the AMD's 64-bit microprocessorssuch Athlon<a name="IDX-CHP-1-0141"></a> 
+ and Opteron<a name="IDX-CHP-1-0142"></a> 
+and Intel's ia32e/EM64T<a name="IDX-CHP-1-0143"></a> 
+ 64-bit microprocessors</p></dd></dl>
+<a href="31071535.html"><img src="pixel.jpg" alt="" border="0" class="calibre19"/></a>
+<br class="calibre7"/>
+
+</div>
+
+{% endraw %}
+

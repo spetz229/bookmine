@@ -1,0 +1,74 @@
+---
+layout: page
+title: "JavaScript Web Applications"
+prev: OEBPS/ch03s09.html
+next: OEBPS/ch04s02.html
+book_path: books/alex-maccaw-javascript-web-applications-otx--_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="calibre7"></div><div class="book" title="Chapter 4. Controllers and State"><div class="book"><div class="book"><div class="book"><div class="calibre7"></div><h1 class="title1"><a id="controllers-state" class="calibre1"></a>Chapter 4. Controllers and State</h1></div></div></div><p class="calibre3"><a id="index-144P600OP6B" class="calibre1"></a>Historically, state <a id="I_indexterm4_d1e3902" class="calibre1"></a>was managed server side with session cookies. So, whenever
+  users navigated to a new page, the previous page’s state was lost—only the
+  cookies persisted. JavaScript applications, however, are confined to a
+  single page, which means we can now store state on the client's
+  memory.</p><p class="calibre3">One of the major advantages to storing state on the client is a really
+  responsive interface. A user gets immediate feedback when interacting with
+  the page, rather than waiting a few seconds for the next page to load. Speed
+  greatly improves the user experience, making many JavaScript applications a
+  real pleasure to use.</p><p class="calibre3">However, storing state on the client causes challenges as well. Where
+  exactly should it be stored? In local variables? Perhaps in the DOM? This is
+  where a lot of developers get led astray, which is an unfortunate state of
+  affairs because storing state properly is one of the most critical areas to
+  get right.</p><p class="calibre3">First, you should avoid storing data or state in the DOM. That’s just
+  a slippery slope leading to an entangled mess and anarchy! In our case—since
+  we’re using the tried and tested MVC architecture—state is stored inside our
+  application’s controllers.</p><p class="calibre3">What exactly is a controller? Well, you can think of it as the glue
+  between the application’s views and models. It’s the only component aware of
+  the application’s views and models, tying them together. When the page
+  loads, your controller attaches event handlers to views and processes
+  callbacks appropriately, interfacing with models as necessary.</p><p class="calibre3">You don’t need any libraries to create controllers, although they can
+  be useful. The only essential part is that controllers are modular and
+  independent. Ideally, they shouldn’t be defining any global variables,
+  instead functioning as fairly decoupled components. An excellent way of
+  ensuring this is with the module pattern.</p><div class="book" title="Module Pattern"><div class="book"><div class="book"><div class="book"><h1 class="title1"><a id="I_sect14_d1e3916" class="calibre1"></a>Module Pattern</h1></div></div></div><p class="calibre3"><a id="I_indexterm4_d1e3920" class="calibre1"></a><a id="I_indexterm4_d1e3925" class="calibre1"></a>The module pattern is a great way to encapsulate logic and
+    prevent global namespace <a id="I_indexterm4_d1e3929" class="calibre1"></a>pollution. It’s all made possible by anonymous functions,
+    which are arguably the single best feature of JavaScript. We’ll just
+    create an anonymous function and execute it immediately. All the code
+    residing within the function runs inside a closure, providing a local and
+    private environment for our application’s variables:</p><pre class="screen">(function(){
+  /* ... */
+})();</pre><p class="calibre3">We have to surround the anonymous function with braces <code class="literal">()</code><a id="I_indexterm4_d1e3941" class="calibre1"></a><a id="I_indexterm4_d1e3944" class="calibre1"></a> before we can execute it. JavaScript requires this so it
+    can interpret the statement correctly.</p><div class="book" title="Global Import"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2918101" class="calibre12"></a>Global Import</h2></div></div></div><p class="calibre3"><a id="I_indexterm4_d1e3954" class="calibre1"></a><a id="I_indexterm4_d1e3957" class="calibre1"></a>Variable definitions inside the module are local, so they
+      can’t be accessed outside in the global namespace.<a id="I_indexterm4_d1e3961" class="calibre1"></a><a id="I_indexterm4_d1e3966" class="calibre1"></a> However, the application’s global variables are all still
+      available, and they can be readily accessed and manipulated inside the
+      module. It’s often not obvious which global variables are being used by
+      a module, especially when your modules get larger.</p><p class="calibre3">In addition, implied globals are slower to resolve because the
+      JavaScript interpreter has to walk up the scope chain to resolve them.
+      Local variable access will always be faster and more efficient.</p><p class="calibre3">Luckily, our modules provide an easy way to resolve these
+      problems. By passing globals as parameters to our anonymous function, we
+      can import them into our code, which is both clearer and faster than
+      implied globals:</p><pre class="screen">(function($){
+  /* ... */
+})(jQuery);</pre><p class="calibre3">In the example above, we’re importing the global variable <code class="literal">jQuery</code> into our module and aliasing it to
+      <code class="literal">$</code>. It’s obvious which global
+      variables are being accessed inside the module, and their lookup is
+      quicker. In fact, this is the <a class="ulink" href="http://docs.jquery.com/Plugins/Authoring#Getting_Started">recommended
+      practice</a> whenever you want to use jQuery’s <code class="literal">$</code> shortcut,<a id="I_indexterm4_d1e3992" class="calibre1"></a><a id="I_indexterm4_d1e3995" class="calibre1"></a> which ensures that your code won’t conflict with any
+      other libraries.</p></div><div class="book" title="Global Export"><div class="book"><div class="book"><div class="book"><h2 class="title3"><a id="id2918231" class="calibre12"></a>Global Export</h2></div></div></div><p class="calibre3"><a id="I_indexterm4_d1e4005" class="calibre1"></a><a id="I_indexterm4_d1e4008" class="calibre1"></a>We can use a similar technique when it comes to exporting
+      global variables. Ideally, you should be using as few global variables
+      as possible, but there’s always the odd occasion when they’re needed. We
+      can import the page’s <code class="literal">window</code> into our
+      module, setting properties on it directly, thereby exposing variables
+      globally:</p><pre class="screen">(function($, exports){
+
+  exports.Foo = "wem";
+
+})(jQuery, window);
+
+assertEqual( Foo, "wem" );</pre><p class="calibre3">The fact that we’re using a variable called <code class="literal">exports</code> to set any global variables means the
+      code is clearer, making it obvious which global variables a module is
+      creating.</p></div></div></div></div>
+
+{% endraw %}
+

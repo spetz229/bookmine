@@ -1,0 +1,190 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect118_d1e39299.html
+next: I_sect118_d1e39551.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect118_d1e39299.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect118_d1e39551.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect118_d1e39405" class="calibre27" id="I_sect118_d1e39405"></a><h3 id="title-IDAURKIL" class="docSection1Title">18.2. A Simple Monad Transformer Example</h3><a name="x_It" class="calibre27" id="x_It"></a><p class="docText">Before we introduce monad transformers, let's look at a
+    function written using techniques we are already familiar with. The
+    function that follows recurses into a directory tree and returns a list of
+    the number of entries it finds at each level of the tree:</p><pre class="calibre39">-- file: ch18/CountEntries.hs
+module CountEntries (listDirectory, countEntriesTrad) where
+
+import System.Directory (doesDirectoryExist, getDirectoryContents)
+import System.FilePath ((&lt;/&gt;))
+import Control.Monad (forM, liftM)
+
+listDirectory :: FilePath -&gt; IO [String]
+listDirectory = liftM (filter notDots) . getDirectoryContents
+    where notDots p = p /= "." &amp;&amp; p /= ".."
+
+countEntriesTrad :: FilePath -&gt; IO [(FilePath, Int)]
+countEntriesTrad path = do
+  contents &lt;- listDirectory path
+  rest &lt;- forM contents $ \name -&gt; do
+            let newName = path &lt;/&gt; name
+            isDir &lt;- doesDirectoryExist newName
+            if isDir
+              then countEntriesTrad newName
+              else return []
+  return $ (path, length contents) : concat rest</pre><br class="calibre48"/>
+<a name="x_Jt" class="calibre27" id="x_Jt"></a><p class="docText">We'll now look at using the <tt class="calibre34">Writer</tt>
+    monad to achieve the same goal. Since this monad lets us record a value
+    wherever we want, we don't need to explicitly build up a result.</p><a name="x_Kt" class="calibre27" id="x_Kt"></a><p class="docText">As our function must execute in the IO monad
+    so that it can traverse directories, we can't use the Writer
+    monad directly. Instead, we use WriterT to add the recording
+    capability to IO. We will find the going easier if we look at
+    the types involved.</p><a name="x_Lt" class="calibre27" id="x_Lt"></a><p class="docText">The normal Writer monad has two type
+    parameters, so it's more properly written Writer w a. The
+    first parameter <span class="docMonofont">w</span> is the type of the values
+    to be recorded, and <span class="docMonofont">a</span> is the usual type
+    that the Monad typeclass requires. Thus Writer
+    [(FilePath, Int)] a is a writer monad that records a list of
+    directory names and sizes.</p><a name="x_Mt" class="calibre27" id="x_Mt"></a><p class="docText">The WriterT transformer has a similar
+    structure, but it adds another type parameter <span class="docMonofont">m</span>: this is the underlying monad whose behavior we
+    are augmenting. The full signature of WriterT is
+    WriterT w m a.</p><a name="x_Nt" class="calibre27" id="x_Nt"></a><p class="docText">Because we need to traverse directories, which requires
+    access to the IO monad, we'll stack our writer on top of the
+    IO monad. Our combination of monad transformer and underlying
+    monad will thus have the type WriterT [(FilePath, Int)] IO a.
+    This stack of monad transformer and monad is itself a monad:</p><pre class="calibre39">-- file: ch18/CountEntriesT.hs
+module CountEntriesT (listDirectory, countEntries) where
+
+import CountEntries (listDirectory)
+import System.Directory (doesDirectoryExist)
+import System.FilePath ((&lt;/&gt;))
+import Control.Monad (forM_, when)
+import Control.Monad.Trans (liftIO)
+import Control.Monad.Writer (WriterT, tell)
+
+countEntries :: FilePath -&gt; WriterT [(FilePath, Int)] IO ()
+countEntries path = do
+  contents &lt;- liftIO . listDirectory $ path
+  tell [(path, length contents)]
+  forM_ contents $ \name -&gt; do
+    let newName = path &lt;/&gt; name
+    isDir &lt;- liftIO . doesDirectoryExist $ newName
+    when isDir $ countEntries newName</pre><br class="calibre48"/>
+<a name="x_Ot" class="calibre27" id="x_Ot"></a><p class="docText">This code is not terribly different from our earlier
+    version. We use <i class="docEmphasis">liftIO</i> to expose the
+    IO monad where necessary and use <i class="docEmphasis">tell</i> to record a visit to a directory.</p><a name="x_Pt" class="calibre27" id="x_Pt"></a><p class="docText">To run our code, we must use one of WriterT's
+    execution functions:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type runWriterT</b>
+runWriterT :: WriterT w m a -&gt; m (a, w)
+ghci&gt; <b class="calibre40">:type execWriterT</b>
+execWriterT :: (Monad m) =&gt; WriterT w m a -&gt; m w</pre><a name="x_Qt" class="calibre27" id="x_Qt"></a><p class="docText">These functions execute the action, and then remove the
+    WriterT wrapper and give a result that is wrapped in the
+    underlying monad. The <i class="docEmphasis">runWriterT</i>
+    function gives both the result of the action and whatever was recorded as
+    it ran, while <i class="docEmphasis">execWriterT</i> throws away
+    the result and just gives us what was recorded:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:type countEntries ".."</b>
+countEntries ".." :: WriterT [(FilePath, Int)] IO ()
+ghci&gt; <b class="calibre40">:type execWriterT (countEntries "..")</b>
+execWriterT (countEntries "..") :: IO [(FilePath, Int)]
+ghci&gt; <b class="calibre40">take 4 `liftM` execWriterT (countEntries "..")</b>
+[("..",30),("../ch05",28),("../ch05/dist",3),("../ch05/dist/build",9)]</pre><a name="x_RJ1" class="calibre27" id="x_RJ1"></a><p class="docText">We use a WriterT on top of IO
+    because there is no IOT monad transformer. Whenever we use
+    the IO monad with one or more monad transformers,
+    IO will always be at the bottom of the stack.</p>
+<a href="21061538.html" class="calibre2"><img src="pixel.gif" alt="" border="0" class="calibre31"/></a><ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect118_d1e39299.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect118_d1e39551.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

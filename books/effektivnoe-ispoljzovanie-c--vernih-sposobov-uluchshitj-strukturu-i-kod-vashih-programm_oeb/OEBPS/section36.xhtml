@@ -1,0 +1,81 @@
+---
+layout: page
+title: "Эффективное использование C++. 55 верных способов улучшить структуру и код ваших программ"
+prev: OEBPS/section35.xhtml
+next: OEBPS/section37.xhtml
+book_path: books/effektivnoe-ispoljzovanie-c--vernih-sposobov-uluchshitj-strukturu-i-kod-vashih-programm_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <div class="calibre">
+      <div class="title1">
+        <h2 class="calibre3">Правило 17: Помещение в «интеллектуальный» указатель объекта, вьщеленного с помощью new, лучше располагать в отдельном предложении</h2>
+      </div>
+      <p class="calibre2">Предположим, что есть функция, возвращающая уровень приоритета обработки, и другая функция для выполнения некоторой обработки динамически выделенного объекта Widget в соответствии с этим приоритетом:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">int priority();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void processWidgets(std::tr1::shared_ptr&lt;Widget&gt; pw, int priority);</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Помня о премудростях применения объектов, управляющих ресурсами (см. правило 13), processWidgets использует «интеллектуальный» указатель (здесь – tr1::shared_ptr) для обработки динамически выделенного объекта. Рассмотрим теперь такой вызов processWidgets:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">processWidgets(new Widget, priority());</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Стоп, не надо его рассматривать! Он не скомпилируется. Конструктор tr1::shared_ptr, принимающий указатель, объявлен с ключевым словом explicit, поэтому не происходит неявного преобразования из типа указателя, возвращенного выражением «new Widget», в тип tr1::shared_ptr, которого ожидает функция process-Widgets. Однако следующий код компилируется:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">processWidgets(std::tr1::shared_ptr&lt;Widget&gt;(new Widget), priority());</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Как это ни странно, но несмотря на использование управляющего ресурсами объекта, здесь возможна утечка ресурсов. Разберемся, почему.</p>
+      <p class="calibre2">Прежде чем компилятор сможет сгенерировать вызов processWidgets, он должен вычислить аргументы, переданные ему в качестве параметров. Второй аргумент – просто вызов функции priority, но первый – (std::tr1::shared_ptr&lt;Widget&gt; (new Widget)) – состоит из двух частей:</p>
+      <p class="calibre2">• выполнение выражения «new Widget»;</p>
+      <p class="calibre2">• вызов конструктора tr1::shared_ptr.</p>
+      <p class="calibre2">Перед тем как произойдет вызов processWidgets, компилятор должен сгенерировать код для решения следующих трех задач:</p>
+      <p class="calibre2">• вызов priority;</p>
+      <p class="calibre2">• выполнение «new Widget»;</p>
+      <p class="calibre2">• вызов конструктора tr1::shared_ptr.</p>
+      <p class="calibre2">Компиляторам C++ предоставлена определенная свобода в определении порядка выполнения этих операций. (И этим C++ отличается от таких языков, как Java и C#, где параметры функций всегда вычисляются в определенном порядке.) Выражение «new Widget» должно быть выполнено перед вызовом конструктора tr1::shared_ptr, потому что результат этого выражения передается конструктору в качестве аргумента, однако вызов priority может быть выполнен первым, вторым или третьим. Если компилятор решит поставить его на второе место (иногда это позволяет сгенерировать более эффективный код), то мы получим следующую последовательность операций:</p>
+      <p class="calibre2">1. Выполнение «new Widget».</p>
+      <p class="calibre2">2. Вызов priority.</p>
+      <p class="calibre2">3. Вызов конструктора tr1::shared_ptr.</p>
+      <p class="calibre2">Посмотрим, что случится, если вызов priority возбудит исключение. В этом случае указатель, возвращенный «new Widget», будет потерян, то есть не помещен в объект tr1::shared_ptr, который, как ожидается, должен предотвратить утечку ресурса. Утечка при вызове processWidgets происходит из-за того, что исключение возникает между моментом создания ресурса и моментом помещения его в управляющий объект.</p>
+      <p class="calibre2">Избежать подобной проблемы просто: используйте отдельные предложения для создания объекта Widget и помещения его в интеллектуальный указатель, а затем передайте этот интеллектуальный указатель processWidgets:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">std::tr1::shared_ptr&lt;Widget&gt; pw(new Widget); // поместить новый объект</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// в интеллектуальный указатель</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// в отдельном предложении</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">processWidget(pw, priority()); // этот вызов не приведет</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// к утечке</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Такой способ работает потому, что компиляторам предоставляется меньше свободы в переопределении порядка операций <em class="calibre5">в разных</em> предложениях, чем <em class="calibre5">в одном.</em> В модифицированном коде выражение «new Widget» и вызов конструктора tr1::shared_ptr отделены от вызова priority, поэтому компилятор не может вставить вызов priority между ними.</p>
+      <div class="subtitle">
+        <p class="subtitle1">
+          <strong class="calibre4">
+            <em class="calibre5">Что следует помнить</em>
+          </strong>
+        </p>
+      </div>
+      <p class="calibre2">• Помещайте объекты, выделенные оператором new, в «интеллектуальные» указатели в отдельном предложении. В противном случае такие вызовы могут привести к утечкам ресурсов, если возникнет исключение.</p>
+    </div>
+  </div>
+
+{% endraw %}
+

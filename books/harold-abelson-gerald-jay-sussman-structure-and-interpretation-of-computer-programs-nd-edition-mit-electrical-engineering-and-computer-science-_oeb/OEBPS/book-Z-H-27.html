@@ -1,0 +1,654 @@
+---
+layout: page
+title: "Structure and Interpretation of Computer Programs"
+prev: OEBPS/book-Z-H-26.html
+next: OEBPS/book-Z-H-28.html
+book_path: books/harold-abelson-gerald-jay-sussman-structure-and-interpretation-of-computer-programs-nd-edition-mit-electrical-engineering-and-computer-science-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+
+
+<a name="%_sec_4.2" id="%_sec_4.2"></a>
+<h2 class="calibre23"><a href="book-Z-H-4.html#%_toc_%_sec_4.2" class="calibre19">4.2  Variations on a Scheme – Lazy Evaluation</a></h2><p class="calibre1">
+
+
+<a name="%_idx_4666" id="%_idx_4666"></a><a name="%_idx_4668" id="%_idx_4668"></a>
+<a name="%_idx_4670" id="%_idx_4670"></a><a name="%_idx_4672" id="%_idx_4672"></a>Now that we have an evaluator expressed as a Lisp program, we can
+experiment with alternative choices in language design simply by
+modifying the evaluator.  Indeed, new languages are often invented by
+first writing an evaluator that embeds the new language within an
+existing high-level language.  For example, if we wish to discuss some
+aspect of a proposed modification to Lisp with another member of the
+Lisp community, we can supply an evaluator that embodies
+the change.  The recipient can then experiment with the new
+evaluator and send back comments as further modifications.  Not only
+does the high-level implementation base make it easier to test and
+debug the evaluator; in addition, the embedding enables the designer
+to snarf<a name="call_footnote_Temp_575" href="#footnote_Temp_575" id="call_footnote_Temp_575"><sup class="calibre18"><small class="calibre15">31</small></sup></a> features
+from the underlying language, just as our embedded Lisp evaluator
+uses primitives and control structure from the underlying Lisp.  Only
+later (if ever) need the designer go to the trouble of building a
+complete implementation in a low-level language or in hardware.  In
+this section and the next we explore some variations on Scheme that
+provide significant additional expressive power.</p><p class="calibre1">
+
+<a name="%_sec_4.2.1" id="%_sec_4.2.1"></a>
+</p><h3 class="calibre26"><a href="book-Z-H-4.html#%_toc_%_sec_4.2.1" class="calibre19">4.2.1  Normal Order and Applicative Order</a></h3><p class="calibre1">
+
+</p><p class="calibre1">
+
+<a name="%_idx_4680" id="%_idx_4680"></a><a name="%_idx_4682" id="%_idx_4682"></a>In section <a href="book-Z-H-10.html#%_sec_1.1">1.1</a>, where we began our discussion
+of models of evaluation, we noted that Scheme is an <em class="calibre10">applicative-order</em> language, namely, that all the arguments to Scheme
+procedures are evaluated when the procedure is applied.  In
+contrast, <em class="calibre10">normal-order</em> languages delay evaluation of procedure arguments
+until the actual argument values are needed.
+Delaying evaluation of procedure arguments until the
+last possible moment (e.g., until they are required by a primitive
+operation) is called <a name="%_idx_4684" id="%_idx_4684"></a><em class="calibre10">lazy evaluation</em>.<a name="call_footnote_Temp_576" href="#footnote_Temp_576" id="call_footnote_Temp_576"><sup class="calibre18"><small class="calibre15">32</small></sup></a>
+Consider the procedure</p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16">(define (try a b)<br class="calibre5"/>
+  (if (= a 0) 1 b))<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1">
+Evaluating <tt class="calibre16">(try 0 (/ 1 0))</tt> generates an error in Scheme.  With
+lazy evaluation, there would be no error.  Evaluating the expression
+would return 1, because the argument <tt class="calibre16">(/ 1 0)</tt> would
+never be evaluated.</p><p class="calibre1">
+
+An example that exploits lazy evaluation is the
+definition of a procedure <tt class="calibre16">unless</tt></p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16">(define (unless condition usual-value exceptional-value)<br class="calibre5"/>
+  (if condition exceptional-value usual-value))<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1">
+that can be used in expressions such as</p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16">(unless (= b 0)<br class="calibre5"/>
+        (/ a b)<br class="calibre5"/>
+        (begin (display "exception: returning 0")<br class="calibre5"/>
+               0))<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1">
+This won't work in an applicative-order language because both the
+usual value and the exceptional value will be evaluated before
+<tt class="calibre16">unless</tt> is called (compare exercise <a href="book-Z-H-10.html#%_thm_1.6">1.6</a>).  An
+advantage of lazy evaluation is that some procedures, such as <tt class="calibre16">unless</tt>, can do useful computation even if evaluation of some of their
+arguments would produce errors or would not terminate.</p><p class="calibre1">
+
+If the body of a procedure is entered before an argument has been
+evaluated we say that the procedure is <a name="%_idx_4686" id="%_idx_4686"></a><em class="calibre10">non-strict</em> in that
+argument.  If the argument is evaluated before the body of the
+procedure is entered we say that the procedure is <a name="%_idx_4688" id="%_idx_4688"></a><em class="calibre10">strict</em> in that
+argument.<a name="call_footnote_Temp_577" href="#footnote_Temp_577" id="call_footnote_Temp_577"><sup class="calibre18"><small class="calibre15">33</small></sup></a>
+In a purely applicative-order language, all procedures are strict in
+each argument.  In a purely normal-order language, all compound
+procedures are non-strict in each argument, and primitive procedures may be
+either strict or non-strict.  There are also languages (see
+exercise <a href="#%_thm_4.31">4.31</a>) that give programmers
+detailed control over the strictness of the procedures they define.</p><p class="calibre1">
+
+A striking example of a procedure that can usefully be made non-strict
+is <tt class="calibre16">cons</tt> (or, in general, almost any constructor for data
+structures).  One can do useful computation, combining elements to
+form data structures and operating on the resulting data structures,
+even if the values of the elements are not known.  It makes perfect
+sense, for instance, to compute the length of a list without knowing
+the values of the individual elements in the list.  We will exploit
+this idea in section <a href="#%_sec_4.2.3">4.2.3</a> to implement the
+streams of chapter 3 as lists formed of non-strict <tt class="calibre16">cons</tt>
+pairs.</p><p class="calibre1">
+
+</p><p class="calibre1"><a name="%_thm_4.25" id="%_thm_4.25"></a>
+<b class="calibre9">Exercise 4.25.</b>  Suppose that (in ordinary applicative-order Scheme) we define <tt class="calibre16">unless</tt>
+as shown above and then define <tt class="calibre16">factorial</tt> in terms of <tt class="calibre16">unless</tt> as</p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16">(define (factorial n)<br class="calibre5"/>
+  (unless (= n 1)<br class="calibre5"/>
+          (* n (factorial (- n 1)))<br class="calibre5"/>
+          1))<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1">
+What happens if we attempt to evaluate <tt class="calibre16">(factorial 5)</tt>?  Will our
+definitions work in a normal-order language?
+</p><p class="calibre1"></p><p class="calibre1">
+
+</p><p class="calibre1"><a name="%_thm_4.26" id="%_thm_4.26"></a>
+<b class="calibre9">Exercise 4.26.</b>  <a name="%_idx_4692" id="%_idx_4692"></a><a name="%_idx_4694" id="%_idx_4694"></a>Ben Bitdiddle and Alyssa P. Hacker disagree over the importance of
+lazy evaluation for implementing things such as <tt class="calibre16">unless</tt>.  Ben
+points out that it's possible to implement <tt class="calibre16">unless</tt> in applicative
+order as a special form.
+Alyssa counters that, if one did that, <tt class="calibre16">unless</tt> would be merely
+syntax, not a procedure that could be used in conjunction with
+higher-order procedures.  Fill in the details on both sides of the
+argument.  Show how to implement <tt class="calibre16">unless</tt> as a derived expression
+(like <tt class="calibre16">cond</tt> or <tt class="calibre16">let</tt>),
+and give an example of a situation where it might be useful to have
+<tt class="calibre16">unless</tt> available as a procedure, rather than as a special form.
+
+</p><p class="calibre1"></p><p class="calibre1">
+
+<a name="%_sec_4.2.2" id="%_sec_4.2.2"></a>
+</p><h3 class="calibre26"><a href="book-Z-H-4.html#%_toc_%_sec_4.2.2" class="calibre19">4.2.2  An Interpreter with Lazy Evaluation</a></h3><p class="calibre1">
+
+In this section we will implement a normal-order language that is
+the same as Scheme except that compound procedures are non-strict
+in each argument.  Primitive procedures will still be strict.
+It is not difficult to modify the evaluator of
+section <a href="book-Z-H-26.html#%_sec_4.1.1">4.1.1</a> so that the language it interprets behaves
+this way.  Almost all the required changes center around procedure
+application.</p><p class="calibre1">
+
+The basic idea is that, when applying a procedure, the interpreter
+must determine which arguments are to be
+evaluated and which are to be
+delayed.  The delayed arguments are not
+evaluated; instead, they are transformed into objects called <a name="%_idx_4696" id="%_idx_4696"></a><em class="calibre10">thunk</em>s.<a name="call_footnote_Temp_580" href="#footnote_Temp_580" id="call_footnote_Temp_580"><sup class="calibre18"><small class="calibre15">34</small></sup></a>
+The thunk must contain the information required to produce the value
+of the argument when it is needed, as if it had been evaluated at
+the time of the application.  Thus, the thunk must contain the
+argument expression and the environment in
+which the procedure application is being evaluated.</p><p class="calibre1">
+
+<a name="%_idx_4704" id="%_idx_4704"></a><a name="%_idx_4706" id="%_idx_4706"></a>The process of evaluating the expression in a thunk is called <em class="calibre10">forcing</em>.<a name="call_footnote_Temp_581" href="#footnote_Temp_581" id="call_footnote_Temp_581"><sup class="calibre18"><small class="calibre15">35</small></sup></a>
+In general, a thunk will be forced only when its value is needed:
+when it is passed to a primitive procedure that
+will use the value of the thunk; when it is the
+value of a predicate of a conditional; and when it
+is the value of an operator that is about to be applied as a procedure.
+One design choice we have available is whether or not to <a name="%_idx_4710" id="%_idx_4710"></a><em class="calibre10">memoize</em> thunks, as we did with delayed objects in
+section <a href="book-Z-H-24.html#%_sec_3.5.1">3.5.1</a>.  With memoization, the first time a
+thunk is forced, it stores the value that is computed.  Subsequent
+forcings simply return the stored value without repeating the
+computation.  We'll make our interpreter memoize, because this is
+more efficient for many applications.  There are tricky
+considerations here, however.<a name="call_footnote_Temp_582" href="#footnote_Temp_582" id="call_footnote_Temp_582"><sup class="calibre18"><small class="calibre15">36</small></sup></a></p><p class="calibre1">
+
+<a name="%_sec_Temp_583" id="%_sec_Temp_583"></a>
+</p><h4 class="calibre20"><a href="book-Z-H-4.html#%_toc_%_sec_Temp_583">Modifying the evaluator</a></h4><p class="calibre1">
+
+The main difference between the lazy evaluator and the one in
+section <a href="book-Z-H-26.html#%_sec_4.1">4.1</a> is in the handling of procedure
+applications in <tt class="calibre16">eval</tt> and <tt class="calibre16">apply</tt>.</p><p class="calibre1">
+
+<a name="%_idx_4720" id="%_idx_4720"></a>The <tt class="calibre16">application?</tt> clause of <tt class="calibre16">eval</tt> becomes</p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16">((application? exp)<br class="calibre5"/>
+ (apply (actual-value (operator exp) env)<br class="calibre5"/>
+        (operands exp)<br class="calibre5"/>
+        env))<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1">
+This is almost the same as the <tt class="calibre16">application?</tt> clause of <tt class="calibre16">eval</tt>
+in section <a href="book-Z-H-26.html#%_sec_4.1.1">4.1.1</a>.  For lazy evaluation, however,
+we call <tt class="calibre16">apply</tt> with the operand expressions, rather than the
+arguments produced by evaluating them.  Since we will need the environment to
+construct thunks if the arguments are to be delayed, we must pass this as well.
+We still evaluate the
+operator, because <tt class="calibre16">apply</tt> needs the actual procedure to be applied
+in order to dispatch on its type (primitive versus compound) and apply it.</p><p class="calibre1">
+
+Whenever we need the actual value of an expression, we use
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16"><a name="%_idx_4722" id="%_idx_4722"></a>(define (actual-value exp env)<br class="calibre5"/>
+  (force-it (eval exp env)))<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1">
+instead of just <tt class="calibre16">eval</tt>, so that if the expression's value
+is a thunk, it will be forced.</p><p class="calibre1">
+
+Our new version of <tt class="calibre16">apply</tt> is also almost the same as the
+version in section <a href="book-Z-H-26.html#%_sec_4.1.1">4.1.1</a>.  The difference is
+that <tt class="calibre16">eval</tt> has passed in unevaluated operand expressions:
+For primitive procedures (which are strict), we evaluate all the
+arguments before applying the primitive;
+for compound procedures (which are non-strict) we delay all the
+arguments before applying the procedure.</p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16"><a name="%_idx_4724" id="%_idx_4724"></a>(define (apply procedure arguments env)<br class="calibre5"/>
+  (cond ((primitive-procedure? procedure)<br class="calibre5"/>
+         (apply-primitive-procedure<br class="calibre5"/>
+          procedure<br class="calibre5"/>
+          (list-of-arg-values arguments env)))  <em class="calibre10">; changed</em><br class="calibre5"/>
+        ((compound-procedure? procedure)<br class="calibre5"/>
+         (eval-sequence<br class="calibre5"/>
+          (procedure-body procedure)<br class="calibre5"/>
+          (extend-environment<br class="calibre5"/>
+           (procedure-parameters procedure)<br class="calibre5"/>
+           (list-of-delayed-args arguments env) <em class="calibre10">; changed</em><br class="calibre5"/>
+           (procedure-environment procedure))))<br class="calibre5"/>
+        (else<br class="calibre5"/>
+         (error<br class="calibre5"/>
+          "Unknown procedure type -- APPLY" procedure))))<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1">
+The procedures that process the arguments are just like <tt class="calibre16">list-of-values</tt> from section <a href="book-Z-H-26.html#%_sec_4.1.1">4.1.1</a>, except that
+<tt class="calibre16">list-of-delayed-args</tt> delays the arguments instead of evaluating
+them, and <tt class="calibre16">list-of-arg-values</tt> uses <tt class="calibre16">actual-value</tt> instead
+of <tt class="calibre16">eval</tt>:</p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16"><a name="%_idx_4726" id="%_idx_4726"></a>(define (list-of-arg-values exps env)<br class="calibre5"/>
+  (if (no-operands? exps)<br class="calibre5"/>
+      '()<br class="calibre5"/>
+      (cons (actual-value (first-operand exps) env)<br class="calibre5"/>
+            (list-of-arg-values (rest-operands exps)<br class="calibre5"/>
+                                env))))<br class="calibre5"/><a name="%_idx_4728" id="%_idx_4728"></a>(define (list-of-delayed-args exps env)<br class="calibre5"/>
+  (if (no-operands? exps)<br class="calibre5"/>
+      '()<br class="calibre5"/>
+      (cons (delay-it (first-operand exps) env)<br class="calibre5"/>
+            (list-of-delayed-args (rest-operands exps)<br class="calibre5"/>
+                                  env))))<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1"></p><p class="calibre1">
+
+The other place we must change the evaluator is in the handling of
+<tt class="calibre16">if</tt>, where we must use <tt class="calibre16">actual-value</tt> instead
+of <tt class="calibre16">eval</tt> to get the value of the predicate expression
+before testing whether it is true or false:</p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16"><a name="%_idx_4730" id="%_idx_4730"></a>(define (eval-if exp env)<br class="calibre5"/>
+  (if (true? (actual-value (if-predicate exp) env))<br class="calibre5"/>
+      (eval (if-consequent exp) env)<br class="calibre5"/>
+      (eval (if-alternative exp) env)))<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1"></p><p class="calibre1">
+
+<a name="%_idx_4732" id="%_idx_4732"></a>Finally, we must change the <tt class="calibre16">driver-loop</tt>
+procedure (section <a href="book-Z-H-26.html#%_sec_4.1.4">4.1.4</a>) to use <tt class="calibre16">actual-value</tt> instead
+of <tt class="calibre16">eval</tt>, so that if a delayed value
+is propagated back to the read-eval-print loop, it will be forced
+before being printed.  We also change the prompts to indicate that
+this is the lazy evaluator:</p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16"><a name="%_idx_4734" id="%_idx_4734"></a>(define input-prompt ";;; L-Eval input:")<br class="calibre5"/>
+(define output-prompt ";;; L-Eval value:")<br class="calibre5"/><a name="%_idx_4736" id="%_idx_4736"></a>(define (driver-loop)<br class="calibre5"/>
+  (prompt-for-input input-prompt)<br class="calibre5"/>
+  (let ((input (read)))<br class="calibre5"/>
+    (let ((output<br class="calibre5"/>
+           (actual-value input the-global-environment)))<br class="calibre5"/>
+      (announce-output output-prompt)<br class="calibre5"/>
+      (user-print output)))<br class="calibre5"/>
+  (driver-loop))<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1"></p><p class="calibre1">
+
+With these changes made, we can start the evaluator and test it.  The
+successful evaluation of the <tt class="calibre16">try</tt> expression discussed in
+section <a href="#%_sec_4.2.1">4.2.1</a> indicates that the interpreter is
+performing lazy evaluation:</p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16">(define the-global-environment (setup-environment))<br class="calibre5"/>
+(driver-loop)<br class="calibre5"/><i class="calibre10">;;; L-Eval input:</i><br class="calibre5"/>
+(define (try a b)<br class="calibre5"/>
+  (if (= a 0) 1 b))<br class="calibre5"/><i class="calibre10">;;; L-Eval value:</i><br class="calibre5"/><i class="calibre10">ok</i><br class="calibre5"/><i class="calibre10">;;; L-Eval input:</i><br class="calibre5"/>
+(try 0 (/ 1 0))<br class="calibre5"/><i class="calibre10">;;; L-Eval value:</i><br class="calibre5"/><i class="calibre10">1</i><br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1"></p><p class="calibre1">
+
+
+<a name="%_sec_Temp_584" id="%_sec_Temp_584"></a>
+</p><h4 class="calibre20"><a href="book-Z-H-4.html#%_toc_%_sec_Temp_584">Representing thunks</a></h4><p class="calibre1">
+
+<a name="%_idx_4738" id="%_idx_4738"></a>
+Our evaluator must arrange to create thunks when procedures are
+applied to arguments and to force these thunks later.  A thunk must
+package an expression together with the environment, so that the
+argument can be produced later.
+To force the thunk, we simply extract the expression and environment
+from the thunk and evaluate the expression in the environment.
+We use <tt class="calibre16">actual-value</tt> rather than <tt class="calibre16">eval</tt> so that in case the
+value of the expression is itself a thunk, we will force that, and so
+on, until we reach something that is not a thunk:</p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16"><a name="%_idx_4740" id="%_idx_4740"></a>(define (force-it obj)<br class="calibre5"/>
+  (if (thunk? obj)<br class="calibre5"/>
+      (actual-value (thunk-exp obj) (thunk-env obj))<br class="calibre5"/>
+      obj))<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1"></p><p class="calibre1">
+
+One easy way to package an expression with an environment is to make a
+list containing the expression and the environment.
+Thus, we create a thunk as follows:</p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16"><a name="%_idx_4742" id="%_idx_4742"></a>(define (delay-it exp env)<br class="calibre5"/>
+  (list 'thunk exp env))<br class="calibre5"/><br class="calibre5"/>
+(define (thunk? obj)<br class="calibre5"/>
+  (tagged-list? obj 'thunk))<br class="calibre5"/><br class="calibre5"/>
+(define (thunk-exp thunk) (cadr thunk))<br class="calibre5"/><br class="calibre5"/>
+(define (thunk-env thunk) (caddr thunk))<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1"></p><p class="calibre1">
+
+Actually, what we want for our interpreter is not quite this, but
+rather thunks that have been memoized.
+When a thunk is forced, we will turn it into an evaluated thunk
+by replacing the stored expression with its value and
+changing the <tt class="calibre16">thunk</tt> tag so that it can be recognized as
+already evaluated.<a name="call_footnote_Temp_585" href="#footnote_Temp_585" id="call_footnote_Temp_585"><sup class="calibre18"><small class="calibre15">37</small></sup></a></p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16">(define (evaluated-thunk? obj)<br class="calibre5"/>
+  (tagged-list? obj 'evaluated-thunk))<br class="calibre5"/><br class="calibre5"/>
+(define (thunk-value evaluated-thunk) (cadr evaluated-thunk))<br class="calibre5"/><a name="%_idx_4748" id="%_idx_4748"></a>(define (force-it obj)<br class="calibre5"/>
+  (cond ((thunk? obj)<br class="calibre5"/>
+         (let ((result (actual-value<br class="calibre5"/>
+                        (thunk-exp obj)<br class="calibre5"/>
+                        (thunk-env obj))))<br class="calibre5"/>
+           (set-car! obj 'evaluated-thunk)<br class="calibre5"/>
+           (set-car! (cdr obj) result)  <em class="calibre10">; replace <tt class="calibre16">exp</tt> with its value</em><br class="calibre5"/>
+           (set-cdr! (cdr obj) '())     <em class="calibre10">; forget unneeded <tt class="calibre16">env</tt></em><br class="calibre5"/>
+           result))<br class="calibre5"/>
+        ((evaluated-thunk? obj)<br class="calibre5"/>
+         (thunk-value obj))<br class="calibre5"/>
+        (else obj)))<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1">
+Notice that the same <tt class="calibre16">delay-it</tt> procedure works both with and
+without memoization.</p><p class="calibre1">
+
+</p><p class="calibre1"><a name="%_thm_4.27" id="%_thm_4.27"></a>
+<b class="calibre9">Exercise 4.27.</b>  Suppose we type in the following definitions to the lazy evaluator:
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16">(define count 0)<br class="calibre5"/>
+(define (id x)<br class="calibre5"/>
+  (set! count (+ count 1))<br class="calibre5"/>
+  x)<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1">
+Give the missing values in the following sequence of
+interactions, and explain your answers.<a name="call_footnote_Temp_587" href="#footnote_Temp_587" id="call_footnote_Temp_587"><sup class="calibre18"><small class="calibre15">38</small></sup></a>
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16">(define w (id (id 10)))<br class="calibre5"/><i class="calibre10">;;; L-Eval input:</i><br class="calibre5"/>
+count<br class="calibre5"/><i class="calibre10">;;; L-Eval value:</i><br class="calibre5"/>
+&lt;<em class="calibre10">response</em>&gt;<br class="calibre5"/><i class="calibre10">;;; L-Eval input:</i><br class="calibre5"/>
+w<br class="calibre5"/><i class="calibre10">;;; L-Eval value:</i><br class="calibre5"/>
+&lt;<em class="calibre10">response</em>&gt;<br class="calibre5"/><i class="calibre10">;;; L-Eval input:</i><br class="calibre5"/>
+count<br class="calibre5"/><i class="calibre10">;;; L-Eval value:</i><br class="calibre5"/>
+&lt;<em class="calibre10">response</em>&gt;<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1">
+</p><p class="calibre1"></p><p class="calibre1">
+
+</p><p class="calibre1"><a name="%_thm_4.28" id="%_thm_4.28"></a>
+<b class="calibre9">Exercise 4.28.</b>  <tt class="calibre16">Eval</tt> uses <tt class="calibre16">actual-value</tt> rather than <tt class="calibre16">eval</tt>
+to evaluate the operator before passing it to <tt class="calibre16">apply</tt>,
+in order to force the value of the operator.
+Give an example that demonstrates the need for this forcing.
+</p><p class="calibre1"></p><p class="calibre1">
+
+</p><p class="calibre1"><a name="%_thm_4.29" id="%_thm_4.29"></a>
+<b class="calibre9">Exercise 4.29.</b>  Exhibit a program that you would expect to run much more slowly
+without memoization than with memoization.  Also, consider the
+following interaction, where the <tt class="calibre16">id</tt> procedure is defined as in
+exercise <a href="#%_thm_4.27">4.27</a> and <tt class="calibre16">count</tt> starts at 0:
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16">(define (square x)<br class="calibre5"/>
+  (* x x))<br class="calibre5"/><i class="calibre10">;;; L-Eval input:</i><br class="calibre5"/>
+(square (id 10))<br class="calibre5"/><i class="calibre10">;;; L-Eval value:</i><br class="calibre5"/>
+&lt;<em class="calibre10">response</em>&gt;<br class="calibre5"/><i class="calibre10">;;; L-Eval input:</i><br class="calibre5"/>
+count<br class="calibre5"/><i class="calibre10">;;; L-Eval value:</i><br class="calibre5"/>
+&lt;<em class="calibre10">response</em>&gt;<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1">
+Give the responses both when the evaluator memoizes and when it does not.
+
+</p><p class="calibre1"></p><p class="calibre1">
+
+</p><p class="calibre1"><a name="%_thm_4.30" id="%_thm_4.30"></a>
+<b class="calibre9">Exercise 4.30.</b>  Cy D. Fect, a reformed C programmer, is worried that some side effects
+may never take place, because the lazy evaluator doesn't force the
+expressions in a sequence.
+Since the value of an expression in a sequence other than the last one
+is not used (the expression is there only for its effect, such as
+assigning to a variable or printing), there can be no subsequent use
+of this value (e.g., as an argument to a primitive procedure) that
+will cause it to be forced.  Cy thus thinks that when evaluating
+sequences, we must force all expressions in the sequence except the
+final one.  He proposes to modify <tt class="calibre16">eval-sequence</tt> from
+section <a href="book-Z-H-26.html#%_sec_4.1.1">4.1.1</a> to use <tt class="calibre16">actual-value</tt> rather
+than <tt class="calibre16">eval</tt>:</p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16">(define (eval-sequence exps env)<br class="calibre5"/>
+  (cond ((last-exp? exps) (eval (first-exp exps) env))<br class="calibre5"/>
+        (else (actual-value (first-exp exps) env)<br class="calibre5"/>
+              (eval-sequence (rest-exps exps) env))))<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1"></p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1">a. Ben Bitdiddle thinks Cy is wrong.
+He shows Cy the <tt class="calibre16">for-each</tt> procedure described in
+exercise <a href="book-Z-H-15.html#%_thm_2.23">2.23</a>, which gives an important example of
+a sequence with side effects:</p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16"><a name="%_idx_4750" id="%_idx_4750"></a>(define (for-each proc items)<br class="calibre5"/>
+  (if (null? items)<br class="calibre5"/>
+      'done<br class="calibre5"/>
+      (begin (proc (car items))<br class="calibre5"/>
+             (for-each proc (cdr items)))))<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1">
+He claims that the evaluator in the text (with the original <tt class="calibre16">eval-sequence</tt>) handles this correctly:</p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16"><i class="calibre10">;;; L-Eval input:</i><br class="calibre5"/>
+(for-each (lambda (x) (newline) (display x))<br class="calibre5"/>
+          (list 57 321 88))<br class="calibre5"/><i class="calibre10">57</i><br class="calibre5"/><i class="calibre10">321</i><br class="calibre5"/><i class="calibre10">88</i><br class="calibre5"/><i class="calibre10">;;; L-Eval value:</i><br class="calibre5"/><i class="calibre10">done</i><br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1">
+Explain why Ben is right about the behavior of <tt class="calibre16">for-each</tt>.</p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1">b. Cy agrees that Ben is right about the <tt class="calibre16">for-each</tt> example,
+but says that that's not the kind of program he was thinking about
+when he proposed his change to <tt class="calibre16">eval-sequence</tt>.
+He defines the following two procedures in the lazy evaluator:</p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16">(define (p1 x)<br class="calibre5"/>
+  (set! x (cons x '(2)))<br class="calibre5"/>
+  x)<br class="calibre5"/><br class="calibre5"/>
+(define (p2 x)<br class="calibre5"/>
+  (define (p e)<br class="calibre5"/>
+    e<br class="calibre5"/>
+    x)<br class="calibre5"/>
+  (p (set! x (cons x '(2)))))<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1">
+What are the values of <tt class="calibre16">(p1 1)</tt> and <tt class="calibre16">(p2 1)</tt> with the
+original <tt class="calibre16">eval-sequence</tt>?
+What would the values be with Cy's proposed change to <tt class="calibre16">eval-sequence</tt>?</p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1">c. Cy also points out that changing <tt class="calibre16">eval-sequence</tt> as he proposes
+does not affect the behavior of the example in part a.
+Explain why this is true.</p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1">d. How do you think sequences ought to be treated in the lazy evaluator?
+Do you like Cy's approach, the approach in the text, or some other approach?
+
+</p><p class="calibre1"></p><p class="calibre1">
+
+</p><p class="calibre1"><a name="%_thm_4.31" id="%_thm_4.31"></a>
+<b class="calibre9">Exercise 4.31.</b>  <a name="%_idx_4752" id="%_idx_4752"></a>The approach taken in this section is somewhat unpleasant, because it
+makes an incompatible change to Scheme.  It might be nicer to
+implement lazy evaluation as an <em class="calibre10">upward-compatible extension</em>,
+that is, so that ordinary Scheme programs will work as before.  We can
+do this by extending the syntax of procedure declarations to let the user
+control whether or not arguments are to be delayed.  While we're at
+it, we may as well also give the user the choice between delaying with
+and without memoization.  For example, the definition
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16">(define (f a (b lazy) c (d lazy-memo))<br class="calibre5"/>
+  <tt class="calibre16">...</tt>)<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1">
+would define <tt class="calibre16">f</tt> to be a procedure of four arguments, where the
+first and third arguments are evaluated when the procedure is called,
+the second argument is delayed, and the fourth argument is both
+delayed and memoized.  Thus, ordinary procedure definitions will
+produce the same behavior as ordinary Scheme, while adding the <tt class="calibre16">lazy-memo</tt> declaration to each parameter of every compound procedure
+will produce the behavior of the lazy evaluator defined in this
+section. Design and implement the changes required to produce such an
+extension to Scheme.  You will have to implement new syntax procedures
+to handle the new syntax for <tt class="calibre16">define</tt>.  You must also arrange for
+<tt class="calibre16">eval</tt> or <tt class="calibre16">apply</tt> to determine when arguments are to be delayed, and to
+force or delay arguments accordingly, and you must arrange for forcing
+to memoize or not, as appropriate.
+
+</p><p class="calibre1"></p><p class="calibre1">
+
+<a name="%_sec_4.2.3" id="%_sec_4.2.3"></a>
+</p><h3 class="calibre26"><a href="book-Z-H-4.html#%_toc_%_sec_4.2.3" class="calibre19">4.2.3  Streams as Lazy Lists</a></h3><p class="calibre1">
+
+
+<a name="%_idx_4754" id="%_idx_4754"></a><a name="%_idx_4756" id="%_idx_4756"></a><a name="%_idx_4758" id="%_idx_4758"></a><a name="%_idx_4760" id="%_idx_4760"></a><a name="%_idx_4762" id="%_idx_4762"></a>
+<a name="%_idx_4764" id="%_idx_4764"></a><a name="%_idx_4766" id="%_idx_4766"></a><a name="%_idx_4768" id="%_idx_4768"></a><a name="%_idx_4770" id="%_idx_4770"></a>In section <a href="book-Z-H-24.html#%_sec_3.5.1">3.5.1</a>, we showed how to implement streams
+as delayed lists.  We introduced special forms <tt class="calibre16">delay</tt> and <tt class="calibre16">cons-stream</tt>, which allowed us to construct a “promise” to compute
+the <tt class="calibre16">cdr</tt> of a stream, without actually fulfilling that promise
+until later.  We could use this general technique of introducing
+special forms whenever we need more control over the evaluation process,
+but this is awkward.  For one thing, a special form is not a
+first-class object like a procedure, so we cannot use it together with
+higher-order procedures.<a name="call_footnote_Temp_592" href="#footnote_Temp_592" id="call_footnote_Temp_592"><sup class="calibre18"><small class="calibre15">39</small></sup></a>  Additionally,
+we were forced to create streams as a new kind of data object
+similar but not identical to lists, and this required us to
+reimplement many ordinary list operations (<tt class="calibre16">map</tt>, <tt class="calibre16">append</tt>, and
+so on) for use with streams.</p><p class="calibre1">
+
+
+With lazy evaluation, streams and lists can be identical, so there is
+no need for special forms or for separate list and stream operations.
+All we need to do is to arrange matters so that <tt class="calibre16">cons</tt> is
+non-strict.  One way to accomplish this is to extend the lazy
+evaluator to allow for non-strict primitives, and to implement <tt class="calibre16">cons</tt> as one of these.  An easier way is to recall
+(section <a href="book-Z-H-14.html#%_sec_2.1.3">2.1.3</a>) that there is no fundamental need to
+implement <tt class="calibre16">cons</tt> as a primitive at all.  Instead, we can represent
+<a name="%_idx_4772" id="%_idx_4772"></a>pairs as procedures:<a name="call_footnote_Temp_593" href="#footnote_Temp_593" id="call_footnote_Temp_593"><sup class="calibre18"><small class="calibre15">40</small></sup></a></p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16"><a name="%_idx_4774" id="%_idx_4774"></a>(define (cons x y)<br class="calibre5"/>
+  (lambda (m) (m x y)))<br class="calibre5"/><a name="%_idx_4776" id="%_idx_4776"></a>(define (car z)<br class="calibre5"/>
+  (z (lambda (p q) p)))<br class="calibre5"/><a name="%_idx_4778" id="%_idx_4778"></a>(define (cdr z)<br class="calibre5"/>
+  (z (lambda (p q) q)))<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1"></p><p class="calibre1">
+
+In terms of these basic operations, the standard definitions of the
+list operations will work with infinite lists (streams) as well as
+finite ones, and the stream operations can be implemented as list operations.
+Here are some examples:</p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16"><a name="%_idx_4780" id="%_idx_4780"></a>(define (list-ref items n)<br class="calibre5"/>
+  (if (= n 0)<br class="calibre5"/>
+      (car items)<br class="calibre5"/>
+      (list-ref (cdr items) (- n 1))))<br class="calibre5"/><a name="%_idx_4782" id="%_idx_4782"></a>(define (map proc items)<br class="calibre5"/>
+  (if (null? items)<br class="calibre5"/>
+      '()<br class="calibre5"/>
+      (cons (proc (car items))<br class="calibre5"/>
+            (map proc (cdr items)))))<br class="calibre5"/><a name="%_idx_4784" id="%_idx_4784"></a>(define (scale-list items factor)<br class="calibre5"/>
+  (map (lambda (x) (* x factor))<br class="calibre5"/>
+       items))<br class="calibre5"/><a name="%_idx_4786" id="%_idx_4786"></a>(define (add-lists list1 list2)<br class="calibre5"/>
+  (cond ((null? list1) list2)<br class="calibre5"/>
+        ((null? list2) list1)<br class="calibre5"/>
+        (else (cons (+ (car list1) (car list2))<br class="calibre5"/>
+                    (add-lists (cdr list1) (cdr list2))))))<br class="calibre5"/><a name="%_idx_4788" id="%_idx_4788"></a>(define ones (cons 1 ones))<br class="calibre5"/><a name="%_idx_4790" id="%_idx_4790"></a>(define integers (cons 1 (add-lists ones integers)))<br class="calibre5"/><i class="calibre10">;;; L-Eval input:</i><br class="calibre5"/>
+(list-ref integers 17)<br class="calibre5"/><i class="calibre10">;;; L-Eval value:</i><br class="calibre5"/><i class="calibre10">18</i><br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1"></p><p class="calibre1">
+
+
+Note that these lazy lists are even lazier than the streams of
+chapter 3:  The <tt class="calibre16">car</tt> of the list, as well as the <tt class="calibre16">cdr</tt>, is
+delayed.<a name="call_footnote_Temp_594" href="#footnote_Temp_594" id="call_footnote_Temp_594"><sup class="calibre18"><small class="calibre15">41</small></sup></a>
+In fact, even accessing the <tt class="calibre16">car</tt> or <tt class="calibre16">cdr</tt> of a lazy
+pair need not force the value of a list element.  The value will be
+forced only when it is really needed – e.g., for use as the
+argument of a primitive, or to be printed as an answer.</p><p class="calibre1">
+
+Lazy pairs also help with the problem that arose with streams in
+section <a href="book-Z-H-24.html#%_sec_3.5.4">3.5.4</a>, where we found that
+formulating stream models of systems with loops may require us to
+sprinkle our programs with <a name="%_idx_4798" id="%_idx_4798"></a><a name="%_idx_4800" id="%_idx_4800"></a>explicit <tt class="calibre16">delay</tt> operations, beyond the
+ones supplied by <tt class="calibre16">cons-stream</tt>.  With lazy evaluation, all
+arguments to procedures are delayed uniformly.  For instance, we can
+implement procedures to integrate lists and solve differential
+equations as we originally intended in
+section <a href="book-Z-H-24.html#%_sec_3.5.4">3.5.4</a>:</p><p class="calibre1">
+
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16"><a name="%_idx_4802" id="%_idx_4802"></a>(define (integral integrand initial-value dt)<br class="calibre5"/>
+  (define int<br class="calibre5"/>
+    (cons initial-value<br class="calibre5"/>
+          (add-lists (scale-list integrand dt)<br class="calibre5"/>
+                    int)))<br class="calibre5"/>
+  int)<br class="calibre5"/><a name="%_idx_4804" id="%_idx_4804"></a>(define (solve f y0 dt)<br class="calibre5"/>
+  (define y (integral dy y0 dt))<br class="calibre5"/>
+  (define dy (map f y))<br class="calibre5"/>
+  y)<br class="calibre5"/><i class="calibre10">;;; L-Eval input:</i><br class="calibre5"/>
+(list-ref (solve (lambda (x) x) 1 0.001) 1000)<br class="calibre5"/><i class="calibre10">;;; L-Eval value:</i><br class="calibre5"/><i class="calibre10">2.716924</i></tt></p><p class="calibre1"></p><p class="calibre1"></p><p class="calibre1">
+
+</p><p class="calibre1"><a name="%_thm_4.32" id="%_thm_4.32"></a>
+<b class="calibre9">Exercise 4.32.</b>  Give some examples that illustrate the difference between the streams
+of chapter 3 and the “lazier” lazy lists described in this section.
+How can you take advantage of this extra laziness?
+</p><p class="calibre1"></p><p class="calibre1">
+
+</p><p class="calibre1"><a name="%_thm_4.33" id="%_thm_4.33"></a>
+<b class="calibre9">Exercise 4.33.</b>  Ben Bitdiddle tests the lazy list implementation given above by
+evaluating the expression
+</p><p class="calibre1"></p><p class="calibre1"><tt class="calibre16">(car '(a b c))<br class="calibre5"/></tt></p><p class="calibre1"></p><p class="calibre1">
+To his surprise, this produces an error.  After some thought, he
+realizes that the “lists” obtained by reading in quoted expressions
+are different from the lists manipulated by the new definitions of
+<tt class="calibre16">cons</tt>, <tt class="calibre16">car</tt>, and <tt class="calibre16">cdr</tt>.  Modify the evaluator's
+treatment of quoted expressions so that quoted lists typed at the
+driver loop will produce true lazy lists.
+
+</p><p class="calibre1"></p><p class="calibre1">
+
+</p><p class="calibre1"><a name="%_thm_4.34" id="%_thm_4.34"></a>
+<b class="calibre9">Exercise 4.34.</b>  Modify the driver loop for the evaluator so that lazy pairs and lists
+will print in some reasonable way.  (What are you going to do about
+infinite lists?)  You may also need to modify the representation of
+lazy pairs so that the evaluator can identify them in order
+to print them.
+
+</p><p class="calibre1"></p><p class="calibre1">
+
+</p><p class="calibre1"></p><div class="smallprint"><hr class="calibre21"/></div><p class="calibre1">
+</p><div class="footnote"><p class="calibre1"><a name="footnote_Temp_575" href="#call_footnote_Temp_575" id="footnote_Temp_575"><sup class="calibre14"><small class="calibre22">31</small></sup></a> Snarf: “To grab, especially a large document or
+<a name="%_idx_4674" id="%_idx_4674"></a><a name="%_idx_4676" id="%_idx_4676"></a><a name="%_idx_4678" id="%_idx_4678"></a>file for the purpose of using it either with or without the owner's
+permission.”  Snarf down: “To snarf, sometimes with the connotation
+of absorbing, processing, or understanding.”  (These definitions were
+snarfed from Steele et al. 1983.  See also Raymond 1993.)
+
+</p><p class="calibre1"><a name="footnote_Temp_576" href="#call_footnote_Temp_576" id="footnote_Temp_576"><sup class="calibre14"><small class="calibre22">32</small></sup></a> The difference between the “lazy” terminology and
+the “normal-order” terminology is somewhat fuzzy.  Generally, “lazy”
+refers to the mechanisms of particular evaluators, while “normal-order”
+refers to the semantics of languages, independent of any particular
+evaluation strategy.  But this is not a hard-and-fast distinction, and
+the two terminologies are often used interchangeably.
+
+</p><p class="calibre1"><a name="footnote_Temp_577" href="#call_footnote_Temp_577" id="footnote_Temp_577"><sup class="calibre14"><small class="calibre22">33</small></sup></a> The “strict” versus “non-strict” terminology means essentially the
+same thing as “applicative-order” versus “normal-order,” except that
+it refers to individual procedures and arguments rather than to the
+language as a whole.  At a conference on programming languages you
+might hear someone say, “The normal-order language <a name="%_idx_4690" id="%_idx_4690"></a>Hassle has certain
+strict primitives.  Other procedures take their arguments by lazy
+evaluation.”
+
+</p><p class="calibre1"><a name="footnote_Temp_580" href="#call_footnote_Temp_580" id="footnote_Temp_580"><sup class="calibre14"><small class="calibre22">34</small></sup></a> The word <em class="calibre10">thunk</em> was invented by an informal
+<a name="%_idx_4698" id="%_idx_4698"></a><a name="%_idx_4700" id="%_idx_4700"></a><a name="%_idx_4702" id="%_idx_4702"></a>working group that was discussing the implementation of call-by-name
+in Algol 60.  They observed that most of the analysis of (“thinking
+about”) the expression could be done at compile time; thus, at run
+time, the expression would already have been “thunk” about (Ingerman
+et al. 1960).
+
+</p><p class="calibre1"><a name="footnote_Temp_581" href="#call_footnote_Temp_581" id="footnote_Temp_581"><sup class="calibre14"><small class="calibre22">35</small></sup></a> This is analogous to the use of <tt class="calibre16">force</tt>
+<a name="%_idx_4708" id="%_idx_4708"></a>on the delayed objects that were introduced in chapter 3 to represent
+streams.  The critical difference between what we are
+doing here and what we did in chapter 3 is that we are building
+delaying and forcing into the evaluator, and thus making this uniform
+and automatic throughout the language.
+
+</p><p class="calibre1"><a name="footnote_Temp_582" href="#call_footnote_Temp_582" id="footnote_Temp_582"><sup class="calibre14"><small class="calibre22">36</small></sup></a> Lazy evaluation combined with memoization is sometimes
+<a name="%_idx_4712" id="%_idx_4712"></a>referred to as <em class="calibre10">call-by-need</em> argument passing, in contrast to
+<em class="calibre10">call-by-name</em> argument passing.  <a name="%_idx_4714" id="%_idx_4714"></a><a name="%_idx_4716" id="%_idx_4716"></a>(Call-by-name, introduced in
+Algol 60, is similar to non-memoized lazy evaluation.)
+As language designers, we can build our evaluator to memoize,
+not to memoize, or leave this an option for programmers
+(exercise <a href="#%_thm_4.31">4.31</a>).  As you might expect
+from chapter 3, these choices raise issues that become both subtle and
+confusing in the presence of assignments.  (See
+exercises <a href="#%_thm_4.27">4.27</a> and <a href="#%_thm_4.29">4.29</a>.)
+<a name="%_idx_4718" id="%_idx_4718"></a>An excellent article by Clinger (1982) attempts to clarify the
+multiple dimensions of confusion that arise here.
+
+</p><p class="calibre1"><a name="footnote_Temp_585" href="#call_footnote_Temp_585" id="footnote_Temp_585"><sup class="calibre14"><small class="calibre22">37</small></sup></a> Notice that we also erase the <tt class="calibre16">env</tt> from the thunk once the
+expression's value has been computed.  This makes no difference in the
+values returned by the interpreter.  It does help save space,
+however, because removing the reference from the thunk to the <tt class="calibre16">env</tt>
+once it is no longer needed allows this structure to be
+<a name="%_idx_4744" id="%_idx_4744"></a><a name="%_idx_4746" id="%_idx_4746"></a><em class="calibre10">garbage-collected</em> and its
+space recycled, as we will discuss in section <a href="book-Z-H-33.html#%_sec_5.3">5.3</a>.</p><p class="calibre1">
+
+Similarly, we could have allowed unneeded environments in the memoized
+delayed objects of section <a href="book-Z-H-24.html#%_sec_3.5.1">3.5.1</a> to be garbage-collected,
+by having <tt class="calibre16">memo-proc</tt> do something like <tt class="calibre16">(set! proc '())</tt>
+to discard the procedure <tt class="calibre16">proc</tt> (which includes the environment
+in which the <tt class="calibre16">delay</tt> was evaluated) after storing its value.
+
+</p><p class="calibre1"><a name="footnote_Temp_587" href="#call_footnote_Temp_587" id="footnote_Temp_587"><sup class="calibre14"><small class="calibre22">38</small></sup></a> This exercise
+demonstrates that the interaction between lazy evaluation and side
+effects can be very confusing.  This is just what you might expect
+from the discussion in chapter 3.
+
+</p><p class="calibre1"><a name="footnote_Temp_592" href="#call_footnote_Temp_592" id="footnote_Temp_592"><sup class="calibre14"><small class="calibre22">39</small></sup></a> This is precisely the issue with the <tt class="calibre16">unless</tt> procedure,
+as in exercise <a href="#%_thm_4.26">4.26</a>.
+
+</p><p class="calibre1"><a name="footnote_Temp_593" href="#call_footnote_Temp_593" id="footnote_Temp_593"><sup class="calibre14"><small class="calibre22">40</small></sup></a> This is the procedural representation described in
+exercise <a href="book-Z-H-14.html#%_thm_2.4">2.4</a>.  Essentially any procedural representation
+(e.g., a message-passing implementation) would do as well.  Notice
+that we can install these definitions in the lazy evaluator simply by
+typing them at the driver loop.  If we had originally included <tt class="calibre16">cons</tt>, <tt class="calibre16">car</tt>, and <tt class="calibre16">cdr</tt> as primitives in the global
+environment, they will be redefined.  (Also see
+exercises <a href="#%_thm_4.33">4.33</a> and <a href="#%_thm_4.34">4.34</a>.)
+
+</p><p class="calibre1"><a name="footnote_Temp_594" href="#call_footnote_Temp_594" id="footnote_Temp_594"><sup class="calibre14"><small class="calibre22">41</small></sup></a> This permits us to create delayed versions of more general kinds of
+<a name="%_idx_4792" id="%_idx_4792"></a>list structures, not just sequences.  Hughes 1990 discusses some
+<a name="%_idx_4794" id="%_idx_4794"></a><a name="%_idx_4796" id="%_idx_4796"></a>applications of “lazy trees.”
+
+</p></div>
+
+
+
+</div>
+
+{% endraw %}
+

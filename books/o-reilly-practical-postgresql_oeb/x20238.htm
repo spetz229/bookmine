@@ -1,0 +1,595 @@
+---
+layout: page
+title: "Unknown"
+prev: x19832.htm
+next: x20655.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="x19832.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 11. PL/pgSQL</td><td width="10%" valign="bottom" class="calibre5"><a href="x20655.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="CONTROLLINGPROGRAMFLOW" class="calibre8">Controlling Program Flow</a></h1><p class="calibre9">Most programming languages in existence provide ways of controlling the flow of programs they are used to create.
+    PL/pgSQL is no different.  Technically, by defining the structure of statements within a PL/pgSQL function, you are
+    controlling its "flow," in that you are controlling the manner in which it operates and the order its operations are
+    executed. However, there are more extensive ways in which you can control the flow of a PL/pgSQL, such as conditional
+    statements and the use of loops.</p><div class="NAVHEADER"><h2 class="SECT"><a name="AEN20241" class="calibre8">Conditional statements</a></h2><p class="calibre9">A conditional statement specifies an action (or set of actions) that should be executed instead of continuing
+      execution of the function, based on the result of logical condition specified within the statement.  That definition of
+      conditional statements may make them sound a bit complex, but they are actually fairly simple.  Essentially, a conditional
+      statement informs the parser that if a given condition is true, a specified action should be taken.</p><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN20244" class="calibre8">The IF/THEN statement</a></h3><p class="calibre9">The <tt class="REPLACEABLE">IF/THEN</tt> statement allows you to specify a statement (or block of statements)
+        that should be executed if a given condition evaluates true.  The syntax of the <tt class="REPLACEABLE">IF/THEN</tt>
+        statement is shown in <a href="x20238.htm#THEIFTHENSTATEMENTSYNTAX">Example 11-34</a>.</p><div class="NAVHEADER"><a name="THEIFTHENSTATEMENTSYNTAX"></a><p class="calibre9"><b class="calibre10">Example 11-34. Syntax of an IF/THEN statement</b></p><pre class="SCREEN">CREATE FUNCTION <tt class="REPLACEABLE"><i class="EMPHASIS">identifier</i></tt> (<tt class="REPLACEABLE"><i class="EMPHASIS">arguments</i></tt>) RETURNS <tt class="REPLACEABLE"><i class="EMPHASIS">type</i></tt> AS '
+  DECLARE
+    <tt class="REPLACEABLE"><i class="EMPHASIS">declarations</i></tt>
+  BEGIN
+    
+    IF <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> THEN
+      <tt class="REPLACEABLE"><i class="EMPHASIS">statement</i></tt>;
+      [...]
+    END IF;
+  
+  END;
+' LANGUAGE 'plpgsql';</pre></div><p class="calibre9">In <a href="x20238.htm#USINGTHEIFTHENSTATEMENT">Example 11-35</a>, a function is created that checks the stock of a book when given its
+         book ID and edition number.  The book ID is an internally recorded and tracked number listed in a few of the database's
+         tables; thus, this function is designed to be used by other functions, as most users won't directly know the book ID
+         number.  The <tt class="REPLACEABLE">stock_amount</tt> function first retrieves the book's ISBN number with a
+         <tt class="REPLACEABLE">SELECT INTO</tt> statement.</p><p class="calibre9">If the <tt class="REPLACEABLE">SELECT INTO</tt> statement could not retrieve an ISBN number for the book with
+         the provided book ID number and edition number the stock amount function returns a value of
+         <tt class="REPLACEABLE">–1</tt>, which should be interpreted as an error by the function that called it.  The
+         function's flow continues on if there was an ISBN number found for the book, and another <tt class="REPLACEABLE">SELECT INTO</tt>
+         statement is used to retrieve the amount of stock remaining for the book in question.  The stock
+         amount is then returned and the function ends.</p><div class="NAVHEADER"><a name="USINGTHEIFTHENSTATEMENT"></a><p class="calibre9"><b class="calibre10">Example 11-35. Using the IF/THEN statement</b></p><pre class="SCREEN">CREATE FUNCTION stock_amount (integer, integer) RETURNS integer AS '
+  DECLARE
+     
+     -- Declare aliases for function arguments.
+    b_id ALIAS FOR $1;
+    b_edition ALIAS FOR $2;
+     
+     -- Declare variable to store the ISBN number.
+    b_isbn TEXT;
+     
+     -- Declare variable to store the stock amount.
+    stock_amount INTEGER;
+  
+  BEGIN
+     
+     -- This SELECT INTO statement retrieves the ISBN number of the row in
+     -- the editions table that had both the book ID number and edition number
+     -- that were provided as function arguments.
+    SELECT INTO b_isbn isbn FROM editions WHERE
+      book_id = b_id AND edition = b_edition;
+     
+     -- Check to see if the ISBN number retrieved is NULL.  This will
+     -- happen if there is not an existing book with both the ID number
+     -- and edition number specified in the function arguments. If the
+     -- ISBN is null, the function returns a value of -1 and ends.
+    IF b_isbn IS NULL THEN
+      RETURN -1;
+    END IF;
+     
+     -- Retrieve the amount of books available from the stock table
+     -- and record the number in the stock_amount variable.
+    SELECT INTO stock_amount stock FROM stock WHERE isbn = b_isbn;
+     
+     -- Return the amount of books available.
+    RETURN stock_amount;
+  
+  END;
+' LANGUAGE 'plpgsql';</pre></div><p class="calibre9"><a href="x20238.htm#STOCKAMOUNTFUNCTIONRESULTS">Example 11-36</a> shows the result of the <tt class="REPLACEABLE">stock_amount</tt>
+        function when it is called for the book ID value 7808 and edition number 1.  </p><div class="NAVHEADER"><a name="STOCKAMOUNTFUNCTIONRESULTS"></a><p class="calibre9"><b class="calibre10">Example 11-36. Results of the stock_amount( ) function</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT stock_amount(7808,1);</b></tt>
+ stock_amount
+--------------
+           22
+(1 row)</pre></div></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN20277" class="calibre8">The IF/THEN/ELSE statement</a></h3><p class="calibre9">The <tt class="REPLACEABLE">IF/THEN/ELSE</tt> statement allows you to specify a block of statements that should
+        be executed if a condition evaluates to true, and also a block of statements that should be executed if the condition
+        evaluates to false.  The syntax of the <tt class="REPLACEABLE">IF/THEN/ELSE</tt> statement is shown in <a href="x20238.htm#THEIFTHENELSESTATEMENTSYNTAX">Example 11-37</a>.</p><div class="NAVHEADER"><a name="THEIFTHENELSESTATEMENTSYNTAX"></a><p class="calibre9"><b class="calibre10">Example 11-37. Syntax of an IF/THEN/ELSE statement</b></p><pre class="SCREEN">CREATE FUNCTION <tt class="REPLACEABLE"><i class="EMPHASIS">identifier</i></tt> (<tt class="REPLACEABLE"><i class="EMPHASIS">arguments</i></tt>) RETURNS <tt class="REPLACEABLE"><i class="EMPHASIS">type</i></tt> AS '
+  DECLARE
+    <tt class="REPLACEABLE"><i class="EMPHASIS">declarations</i></tt>
+  BEGIN
+    
+    IF <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> THEN
+      <tt class="REPLACEABLE"><i class="EMPHASIS">statement</i></tt>;
+      [...]
+    ELSE
+      <tt class="REPLACEABLE"><i class="EMPHASIS">statement</i></tt>;
+      [...]
+    END IF;
+  END;
+' LANGUAGE 'plpgsql';</pre></div><p class="calibre9">In <a href="x20238.htm#USINGTHEIFTHENELSESTATEMENT">Example 11-38</a>, essentially the same steps that were taken in <a href="x20238.htm#USINGTHEIFTHENSTATEMENT">Example 11-35</a> are taken again to retrieve the ISBN number, store it, then use it to retrieve the
+        quantity in stock for the book in question.</p><p class="calibre9">Once the in-stock number is retrieved, an <tt class="REPLACEABLE">IF/THEN/ELSE</tt> statement is used to decide
+        whether or not the number is above zero.  If it is above zero the function returns a
+        <tt class="REPLACEABLE">TRUE</tt> value, indicating that the title is in stock.  If the in-stock is below zero, the
+        function returns a <tt class="REPLACEABLE">FALSE</tt> value, indicating the title is out of stock.  Again, this is a
+        function designed to be used by another function, so only values are returned.  Returned values must be interpreted by
+        the function that called the <tt class="REPLACEABLE">in_stock()</tt> function.  </p><div class="NAVHEADER"><a name="USINGTHEIFTHENELSESTATEMENT"></a><p class="calibre9"><b class="calibre10">Example 11-38. Using the IF/THEN/ELSE statement</b></p><pre class="SCREEN">CREATE FUNCTION in_stock (integer,integer) RETURNS boolean AS '
+  DECLARE
+     
+     -- Declare aliases for function arguments.
+    b_id ALIAS FOR $1;
+    b_edition ALIAS FOR $2;
+     
+     -- Declare a text variable to hold the ISBN of the book
+     -- once found.
+    b_isbn TEXT;
+     
+     -- Declare an integer variable to hold the amount of stock.
+    stock_amount INTEGER;
+  
+  BEGIN
+     
+     -- This SELECT INTO statement retrieves the ISBN number of
+     -- the row in the editions table that had both the book ID
+     -- number and edition number that were provided as function
+     -- arguments.
+    SELECT INTO b_isbn isbn FROM editions WHERE
+      book_id = b_id AND edition = b_edition;
+     
+     -- Check to see if the ISBN number retrieved  is NULL.  This
+     -- will happen if there is not an existing book with both the
+     -- ID number and edition number specified in the function
+     -- arguments. If the ISBN is null, the function returns a
+     -- FALSE value and ends.
+    IF b_isbn IS NULL THEN
+      RETURN FALSE;
+    END IF;
+     
+     -- Retrieve the amount of books available from the stock
+     -- table and record the number in the stock_amount variable.
+    SELECT INTO stock_amount stock FROM stock WHERE isbn = b_isbn;
+     
+     -- Use an IF/THEN/ELSE check to see if the amount of books
+     -- available is less than or equal to 0.  If so, return FALSE.
+     -- If not, return TRUE.
+    IF stock_amount &lt;= 0 THEN
+      RETURN FALSE;
+    ELSE
+      RETURN TRUE;
+    END IF;
+  
+  END;
+' LANGUAGE 'plpgsql';
+</pre></div><p class="calibre9"><a href="x20238.htm#INSTOCKFUNCTIONRESULTS">Example 11-39</a> shows the result of the <tt class="REPLACEABLE">check_stock()</tt>
+        function when it is called with the book ID value 4513 and edition number 2.  A value of true is returned, indicating
+        that the title is in stock.</p><div class="NAVHEADER"><a name="INSTOCKFUNCTIONRESULTS"></a><p class="calibre9"><b class="calibre10">Example 11-39. Results of the in_stock( ) function</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT in_stock(4513,2);</b></tt>
+ in_stock
+----------
+ t
+(1 row)</pre></div><p class="calibre9"><a href="x20238.htm#INSTOCKFUNCTIONRESULTS">Example 11-39</a> shows that a <tt class="REPLACEABLE">TRUE</tt> value was returned,
+        indicating that the title is in stock.</p></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN20314" class="calibre8">The IF/THEN/ELSE/IF statement</a></h3><p class="calibre9">The <tt class="REPLACEABLE">IF/THEN/ELSE/IF</tt> statement is a mechanism for linking several
+        <tt class="REPLACEABLE">IF</tt> statements together in a series.  First, one condition is checked. If the first
+        condition evaluates to <tt class="REPLACEABLE">FALSE</tt>, another condition is checked, and so forth. A final
+        <tt class="REPLACEABLE">ELSE</tt> can provide for the case when no condition evaluates to
+        <tt class="REPLACEABLE">TRUE</tt>. The syntax for the <tt class="REPLACEABLE">IF/THEN/ELSE/IF</tt> statement
+        follows:</p><pre class="SCREEN">CREATE FUNCTION <tt class="REPLACEABLE"><i class="EMPHASIS">identifier</i></tt> (<tt class="REPLACEABLE"><i class="EMPHASIS">arguments</i></tt>) RETURNS <tt class="REPLACEABLE"><i class="EMPHASIS">type</i></tt> AS '
+  DECLARE
+    <tt class="REPLACEABLE"><i class="EMPHASIS">declarations</i></tt>
+  BEGIN
+    IF <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> THEN
+      <tt class="REPLACEABLE"><i class="EMPHASIS">statement</i></tt>;
+      [...]
+    ELSE IF <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt>
+<tt class="REPLACEABLE"><i class="EMPHASIS">statement</i></tt>;
+      [...]
+    END IF;
+  END;
+' LANGUAGE 'plpgsql';</pre><p class="calibre9">This syntax shows the creation of a function that demonstrates the use of the
+        <tt class="REPLACEABLE">IF/THEN/ELSE/IF</tt> statement.  The <tt class="REPLACEABLE">books_by_subject()</tt>
+        function first uses the provided argument, which should be a book subject, to retrieve the subject ID number of the
+        subject in question.  The first <tt class="REPLACEABLE">IF</tt> statement then checks to see if the argument received
+        is the value <tt class="REPLACEABLE">all</tt>.</p><p class="calibre9">If the argument variable's value is <tt class="REPLACEABLE">all</tt>, the
+        <tt class="REPLACEABLE">IF/THEN</tt> statement executes <tt class="REPLACEABLE">extract_all_titles()</tt> and
+        assigns the returned list of books and subjects (returned as a text variable) to the
+        <tt class="REPLACEABLE">found_text</tt> variable.  </p><p class="calibre9">If <tt class="REPLACEABLE">all</tt> was not sent to the function as a parameter, an <tt class="REPLACEABLE">ELSE IF</tt>
+        statement is used to check whether or not the subject ID number that was retrieved is zero or higher. 
+        If the value of <tt class="REPLACEABLE">sub_id</tt> <span><i class="EMPHASIS">is</i></span> zero or higher, the function executes the
+        statements in the body of the <tt class="REPLACEABLE">ELSE IF</tt> statement, which first use
+        <tt class="REPLACEABLE">extract_title()</tt> to retrieve a list of the titles of all existing books classified under
+        the user's provided subject, and returns the name of the subject with the acquired list of books.</p><p class="calibre9">Another <tt class="REPLACEABLE">ELSE IF</tt> statement is then nested within the previous <tt class="REPLACEABLE">ELSE IF</tt>
+        statement, and is executed if the subject ID number has been set to NULL.  If
+        <tt class="REPLACEABLE">sub_id</tt> is null, the subject title passed to the function was not found in the
+        <tt class="REPLACEABLE">booktown</tt> database when it was retrieved by the <tt class="REPLACEABLE">SELECT INTO</tt> 
+        statement at the function's beginning.  In that case, the function returns the string <span><i class="EMPHASIS">subject not found</i></span>.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>The two functions used within <a href="x20238.htm#USINGTHEIFTHENELSESTATEMENT">Example 11-38</a> are created later in this section as
+          examples of using loops to control program flow.</p></blockquote></div><div class="NAVHEADER"><a name="USINGTHEIFTHENELSEIFSTATEMENT"></a><p class="calibre9"><b class="calibre10">Example 11-40. Using the IF/THEN/ELSE/IF statement</b></p><pre class="SCREEN">CREATE FUNCTION books_by_subject (text) RETURNS text AS '
+  DECLARE
+     
+     -- Declare an alias for user input, which should be either all
+     -- or the name of a subject.
+    sub_title ALIAS FOR $1;
+     
+     -- Declare an integer to store the subject ID in, and a text
+     -- variable to store the list of found books.  The text variable
+     --  is set to a blank string.
+    sub_id INTEGER;
+    found_text TEXT :='''';
+  
+  BEGIN
+       
+       -- Retrieve the subject ID number for the book matching the
+       -- title supplied by the user.
+      SELECT INTO sub_id id FROM subjects WHERE subject = sub_title;
+       
+       -- Check to see if the function was given all as the the subject
+       -- name.  If so, execute the SELECT INTO statement and return
+       -- the found_text variable.
+      IF sub_title = ''all'' THEN
+        found_text extract_all_titles();
+        RETURN found_text;
+         
+         -- If the function was NOT sent all as the name of the subject,
+         -- check to see the subject ID number turned out to be within
+         -- the valid range of subjects. If it did, execute the
+         -- extract_title() function with the subject ID number as its
+         -- argument, then assign the result to the found_text variable.
+        ELSE IF sub_id  &gt;= 0 THEN
+          found_text := extract_title(sub_id);
+          RETURN  ''\n'' || sub_title || '':\n'' || found_text;
+           
+           -- If the subject ID number was NULL, return a message telling
+           -- the user that the subject specified could not be found.
+          ELSE IF sub_id IS NULL THEN
+            RETURN ''Subject not found.'';
+          END IF;
+        END IF;
+    END IF;
+    RETURN ''An error occurred. .'';
+  END;
+' LANGUAGE 'plpgsql';</pre></div><p class="calibre9"><a href="x20238.htm#BOOKSBYSUBJECTFUNCTIONRESULTS">Example 11-41</a> first shows the result of the
+        <tt class="REPLACEABLE">books_by_subject</tt> function when it is called with <tt class="REPLACEABLE">all</tt> as
+        the argument (an indication that the user wishes to view the books within all defined subjects).  The example then shows
+        the results received when <span><i class="EMPHASIS">Computers</i></span> is passed as the function's argument (an indication
+        that the user wishes to view only books categorized as computer-related books).  </p><div class="NAVHEADER"><a name="BOOKSBYSUBJECTFUNCTIONRESULTS"></a><p class="calibre9"><b class="calibre10">Example 11-41. Results of the books_by_subject() function</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT books_by_subject('all');</b></tt>
+books_by_subject
+
+Arts:
+Dynamic Anatomy
+
+Business:
+
+Children's Books:
+The Cat in the Hat
+Bartholomew and the Oobleck
+Franklin in the Dark
+Goodnight Moon
+
+[...]
+
+Science:
+
+Science Fiction:
+Dune
+2001: A Space Odyssey
+
+(1 row)
+
+booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT books_by_subject('Computers');</b></tt>
+                      books_by_subject
+--------------------------------------------------------------
+
+Computers:
+Learning Python
+Perl Cookbook
+Practical PostgreSQL
+Programming Python
+
+(1 row)</pre></div></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN20372" class="calibre8">Loops</a></h2><p class="calibre9"> Loops, like conditional statements, are another method of controlling the flow of functions.  Loops use
+      <span><i class="EMPHASIS">iteration</i></span> in a number of different ways to accomplish tasks, and through the use of iteration you can
+      greatly expand the functionality of a PL/pgSQL function.</p><p class="calibre9">PL/pgSQL implements three iterative loops: the basic loop, the slightly more advanced
+      <tt class="REPLACEABLE">WHILE</tt> loop, and the <tt class="REPLACEABLE">FOR</tt> loop.  Of the three, you will
+      most likely be using the <tt class="REPLACEABLE">FOR</tt> loop most often, as it can be applied to a multitude of
+      different programmatic situations, though the other loops are also useful.</p><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN20380" class="calibre8">The basic loop</a></h3><p class="calibre9">Use the <tt class="REPLACEABLE">LOOP</tt> keyword to begin a basic, unconditional loop within a function.  An
+        unconditional loop will execute the statements within its body until an <tt class="REPLACEABLE">EXIT</tt> statement
+        is reached.  To form an <tt class="REPLACEABLE">EXIT</tt> statement, the <tt class="REPLACEABLE">EXIT</tt>
+        keyword can be accompanied by <tt class="REPLACEABLE">WHEN</tt>, followed by and an expression to specify when the
+        loop should exit. Th expression should be a Boolean expression, such as one that checks to see whether a variable has
+        reached a specified value.  Following is the syntax (without the <tt class="REPLACEABLE">ELSE</tt> keyword) for an
+        unconditional loop:</p><pre class="SCREEN">    LOOP
+      <tt class="REPLACEABLE"><i class="EMPHASIS">statement;</i></tt>
+      [...]
+    END LOOP;</pre><p class="calibre9">An unconditional loop statement will continue to loop until it reaches an <tt class="REPLACEABLE">EXIT</tt>
+        statement. <tt class="REPLACEABLE">EXIT</tt> statements explicitly terminate unconditional loops.  When terminating a
+        loop with <tt class="REPLACEABLE">EXIT</tt>, you may optionally specify a <span><i class="EMPHASIS">label</i></span> and/or a
+        condition on which the loop should exit from.</p><p class="calibre9">A label is an arbitrary identifier, prefixed with a pair of less-than symbols
+        (<tt class="REPLACEABLE">&lt;&lt;</tt>) and suffixed with a pair of greater-than symbols
+        (<tt class="REPLACEABLE">&gt;&gt;</tt>). In the case of a loop, it may be placed directly before the loop block
+        begins to identify that loop block with a chosen label. Here is an example of a defined loop with label syntax:</p><pre class="SCREEN">  &lt;&lt;<tt class="REPLACEABLE"><i class="EMPHASIS">label_name</i></tt>&gt;&gt;
+  LOOP
+    [ ... ]
+  END LOOP;</pre><p class="calibre9">By providing a label, you can specify which loop to exit when you have several loops nested inside each other (the
+        use of labels in <tt class="REPLACEABLE">EXIT</tt> will only work if you have specified a label for the loop you are
+        attempting to terminate).</p><p class="calibre9">By providing a condition in an <tt class="REPLACEABLE">EXIT</tt> statement specifies that the loop should be
+        terminated when the condition is true.</p><p class="calibre9">Here is the syntax for an <tt class="REPLACEABLE">EXIT</tt> statement, within a
+        <tt class="REPLACEABLE">LOOP</tt>:</p><pre class="SCREEN">  [ &lt;&lt;<tt class="REPLACEABLE"><i class="EMPHASIS">label</i></tt>&gt;&gt; ]
+  LOOP
+    <tt class="REPLACEABLE"><i class="EMPHASIS">statement;</i></tt>
+    [...]
+    EXIT [ <tt class="REPLACEABLE"><i class="EMPHASIS">label</i></tt> ] [ WHEN <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> ];
+  END LOOP;</pre><p class="calibre9"><a href="x20238.htm#USINGTHEBASICLOOP">Example 11-42</a> shows a demonstration of an unconditional loop and an
+        <tt class="REPLACEABLE">EXIT</tt> statement that ends it based on a condition.  The
+        <tt class="REPLACEABLE">square_integer_loop()</tt> function squares an integer (multiplies the number by itself)
+        until it reaches a value higher than ten thousand.  The function then returns the resulting value.  </p><div class="NAVHEADER"><a name="USINGTHEBASICLOOP"></a><p class="calibre9"><b class="calibre10">Example 11-42. Using the basic loop</b></p><pre class="SCREEN">CREATE FUNCTION square_integer_loop (integer) RETURNS integer AS '
+  DECLARE
+     
+     -- Declare aliases for function argument.
+    num1 ALIAS FOR $1;
+     
+     -- Declare an integer to hold the result.
+    result integer;
+  
+  BEGIN
+     
+     -- Assign the user input number to the result variable.
+    result := num1;
+    
+    LOOP
+      result := result * result;
+      EXIT WHEN result &gt;= 10000;
+    END LOOP;
+    
+    RETURN result;
+  END;
+' LANGUAGE 'plpgsql';
+</pre></div><p class="calibre9"><a href="x20238.htm#SQUAREINTEGERLOOPRESULTS">Example 11-43</a> shows the result of invoking
+        <tt class="REPLACEABLE">square_integer_loop()</tt> and passing the value 3 as an argument.</p><div class="NAVHEADER"><a name="SQUAREINTEGERLOOPRESULTS"></a><p class="calibre9"><b class="calibre10">Example 11-43. Result of the square_integer_loop( ) function</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT square_integer_loop(3);</b></tt>
+ square_integer_loop
+---------------------
+                6561
+(1 row)</pre></div></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="AEN20427" class="calibre8">The WHILE loop</a></h3><p class="calibre9">The <tt class="REPLACEABLE">WHILE</tt> loop is used to loop through a block of statements until a specified
+        condition becomes false.  Each time a <tt class="REPLACEABLE">WHILE</tt> loop is entered, its condition will be
+        evaluated before the statement block is executed.</p><p class="calibre9">If the condition is evaluated as <tt class="REPLACEABLE">TRUE</tt>, the statements will then be executed.  If
+        the condition is never evaluated as false, the statement block will repeatedly executed until the client process that it
+        originated from is terminated. The syntax of the <tt class="REPLACEABLE">WHILE</tt> loop is shown here:</p><pre class="SCREEN">  [ &lt;&lt;<tt class="REPLACEABLE"><i class="EMPHASIS">label</i></tt>&gt;&gt; ]
+  WHILE <tt class="REPLACEABLE"><i class="EMPHASIS">condition</i></tt> LOOP
+    <tt class="REPLACEABLE"><i class="EMPHASIS">statement;</i></tt>
+    [...]
+  END LOOP;</pre><p class="calibre9">In <a href="x20238.htm#USINGTHEWHILELOOP">Example 11-44</a>, the <tt class="REPLACEABLE">add_two_loop( )</tt> function
+        demonstrates the use of a <tt class="REPLACEABLE">WHILE</tt> loop designed to add one to a number until the number
+        reaches a specified value. The starting number and ending number are both supplied by the user as function arguments. 
+        The <tt class="REPLACEABLE">!=</tt> symbol in <a href="x20238.htm#USINGTHEWHILELOOP">Example 11-44</a> is the inequality operator.  That
+        inequality operator indicates that the <tt class="REPLACEABLE">WHILE</tt> loop will run while the
+        <tt class="REPLACEABLE">result</tt> variable <span><i class="EMPHASIS">is not equal to</i></span> the
+        <tt class="REPLACEABLE">high_number</tt> variable.  In other words, the <tt class="REPLACEABLE">WHILE</tt> loop
+        in <a href="x20238.htm#USINGTHEWHILELOOP">Example 11-44</a> will run until <tt class="REPLACEABLE">result</tt> is equal to
+        <tt class="REPLACEABLE">high_number</tt>.</p><div class="NAVHEADER"><a name="USINGTHEWHILELOOP"></a><p class="calibre9"><b class="calibre10">Example 11-44. Using the WHILE loop</b></p><pre class="SCREEN">CREATE FUNCTION add_two_loop (integer, integer) RETURNS integer AS '
+  DECLARE
+     
+     -- Declare aliases for function arguments.
+    low_number ALIAS FOR $1;
+    high_number ALIAS FOR $2;
+     
+     -- Declare a variable to hold the result.
+    result INTEGER = 0;
+  
+  BEGIN
+     
+     -- Add one to the variable result until the value of result is
+     -- equal to high_number.
+    WHILE result != high_number LOOP
+      result := result + 1;
+    END LOOP;
+    
+    RETURN result;
+  END;
+' LANGUAGE 'plpgsql';</pre></div></div><div class="NAVHEADER"><h3 class="AUTHOR"><a name="THEFORLOOP" class="calibre8">The FOR loop</a></h3><p class="calibre9">The <tt class="REPLACEABLE">FOR</tt> loop is arguably the most important loop implemented in PL/pgSQL.  Use the
+        <tt class="REPLACEABLE">FOR</tt> loop to iterate a statement block over a range of integers that you specify.  The
+        structure of a <tt class="REPLACEABLE">FOR</tt> loop in PL/pgSQL is similar to <tt class="REPLACEABLE">FOR</tt>
+        loops in other procedural languages, such as C.</p><p class="calibre9">In a PL/pgSQL <tt class="REPLACEABLE">FOR</tt> loop an integer variable is stated first, to track the iteration
+        of the loop, then the integer range is given, and finally a statement block is provided.  The integer variable created to
+        track the loop's iteration is destroyed once the loop exits; it does not have to be declared in the declaration section
+        of the block. The following shows the syntax of the <tt class="REPLACEABLE">FOR</tt> loop: </p><pre class="SCREEN">  [ &lt;&lt;<tt class="REPLACEABLE"><i class="EMPHASIS">label</i></tt>&gt;&gt; ]
+  FOR <tt class="REPLACEABLE"><i class="EMPHASIS">identifier</i></tt> IN [ REVERSE ] <tt class="REPLACEABLE"><i class="EMPHASIS">expression1</i></tt> .. <tt class="REPLACEABLE"><i class="EMPHASIS">expression2</i></tt>  LOOP
+      <tt class="REPLACEABLE"><i class="EMPHASIS">statement;</i></tt>
+      [...]
+  END LOOP;</pre><p class="calibre9">The <tt class="REPLACEABLE">FOR</tt> loop will perform a single iteration for each incremented value of
+        <tt class="REPLACEABLE"><i class="EMPHASIS">identifier</i></tt> which is in the range of values between, and including, <tt class="REPLACEABLE"><i class="EMPHASIS">expression1</i></tt>
+        and <tt class="REPLACEABLE"><i class="EMPHASIS">expression2</i></tt>. The <tt class="REPLACEABLE"><i class="EMPHASIS">identifier</i></tt> value will be initialized to the value of
+        <tt class="REPLACEABLE"><i class="EMPHASIS">expression1</i></tt>, regardless of any prior settings, and incremented by one each iteration. If 
+        <tt class="REPLACEABLE">REVERSE</tt> is specified, <tt class="REPLACEABLE"><i class="EMPHASIS">identifier</i></tt> will be decremented rather
+        than incremented.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>The identifier used to track iteration does not need to be declared outside of the
+          <tt class="REPLACEABLE">FOR</tt> block, unless you wish to be able to access its value after the loop has
+          finished.</p></blockquote></div><p class="calibre9">The <tt class="REPLACEABLE">FOR</tt> loop can also be used to cycle through the the results of a query.  The
+        second <tt class="REPLACEABLE">FOR</tt> loop in <a href="x20238.htm#USINGTHEFORLOOP">Example 11-45</a> demonstrates using a
+        <tt class="REPLACEABLE">FOR</tt> loop to work with <tt class="REPLACEABLE">RECORD</tt> and
+        <tt class="REPLACEABLE">%ROWTYPE</tt> variables.  The syntax of a <tt class="REPLACEABLE">FOR</tt> loop that
+        iterates through <tt class="REPLACEABLE">RECORD</tt> and <tt class="REPLACEABLE">%ROWTYPE</tt> variables is shown
+        in the following syntax:</p><pre class="SCREEN">  [ &lt;&lt;<tt class="REPLACEABLE"><i class="EMPHASIS">label</i></tt>&gt;&gt; ]
+  FOR { <tt class="REPLACEABLE"><i class="EMPHASIS">record_variable</i></tt> | <tt class="REPLACEABLE"><i class="EMPHASIS">%rowtype_variable</i></tt> } IN <tt class="REPLACEABLE"><i class="EMPHASIS">select_statement</i></tt> LOOP
+    <tt class="REPLACEABLE"><i class="EMPHASIS">statement;</i></tt>
+    [...]
+  END LOOP;</pre><p class="calibre9">In <a href="x20238.htm#USINGTHEFORLOOP">Example 11-45</a>, the <tt class="REPLACEABLE">extract_all_titles()</tt> function is used to
+        extract a list of all book titles that exist on the database, organized by subject.  When a subject has no book titles, a
+        blank line is displayed. The list is returned as a text variable.  A <tt class="REPLACEABLE">FOR</tt> loop is
+        utilized within the <tt class="REPLACEABLE">extract_all_titles()</tt> function to cycle through the available
+        subjects by number.</p><p class="calibre9">Another <tt class="REPLACEABLE">FOR</tt> loop is nested within the original loop to cycle through the available
+        books and retrieve all books with <tt class="REPLACEABLE">subject_id</tt> values that match the original loop's
+        iteration variable, which represents the current subject ID number the function is scanning for.  In <a href="x20238.htm#USINGTHEFORLOOP">Example 11-45</a>, the iteration variable <tt class="REPLACEABLE">i</tt> is initialized to zero because the
+        first subject ID number in our <tt class="REPLACEABLE">subjects</tt> table is 0.  </p><div class="NAVHEADER"><a name="USINGTHEFORLOOP"></a><p class="calibre9"><b class="calibre10">Example 11-45. Using the FOR loop</b></p><pre class="SCREEN">CREATE FUNCTION extract_all_titles2 () RETURNS text AS '
+  DECLARE
+     
+     -- Declare a variable for the subject ID number.
+    sub_id INTEGER;
+     
+     -- Declare a variable to hold the list of titles.
+    text_output TEXT = '' '';
+     
+     -- Declare a variable to hold the subject title.
+    sub_title TEXT;
+     
+     -- Declare a variable to hold records from the  books table.
+    row_data books%ROWTYPE;
+  
+  BEGIN
+     
+     -- Outer FOR loop: loop through the body of this loop until the
+     -- variable i equals 15.  Start the looping at 0.  Essentially,
+     --loop the following statements 16 times (once for each subject).
+    FOR i IN 0..15 LOOP
+       
+       -- Retrieve the subject name of the subject with an ID number
+       -- that matches the variable i.
+      SELECT INTO sub_title subject FROM subjects WHERE id = i;
+       
+       -- Insert the subject name, a colon, and a new line into the
+       -- text_output variable.
+      text_output = text_output || ''\n'' || sub_title || '':\n'';
+       
+       -- Loop through all records in the books table with a subject ID
+       -- that matches the variable i.
+      FOR row_data IN SELECT * FROM books
+        WHERE subject_id = i  LOOP
+         
+         -- Insert the title of a matching book into the text_output
+         -- variable, followed by a newline.
+        text_output := text_output || row_data.title || ''\n'';
+      
+      END LOOP;
+    END LOOP;
+     
+     -- Return the list.
+    RETURN text_output;
+  END;
+' LANGUAGE 'plpgsql';</pre></div><p class="calibre9"><a href="x20238.htm#USINGTHEFORLOOPWITHROWTYPE">Example 11-46</a> shows the code of another function that uses a
+        <tt class="REPLACEABLE">FOR</tt> loop to iterate through the results of a SQL query. With each iteration of the loop
+        the <tt class="REPLACEABLE">FOR</tt> loop in <a href="x20238.htm#USINGTHEFORLOOPWITHROWTYPE">Example 11-46</a> places the contents of a
+        result row from a query against the books table into the <tt class="REPLACEABLE">row_data</tt> variable, and then
+        inserts the value of the row's <tt class="REPLACEABLE">title</tt> field into the
+        <tt class="REPLACEABLE">text_output</tt> variable.  </p><p class="calibre9">The loop ends when the last record in <tt class="REPLACEABLE">books</tt> is reached.  By the end of the loop,
+        <tt class="REPLACEABLE">text_output</tt> will contain a list of all book titles that match the subject ID number
+        passed to the function.  The <tt class="REPLACEABLE">text_output</tt> variable is returned at the end of the
+        function.  </p><div class="NAVHEADER"><a name="USINGTHEFORLOOPWITHROWTYPE"></a><p class="calibre9"><b class="calibre10">Example 11-46. Using the FOR loop with %ROWTYPE</b></p><pre class="SCREEN">CREATE FUNCTION extract_title (integer) RETURNS text AS '
+  DECLARE
+     
+     -- Declare an alias for function argument.
+    sub_id ALIAS FOR $1;
+     
+     -- Declare a variable to hold book titles and set its default
+     --  value to a new line.
+    text_output TEXT :=''\n'';
+     
+     -- Declare a variable to hold rows from the
+     -- books table.
+    row_data books%ROWTYPE;
+  
+  BEGIN
+     
+     -- Iterate through the results of a query.
+    FOR row_data IN SELECT * FROM books
+    WHERE subject_id = sub_id ORDER BY title  LOOP
+       
+       -- Insert the title of a matching book into the text_output variable.
+      text_output := text_output || row_data.title || ''\n'';
+    END LOOP;
+      
+      -- Return the list of books.
+    RETURN text_output;
+  END;
+' LANGUAGE 'plpgsql';</pre></div><p class="calibre9"><a href="x20238.htm#EXTRACTTITLEFUNCTIONRESULTS">Example 11-47</a> shows the results of the
+        <tt class="REPLACEABLE">extract_title()</tt> function when 2, which represents
+        "Children's Books" in the subject table, is passed as an argument.  </p><div class="NAVHEADER"><a name="EXTRACTTITLEFUNCTIONRESULTS"></a><p class="calibre9"><b class="calibre10">Example 11-47. Result of the extract_title() function</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT extract_title(2);</b></tt>
+                         extract_title
+-------------------------------------------------------------------
+
+Bartholomew and the Oobleck
+Franklin in the Dark
+Goodnight Moon
+The Cat in the Hat
+
+(1 row)</pre></div><p class="calibre9">The <tt class="REPLACEABLE">row_data</tt> variable is declared as a <tt class="REPLACEABLE">%ROWTYPE</tt>
+        of the <tt class="REPLACEABLE">books</tt> table because it will only be used to hold records from the
+        <tt class="REPLACEABLE">books</tt> table.  We could have declared <tt class="REPLACEABLE">row_data</tt> as a
+        <tt class="REPLACEABLE">RECORD</tt> to accomplish the same result, but the <tt class="REPLACEABLE">RECORD</tt>
+        type should be used when you are going to be using the variable for more than just the rows of one specific table:</p><pre class="SCREEN">row_data RECORD;</pre><p class="calibre9">The <tt class="REPLACEABLE">extract_title()</tt> function will return the same results whether row data is
+        declared as <tt class="REPLACEABLE">RECORD</tt>, or is declared using
+        <tt class="REPLACEABLE">%ROWTYPE</tt>.</p></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN20549" class="calibre8">Handling Errors and Exceptions</a></h2><p class="calibre9"><tt class="REPLACEABLE">RAISE</tt> statements raise errors and exceptions during a PL/pgSQL function's operation.
+      A <tt class="REPLACEABLE">RAISE</tt> statement sends specified information to the PostgreSQL
+      <tt class="REPLACEABLE">elog</tt> mechanism (the standard PostgreSQL error logging utility, which typically logs data
+      either to <span><i class="EMPHASIS">/var/log/messages</i></span>, or to <span><i class="EMPHASIS">$PGDATA/serverlog</i></span>, as well as displaying to
+      <span><i class="EMPHASIS">stderr</i></span>).</p><p class="calibre9">A <tt class="REPLACEABLE">RAISE</tt> statement is also given the level of error it should raise, and the string
+      it should send to PostgreSQL.  Additionally, you can list variables and expressions whose values you wish to have placed
+      into the string. Use percent signs (<tt class="REPLACEABLE">%</tt>) to mark the locations in the string at which you
+      want those values inserted. The syntax of the <tt class="REPLACEABLE">RAISE</tt> statement is as follows:</p><pre class="SCREEN">RAISE <tt class="REPLACEABLE"><i class="EMPHASIS">level</i></tt> ''<tt class="REPLACEABLE"><i class="EMPHASIS">message string</i></tt>'' [, <tt class="REPLACEABLE"><i class="EMPHASIS">identifier</i></tt> [...] ];</pre><p class="calibre9"><a href="x20238.htm#POSSIBLELEVELVALUESTABLE">Table 11-1</a> lists the three possible values for the <tt class="REPLACEABLE">RAISE</tt>
+      statement's level and their meanings.</p><div class="NAVHEADER"><a name="POSSIBLELEVELVALUESTABLE"></a><p class="calibre9"><b class="calibre10">Table 11-1. Possible level values</b></p><table border="1" class="calibre"><thead class="calibre11"><tr class="calibre12"><th width="5" valign="TOP" class="calibre13">Value</th><th width="15" valign="TOP" class="calibre13">Explanation</th></tr></thead><tbody class="calibre14"><tr class="calibre12"><td width="5" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">DEBUG</tt></p></td><td width="15" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">DEBUG</tt> level statements send the specified text as a <tt class="REPLACEABLE">DEBUG:</tt> message to the PostgreSQL log and the client program if the client is connected to a database cluster running in debug mode.  <tt class="REPLACEABLE">DEBUG</tt> level <tt class="REPLACEABLE">RAISE</tt> statements will be ignored by a database running in production mode.</p></td></tr><tr class="calibre12"><td width="5" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">NOTICE</tt></p></td><td width="15" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">NOTICE</tt> level statements send the specified text as a <tt class="REPLACEABLE">NOTICE:</tt> message to the PostgreSQL log and the client program in any PostgreSQL operation mode.</p></td></tr><tr class="calibre12"><td width="5" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">EXCEPTION</tt></p></td><td width="15" valign="TOP" class="calibre15"><p class="calibre9"><tt class="REPLACEABLE">EXCEPTION</tt> level statements send the specified text as an <tt class="REPLACEABLE">ERROR:</tt> message to the client program and the PostgreSQL database log. The <tt class="REPLACEABLE">EXCEPTION</tt> level also causes the current transaction to be aborted.</p></td></tr></tbody></table></div><p class="calibre9">In <a href="x20238.htm#USINGTHERAISESTATEMENT">Example 11-48</a>, the first <tt class="REPLACEABLE">RAISE</tt> statement raises a debug
+      level message.  The second and third <tt class="REPLACEABLE">RAISE</tt> statements send a notice to the user. Notice
+      the use of the percent-sign (%) in the third <tt class="REPLACEABLE">RAISE</tt> statement to mark the location in the
+      string at which the value of an integer is to be inserted. Finally, the fourth <tt class="REPLACEABLE">RAISE</tt>
+      statement displays an error and throws an exception, causing the function to end and the transaction to be aborted. </p><div class="NAVHEADER"><a name="USINGTHERAISESTATEMENT"></a><p class="calibre9"><b class="calibre10">Example 11-48. Using the RAISE statement</b></p><pre class="SCREEN">CREATE FUNCTION raise_test () RETURNS integer AS '
+  DECLARE
+     
+     -- Declare an integer variable for testing.
+    an_integer INTEGER = 1;
+  
+  BEGIN
+     
+     -- Raise a debug level message.
+    RAISE DEBUG ''The raise_test() function began.'';
+    
+    an_integer = an_integer + 1;
+     
+     -- Raise a notice stating that the an_integer variable was changed,
+     -- then raise another notice stating its new value.
+    RAISE NOTICE ''Variable an_integer was changed.'';
+    RAISE NOTICE ''Variable an_integer's value is now %.'',an_integer;
+     
+     -- Raise an exception.
+    RAISE EXCEPTION ''Variable % changed.  Transaction aborted.'',an_integer;
+    
+    RETURN 1;
+  END;
+' LANGUAGE 'plpgsql';</pre></div><p class="calibre9"><a href="x20238.htm#RESULTSOFRAISETEST">Example 11-49</a> shows the results of the <tt class="REPLACEABLE">raise_test()</tt> function
+      when called from our <tt class="REPLACEABLE">booktown</tt> database. The <tt class="REPLACEABLE">DEBUG</tt> output
+      does not show, because our database is not running in debug mode.</p><div class="NAVHEADER"><a name="RESULTSOFRAISETEST"></a><p class="calibre9"><b class="calibre10">Example 11-49.  Results of the raise_test( ) function</b></p><pre class="SCREEN">booktown=# <tt class="REPLACEABLE"><b class="calibre10">SELECT raise_test();</b></tt>
+NOTICE:  Variable an_integer was changed.
+NOTICE:  Variable an_integer's value is now 2.
+ERROR:  Variable 2 changed.  Aborting transaction.</pre></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN20624" class="calibre8">Calling Functions</a></h2><p class="calibre9">The normal syntax to call another PL/pgSQL function from within PL/pgSQL is to either reference the function in a SQL
+      <tt class="REPLACEABLE">SELECT</tt> statement, or during the assignment of a variable. For example: </p><pre class="SCREEN">  SELECT <tt class="REPLACEABLE"><i class="EMPHASIS">function_identifier</i></tt>(<tt class="REPLACEABLE"><i class="EMPHASIS">arguments</i></tt>);
+  <tt class="REPLACEABLE"><i class="EMPHASIS">variable_identifier</i></tt> := <tt class="REPLACEABLE"><i class="EMPHASIS">function_identifier</i></tt>(<tt class="REPLACEABLE"><i class="EMPHASIS">arguments</i></tt>);</pre><p class="calibre9">The use of assignments and <tt class="REPLACEABLE">SELECT</tt> statements to execute functions is standard in
+      PL/pgSQL because all functions in a PostgreSQL database <span><i class="EMPHASIS">must</i></span> return a value of some type.  Use the
+      <tt class="REPLACEABLE">PERFORM</tt> keyword to call a function and ignore its return data.  <a href="x20238.htm#PERFORMKEYWORDSYNTAX">Example 11-50</a> shows the syntax of the <tt class="REPLACEABLE">PERFORM</tt> keyword.</p><div class="NAVHEADER"><a name="PERFORMKEYWORDSYNTAX"></a><p class="calibre9"><b class="calibre10">Example 11-50. Syntax of the PERFORM keyword</b></p><pre class="SCREEN">PERFORM <tt class="REPLACEABLE"><i class="EMPHASIS">function_identifier</i></tt>(<tt class="REPLACEABLE"><i class="EMPHASIS">arguments</i></tt>);</pre></div><p class="calibre9"><a href="x20238.htm#USINGTHEPERFORMKEYWORD">Example 11-51</a> demonstrates the use of <tt class="REPLACEABLE">PERFORM</tt> to invoke a
+      PL/pgSQL function, and shows how to call another PL/pgSQL function through assignment (via a
+      
+      <tt class="REPLACEABLE">SELECT INTO</tt> statement). The <tt class="REPLACEABLE">ship_item</tt> function is a
+      useful wrapper to the <tt class="REPLACEABLE">add_shipment</tt> function. It accepts basic information, makes sure
+      the customer and book both exist, and then sends the information to <tt class="REPLACEABLE">add_shipment</tt>.</p><div class="NAVHEADER"><a name="USINGTHEPERFORMKEYWORD"></a><p class="calibre9"><b class="calibre10">Example 11-51. Using the PERFORM keyword</b></p><pre class="SCREEN">CREATE FUNCTION ship_item (text,text,text) RETURNS integer AS '
+  DECLARE
+     
+     -- Declare function argument aliases.
+    l_name ALIAS FOR $1;
+    f_name ALIAS FOR $2;
+    book_isbn ALIAS FOR $3;
+     
+     -- Declare a variable to hold the book ID number.  This variable
+     -- is necessary to check for the existence of the provided ISBN.
+    book_id INTEGER;
+     
+     -- Declare a variable to hold the customer ID number.  This variable
+     -- is necessary to check for the existence of the customer.
+    customer_id INTEGER;
+  
+  BEGIN
+     
+     -- Retrieve the customer ID number with a previously created
+     -- function.
+    SELECT INTO customer_id get_customer_id(l_name,f_name);
+     
+     -- If the customer does not exist, return -1 and exit.  The
+     -- get_customer_id function returns a -1 if the customer is not found.
+    IF customer_id = -1 THEN
+      RETURN -1;
+    END IF;
+     
+     -- Retrieve the ID number of the book with the specified ISBN.
+    SELECT INTO book_id book_id FROM editions WHERE isbn = book_isbn;
+     
+     -- If the book does not exist in the system, return a -1.
+    IF NOT FOUND THEN
+      RETURN -1;
+    END IF;
+     
+     -- If the book and customer both exist, add the shipment.
+    PERFORM add_shipment(customer_id,book_isbn);
+     
+     -- Return 1 to indicate the function was successful.
+    RETURN 1;
+  END;
+' LANGUAGE 'plpgsql';</pre></div></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="x19832.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x20655.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Using Variables</td><td width="34%" valign="top" class="calibre4"><a href="c19610.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">PL/pgSQL and Triggers</td></tr></table></div></div>
+
+{% endraw %}
+

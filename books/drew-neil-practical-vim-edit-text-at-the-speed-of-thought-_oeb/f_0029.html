@@ -1,0 +1,261 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0028.html
+next: f_0030.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.count.arithmetic">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 10</td>
+<td class="arr-recipe-name">Use Counts to Do Simple Arithmetic</td>
+</tr>
+</table>
+<p id="N113CD" class="calibre4">
+<span class="calibre5">
+		Most Normal mode commands can be executed with a count. We can exploit this feature to do simple arithmetic.
+    </span>
+</p>
+<p id="N113DD" class="calibre4">
+      Many of the commands that are available in Normal mode can be prefixed with a count. Instead of executing the command just once, Vim will attempt to execute the command the specified number of times (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">count</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/intro.html#count">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>).
+    </p>
+<p id="N113E4" class="calibre4">
+      The <span class="calibre17">&lt;C-a&gt;</span> and <span class="calibre17">&lt;C-x&gt;</span> commands perform addition and subtraction on numbers. When run without a count they increment by one, but if we prefix a number, then we can add or subtract by any whole number. For example, if we positioned our cursor on a 5 character, running <span class="calibre17">10&lt;C-a&gt;</span> would modify it to read 15.
+    </p>
+<p id="N11410" class="calibre4">
+      But what happens if the cursor is not positioned on a numeric digit? The documentation says that the <span class="calibre17">&lt;C-a&gt;</span> command will “add [count] to the number <span class="calibre5">at or after the cursor</span>” (see <strong xmlns:str="http://exslt.org/strings" class="calibre10">ctrl-a</strong>
+<a xmlns:str="http://exslt.org/strings" href="http://vimdoc.sourceforge.net/htmldoc/change.html#CTRL-A">
+<img alt="info" src="images/information.png" class="calibre21"/>​</a>). So if the cursor is not already positioned on a number, then the <span class="calibre17">&lt;C-a&gt;</span> command will look ahead for a digit on the current line. If it finds one, it jumps straight to it. We can use this to our advantage.
+    </p>
+<p id="N11420" class="calibre4">
+      Here’s a snippet of CSS:
+    </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td colspan="2" class="calibre33">
+<a href="http://media.pragprog.com/titles/dnvim/code/normal_mode/sprite.css">normal_mode/sprite.css</a>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​.blog, .news { background-image: <em class="string">url(/sprite.png)</em>; }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre28">
+<td class="codeprefix" valign="top">
+<span> </span>
+</td>
+<td class="codeline" valign="top">
+<div class="calibre29">
+​<code class="calibre30">​.blog { background-position: 0px 0px }​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N11436" class="calibre4">
+      We’re going to duplicate the last line and make two small modifications to it: replace the word “blog” with “news,” and change “0px” to “-180px.” We can duplicate the line by running <span class="calibre17">yyp</span> and then using <span class="calibre17">cw</span> to change the first word. But how should we deal with that number?
+    </p>
+<p id="N11449" class="calibre4">
+      One approach would be to jump to the digit with <span class="calibre17">f0</span> and then dip into Insert mode to change the value by hand: <span class="calibre17">i</span>
+<code class="cf">-18&lt;Esc&gt;</code>. But it’s quicker just to run <span class="calibre17">180&lt;C-x&gt;</span>. Since our cursor isn’t on a digit to begin with, it jumps forward to the first one that it finds. That saves us the step of moving the cursor by hand. Let’s see this work flow in action:
+    </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">{start}</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​.blog, .news { background-image: url(/sprite.png); }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">.</span>blog { background-position: 0px 0px }​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">yyp</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​.blog, .news { background-image: url(/sprite.png); }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​.blog { background-position: 0px 0px }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​<span class="shade-fg-white">.</span>blog { background-position: 0px 0px }​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">cW</span>
+<code class="cf">.news&lt;Esc&gt;</code>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​.blog, .news { background-image: url(/sprite.png); }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​.blog { background-position: 0px 0px }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​.new<span class="shade-fg-white">s</span> { background-position: 0px 0px }​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">180&lt;C-x&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​.blog, .news { background-image: url(/sprite.png); }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​.blog { background-position: 0px 0px }​</code>​</div>
+</td>
+</tr>
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​.news { background-position: -18<span class="shade-fg-white">0</span>px 0px }​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N114D3" class="calibre4">
+      In this example, we’ve only duplicated the line once and made changes. But suppose we had to make ten copies, subtracting 180 from the number in each successive copy. If we were to switch to Insert mode to amend each number, we’d have to type something different each time (<code class="cf">-180</code>, then <code class="cf">-360</code>, and so on). But by using the <span class="calibre17">180&lt;C-x&gt;</span> command, our work flow is identical for each successive line. We could even record our keystrokes as a macro (see <a xmlns:str="http://exslt.org/strings" href="f_0094.html#chp.macros">Chapter 11, ​<em class="calibre5">Macros</em>​</a>) and then play it back as many times as needed.
+	  </p>
+<div class="sidebar" id="sidebar.nrformats">
+<div class="sidebar-title">Number Formats</div>
+<div class="calibre1">
+<p id="N114EE" class="calibre4">
+        What follows <code class="cf1">007</code>? No, this isn’t a James Bond gag; I’m asking what result would you expect if you added one to <code class="cf1">007</code>.
+      </p>
+<p id="N114F7" class="calibre4">
+        If you answered <code class="cf1">008</code>, then you might be in for a surprise when you try using Vim’s <span class="calibre17">&lt;C-a&gt;</span> command on any number with a leading zero. As is the convention in some programming languages, Vim interprets numerals with a leading zero to be in octal notation rather than in decimal. In the octal numeric system, <code class="cf1">007 + 001 = 010</code>, which looks like the decimal ten but is actually an octal eight. Confused?
+      </p>
+<p id="N11510" class="calibre4">
+        If you work with octal numbers frequently, Vim’s default behavior might suit you. If you don’t, you probably want to add the following line to your <code class="cf1">vimrc</code>:
+      </p>
+<table class="processedcode">
+<tr class="calibre28">
+<td class="codeprefix4" valign="top">
+<span> </span>
+</td>
+<td class="codeline4" valign="top">
+<div class="calibre38">
+​<code class="calibre39">​<strong class="prompt">set</strong> <strong class="prompt">nrformats</strong>=​</code>​</div>
+</td>
+</tr>
+</table>
+<p id="N1152E" class="calibre4">
+        This will cause Vim to treat all numerals as decimal, regardless of whether they are padded with zeros.
+      </p>
+</div>
+</div>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

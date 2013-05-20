@@ -1,0 +1,100 @@
+---
+layout: page
+title: "jQuery UI"
+prev: OEBPS/ch10s03.html
+next: OEBPS/ch10s05.html
+book_path: books/eric-sarrion-jquery-ui-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="The droppable () Method"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="the_droppable_open_parenthesis_close_par" class="calibre1"></a>The droppable () Method</h1></div></div></div><p class="calibre7">The <code class="literal">droppable ()</code> method manages
+    elements of the HTML page on which you want to drop a moved item. This
+    method can be used in two forms:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7"><code class="literal">$(selector, context).droppable
+        (options)</code></p></li><li class="listitem"><p class="calibre7"><code class="literal">$(selector, context).droppable
+        ("action", params)</code></p></li></ul></div><div class="book" title="The droppable (options) Method"><div class="book"><div class="book"><div class="book"><h2 class="title5"><a id="the_droppable_open_parenthesis_options_c" class="calibre1"></a>The droppable (options) Method</h2></div></div></div><p class="calibre7">The <code class="literal">droppable (options)</code> method
+      declares that an HTML element can be used as an element in which to
+      deposit other elements. The <code class="literal">options</code>
+      parameter is an object for specifying the behavior of the involved
+      elements.</p><p class="calibre7">The elements of deposit are those from the list associated with
+      the selector for which the <code class="literal">droppable
+      (options)</code> method is called. These <code class="literal">options</code> primarily define which elements can be dropped on these elements
+      of deposit, and the behavior of elements when a drop is made.</p><div class="book" title="Managing the behavior of the elements of deposit"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="managing_the_behavior_of_the_elements_of" class="calibre1"></a>Managing the behavior of the elements of deposit</h3></div></div></div><p class="calibre7"><a class="ulink" href="ch10s04.html#options_for_managing_deposit_elements" title="Table 10-10. Options for managing deposit elements">Table 10-10</a>
+        describes the options for the <code class="literal">droppable
+        (options)</code> method.</p><div class="table"><a id="options_for_managing_deposit_elements" class="firstname"></a><p class="title7">Table 10-10. Options for managing deposit elements</p><div class="book"><table summary="Options for managing deposit elements" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.disabled</code></p></td><td valign="top" class="calibre21"><p class="calibre7">When set to <code class="literal">true</code>, disables movement of item over
+                the specified elements and the drop into those elements. If
+                items pass over an unauthorized element, the drop will not be
+                considered until these elements are enabled (by using <code class="literal">droppable
+                ("enable")</code>).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.tolerance</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Indicates how the
+                draggable element should cover the element of deposit for the
+                drop being accepted. The possible values are <code class="literal">"fit"</code> (the draggable element covers
+                the element of deposit in full), <code class="literal">"intersect"</code> (half), <code class="literal">"touch"</code> (touching), and <code class="literal">"point"</code> (the mouse has entered the
+                element of deposit). The default is <code class="literal">"intersect"</code>.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><span class="firstname"><code class="literal">options.addClasses</code></span></p></td><td valign="top" class="calibre21"><p class="calibre7">When set to <code class="literal">true</code> (the default), the <code class="literal">ui-droppable</code> CSS class must be added
+                to the list elements.</p></td></tr></tbody></table></div></div></div><div class="book" title="Indicating which elements can be dropped"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="indicating_which_elements_can_be_dropped" class="calibre1"></a>Indicating which elements can be dropped</h3></div></div></div><p class="calibre7">By default, all draggable elements can be deposited on an
+        element of deposit. It is possible to state exactly which draggable
+        elements are accepted, using the options listed in <a class="ulink" href="ch10s04.html#options_for_specifying_elements_that_can" title="Table 10-11. Options for specifying elements that can be deposited">Table 10-11</a>.</p><div class="table"><a id="options_for_specifying_elements_that_can" class="firstname"></a><p class="title7">Table 10-11. Options for specifying elements that can be deposited</p><div class="book"><table summary="Options for specifying elements that can be deposited" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.accept</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Indicates elements
+                accepted for the deposit. It is a selector or a callback
+                function called for each of the draggable elements in the page
+                (of the form <code class="literal">accept
+                (element)</code>, in which <code class="literal">element</code> corresponds to a draggable
+                element). The function should return <code class="literal">true</code> if the deposited element is
+                accepted. The default selector is <code class="literal">"*"</code>, meaning that every item is
+                accepted for deposit.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.scope</code></p></td><td valign="top" class="calibre21"><p class="calibre7">String used to restrict
+                the deposit of draggable elements only to items that have the
+                same <code class="literal">options.scope</code> (defined
+                in <code class="literal">draggable (options)</code>).
+                The items for which the deposit will be accepted are those
+                defined in <code class="literal">options.accept</code>
+                that also satisfy <code class="literal">options.scope</code>.</p></td></tr></tbody></table></div></div></div><div class="book" title="Managing the appearance of elements of deposit"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="managing_the_appearance_of_elements_of_d" class="calibre1"></a>Managing the appearance of elements of deposit</h3></div></div></div><p class="calibre7">You can add CSS classes to the elements of deposit to change the
+        style of the elements depending on conditions that you specify. These
+        options are listed in <a class="ulink" href="ch10s04.html#options_for_managing_the_appearance" title="Table 10-12. Options for managing the appearance of the elements of deposit">Table 10-12</a>.</p><div class="table"><a id="options_for_managing_the_appearance" class="firstname"></a><p class="title7">Table 10-12. Options for managing the appearance of the elements of
+          deposit</p><div class="book"><table summary="Options for managing the appearance of the elements of           deposit" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.hoverClass</code></p></td><td valign="top" class="calibre21"><p class="calibre7">String representing one
+                or more CSS classes to be added to the element of deposit when
+                an accepted element (an element indicated in <code class="literal">options.accept</code>) moves into
+                it.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><span class="firstname"><code class="literal">options.activeClass</code></span></p></td><td valign="top" class="calibre21"><p class="calibre7">String representing one
+                or more CSS classes to be added to the element of deposit when
+                an accepted element (one of those indicated in <code class="literal">options.accept</code>) is being dragged
+                (not necessarily into the element of deposit).</p></td></tr></tbody></table></div></div></div><div class="book" title="Managing events on the elements of deposit"><div class="book"><div class="book"><div class="book"><h3 class="title6"><a id="managing_events_on_the_elements_of_depos" class="calibre1"></a>Managing events on the elements of deposit</h3></div></div></div><p class="calibre7">Events associated with elements of deposit are used to manage
+        the beginning and end of the movement of an accepted element and the
+        deposit of the element itself. Each of the methods associated with
+        these events has two parameters: <code class="literal">event</code> corresponds to the mouse event (listed
+        in <a class="ulink" href="ch10s04.html#options_for_managing_events" title="Table 10-13. Options for managing events">Table 10-13</a>), and <code class="literal">ui</code> is a <code class="literal">{draggable,
+        helper, offset}</code> object (described in <a class="ulink" href="ch10s04.html#properties_of_the_ui_open_curly_draggabl" title="Table 10-14. Properties of the ui {draggable, helper, offset} object">Table 10-14</a>).</p><div class="table"><a id="options_for_managing_events" class="firstname"></a><p class="title7">Table 10-13. Options for managing events</p><div class="book"><table summary="Options for managing events" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Option</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.activate</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">activate (event, ui)</code> method is
+                called when the movement of an accepted element starts (the
+                element was clicked and the mouse was moved
+                slightly).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><span class="firstname"><code class="literal">options.deactivate</code></span></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">deactivate (event, ui)</code> method is
+                called when movement of an accepted element ends (the mouse
+                was released).</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.over</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">over (event, ui)</code> method is called
+                when an accepted element is on top of the element of deposit
+                (as defined in <code class="literal">options.tolerance</code>).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.out</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">out (event, ui)</code> method is called
+                when an accepted element leaves the element of deposit (as
+                defined in <code class="literal">options.tolerance</code>).</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">options.drop</code></p></td><td valign="top" class="calibre21"><p class="calibre7">The <code class="literal">drop (event, ui)</code> method is called
+                when an accepted element is dropped on the element of deposit
+                (the mouse was released).</p></td></tr></tbody></table></div></div><div class="table"><a id="properties_of_the_ui_open_curly_draggabl" class="firstname"></a><p class="title7">Table 10-14. Properties of the ui {draggable, helper, offset}
+          object</p><div class="book"><table summary="Properties of the ui {draggable, helper, offset}           object" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Property</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">ui.draggable</code></p></td><td valign="top" class="calibre21"><p class="calibre7">jQuery class object
+                associated with the item that was clicked to move it (but not
+                necessarily the element that moves, if we use <code class="literal">options.helper</code> in the <code class="literal">draggable (options)</code>
+                method).</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">ui.helper</code></p></td><td valign="top" class="calibre21"><p class="calibre7">jQuery class object
+                associated with the element that moves (but not necessarily
+                the element that was clicked, if <code class="literal">options.helper</code> is used in <code class="literal">draggable (options)</code>).</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">ui.offset</code></p></td><td valign="top" class="calibre21"><p class="calibre7">In all cases, indicates
+                the <code class="literal">{top, left}</code> position of
+                the element moved relative to the edges of the
+                page.</p></td></tr></tbody></table></div></div></div></div><div class="book" title="The droppable (“action”, params) Method"><div class="book"><div class="book"><div class="book"><h2 class="title5"><a id="the_droppable_open_parenthesis_quotation" class="calibre1"></a>The droppable (“action”, params) Method</h2></div></div></div><p class="calibre7">The <code class="literal">droppable ("action",
+      params)</code> method can perform an action on elements of <span class="firstname">deposit</span> such as inhibiting the deposit. The
+      action is specified as a string in the first argument (e.g., <code class="literal">"disable"</code> to prevent the deposit). These
+      actions are listed in <span class="firstname"><a class="ulink" href="ch10s04.html#the_droppable_open_parenthesis_lactionr" title="Table 10-15. The droppable (“action”, params) method actions">Table 10-15</a>.</span></p><div class="table"><a id="the_droppable_open_parenthesis_lactionr" class="firstname"></a><p class="title7">Table 10-15. The droppable (“action”, params) method actions</p><div class="book"><table summary="The droppable (“action”, params) method actions" class="calibre14"><colgroup class="calibre15"><col class="calibre16"/><col class="calibre16"/></colgroup><thead class="calibre17"><tr class="calibre18"><th valign="bottom" class="calibre19"><p class="calibre7">Action</p></th><th valign="bottom" class="calibre19"><p class="calibre7">Function</p></th></tr></thead><tbody class="calibre20"><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">droppable ("disable")</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Disable the deposit
+              operation. The elements are no longer elements of
+              deposit.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">droppable ("enable")</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Reactivate the deposit
+              operation. The elements can again receive a
+              deposit.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">droppable ("option",
+              param)</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Retrieve the value of the
+              indicated <code class="literal">param</code> option. This
+              option corresponds to one of those used with <code class="literal">droppable (options)</code>.</p></td></tr><tr class="calibre22"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">droppable ("option", param,
+              value)</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Set the value of the
+              indicated <code class="literal">param</code> option. This
+              option corresponds to one of those used with <code class="literal">droppable (options)</code>.</p></td></tr><tr class="calibre18"><td valign="top" class="calibre21"><p class="calibre7"><code class="literal">droppable ("destroy")</code></p></td><td valign="top" class="calibre21"><p class="calibre7">Remove the management of
+              the deposit. The elements are no longer elements of
+              deposit.</p></td></tr></tbody></table></div></div></div></div></div>
+
+{% endraw %}
+

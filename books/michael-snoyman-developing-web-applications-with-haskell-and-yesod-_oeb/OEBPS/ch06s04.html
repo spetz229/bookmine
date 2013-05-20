@@ -1,0 +1,36 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch06s03.html
+next: OEBPS/ch06s05.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="External CSS and JavaScript"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect16_d1e2755" class="calibre1"></a>External CSS and JavaScript</h1></div></div></div><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">The functionality described here is automatically included in the scaffolded site, so
+        you don’t need to worry about implementing this yourself.</p></div><p class="calibre7">One of the most powerful, and most intimidating, methods in the Yesod typeclass is
+        <code class="literal">addStaticContent</code>. Remember that a Widget consists of
+      multiple components, including CSS and JavaScript. How exactly does that CSS/JS arrive in the
+      user’s browser? By default, they are served in the <code class="literal">&lt;head&gt;</code> of the page, inside <code class="literal">&lt;style&gt;</code>
+      and <code class="literal">&lt;script&gt;</code> tags, respectively.</p><p class="calibre7">That might be simple, but it’s far from efficient. Every page load will now require
+      loading up the CSS/JS from scratch, even if nothing changed! What we really want is to store
+      this content in an external file and then refer to it from the HTML.</p><p class="calibre7">This is where <code class="literal">addStaticContent</code> comes in. It takes three arguments:
+   the filename extension of the content (<code class="literal">css</code> or <code class="literal">js</code>), the
+   mime-type of the content (<code class="literal">text/css</code> or <code class="literal">text/javascript</code>) and the
+   content itself. It will then return one of three possible results:</p><div class="book"><dl class="book"><dt class="calibre9"><span class="firstname">Nothing</span></dt><dd class="calibre10"><p class="calibre7">No static file saving occurred; embed this content directly in the HTML. This is the default
+     behavior.</p></dd><dt class="calibre9"><span class="firstname">Just (Left Text)</span></dt><dd class="calibre10"><p class="calibre7">This content was saved in an external file, and use the given textual link to refer to
+     it.</p></dd><dt class="calibre9"><span class="firstname">Just (Right (Route a, Query))</span></dt><dd class="calibre10"><p class="calibre7">Same, but now use a type-safe URL along with some query string parameters.</p></dd></dl></div><p class="calibre7">The <code class="literal">Left</code> result is useful if you want to store your static files on
+   an external server, such as a CDN or memory-backed server. The <code class="literal">Right</code> result is
+   more commonly used, and ties in very well with the static subsite. This is the recommended
+   approach for most applications, and is provided by the scaffolded site by default.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">You might be wondering: if this is the recommended approach, why isn’t it the default?
+        The problem is that it makes a number of assumptions that don’t universally hold: your
+        application has a static subsite, and the location of your static files.</p></div><p class="calibre7">The scaffolded <code class="literal">addStaticContent</code> does a number of intelligent things
+   to help you out:</p><div class="book"><ul class="itemizedlist"><li class="listitem"><p class="calibre7">It automatically minifies your JavaScript using the <code class="function">hjsmin</code> package.</p></li><li class="listitem"><p class="calibre7">It names the output files based on a hash of the file contents. This means you can set your
+    cache headers to far in the future without fears of stale content.</p></li><li class="listitem"><p class="calibre7">Also, since filenames are based on hashes, you can be guaranteed that a file doesn’t
+          need to be written if a file with the same name already exists. The scaffold code
+          automatically checks for the existence of that file, and avoids the costly disk I/O of a
+          write if it’s not necessary.</p></li></ul></div></div></div>
+
+{% endraw %}
+

@@ -1,0 +1,264 @@
+---
+layout: page
+title: "Practical Vim (for Kathryn Amaral)"
+prev: f_0041.html
+next: f_0043.html
+book_path: books/drew-neil-practical-vim-edit-text-at-the-speed-of-thought-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+
+<table class="arr-recipe" id="sec.visual.define">
+<tr class="calibre14">
+<td class="arr-recipe-number">Tip 21</td>
+<td class="arr-recipe-name">Define a Visual Selection</td>
+</tr>
+</table>
+<p id="N11DE6" class="calibre4">
+<span class="calibre5">
+        Visual mode’s three submodes deal with different kinds of text. In this tip, we’ll look at the ways of enabling each visual submode, as well as how to switch between them.
+    </span>
+</p>
+<p id="N11DF0" class="calibre4">
+      Vim has three kinds of Visual mode. In <span class="calibre5">character-wise Visual mode</span>, we can select anything from a single character up to a range of characters within a line or spanning multiple lines. This is suitable for working at the level of individual words or phrases. If we want to operate on entire lines, we can use <span class="calibre5">line-wise</span> Visual mode instead. Finally, <span class="calibre5">block-wise</span> Visual mode allows us to work with columnar regions of the document. Block-wise Visual mode is quite special, so we’ll discuss it at greater length in <a xmlns:str="http://exslt.org/strings" href="f_0045.html#sec.visual.block">Tip 24</a>, <a xmlns:str="http://exslt.org/strings" href="f_0046.html#sec.visual.block.columns">Tip 25</a>, and <a xmlns:str="http://exslt.org/strings" href="f_0047.html#sec.visual.block.ragged">Tip 26</a>.
+    </p>
+<h3 class="calibre22">Enabling Visual Modes</h3>
+<p id="N11E1A" class="calibre4">
+        The <span class="calibre17">v</span> key is our gateway into Visual mode. From Normal mode, we can press <span class="calibre17">v</span> by itself to enable character-wise Visual mode. Line-wise Visual mode is enabled by pressing <span class="calibre17">V</span> (with the Shift key), and block-wise Visual mode by pressing <span class="calibre17">&lt;C-v&gt;</span> (with the Control key). These commands are summarized in the following table:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Command</th>
+<th class="hlines">Effect</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">v</span>
+</p>
+</td>
+<td class="calibre24">
+<p class="last-para-in-cell">Enable character-wise Visual mode</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">V</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Enable line-wise Visual mode</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;C-v&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Enable block-wise Visual mode</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">gv</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Reselect the last visual selection</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p id="N11E64" class="calibre4">
+        The <span class="calibre17">gv</span> command is a useful little shortcut. It reselects the range of text that was last selected in Visual mode. No matter whether the previous selection was character-wise, line-wise, or block-wise, the <span class="calibre17">gv</span> command should do the right thing. The only case where it might get confused is if the last selection has since been deleted.
+      </p>
+<h3 class="calibre22">Switching Between Visual Modes</h3>
+<p id="N11E76" class="calibre4">
+        We can switch between the different flavors of Visual mode in the same way that we enable them from Normal mode. If we’re in character-wise Visual mode, we can switch to the line-wise variant by pressing <span class="calibre17">V</span>, or to block-wise Visual mode with <span class="calibre17">&lt;C-v&gt;</span>. But if we were to press <span class="calibre17">v</span> from character-wise Visual mode, it would switch us back into Normal mode. So you can think of the <span class="calibre17">v</span> key as a toggle between Normal mode and character-wise Visual mode. The <span class="calibre17">V</span> and <span class="calibre17">&lt;C-v&gt;</span> keys also toggle between Normal mode and their respective flavors of Visual mode. Of course, you can always switch back to Normal mode by pressing <span class="calibre17">&lt;Esc&gt;</span> or <span class="calibre17">&lt;C-[&gt;</span> (just like getting out of Insert mode). This table summarizes the commands for switching between Visual modes:
+      </p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Command</th>
+<th class="hlines">Effect</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;Esc&gt;</span> / <span class="calibre17">&lt;C-[&gt;</span>
+</p>
+</td>
+<td class="calibre24">
+<p class="last-para-in-cell">
+		  Switch to Normal mode</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">v</span> / <span class="calibre17">V</span> / <span class="calibre17">&lt;C-v&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Switch to Normal mode (when used from character-, line- or block-wise Visual mode, respectively)</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">v</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+		  Switch to character-wise Visual mode</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">V</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+		  Switch to line-wise Visual mode</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">&lt;C-v&gt;</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">
+		  Switch to block-wise Visual mode</p>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">o</span>
+</p>
+</td>
+<td class="calibre26">
+<p class="last-para-in-cell">Go to other end of highlighted text
+		  </p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 class="calibre22">Toggling the Free End of a Selection</h3>
+<p id="N11F01" class="calibre4">
+        The range of a Visual mode selection is marked by two ends: one end is fixed and the other moves freely with our cursor. We can use the <span class="calibre17">o</span> key to toggle the free end. This is really handy if halfway through defining a selection we realize that we started in the wrong place. Rather than leaving Visual mode and starting afresh, we can just hit <span class="calibre17">o</span> and redefine the bounds of the selection. The following demonstrates how we can use this technique:
+		</p>
+<table class="simpletable">
+<thead class="calibre23">
+<tr class="calibre7">
+<th class="hlines">Keystrokes</th>
+<th class="hlines">Buffer Contents</th>
+</tr>
+</thead>
+<tbody class="calibre6">
+<tr class="calibre7">
+<td class="calibre24">
+<p class="last-para-in-cell">
+<code class="cf">{start}</code>
+</p>
+</td>
+<td class="calibre24">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix1" valign="top">
+<span> </span>
+</td>
+<td class="codeline1" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Select from here to <span class="shade-fg-white">h</span>ere.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">vbb</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Select from <span class="shade-fg-black">
+<span class="shade-fg-white">h</span>ere to h</span>ere.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">o</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Select from <span class="shade-fg-black">here to <span class="shade-fg-white">h</span>
+</span>ere.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="calibre7">
+<td class="calibre26">
+<p class="last-para-in-cell">
+<span class="calibre17">e</span>
+</p>
+</td>
+<td class="calibre26">
+<table class="processedcode1">
+<tr class="calibre31">
+<td class="codeprefix2" valign="top">
+<span> </span>
+</td>
+<td class="codeline2" valign="top">
+<div class="calibre32">
+​<code class="calibre30">​Select from <span class="shade-fg-black">here to her<span class="shade-fg-white">e</span>
+</span>.​</code>​</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<script src="scripts/book_local.js" type="text/javascript" class="calibre2"/>
+</div>
+
+{% endraw %}
+

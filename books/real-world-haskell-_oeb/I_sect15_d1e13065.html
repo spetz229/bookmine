@@ -1,0 +1,150 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect15_d1e12958.html
+next: I_sect15_d1e13203.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect15_d1e12958.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect15_d1e13203.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect15_d1e13065" class="calibre27" id="I_sect15_d1e13065"></a><h3 id="title-IDA3SRZD" class="docSection1Title">5.5. Generating a Haskell Program and Importing Modules</h3><a name="x_ai" class="calibre27" id="x_ai"></a><p class="docText">Now that we've successfully compiled our minimal library,
+    we'll write a tiny program to exercise it. Create the following file in
+    your text editor and save it as <i class="docEmphasis">Main.hs</i>:</p><pre class="calibre39">-- file: ch05/Main.hs
+module Main () where
+
+import SimpleJSON
+
+main = print (JObject [("foo", JNumber 1), ("bar", JBool False)])</pre><br class="calibre48"/>
+<a name="x_bi" class="calibre27" id="x_bi"></a><p class="docText">Notice the <tt class="calibre34">import</tt> directive<a name="I_indexterm5_d1e13080" class="calibre27" id="I_indexterm5_d1e13080"></a> that follows the module declaration. This indicates that we
+    want to take all of the names that are exported from the
+    <tt class="calibre34">SimpleJSON</tt> module and make them available in our module. Any
+    <tt class="calibre34">import</tt> directives must appear in a group at the beginning of
+    a module, after the module declaration, but before all other code. We
+    cannot, for example, scatter them throughout a source file.</p><a name="x_ci" class="calibre27" id="x_ci"></a><p class="docText">Our choice of naming for the source file and function is
+    deliberate. To create an <a name="I_indexterm5_d1e13092" class="calibre27" id="I_indexterm5_d1e13092"></a>executable, <i class="docEmphasis">ghc</i> expects a
+    module <a name="I_indexterm5_d1e13099" class="calibre27" id="I_indexterm5_d1e13099"></a>named <tt class="calibre34">Main</tt> that contains a function named
+    <i class="docEmphasis">main</i> (the <i class="docEmphasis">main</i> function is the one that will be called
+    when we run the program once we've built it).</p><pre class="calibre39"> <b class="calibre40">ghc -o simple Main.hs SimpleJSON.o</b></pre><br class="calibre48"/>
+<a name="x_di" class="calibre27" id="x_di"></a><p class="docText">This time around, we omit the <i class="docEmphasis">-c</i> option
+    when we invoke <i class="docEmphasis">ghc</i>, so it will attempt
+    to generate an executable. The process of generating an executable is
+    <a name="I_indexterm5_d1e13124" class="calibre27" id="I_indexterm5_d1e13124"></a>called <span class="docEmphasis">linking</span>. As our command line
+    suggests, <i class="docEmphasis">ghc</i> is perfectly able to both
+    compile source files and link an executable in a single invocation.</p><a name="x_ei" class="calibre27" id="x_ei"></a><p class="docText">We pass <i class="docEmphasis">ghc</i> a new
+    option, <i class="docEmphasis">-o</i>, which<a name="I_indexterm5_d1e13142" class="calibre27" id="I_indexterm5_d1e13142"></a> takes one argument: the name of the executable that
+    <i class="docEmphasis">ghc</i> should create.<sup class="docFootnote"><a class="docLink1" href="#x_eid1e13213">[10]</a></sup> Here, we've decided to name the program <i class="docEmphasis">simple</i>. On Windows, the program will have the
+    suffix <i class="docEmphasis">.exe</i>, but on Unix variants,
+    there will not be a suffix.</p><blockquote class="calibre30"><p class="docFootnote1"><sup class="calibre50"><a name="x_eid1e13213" class="calibre5" id="x_eid1e13213">[10]</a></sup> Memory aid: <i class="docEmphasis">-o</i> stands for
+        <span class="docEmphasis">output</span> or <span class="docEmphasis">object</span>
+        file.</p></blockquote><a name="x_fi" class="calibre27" id="x_fi"></a><p class="docText">Finally, we supply the name of our new source file,
+    <i class="docEmphasis">Main.hs</i>, and the object file we
+    already compiled, <i class="docEmphasis">SimpleJSON.o</i>. We
+    must explicitly list every one of our files that contains code that should
+    end up in the executable. If we forget a source or object file, <i class="docEmphasis">ghc</i> will complain <a name="I_indexterm5_d1e13180" class="calibre27" id="I_indexterm5_d1e13180"></a>about <span class="docEmphasis">undefined symbols</span>, which
+    indicates that some of the definitions that it needs are not provided in
+    the files we supplied.</p><a name="x_gi" class="calibre27" id="x_gi"></a><p class="docText">When compiling, we can pass <i class="docEmphasis">ghc</i> any mixture of source and object files. If
+    <i class="docEmphasis">ghc</i> notices that it has already
+    compiled a source file into an object file, it will only recompile the
+    source file if we've modified it.</p><a name="x_hi" class="calibre27" id="x_hi"></a><p class="docText">Once <i class="docEmphasis">ghc</i> has finished
+    compiling and linking our <i class="docEmphasis">simple</i>
+    program, we can run it from the command line.</p>
+<a href="21061538.html" class="calibre2"><img src="pixel.gif" alt="" border="0" class="calibre31"/></a><ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect15_d1e12958.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect15_d1e13203.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+

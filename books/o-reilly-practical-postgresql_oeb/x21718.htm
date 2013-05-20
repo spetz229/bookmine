@@ -1,0 +1,92 @@
+---
+layout: page
+title: "Unknown"
+prev: x21649.htm
+next: x21880.htm
+book_path: books/o-reilly-practical-postgresql_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="NAVHEADER"><table summary="Header navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><th colspan="3" class="calibre2">Practical PostgreSQL</th></tr><tr class="calibre1"><td width="10%" valign="bottom" class="calibre3"><a href="x21649.htm" accesskey="P">Prev</a></td><td width="80%" valign="bottom" class="calibre4">Chapter 13. LXP</td><td width="10%" valign="bottom" class="calibre5"><a href="x21880.htm" accesskey="N">Next</a></td></tr></table><hr width="100%" class="calibre6"/></div><div class="NAVHEADER"><h1 class="calibre7"><a name="TAGPARSING" class="calibre8">Tag Parsing</a></h1><p class="calibre9">When a tag is parsed, its attributes are read in one of two ways—literally, or interpretively. Similar to
+    existing conventions in a variety of languages, defining a value in single-quotes (e.g.,
+    <tt class="REPLACEABLE">name='value'</tt>) causes the contents of the value to be parsed literally, regardless of the
+    characters between quotes. Using double-quotes causes its contents to be parsed interpretively, meaning that some characters
+    will be treated in special ways.</p><p class="calibre9">Specifically, these special characters are the dollar sign (<tt class="REPLACEABLE">$</tt>), the at sign
+    (<tt class="REPLACEABLE">@</tt>), and the ampersand (<tt class="REPLACEABLE">&amp;</tt>). These characters correspond
+    to variable substitution, object variable value substitution, and entity substitution, respectively.</p><p class="calibre9">Value substitution is the process by which a variable, cookie, object, or entity's <span><i class="EMPHASIS">value</i></span> is
+    substituted for its syntactically referenced <span><i class="EMPHASIS">name</i></span>. This occurs at the name's original location in any
+    arbitrary string of characters.</p><div class="NAVHEADER"><h2 class="SECT"><a name="AEN21732" class="calibre8">Variable Substitution</a></h2><p class="calibre9">What may be confusing to experienced programmers at first is that LXP supports the familiar dollar sign notation to
+      substitute a named variable (e.g., <tt class="REPLACEABLE">$myvariable</tt>) with its associated value in a mixed
+      character string.</p><p class="calibre9">When using LXP, it is important to understand the contexts in which variables are substituted (and the context in
+      which they are not). Subsequently, it is also important to understand when to use variable substitution and when not
+      to.</p><p class="calibre9">The first rule is that variables will <span><i class="EMPHASIS">never</i></span> be substituted outside of an LXP tag. <a href="x21718.htm#INVALIDVARIABLESUBSTITUTION">Example 13-9</a> attempts incorrectly to place the value of a variable named
+      <tt class="REPLACEABLE">variable</tt> within an LXP document.</p><div class="NAVHEADER"><a name="INVALIDVARIABLESUBSTITUTION"></a><p class="calibre9"><b class="calibre10">Example 13-9. Invalid variable substitution</b></p><pre class="SCREEN">&lt;lxp&gt;
+  Here is my variable: $variable &lt;!-- Wrong --&gt;
+&lt;/lxp&gt;</pre></div><p class="calibre9">Instead, suppose that the URL <span><i class="EMPHASIS">http://localhost/test.lxp?setbar=foo</i></span> is opened in a browser, and
+      that <span><i class="EMPHASIS">test.lxp</i></span> contains the snippet of LXP mark-up shown in <a href="x21718.htm#VALIDVARIABLESUBSTITUTION">Example 13-10</a>.</p><div class="NAVHEADER"><a name="VALIDVARIABLESUBSTITUTION"></a><p class="calibre9"><b class="calibre10">Example 13-10. Valid variable substitution</b></p><pre class="SCREEN">&lt;lxp&gt;
+  &lt;setvar bar="$setbar" /&gt; &lt;!-- sets bar's value to setbar's value --&gt;
+  &lt;putvar name="bar" /&gt;    &lt;!-- output the value of bar --&gt;
+&lt;lxp&gt;</pre></div><p class="calibre9">The mark-up in <a href="x21718.htm#VALIDVARIABLESUBSTITUTION">Example 13-10</a> opens an LXP region and uses the
+      <tt class="REPLACEABLE">&lt;setvar&gt;</tt> tag to assign the <span><i class="EMPHASIS">value</i></span> of the variable named
+      <tt class="REPLACEABLE">setbar</tt> to a new variable named <tt class="REPLACEABLE">bar</tt>. Variable substitution
+      is correctly used in this case, because it occurs within an LXP tag.</p><p class="calibre9">Since the previously mentioned URL assigned a value of <tt class="REPLACEABLE">foo</tt> to
+      <tt class="REPLACEABLE">setbar</tt>, this means that the new variable <tt class="REPLACEABLE">bar</tt> will be
+      assigned a value of <tt class="REPLACEABLE">foo</tt>.</p><p class="calibre9">The use of the <tt class="REPLACEABLE">&lt;putvar&gt;</tt> tag introduces the second rule to watch out for in
+      LXP. Some tags (such as the <tt class="REPLACEABLE">&lt;putvar&gt;</tt> tag) expect to receive a literal variable name
+      in order to perform their job. Remember that dollar signs and at signs are not actually part of variable names; they are
+      only used to substitute values in place of names.</p><p class="calibre9">You might be inclined to think that the syntax of the <tt class="REPLACEABLE">&lt;putvar&gt;</tt> tag in <a href="x21718.htm#VALIDVARIABLESUBSTITUTION">Example 13-10</a> should have read like this:</p><pre class="SCREEN">  &lt;putvar name="$bar" /&gt; &lt;!-- output the value of bar --&gt;</pre><p class="calibre9">This would actually result, however, in the value of the variable <tt class="REPLACEABLE">bar</tt> being
+      substituted into the value of the <tt class="REPLACEABLE">name</tt> attribute. Since the value of the
+      <tt class="REPLACEABLE">bar</tt> variable is <tt class="REPLACEABLE">foo</tt>, LXP would attempt to insert a
+      variable with the <span><i class="EMPHASIS">name</i></span> of <tt class="REPLACEABLE">foo</tt>.</p><p class="calibre9">The simplest way to know whether or not to use substitution characters is to remain aware of what the purpose of the
+      tag is. If an attribute should be substituted with a variable's <span><i class="EMPHASIS">value</i></span>, use the
+      <tt class="REPLACEABLE">$</tt> symbol to substitute it. If an attribute is literally specifying a variable by name, as
+      with the <tt class="REPLACEABLE">&lt;putvar&gt;</tt> tag, do not substitute it.</p><p class="calibre9">A literal dollar sign (<tt class="REPLACEABLE">$</tt>) may be used within double quotes by placing two of them
+      immediately one after the other, sequentially (e.g., <tt class="REPLACEABLE">&lt;setvar price="$$99.95" /&gt;</tt>).</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>When using substitution, if a variable with the specified name is not found, LXP will check for a cookie with the
+        specified name. If one is found, its value will be substituted.</p></blockquote></div></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN21788" class="calibre8">Object Variable Value Substitution</a></h2><p class="calibre9">The substitution of a variable value from an object is very similar to normal variable substitution. However, instead
+      of using the dollar sign (<tt class="REPLACEABLE">$</tt>) to substitute a value, you use the at sign
+      (<tt class="REPLACEABLE">@</tt>). Syntactically, the only difference between referencing a variable value with
+      <tt class="REPLACEABLE">@</tt> instead of <tt class="REPLACEABLE">$</tt> is that dots
+      (<tt class="REPLACEABLE">.</tt>) and square brackets (<tt class="REPLACEABLE">[]</tt>) are allowed as part of the
+      object name.</p><p class="calibre9">A literal at sign (<tt class="REPLACEABLE">@</tt>) can be placed inside of an attribute's value by typing the
+      character twice consecutively (e.g., <tt class="REPLACEABLE">&lt;setvar email="jlx@@commandprompt.com" /&gt;</tt>).</p></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN21803" class="calibre8">Entity substitution</a></h2><p class="calibre9">LXP automatically converts any recognized entity within an LXP tag's attribute value into its literally interpreted character symbol. As of Version 0.8, LXP's recognized entities consist of the five pre-defined XML entities:</p><p class="calibre9"> </p><p class="calibre9"></p><ul class="calibre21"><li class="calibre22"><p class="calibre9">Ampersand (<tt class="REPLACEABLE">&amp;amp;</tt>)</p></li><li class="calibre22"><p class="calibre9">Less-than symbol (<tt class="REPLACEABLE">&amp;lt;</tt>)</p></li><li class="calibre22"><p class="calibre9">Greater-than symbol (<tt class="REPLACEABLE">&amp;gt;</tt>)</p></li><li class="calibre22"><p class="calibre9">Apostrophe (<tt class="REPLACEABLE">&amp;apos;</tt>)</p></li><li class="calibre22"><p class="calibre9">Double-quote (<tt class="REPLACEABLE">&amp;quot;</tt>)</p></li></ul>
+<p class="calibre9">It's useful to know about entity substitution, as sometimes both apostrophes and quotes may be needed within the
+      value of an LXP tag attribute, making it otherwise impossible to insert them without the use of these entities. LXP's
+      developers considered programmatic back-slash escape sequences as a means to solve this (as is common in other programming
+      languages), but LXP's ability to natively handle entities both preserves the mark-up mentality and adds a new level of
+      sophistication to the language.</p><p class="calibre9"><a href="x21718.htm#USINGENTITYSUBSTITUTION">Example 13-11</a> provides an example of entity substitution within the LXP
+      <tt class="REPLACEABLE">&lt;include&gt;</tt> tag.</p><div class="NAVHEADER"><a name="USINGENTITYSUBSTITUTION"></a><p class="calibre9"><b class="calibre10">Example 13-11. Using entity substitution</b></p><pre class="SCREEN">&lt;lxp&gt;
+  &lt;setvar field="field_two" /&gt;
+  &lt;include sql="SELECT field_one, $field FROM &amp;quot;CAPITALIZED_TABLE&amp;quot;"
+           method="SQL"&gt;
+    &lt;strong&gt;Column One:&lt;/strong&gt; &lt;field name="field_one" /&gt;&lt;br&gt;
+    &lt;strong&gt;Column Two:&lt;/strong&gt; &lt;field name="field_two" /&gt;&lt;br&gt;
+  &lt;/include&gt;
+&lt;/lxp&gt;</pre></div><p class="calibre9"><a href="x21718.htm#USINGENTITYSUBSTITUTION">Example 13-11</a> demonstrates the use of entities inside of a direct SQL query in order to
+      place quotes within quotes. This is frequently required to make identifiers case-sensitive within PostgreSQL, as
+      identifiers are otherwise folded to lowercase.</p><p class="calibre9">When parsed, the <tt class="REPLACEABLE">&amp;quot;</tt> is changed into its literal counter-part, making the
+      actual executed query as follows:</p><pre class="SCREEN">  SELECT field_one, field_two FROM "CAPITALIZED_TABLE"</pre><p class="calibre9">See <a href="x22143.htm#DIRECTSQL">the Section called <i class="EMPHASIS">Including SQL Content</i></a>" for an explanation of what exactly this example's LXP markup would achieve.</p></div><div class="NAVHEADER"><h2 class="SECT"><a name="AEN21840" class="calibre8">Using &lt;varparser&gt;</a></h2><p class="calibre9">LXP supports a simple search-and-replace mechanism for variable values with its
+      <tt class="REPLACEABLE">&lt;varparser&gt;</tt> tag. This tag takes two
+      attributes—<tt class="REPLACEABLE">find</tt> and <tt class="REPLACEABLE">replace</tt>. When you use the
+      <tt class="REPLACEABLE">&lt;varparser&gt;</tt> tag, a region is opened within which any variable value that is
+      <span><i class="EMPHASIS">substituted</i></span> will be filtered through the defined search-and-replace rule.</p><p class="calibre9">The <tt class="REPLACEABLE">&lt;varparser&gt;</tt> is primarily useful for stripping or escaping unwanted
+      characters. For example, in preparation to execute a SQL statement, single-quotes (<tt class="REPLACEABLE">'</tt>) must
+      be prefixed by a backslash, as a single-quote delimits string constants to PostgreSQL. <a href="x21718.htm#USINGVARPARSERTOPREPARESQL">Example 13-12</a> demonstrates the escaping of single-quotes in a variable called
+      <tt class="REPLACEABLE">txt</tt>.</p><div class="NAVHEADER"><a name="USINGVARPARSERTOPREPARESQL"></a><p class="calibre9"><b class="calibre10">Example 13-12. Using &lt;varparser&gt; to prepare SQL</b></p><pre class="SCREEN">&lt;lxp&gt;
+  &lt;varparser find="'" replace="\'"&gt;
+    &lt;include sql="SELECT * FROM table WHERE txtfield = '$txt'"&gt;
+      &lt;field /&gt;&lt;br /&gt;
+    &lt;/include&gt;
+  &lt;/varparser&gt;
+&lt;/lxp&gt;</pre></div><p class="calibre9">In <a href="x21718.htm#USINGVARPARSERTOPREPARESQL">Example 13-12</a>, the <tt class="REPLACEABLE">&lt;varparser find="'" replace="\'"&gt;</tt>
+      tag instructs LXP to replace any single-quote with a back-referenced <tt class="REPLACEABLE">\'</tt> sequence within any 
+      <span><i class="EMPHASIS">substituted</i></span> variable value.  </p><p class="calibre9">Note that this search-and-replace occurs <span><i class="EMPHASIS">only</i></span> for <span><i class="EMPHASIS">substituted variable values</i></span>.
+      As such, the literally typed apostrophes in the <tt class="REPLACEABLE">sql</tt> attribute of the
+      <tt class="REPLACEABLE">&lt;include&gt;</tt> tag are left unchanged; only the contents of variable values being
+      <span><i class="EMPHASIS">substituted</i></span> within that attribute (e.g., the <tt class="REPLACEABLE">txt</tt> variable's value, in
+      <a href="x21718.htm#USINGVARPARSERTOPREPARESQL">Example 13-12</a>) are modified upon their substitution.</p><p class="calibre9">The closing <tt class="REPLACEABLE">&lt;/varparser&gt;</tt> tag puts LXP back into normal variable substitution
+      mode.</p><div class="NAVHEADER"><blockquote class="NOTE"><p class="calibre9"><b class="calibre10">Note: </b>You can configure several simultaneous search-and-replace rules by nesting several
+        <tt class="REPLACEABLE">&lt;varparser&gt;</tt> tags within one another.</p></blockquote></div></div></div><div class="NAVHEADER"><hr width="100%" class="calibre6"/><table summary="Footer navigation table" width="100%" border="0" cellpadding="0" cellspacing="0" class="calibre"><tr class="calibre1"><td width="33%" valign="top" class="calibre3"><a href="x21649.htm" accesskey="P">Prev</a></td><td width="34%" valign="top" class="calibre4"><a href="book1.htm" accesskey="H">Home</a></td><td width="33%" valign="top" class="calibre5"><a href="x21880.htm" accesskey="N">Next</a></td></tr><tr class="calibre1"><td width="33%" valign="top" class="calibre3">Using Cookies with LXP</td><td width="34%" valign="top" class="calibre4"><a href="lxp.htm" accesskey="U">Up</a></td><td width="33%" valign="top" class="calibre5">Branching Logic</td></tr></table></div></div>
+
+{% endraw %}
+

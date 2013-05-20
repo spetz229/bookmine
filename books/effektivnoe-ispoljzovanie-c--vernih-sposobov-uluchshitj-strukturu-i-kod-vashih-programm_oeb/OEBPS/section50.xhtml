@@ -1,0 +1,405 @@
+---
+layout: page
+title: "Эффективное использование C++. 55 верных способов улучшить структуру и код ваших программ"
+prev: OEBPS/section49.xhtml
+next: OEBPS/section51.xhtml
+book_path: books/effektivnoe-ispoljzovanie-c--vernih-sposobov-uluchshitj-strukturu-i-kod-vashih-programm_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <div class="calibre">
+      <div class="title1">
+        <h2 class="calibre3">Правило 27: Не злоупотребляйте приведением типов</h2>
+      </div>
+      <p class="calibre2">Правила C++ разработаны так, чтобы неправильно работать с типами было невозможно. Теоретически, если ваша программа компилируется без ошибок, значит, она не пытается выполнить никаких небезопасных или бессмысленных операций с объектами. Это ценная гарантия. Не надо от нее отказываться.</p>
+      <p class="calibre2">К сожалению, приведения обходят систему типов. И это может привести к различным проблемам, некоторые из которых распознать легко, а некоторые – чрезвычайно трудно. Если вы пришли к C++ из мира C, Java или C#, примите эток сведению, поскольку в указанных языках в приведениях типов чаще возникает необходимость, и они менее опасны, чем в C++. Но C++ – это не C. Это не Java. Это не C#. В этом языке приведение – это средство, к которому нужно относиться с должным почтением.</p>
+      <p class="calibre2">Начнем с обзора синтаксиса операторов приведения типов, потому что существует три разных способа написать одно и то же. Приведение в стиле C выглядит так:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">(T) <em class="calibre5">expression</em> // привести <em class="calibre5">expression</em> к типу T</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Функциональный синтаксис приведения таков:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">T( <em class="calibre5">expression)</em> // привести <em class="calibre5">expression</em> к типу T</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Между этими двумя формами нет ощутимого различия, просто скобки расставляются по-разному. Я называю эти формы <em class="calibre5">приведениями в старом стиле.</em></p>
+      <p class="calibre2">C++ также представляет четыре новые формы приведения типов (часто называемые приведениями <em class="calibre5">в стиле С++):</em></p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">const_cast&lt;T&gt;(expression)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">dynamic_cast&lt;T&gt;(expression)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">reinterpret_cast&lt;T&gt;(expression)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">static_cast&lt;T&gt;(expression)</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">У каждой из них свое назначение:</p>
+      <p class="calibre2">• const_cast обычно применяется для того, чтобы отбросить константность объекта. Никакое другое приведение в стиле C++ не позволяет это сделать;</p>
+      <p class="calibre2">• dynamic_cast применяется главным образом для выполнения «безопасного понижающего приведения» (downcasting). Этот оператор позволяет определить, принадлежит ли объект данного типа некоторой иерархии наследования. Это единственный вид приведения, который не может быть выполнен с использованием старого синтаксиса. Это также единственное приведение, которое может потребовать ощутимых затрат во время исполнения (подробнее позже);</p>
+      <p class="calibre2">• reinterpret_cast предназначен для низкоуровневых приведений, которые порождают зависимые от реализации (то есть непереносимые) результаты, например приведение указателя к int. Вне низкоуровневого кода такое приведение должно использоваться редко. Я использовал его в этой книге лишь однажды, когда обсуждал написание отладочного распределителя памяти (см. правило 50);</p>
+      <p class="calibre2">• static_cast может быть использован для явного преобразования типов (например, неконстантных объектов к константным (как в правиле 3), int к double и т. п.). Он также может быть использован для выполнения обратных преобразований (например, указателей void* к типизированным указателям, указателей на базовый класс к указателю на производный). Но привести константный объект к неконстантному этот оператор не может (это вотчина const_cast).</p>
+      <p class="calibre2">Применение приведений в старом стиле остается вполне законным, но новые формы предпочтительнее. Во-первых, их гораздо легче найти в коде (и для человека, и для инструмента, подобного grep), что упрощает процесс поиска в коде тех мест, где система типизации подвергается опасности. Во-вторых, более узко специализированное назначение каждого оператора приведения дает возможность компиляторам диагностировать ошибки их использования. Например, если вы попытаетесь избавиться от константности, используя любой оператор приведения в стиле C++, кроме const_cast, то ваш код не откомпилируется.</p>
+      <p class="calibre2">Я использую приведение в старом стиле только тогда, когда хочу вызвать explicit конструктор, чтобы передать объект в качестве параметра функции. Например:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Widget {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">explicit Widget(int size);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void doSomeWork(const Widget&amp; w);</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">doSomeWork(Widget(15)); // создать Widget из int</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// с функциональным приведением</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">doSomeWork(static_cast&lt;Widget&gt;(15)); // создать Widget из int</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// с приведением в стиле C++</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Но намеренное создание объекта не «ощущается» как приведение типа, поэтому в данном случае, наверное, лучше применить функциональное приведение вместо static_cast. Да и вообще, код, ведущий к аварийному завершению, обычно выглядит совершенно разумным, когда вы его пишете, поэтому лучше не обращать внимания на ощущения и всегда пользоваться приведениями в новом стиле.</p>
+      <p class="calibre2">Многие программисты полагают, что приведение типа всего лишь говорит компилятору, что нужно трактовать один тип как другой, но они заблуждаются. Преобразования типа любого рода (как явные, посредством приведения, так и неявные, выполняемые самим компилятором) часто приводят к появлению кода, исполняемого во время работы программы. Рассмотрим пример:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">int x, y;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">double d = static_cast&lt;double&gt;(x)/y; // деление x на y с использованием</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// деления с плавающей точкой</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Приведение int x к типу double почти наверняка порождает исполняемый код, потому что в большинстве архитектур внутреннее представление int отличается от представления double. Если это вас не особенно удивило, но взгляните на следующий пример:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Base {...};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class Derived: public Base {...};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Derived d;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Base *pb = &amp;d; // неявное преобразование Derived*</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// в Base*</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Здесь мы всего лишь создали указатель базового класса на объект производного, но <strong class="calibre4">иногда</strong> эти два указателя указывают вовсе не на одно и то же. В таком случае <em class="calibre5">во время исполнения</em> к указателю Derived* прибавляется смещение, чтобы получить правильное значение указателя Base*.</p>
+      <p class="calibre2">Последний пример демонстрирует, что один и тот же объект (например, объект типа Derived) может иметь более одного адреса (например, адрес при указании на него как на Base* отличается от адреса при указании как на Derived*). Такое невозможно в C. Такое невозможно в Java. Такого не бывает в C#. Но это случается в C++. Фактически, когда применяется множественное наследование, такое случается сплошь и рядом, но может произойти и при одиночном наследовании. Это ко всему прочему означает, что, программируя на C++, вы не должны строить предположений о том, как объекты располагаются в памяти, и уж тем более не должны выполнять приведение типов на базе этих предположений. Например, приведение адреса объекта к типу char* и последующее использование арифметических операций над указателями почти всегда становятся причиной неопределенного поведения.</p>
+      <p class="calibre2">Заметьте, я сказал, что смещение требуется прибавлять «иногда». Способы размещения объектов в памяти и способы вычисления их адресов изменяются от компилятора к компилятору. А значит, из того, что «вы знаете, как хранится объект в памяти» на одной платформе, вовсе не следует, что на других все будет устроено точно так же. Мир полон программистов, которые усвоили этот урок, заплатив слишком высокую цену.</p>
+      <p class="calibre2">Интересный момент, касающийся приведений, – еще в том, что легко написать код, который выглядит правильным (и может быть правильным на других языках), но на самом деле правильным не является. Например, во многих каркасах для разработки приложений требуется, чтобы виртуальные функции-члены, определенные в производных классах, вначале вызывали соответствующие функции из базовых классов. Предположим, что у нас есть базовый класс Window и производный от него класс SpecialWindow, причем в обоих определена виртуальная функция onResize. Далее предположим, что onResize из SpecialWindow будет вызывать сначала onResize из Window. Следующая реализация выглядит хорошо, но по сути неправильна:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Window { // базовый класс</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual void onResize() {...} // реализация onResize в базовом</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">... // классе</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class SpecialWindow: public Window { // производный класс</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual void onResize() { // реализация onResize</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">static_cast&lt;Window&gt;(*this).onResize(); // в производном классе;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// приведение *this к Window,</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// затем вызов его onResize;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// <em class="calibre5">это не работает!</em></code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">... // выполнение специфической для</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">} // SpecialWindow части onResize</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Я выделил в этом коде приведение типа. (Это приведение в новом стиле, но использование старого стиля ничего не меняет.) Как и ожидается, *this приводит к типу Window. Поэтому обращение к onResize приводит к вызову Window::onResize. Вот только эта функция не будет вызвана для текущего объекта! Неожиданно, не правда ли? Вместо этого оператор приведения создаст новую, временную копию части базового класса *this и вызовет onResize для этой копии! Приведенный выше код не вызовет Window::onResize для текущего объекта с последующим выполнением специфичных для SpecialWindow действий – он выполнит Window::onResize для <em class="calibre5">копии части базового класса</em> текущего объекта перед выполнением специфичных для SpecialWindow действий для данного объекта. Если Window::onResize модифицирует объект (что вполне возможно, так как onResize – не константная функция-член), то текущий объект не будет модифицирован. Вместо этого будет модифицирована <em class="calibre5">копия</em> этого объекта. Однако если SpecialWindow::onResize модифицирует объект, то будет модифицирован именно текущий объект. И в результате текущий объект остается в несогласованном состоянии, потому что модификация той его части, что принадлежит базовому классу, не будет выполнена, а модификация части, принадлежащей производному классу, будет.</p>
+      <p class="calibre2">Решение проблемы в том, чтобы исключить приведение типа, заменив его тем, что вы действительно имели в виду. Нет необходимости выполнять какие-то трюки с компилятором, заставляя его интерпретировать *this как объект базового класса. Вы хотите вызвать версию onResize базового класса для текущего объекта. Так поступите следующим образом:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class SpecialWindow: public Window {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual void onResize() {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">Window::onResize(); // вызов Window::onResize на *this</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Приведенный пример также демонстрирует, что коль скоро вы ощущаете желание выполнить приведение типа, это знак того, что вы, возможно, на ложном пути. Особенно это касается оператора dynamic_cast.</p>
+      <p class="calibre2">Прежде чем вдаваться в детали dynamic_cast, стоит отметить, что большинство реализаций этого оператора работают довольно медленно. Так, по крайней мере, одна из распространенных реализаций основана на сравнении имен классов, представленных строками. Если вы выполняете dynamic_cast для объекта класса, принадлежащего иерархии с одиночным наследованием глубиной в четыре уровня, то каждое обращение к dynamic_cast в такой реализации может обойтись вам в четыре вызова strcmp для сравнения имен классов. Для более глубокой иерархии или такой, в которой имеется множественное наследование, эта операция окажется еще более дорогостоящей. Есть причины, из-за которых некоторые реализации работают подобным образом (потому что они должны поддерживать динамическую компоновку). Таким образом, в дополнение к настороженности по отношению к приведениям типов в принципе вы должны проявлять особый скептицизм, когда речь идет о применении dynamic_cast в части программы, для которой производительность стоит на первом месте.</p>
+      <p class="calibre2">Необходимость в dynamic_cast обычно появляется из-за того, что вы хотите выполнить операции, определенные в производном классе, для объекта, который, как вы полагаете, принадлежит производному классу, но при этом у вас есть только указатель или ссылка на базовый класс, посредством которой нужно манипулировать объектом. Есть два основных способа избежать этой проблемы.</p>
+      <p class="calibre2">Первый – используйте контейнеры для хранения указателей (часто «интеллектуальных», см. правило 13) на сами объекты производных классов, тогда отпадет необходимость манипулировать этими объектами через интерфейсы базового класса. Например, если в нашей иерархии Window/SpecialWindow только SpecialWindow поддерживает мерцание (blinking), то вместо:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Window { ...};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class SpecialWindow {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">void blink();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">typedef // см. правило 13</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">std::vector&lt;std::tr1::shared_ptr&lt;Window&gt;&gt;VPW; // о tr1::shared_ptr</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">VPW winPtrs;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">for (VPW::iterator iter = winPtrs.begin(); // нежелательный код:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">iter!=winPtrs.end(); // применяется dynamic_cast</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">++iter){</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">if(SpecialWindow psw = dynamic_cast&lt;SpecialWindow&gt;(iter-&gt;get()))</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">psw-&gt;blink();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">попробуйте сделать так:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">typedef std::vector&lt;std::tr1::shared_ptr&lt;SpecialWindow&gt;&gt; VPSW;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">VPSW winPtrs;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">for (VPSW::iterator iter = winPtrs.begin(); // это лучше:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">iter != winPtrs.end(); // не использует dynamic_cast</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">++iter)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">(*iter)-&gt;blink();</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Конечно, такой подход не позволит вам хранить указатели на объекты всех возможных производных от Window классов в одном и том же контейнере. Чтобы работать с разными типами окон и обеспечить безопасность по отношению к типам, вам может понадобиться несколько контейнеров.</p>
+      <p class="calibre2">Альтернатива, которая позволит манипулировать объектами всех возможных производных от Window классов через интерфейс базового класса, – это предусмотреть виртуальные функции в базовом классе, которые позволят вам делать именно то, что вам нужно. Например, хотя только SpecialWindow умеет мерцать, может быть, имеет смысл объявить функцию в базовом классе и обеспечить там реализацию по умолчанию, которая не делает ничего:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Window {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual void blink() {} // реализация по умолчанию – пустая</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">... // операция, см. в правиле 34 – почему</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}; // наличие реализации по умолчанию</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// может оказаться неудачной идеей</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">class SpecialWindow: public Window {</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">public:</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">virtual void blink() {...}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">typedef std::vector&lt;std::tr1::shared_ptr&lt;Window&gt;&gt;VPW;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">VPW winPtrs; // контейнер содержит</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">// (указатели на) все возможные</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">... // типы окон</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">for(VPW::iterator iter = winPtrs.begin();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">iter != winPtrs.end();</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">++iter) // dynamic_cast не используется</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">(*iter)-&gt;blink();</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">Ни один из этих подходов – с применением безопасных по отношению к типам контейнеров или перемещением виртуальной функции вверх по иерархии – не является универсально применимым, но во многих случаях они представляют полезную альтернативу dynamic_cast. Пользуйтесь ими, когда возможно.</p>
+      <p class="calibre2">Но вот чего стоит избегать всегда – это каскадов из операторов dynamic_cast, то есть чего-то вроде такого кода:</p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">
+        <code class="calibre7">class Window {...};</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">... // здесь определены производные классы</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">typedef std::vector&lt;std::tr1::shared_ptr&lt;Window&gt;&gt; VPW;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">VPW winPtrs;</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">for (VPW::iterator iter = winPtrs.begin(); iter != winPtrs.end(); ++iter)</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">{</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">if (SpecialWindow1 *psw1=</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">dynamic_cast&lt;SpecialWindow1&gt;(iter-&gt;get())) {...}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">else if (SpecialWindow2 *psw2=</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">dynamic_cast&lt;SpecialWindow2&gt;(iter-&gt;get())) {...}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">else if (SpecialWindow2 *psw2=</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">dynamic_cast&lt;SpecialWindow2&gt;(iter-&gt;get())) {...}</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">...</code>
+      </p>
+      <p class="calibre2">
+        <code class="calibre7">}</code>
+      </p>
+      <p class="empty-line"> </p>
+      <p class="calibre2">В этом случае генерируется объемный и медленный код, к тому же он нестабилен, потому что при каждом изменении иерархии классов Window весь этот код нужно пересмотреть на предмет обновления. Например, если добавится новый производный класс, то вероятно, придется добавить еще одну ветвь в предложение if. Подобный код почти всегда должен быть заменен чем-то на основе вызова виртуальных функций.</p>
+      <p class="calibre2">В хорошей программе на C++ приведения типов используются очень редко, но полностью отказываться от них тоже не стоит. Так, показанное выше приведение int к double является разумным, хотя и не абсолютно необходимым (код может быть переписан с объявлением новой переменной типа double, инициируемой значением x). Как и большинство сомнительных конструкций, приведения типов должны быть изолированы насколько возможно. Обычно они помещаются внутрь функций, чей интерфейс скрывает от пользователей те некрасивые дела, что творятся внутри.</p>
+      <div class="subtitle">
+        <p class="subtitle1">
+          <strong class="calibre4">
+            <em class="calibre5">Что следует помнить</em>
+          </strong>
+        </p>
+      </div>
+      <p class="calibre2">• Избегайте насколько возможно приведений типов, особенно dynamic_cast, в критичном по производительности коде. Если дизайн требует приведения, попытайтесь разработать альтернативу, где такой необходимости не возникает.</p>
+      <p class="calibre2">• Когда приведение типа необходимо, постарайтесь скрыть его внутри функции. Тогда пользователи смогут вызывать эту функцию вместо помещения приведения в их собственный код.</p>
+      <p class="calibre2">• Предпочитайте приведения в стиле C++ старому стилю. Их легче увидеть, и они более избирательны.</p>
+    </div>
+  </div>
+
+{% endraw %}
+

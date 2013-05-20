@@ -1,0 +1,50 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch13s05.html
+next: OEBPS/ch14s02.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="calibre8"></div><div class="book" title="Chapter 14. Authentication and Authorization"><div class="book"><div class="book"><div class="book"><div class="calibre8"></div><h1 class="title1"><a id="I_chapter3_d1e6928" class="calibre1"></a>Chapter 14. Authentication and Authorization</h1></div></div></div><p class="calibre7">Authentication and authorization are two very related, and yet separate, concepts. While the
+        former deals with identifying a user, the latter determines what a user is allowed to do.
+        Unfortunately, since both terms are often abbreviated as “auth,” the concepts are often
+        conflated.</p><p class="calibre7">Yesod provides built-in support for a number of third-party authentication systems, such as
+        OpenID, BrowserID, and OAuth. These are systems where your application trusts some external
+        system for validating a user’s credentials. Additionally, there is support for more commonly
+        used username/password and email/password systems. The former route ensures simplicity for
+        users (no new passwords to remember) and implementors (no need to deal with an entire
+        security architecture), while the latter gives the developer more control.</p><p class="calibre7">On the authorization side, we are able to take advantage of REST and type-safe
+            URLs to create simple, declarative systems. Additionally, since all authorization code
+            is written in Haskell, you have the full flexibility of the language at your
+            disposal.</p><p class="calibre7">This chapter will cover how to set up an “auth” solution in Yesod and discuss some
+        trade-offs in the different authentication options.</p><div class="book" title="Overview"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect13_d1e6939" class="calibre1"></a>Overview</h1></div></div></div><p class="calibre7"></p><p class="calibre7">The <code class="function">yesod-auth</code> package provides a unified interface
+            for a number of different authentication plug-ins. The only real requirement for these
+            backends is that they identify a user based on some unique string. In OpenID, for
+            instance, this would be the actual OpenID value. In BrowserID, it’s the email address.
+            For HashD, which uses a database of hashed passwords, it’s the username.</p><p class="calibre7">Each authentication plug-in provides its own system for logging in, whether it be via
+            passing tokens with an external site or a email/password form. After a successful login,
+            the plug-in sets a value in the user’s session to indicate his/her <code class="literal">AuthId</code>. This <code class="literal">AuthId</code> is
+            usually a Persistent ID from a table used for keeping track of users.</p><p class="calibre7">There are a few functions available for querying a user’s <code class="literal">AuthId</code>, most commonly <code class="literal">maybeAuthId</code>,
+                <code class="literal">requireAuthId</code>, <code class="literal">maybeAuth</code>, and <code class="literal">requireAuth</code>. The
+            required versions will redirect to a login page if the user is not logged in, while the
+            second set of functions (the ones <span class="bold"><strong class="bold">not</strong></span> ending in
+                <code class="literal">Id</code>) give both the table ID
+                <span class="firstname"><em class="calibre4">and</em></span> entity value.</p><p class="calibre7">Since all of the storage of <code class="literal">AuthId</code> is built on top of
+            sessions, all of the rules from there apply. In particular, the data is stored in an
+            encrypted HMACed client cookie, which automatically times out after a certain
+            configurable period of inactivity. Additionally, since there is no server-side component
+            to sessions, logging out simply deletes the data from the session cookie; if a user
+            reuses an older cookie value, the session will still be valid.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">There are plans to add in a server-side component to sessions, which would allow forced
+                logout. This will almost certainly be implemented before a 1.0 release of
+                Yesod.</p></div><p class="calibre7">On the flip side, authorization is handled by a few methods inside the <code class="literal">Yesod</code> typeclass. For every request, these methods are run
+            to determine if access should be allowed or denied, or if the user needs to be
+            authenticated. By default, these methods allow access for every request. Alternatively,
+            you can implement authorization in a more ad hoc way by adding calls to <code class="literal">requireAuth</code> and the like within individual handler
+            functions, though this undermines many of the benefits of a declarative authorization
+            system.</p></div></div></div>
+
+{% endraw %}
+

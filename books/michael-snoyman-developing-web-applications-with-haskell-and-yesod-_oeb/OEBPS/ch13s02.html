@@ -1,0 +1,48 @@
+---
+layout: page
+title: "Developing Web Applications with Haskell and Yesod"
+prev: OEBPS/ch13.html
+next: OEBPS/ch13s03.html
+book_path: books/michael-snoyman-developing-web-applications-with-haskell-and-yesod-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+<div class="book" title="The Three Transformers"><div class="book"><div class="book"><div class="book"><h1 class="title2"><a id="I_sect12_d1e6694" class="calibre1"></a>The Three Transformers</h1></div></div></div><p class="calibre7">We’ve already discussed two of our transformers previously: <code class="literal">Handler</code> and <code class="literal">Widget</code>. Just to recap,
+            there are two special things about these transformers:</p><div class="book"><ol class="orderedlist"><li class="listitem"><p class="calibre7">In order to simplify error messages, they are not actual transformers. Instead, they are
+    newtypes that hard-code their inner monads.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">Remember, this is why Yesod provides a
+     specialized <code class="literal">lift</code> function, which works for <code class="literal">Handler</code> and
+      <code class="literal">Widget</code>.</p></div></li><li class="listitem"><p class="calibre7">In reality they have extra type parameters for the sub and master site. As a result, the
+    Yesod libraries provide <code class="literal">GHandler sub master a</code> and <code class="literal">GWidget sub master
+     a</code>, and each site gets a pair of type synonyms <code class="literal">type Handler = GHandler MyApp
+     MyApp</code> and <code class="literal">type Widget = GWidget MyApp My App ()</code>.</p></li></ol></div><p class="calibre7">In <code class="function">persistent</code>, we have a typeclass called
+    <code class="literal">PersistStore</code>. This typeclass defines all of the primitive operations you can
+   perform on a database, like <code class="literal">get</code>. This typeclass essentially looks like
+    <code class="literal">class (Monad (b m)) =&gt; PersistStore b m</code>. <code class="literal">b</code> is the backend itself, and is in fact a monad transformer, while <code class="literal">m</code> is the inner monad that <code class="literal">b</code> wraps around. Both SQL and
+   MongoDB have their own instances; in the case of SQL, it looks like:</p><a id="I_programlisting2_d1e6760" class="firstname"></a><pre class="programlistinghaskell"><code class="kr">instance</code> <code class="kt">MonadBaseControl</code> <code class="kt">IO</code> <code class="n">m</code> <code class="ow">=&gt;</code> <code class="kt">PersistBackend</code> <code class="kt">SqlPersist</code> <code class="n">m</code>
+</pre><p class="calibre7">This means that you can run a SQL database with any underlying monad, so long as that
+   underlying monad supports <code class="literal">MonadBaseControl IO</code>, which allows you to
+   properly deal with exceptions in a monad stack. That basically means any transformer stack built
+   around <code class="literal">IO</code> (besides exceptional cases like <code class="literal">ContT</code>).
+   Fortunately for us, that includes both <code class="literal">Handler</code> and <code class="literal">Widget</code>. The
+   takeaway here is that we can layer our Persistent transformer on top of <code class="literal">Handler</code>
+   or <code class="literal">Widget</code>.</p><div class="tip" title="Note"><h3 class="title3">Note</h3><p class="calibre7">This wasn’t always the case. Before Yesod 0.10, Yesod was built on top of enumerators,
+                which do not support <code class="literal">MonadBaseControl</code>. In Yesod
+                0.10, we moved over to <code class="function">conduit</code>, which greatly
+                simplified everything we’re discussing here.</p></div><p class="calibre7">In order to make it simpler to refer to the relevant Persistent transformer, the
+    <code class="function">yesod-persistent</code> package defines the <code class="literal">YesodPersistBackend</code>
+   associated type. For example, if I have a site called <code class="literal">MyApp</code> and it uses SQL, I
+   would define something like <code class="literal">type instance YesodPersistBackend MyApp =
+   SqlPersist</code>.</p><p class="calibre7">When we want to run our database actions, we’ll have a <code class="literal">SqlPersist</code> wrapped around a <code class="literal">Handler</code> or
+                <code class="literal">Widget</code>. We can then use the standard Persistent
+            unwrap functions (like <code class="literal">runSqlPool</code>) to run the action
+            and get back a normal <code class="literal">Handler</code>/<code class="literal">Widget</code>. To automate this, we provide the <code class="literal">runDB</code> function. Putting it all together, we can now run
+            database actions inside our handlers and widgets.</p><p class="calibre7">Most of the time in Yesod code, and especially thus far in this book, widgets have been
+            treated as actionless containers that simply combine together HTML, CSS, and JavaScript.
+            But if you look at that last paragraph again, you’ll realize that’s not the way things
+            have to be. Since a widget is a transformer on top of a handler, anything you do in a
+            handler can be done in a widget, including database actions. All you have to do is
+                <code class="literal">lift</code>.</p></div></div>
+
+{% endraw %}
+

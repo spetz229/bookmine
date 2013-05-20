@@ -1,0 +1,297 @@
+---
+layout: page
+title: "Real World Haskell, 1st Edition"
+prev: I_sect126_d1e50419.html
+next: I_sect126_d1e51063_split_000.html
+book_path: books/real-world-haskell-_oeb/
+---
+{% include JB/setup %}
+{% raw %}
+<div>
+
+    <a name="toppage" class="calibre5" id="toppage"></a>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody">
+      <tr valign="top" class="calibre6">
+        <td class="calibre7">
+          <a name="MainContent" class="calibre5" id="MainContent"></a>
+          <table width="95%" class="sfbody">
+            <tr class="calibre6">
+              <td class="v">
+                <!--Copyright (c) 2002 Safari Tech Books Online-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody">
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1" height="5">
+                      <img src="pixel.gif" alt="" border="0" class="calibre8"/>
+                    </td>
+                  </tr>
+                  <tr class="calibre6">
+                    <td valign="middle" class="v1">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody">
+                        <tr class="calibre6">
+                          <td class="v"><span class="calibre9"> </span>
+                   
+                  <span class="calibre9">   </span>
+             <span class="calibre9"> </span></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="v1"/>
+                    <td valign="middle" class="v2"> 
+           
+          <span class="calibre9"><a target="_self" href="I_sect126_d1e50419.html" title="Previous section" class="calibre13"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre14"/></a></span>
+				
+				 
+				
+				<span class="calibre9"><a target="_self" href="I_sect126_d1e51063_split_000.html" title="Next section" class="calibre13"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre14"/></a></span></td>
+                  </tr>
+                </table>
+                <div id="section" class="calibre15">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v3">Safari IT Books Language Constructs Functional Programming Haskell Safari IT Books Programming Programming Programming Bryan O'Sullivan  Donald Bruce Stewart  John Goerzen  O'Reilly Media, Inc. Real World Haskell, 1st Edition<a name="I_sect126_d1e50755" class="calibre27" id="I_sect126_d1e50755"></a><h3 id="title-IDAQFJOB" class="docSection1Title">26.10. Testing with QuickCheck</h3><a name="x_V91" class="calibre27" id="x_V91"></a><p class="docText">Before we<a name="I_indexterm26_d1e50760" class="calibre27" id="I_indexterm26_d1e50760"></a> pay any attention to performance, we want to establish that
+    our Bloom filter behaves correctly. We can easily use QuickCheck to test
+    some basic properties:</p><pre class="calibre39">-- file: examples/BloomCheck.hs
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+module Main where
+
+import BloomFilter.Hash (Hashable)
+import Data.Word (Word8, Word32)
+import System.Random (Random(..), RandomGen)
+import Test.QuickCheck
+import qualified BloomFilter.Easy as B
+import qualified Data.ByteString as Strict
+import qualified Data.ByteString.Lazy as Lazy</pre><br class="calibre48"/>
+<a name="x_W91" class="calibre27" id="x_W91"></a><p class="docText">We will not use the normal <i class="docEmphasis">quickCheck</i> function<a name="I_indexterm26_d1e50771" class="calibre27" id="I_indexterm26_d1e50771"></a> to test our properties, as the 100 test inputs that it
+    generates do not provide much coverage:</p><pre class="calibre39">-- file: examples/BloomCheck.hs
+handyCheck :: Testable a =&gt; Int -&gt; a -&gt; IO ()
+handyCheck limit = check defaultConfig {
+                     configMaxTest = limit
+                   , configEvery   = \_ _ -&gt; ""
+                   }</pre><br class="calibre48"/>
+<a name="x_X91" class="calibre27" id="x_X91"></a><p class="docText">Our first task is to ensure that if we add a value to a
+    Bloom filter, a subsequent <span class="docEmphasis">membership</span> test will always report it as
+    present, regardless of the chosen false positive rate or input
+    value.</p><a name="x_Y91" class="calibre27" id="x_Y91"></a><p class="docText">We will use the <i class="docEmphasis">easyList</i> function<a name="I_indexterm26_d1e50787" class="calibre27" id="I_indexterm26_d1e50787"></a> to create a Bloom filter. The Random instance
+    for Double generates numbers in the range zero to one, so
+    QuickCheck can <span class="docEmphasis">nearly</span> supply us with arbitrary false
+    positive rates.</p><a name="x_Z91" class="calibre27" id="x_Z91"></a><p class="docText">However, we need to ensure that both zero and one are
+    excluded from the false positives we test with. QuickCheck gives us two
+    ways to do this:</p><a name="I_indexterm26_d1e50825" class="calibre27" id="I_indexterm26_d1e50825"></a><dl class="docList1"><dt class="calibre48"><br class="calibre48"/><p class="calibre37"><span class="docPubcolor">C<span class="docEmphasis">onstruction</span></span></p></dt><dd class="calibre49"><p class="docText">We specify the range of valid values to generate. QuickCheck
+          provides a <i class="docEmphasis">forAll</i> combinator
+          for this purpose.</p></dd><dt class="calibre48"><br class="calibre48"/><p class="calibre37"><span class="docPubcolor">E<span class="docEmphasis">limination</span></span></p></dt><dd class="calibre49"><p class="docText">When QuickCheck generates an arbitrary value for us, we filter
+          out those that do not fit our criteria, using the <i class="docEmphasis">(==&gt;)</i> operator.<a name="I_indexterm26_d1e50825" class="calibre27" id="I_indexterm26_d1e50825"></a> If we reject a value in this way, a test will appear
+          to succeed.</p></dd></dl><a name="x_c91" class="calibre27" id="x_c91"></a><p class="docText">If we can choose either method, it is always preferable
+    to take the constructive approach. To see why, suppose that QuickCheck
+    generates 1,000 arbitrary values for us, and we filter out 800 as
+    unsuitable for some reason. We will <span class="docEmphasis">appear</span> to run
+    1,000 tests, but only 200 will actually do anything useful.</p><a name="x_d91" class="calibre27" id="x_d91"></a><p class="docText">Following this idea, when we generate desired false
+    positive rates, we could eliminate zeroes and ones from whatever
+    QuickCheck gives us, but instead we construct values in an interval that
+    will always be valid:</p><pre class="calibre39">-- file: examples/BloomCheck.hs
+falsePositive :: Gen Double
+falsePositive = choose (epsilon, 1 - epsilon)
+    where epsilon = 1e-6
+
+(=~&gt;) :: Either a b -&gt; (b -&gt; Bool) -&gt; Bool
+k =~&gt; f = either (const True) f k
+
+prop_one_present _ elt =
+    forAll falsePositive $ \errRate -&gt;
+      B.easyList errRate [elt] =~&gt; \filt -&gt;
+        elt `B.elem` filt</pre><br class="calibre48"/>
+<a name="x_e91" class="calibre27" id="x_e91"></a><p class="docText">Our small combinator, <i class="docEmphasis">(=~&gt;)</i>, lets us filter out failures of
+    <i class="docEmphasis">easyList</i>. If it fails, the test
+    automatically passes.</p><a name="I_sect126_d1e50755d1e51121" class="calibre27" id="I_sect126_d1e50755d1e51121"></a><h4 id="title-IDACJJOB" class="docSection1Title">26.10.1. Polymorphic Testing</h4><a name="x_f91" class="calibre27" id="x_f91"></a><p class="docText">QuickCheck requires properties to be<a name="I_indexterm26_d1e50852" class="calibre27" id="I_indexterm26_d1e50852"></a><a name="I_indexterm26_d1e50855" class="calibre27" id="I_indexterm26_d1e50855"></a> <span class="docEmphasis">monomorphic</span>. Since we have many
+      different hashable types that we would like to test, we want to avoid
+      having to write the same test in many different ways.</p><a name="x_g91" class="calibre27" id="x_g91"></a><p class="docText">Notice that although our <i class="docEmphasis">prop_one_present</i> function<a name="I_indexterm26_d1e50867" class="calibre27" id="I_indexterm26_d1e50867"></a> is polymorphic, it ignores its first argument. We use
+      this to simulate monomorphic properties, as follows:</p><pre class="calibre39">ghci&gt; <b class="calibre40">:load BloomCheck</b>
+[1 of 1] Compiling Main             ( BloomCheck.hs, interpreted )
+Ok, modules loaded: Main.
+ghci&gt; <b class="calibre40">:t prop_one_present</b>
+prop_one_present :: (Hashable a) =&gt; t -&gt; a -&gt; Property
+ghci&gt; <b class="calibre40">:t prop_one_present (undefined :: Int)   </b>
+prop_one_present (undefined :: Int) :: (Hashable a) =&gt; a -&gt; Property</pre><a name="x_h91" class="calibre27" id="x_h91"></a><p class="docText">We can supply any value as the first argument to
+      <i class="docEmphasis">prop_one_present</i>—all that matters
+      is its <span class="docEmphasis">type</span>, as the same type will be used for the
+      first element of the second argument:</p><pre class="calibre39">ghci&gt; <b class="calibre40">handyCheck 5000 $ prop_one_present (undefined :: Int)</b>
+Loading package array-0.1.0.0 ... linking ... done.
+Loading package bytestring-0.9.0.1.1 ... linking ... done.
+Loading package old-locale-1.0.0.0 ... linking ... done.
+Loading package old-time-1.0.0.0 ... linking ... done.
+Loading package random-1.0.0.0 ... linking ... done.
+Loading package QuickCheck-1.1.0.0 ... linking ... done.
+Loading package rwh-bloomfilter-0.1 ... linking ... done.
+OK, passed 5000 tests.
+ghci&gt; <b class="calibre40">handyCheck 5000 $ prop_one_present (undefined :: Double)</b>
+OK, passed 5000 tests.</pre><a name="x_i91" class="calibre27" id="x_i91"></a><p class="docText">If we populate a Bloom filter with many elements, they
+      should all be present afterwards:</p><pre class="calibre39">-- file: examples/BloomCheck.hs
+prop_all_present _ xs =
+    forAll falsePositive $ \errRate -&gt;
+      B.easyList errRate xs =~&gt; \filt -&gt;
+        all (`B.elem` filt) xs</pre><br class="calibre48"/>
+<a name="x_j91" class="calibre27" id="x_j91"></a><p class="docText">This test also succeeds:</p><pre class="calibre39">ghci&gt; <b class="calibre40">handyCheck 2000 $ prop_all_present (undefined :: Int)</b>
+OK, passed 2000 tests.
+</pre><a name="I_sect126_d1e50755d1e51192" class="calibre27" id="I_sect126_d1e50755d1e51192"></a><h4 id="title-IDAXLJOB" class="docSection1Title">26.10.2. Writing Arbitrary Instances for ByteStrings</h4><a name="x_k91" class="calibre27" id="x_k91"></a><p class="docText">The QuickCheck library does not provide
+      Arbitrary instances for ByteString types, so
+      we must write our own. Rather than create a ByteString
+      directly, we will use a <i class="docEmphasis">pack</i>
+      function to create one from a [Word8]:</p><pre class="calibre39">-- file: examples/BloomCheck.hs
+instance Arbitrary Lazy.ByteString where
+    arbitrary = Lazy.pack `fmap` arbitrary
+    coarbitrary = coarbitrary . Lazy.unpack
+
+instance Arbitrary Strict.ByteString where
+    arbitrary = Strict.pack `fmap` arbitrary
+    coarbitrary = coarbitrary . Strict.unpack</pre><br class="calibre48"/>
+<a name="x_l91" class="calibre27" id="x_l91"></a><p class="docText">Also missing from QuickCheck are Arbitrary
+      instances for the fixed-width types defined in <tt class="calibre34">Data.Word</tt>
+      and <tt class="calibre34">Data.Int</tt>. We need to at least create an
+      Arbitrary instance for Word8:</p><pre class="calibre39">-- file: examples/BloomCheck.hs
+instance Random Word8 where
+  randomR = integralRandomR
+  random = randomR (minBound, maxBound)
+
+instance Arbitrary Word8 where
+    arbitrary = choose (minBound, maxBound)
+    coarbitrary = integralCoarbitrary</pre><br class="calibre48"/>
+<a name="x_m91" class="calibre27" id="x_m91"></a><p class="docText">We support these instances with a few common functions
+      so that we can reuse them when writing instances for other integral
+      types:</p><pre class="calibre39">-- file: examples/BloomCheck.hs
+integralCoarbitrary n =
+    variant $ if m &gt;= 0 then 2*m else 2*(-m) + 1
+  where m = fromIntegral n
+
+integralRandomR (a,b) g = case randomR (c,d) g of
+                            (x,h) -&gt; (fromIntegral x, h)
+    where (c,d) = (fromIntegral a :: Integer,
+                   fromIntegral b :: Integer)
+
+instance Random Word32 where
+  randomR = integralRandomR
+  random = randomR (minBound, maxBound)
+
+instance Arbitrary Word32 where
+    arbitrary = choose (minBound, maxBound)
+    coarbitrary = integralCoarbitrary</pre><br class="calibre48"/>
+<a name="x_n91" class="calibre27" id="x_n91"></a><p class="docText">With these Arbitrary instances created, we
+      can try our existing properties on the ByteString
+      types:</p><pre class="calibre39">ghci&gt; <b class="calibre40">handyCheck 1000 $ prop_one_present (undefined :: Lazy.ByteString)</b>
+OK, passed 1000 tests.
+ghci&gt; <b class="calibre40">handyCheck 1000 $ prop_all_present (undefined :: Strict.ByteString)</b>
+OK, passed 1000 tests.</pre><a name="I_sect126_d1e50755d1e51256" class="calibre27" id="I_sect126_d1e50755d1e51256"></a><h4 id="title-IDAZNJOB" class="docSection1Title">26.10.3. Are Suggested Sizes Correct?</h4><a name="x_o91" class="calibre27" id="x_o91"></a><p class="docText">The cost of testing properties of easyList
+      increases rapidly as we increase the number of tests to run. We would
+      still like to have some assurance that <i class="docEmphasis">easyList</i> will behave well on huge inputs.
+      Since it is not practical to test this directly, we can use a proxy:
+      will <i class="docEmphasis">suggestSizing</i> give a sensible
+      array size and number of hashes even with extreme inputs?</p><a name="x_p91" class="calibre27" id="x_p91"></a><p class="docText">This is a slightly tricky property to check. We need to
+      vary both the desired false positive rate and the expected capacity.
+      When we looked at some results from the <i class="docEmphasis">sizings</i> function, we saw that the
+      relationship between these values is not easy to predict.</p><a name="x_q91" class="calibre27" id="x_q91"></a><p class="docText">We can try to ignore the complexity:</p><pre class="calibre39">-- file: examples/BloomCheck.hs
+prop_suggest_try1 =
+  forAll falsePositive $ \errRate -&gt;
+    forAll (choose (1,maxBound :: Word32)) $ \cap -&gt;
+      case B.suggestSizing (fromIntegral cap) errRate of
+        Left err -&gt; False
+        Right (bits,hashes) -&gt; bits &gt; 0 &amp;&amp; bits &lt; maxBound &amp;&amp; hashes &gt; 0</pre><br class="calibre48"/>
+<a name="x_r91" class="calibre27" id="x_r91"></a><p class="docText">Not surprisingly, this gives us a test that is not
+      actually useful:</p><pre class="calibre39">ghci&gt; <b class="calibre40">handyCheck 1000 $ prop_suggest_try1</b>
+Falsifiable, after 1 tests:
+0.2723862775515961
+2484762599
+ghci&gt; <b class="calibre40">handyCheck 1000 $ prop_suggest_try1</b>
+Falsifiable, after 3 tests:
+2.390547635799778e-2
+2315209155</pre><a name="x_s91" class="calibre27" id="x_s91"></a><p class="docText">When we plug the counterexamples that QuickCheck prints
+      into <i class="docEmphasis">suggestSizings</i>, we can see
+      that these inputs are rejected because they result in a bit array that
+      would be too large:</p><pre class="calibre39">ghci&gt; <b class="calibre40">B.suggestSizing 1678125842 8.501133057303545e-3</b>
+Left "capacity too large"
+</pre><a name="x_t91" class="calibre27" id="x_t91"></a><p class="docText">Since we can't easily predict which combinations will
+      cause this problem, we must resort to eliminating sizes and false
+      positive rates before they bite us:</p><pre class="calibre39">-- file: examples/BloomCheck.hs
+prop_suggest_try2 =
+    forAll falsePositive $ \errRate -&gt;
+      forAll (choose (1,fromIntegral maxWord32)) $ \cap -&gt;
+        let bestSize = fst . minimum $ B.sizings cap errRate
+        in bestSize &lt; fromIntegral maxWord32 ==&gt;
+           either (const False) sane $ B.suggestSizing cap errRate
+  where sane (bits,hashes) = bits &gt; 0 &amp;&amp; bits &lt; maxBound &amp;&amp; hashes &gt; 0
+        maxWord32 = maxBound :: Word32</pre><br class="calibre48"/>
+<a name="x_u91" class="calibre27" id="x_u91"></a><p class="docText">If we try this with a small number of tests, it seems
+      to work well:</p><pre class="calibre39">ghci&gt; <b class="calibre40">handyCheck 1000 $ prop_suggest_try2</b>
+OK, passed 1000 tests.
+</pre><a name="x_v91" class="calibre27" id="x_v91"></a><p class="docText">On a larger body of tests, we filter out too many
+      combinations:</p><pre class="calibre39">ghci&gt; <b class="calibre40">handyCheck 10000 $ prop_suggest_try2</b>
+Arguments exhausted after 2074 tests.
+</pre><a name="x_w91" class="calibre27" id="x_w91"></a><p class="docText">To deal with this, we try to reduce the likelihood of
+      generating inputs that we will subsequently reject:</p><pre class="calibre39">-- file: examples/BloomCheck.hs
+prop_suggestions_sane =
+    forAll falsePositive $ \errRate -&gt;
+      forAll (choose (1,fromIntegral maxWord32 `div` 8)) $ \cap -&gt;
+        let size = fst . minimum $ B.sizings cap errRate
+        in size &lt; fromIntegral maxWord32 ==&gt;
+           either (const False) sane $ B.suggestSizing cap errRate
+  where sane (bits,hashes) = bits &gt; 0 &amp;&amp; bits &lt; maxBound &amp;&amp; hashes &gt; 0
+        maxWord32 = maxBound :: Word32</pre><br class="calibre48"/>
+<a name="x_x91" class="calibre27" id="x_x91"></a><p class="docText">Finally, we have a robust looking property:</p><pre class="calibre39">ghci&gt; <b class="calibre40">handyCheck 40000 $ prop_suggestions_sane</b>
+OK, passed 40000 tests.
+</pre>
+<a href="21061538.html" class="calibre2"><img src="pixel.gif" alt="" border="0" class="calibre31"/></a><ul class="calibre18"></ul></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3" height="5">
+                        <img src="pixel.gif" alt="" border="0" class="calibre32"/>
+                      </td>
+                    </tr>
+                    <tr class="calibre16">
+                      <td valign="middle" class="v3">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%" class="sfbody1">
+                          <tr class="calibre16">
+                            <td class="v5"><span class="calibre33"> </span>
+                   
+                  <span class="calibre33">   </span>
+             <span class="calibre33"> </span></td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="v3"/>
+                      <td valign="middle" class="v6"> 
+           
+          <span class="calibre33"><a target="_self" href="I_sect126_d1e50419.html" title="Previous section" class="calibre2"><img border="0" src="btn_prev.gif" alt="Previous section" id="btn_prev" class="calibre17"/></a></span>
+				
+				 
+				
+				<span class="calibre33"><a target="_self" href="I_sect126_d1e51063_split_000.html" title="Next section" class="calibre2"><img border="0" src="btn_next.gif" alt="Next section" id="btn_next" class="calibre17"/></a></span></td>
+                    </tr>
+                  </table>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="2" class="sfbody1">
+                    <tr class="calibre16">
+                      <td valign="top" class="v6">
+                        <span class="calibre33"></span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!--IP User 2-->
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td class="calibre7">
+                         
+                      </td>
+      </tr>
+      <tr class="calibre6">
+        <td colspan="3" valign="bottom" class="calibre7">
+          <br class="calibre20"/>
+          <p class="v4"></p>
+          <br class="calibre20"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+{% endraw %}
+
