@@ -357,6 +357,14 @@ def process_book(src_path, book_name, is_pdf, export_paths):
 	meta['book_path'] = urllib.parse.quote(book_path)
 
 	metrics = dict((x,0) for x in cat_count)
+
+	for i in range(len(manifest)):
+		name, ex = os.path.splitext(manifest[i])
+		if ex == ".xhtml":
+			pp1 = os.path.join(book_path, name + '.xhtml')
+			pp2 = os.path.join(book_path, name + '.html')
+			os.replace(pp1, pp2)
+			manifest[i] = name + '.html'
 	for i,curr in enumerate(manifest):
 		prev = (manifest[i-1] if i != 0 else None)
 		next = (manifest[i+1] if i != len(manifest)-1 else None)
